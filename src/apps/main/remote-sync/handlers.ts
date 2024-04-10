@@ -76,7 +76,6 @@ ipcMain.handle('get-remote-sync-status', () =>
   remoteSyncManager.getSyncStatus()
 );
 const debouncedSynchronization = debounce(async () => {
-  Logger.debug('START');
   await remoteSyncManager.startRemoteSync();
   eventBus.emit('REMOTE_CHANGES_SYNCHED');
 }, 2_000);
