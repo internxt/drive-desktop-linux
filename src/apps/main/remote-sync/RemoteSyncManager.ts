@@ -194,10 +194,10 @@ export class RemoteSyncManager {
    * @returns
    */
   private async syncRemoteFiles(syncConfig: SyncConfig, from?: Date) {
-    const lastFilesSyncAt = from ?? (await this.getFileCheckpoint());
+    const fileCheckPoint = from ?? (await this.getFileCheckpoint());
     try {
       const { hasMore, result } = await this.fetchFilesFromRemote(
-        lastFilesSyncAt
+        fileCheckPoint
       );
 
       let lastFileSynced = null;
@@ -230,8 +230,8 @@ export class RemoteSyncManager {
       );
 
       reportError(error as Error, {
-        lastFilesSyncAt: lastFilesSyncAt
-          ? lastFilesSyncAt.toISOString()
+        lastFilesSyncAt: fileCheckPoint
+          ? fileCheckPoint.toISOString()
           : 'INITIAL_FILES_SYNC',
       });
       if (syncConfig.retry >= syncConfig.maxRetries) {
@@ -266,11 +266,11 @@ export class RemoteSyncManager {
    * @returns
    */
   private async syncRemoteFolders(syncConfig: SyncConfig, from?: Date) {
-    const lastFolderSyncAt = from ?? (await this.getLastFolderSyncAt());
+    const folderCheckPoint = from ?? (await this.getLastFolderSyncAt());
 
     try {
       const { hasMore, result } = await this.fetchFoldersFromRemote(
-        lastFolderSyncAt
+        folderCheckPoint
       );
 
       let lastFolderSynced = null;
@@ -302,8 +302,8 @@ export class RemoteSyncManager {
         error
       );
       reportError(error as Error, {
-        lastFoldersSyncAt: lastFolderSyncAt
-          ? lastFolderSyncAt.toISOString()
+        lastFoldersSyncAt: folderCheckPoint
+          ? folderCheckPoint.toISOString()
           : 'INITIAL_FOLDERS_SYNC',
       });
       if (syncConfig.retry >= syncConfig.maxRetries) {
