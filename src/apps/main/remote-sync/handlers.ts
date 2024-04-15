@@ -2,7 +2,6 @@ import eventBus from '../event-bus';
 import { RemoteSyncManager } from './RemoteSyncManager';
 import { DriveFilesCollection } from '../database/collections/DriveFileCollection';
 import { DriveFoldersCollection } from '../database/collections/DriveFolderCollection';
-import { clearRemoteSyncStore } from './helpers';
 import { getNewTokenClient } from '../../shared/HttpClient/main-process-client';
 import Logger from 'electron-log';
 import { ipcMain } from 'electron';
@@ -100,5 +99,4 @@ eventBus.on('USER_LOGGED_IN', async () => {
 eventBus.on('USER_LOGGED_OUT', () => {
   initialSyncReady = false;
   remoteSyncManager.resetRemoteSync();
-  clearRemoteSyncStore();
 });
