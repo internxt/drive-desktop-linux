@@ -1,4 +1,4 @@
-import { install } from '../nautilus-extension/install';
+import { install } from './nautilus-extension/install';
 import Logger from 'electron-log';
 import * as Sentry from '@sentry/electron/main';
 
