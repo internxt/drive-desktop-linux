@@ -106,7 +106,8 @@
     },
     "deb": {
       "depends": [
-        "libfuse2"
+        "libfuse2",
+        "python3-nautilus"
       ]
     },
     "directories": {
