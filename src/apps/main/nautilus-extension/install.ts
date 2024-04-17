@@ -3,7 +3,7 @@ import path from 'path';
 import os from 'os';
 import { doesFileExist } from '../../shared/fs/fileExists';
 
-const name = 'internxt-virtual-drive2.py';
+const name = 'internxt-virtual-drive.py';
 
 const homedir = os.homedir();
 
