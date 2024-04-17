@@ -1,4 +1,4 @@
-import { install } from './nautilus-extension/install';
+import { installNautilusExtension } from '../nautilus-extension/install';
 import Logger from 'electron-log';
 import * as Sentry from '@sentry/electron/main';
 
@@ -6,9 +6,9 @@ if (process.platform === 'linux') {
   import('../fuse/index');
 }
 
-install()
+installNautilusExtension()
   .then(() => {
-    Logger.debug('Extension Installed');
+    Logger.info('[Nautilus Extension] Extension Installed');
   })
   .catch((err) => {
     Logger.error(err);
