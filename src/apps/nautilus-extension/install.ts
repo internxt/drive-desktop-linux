@@ -1,8 +1,8 @@
+import Logger from 'electron-log';
 import fs from 'fs/promises';
-import path from 'path';
 import os from 'os';
+import path from 'path';
 import { doesFileExist } from '../shared/fs/fileExists';
-import { app } from 'electron';
 
 const name = 'internxt-virtual-drive.py';
 
@@ -11,17 +11,18 @@ const homedir = os.homedir();
 const destination = `${homedir}/.local/share/nautilus-python/extensions/${name}`;
 
 function extensionFile() {
-  if (!app.isPackaged) {
-    return path.join(__dirname, 'src', 'apps', 'nautilus-extension', name);
+  if (process.env.NODE_ENV === 'development') {
+    return path.join(__dirname, name);
+  } else {
+    return path.join(
+      //@ts-ignore
+      process.resourcesPath,
+      'src',
+      'apps',
+      'nautilus-extension',
+      name
+    );
   }
-
-  return path.join(
-    process.resourcesPath,
-    'src',
-    'apps',
-    'nautilus-extension',
-    name
-  );
 }
 
 export async function installNautilusExtension(): Promise<void> {
@@ -31,13 +32,15 @@ export async function installNautilusExtension(): Promise<void> {
   const source = extensionFile();
 
   await fs.cp(source, destination);
+
+  Logger.info('Added extension file to ', destination);
 }
 
 export async function uninstallNautilusExtension(): Promise<void> {
-  const isNotThere = await doesFileExist(destination);
-  if (isNotThere) return;
+  const isThere = await doesFileExist(destination);
+  if (!isThere) return;
 
-  const source = extensionFile();
+  await fs.rm(destination);
 
-  await fs.rm(source);
+  Logger.info('Deleted extension file from ', destination);
 }

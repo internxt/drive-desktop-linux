@@ -8,7 +8,7 @@ if (process.platform === 'linux') {
 
 installNautilusExtension()
   .then(() => {
-    Logger.info('[Nautilus Extension] Extension Installed');
+    Logger.info('[NAUTILUS EXTENSION] Extension Installed');
   })
   .catch((err) => {
     Logger.error(err);
