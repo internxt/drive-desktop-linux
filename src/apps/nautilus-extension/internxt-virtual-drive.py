@@ -24,6 +24,8 @@ SYNC_STATUS_ATTRIBUTE ="SYNC_STATUS"
 SYNC_STATUS_ATTRIBUTE_NAME ="Sync Status"
 SYNC_STATUS_ONLY_ONLINE="Only online"
 
+VIRTUAL_DRIVE_ROOT_FOLDER_NAME = "Internxt%20Drive"
+
 
 class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.ColumnProvider,
                       Nautilus.InfoProvider):
@@ -43,7 +45,8 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
 
         user_home = os.path.expanduser("~")
-        self.root_folder = os.path.join(user_home, 'InternxtDrive')
+        root_folder = os.path.join(user_home, VIRTUAL_DRIVE_ROOT_FOLDER_NAME)
+        self.root_folder = root_folder
         self.file_base_dir = f"file://{self.root_folder}"
 
     def get_file_items(self, *args):
