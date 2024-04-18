@@ -25,11 +25,8 @@ export function base(): ContainerBuilder {
 
   builder.register(Environment).useInstance(environment).private();
 
-  builder
-    .register(EventRepository)
-    .use(InMemoryEventRepository)
-    .asSingleton()
-    .private();
+  builder.register(EventRepository).use(InMemoryEventRepository).asSingleton();
+  // TODO: should be private
 
   builder
     .register(EventBus)
@@ -37,8 +34,8 @@ export function base(): ContainerBuilder {
       const bus = new NodeJsEventBus();
       return new EventRecorder(c.get(EventRepository), bus);
     })
-    .asSingleton()
-    .private();
+    .asSingleton();
+  // TODO: should be private
 
   builder
     .register(Traverser)

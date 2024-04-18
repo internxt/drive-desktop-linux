@@ -10,6 +10,7 @@ export function folders(builder: ContainerBuilder): ContainerBuilder {
     .register(FolderRepository)
     .use(InMemoryFolderRepository)
     .asSingleton();
+  // It has to be private
 
   builder.registerAndUse(ParentFolderFinder);
   builder.registerAndUse(SingleFolderMatchingFinder);

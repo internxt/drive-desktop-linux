@@ -1,4 +1,4 @@
-import { Container } from 'diod';
+import { Container, ContainerBuilder } from 'diod';
 import { AllParentFoldersStatusIsExists } from '../../../../../context/virtual-drive/folders/application/AllParentFoldersStatusIsExists';
 import { FolderCreator } from '../../../../../context/virtual-drive/folders/application/FolderCreator';
 import { FolderCreatorFromOfflineFolder } from '../../../../../context/virtual-drive/folders/application/FolderCreatorFromOfflineFolder';
@@ -16,99 +16,152 @@ import { FuseLocalFileSystem } from '../../../../../context/virtual-drive/folder
 import { HttpRemoteFileSystem } from '../../../../../context/virtual-drive/folders/infrastructure/HttpRemoteFileSystem';
 import { MainProcessSyncFolderMessenger } from '../../../../../context/virtual-drive/folders/infrastructure/SyncMessengers/MainProcessSyncFolderMessenger';
 import { DependencyInjectionHttpClientsProvider } from '../../common/clients';
-import { DependencyInjectionEventBus } from '../../common/eventBus';
 import { FoldersContainer } from './FoldersContainer';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
+import { SyncFolderMessenger } from '../../../../../context/virtual-drive/folders/domain/SyncFolderMessenger';
+import { RemoteFileSystem } from '../../../../../context/virtual-drive/folders/domain/file-systems/RemoteFileSystem';
+import { LocalFileSystem } from '../../../../../context/virtual-drive/folders/domain/file-systems/LocalFileSystem';
+import { EventBus } from '../../../../../context/virtual-drive/shared/domain/EventBus';
 
 export async function buildFoldersContainer(
   initialFolders: Array<Folder>,
+  builder: ContainerBuilder,
   container: Container
-): Promise<FoldersContainer> {
+): Promise<{
+  old: FoldersContainer;
+  c: Container;
+}> {
   const repository = container.get(FolderRepository);
-  const clients = DependencyInjectionHttpClientsProvider.get();
-
-  const syncFolderMessenger = new MainProcessSyncFolderMessenger();
-
-  const remoteFileSystem = new HttpRemoteFileSystem(
-    // @ts-ignore
-    clients.drive,
-    clients.newDrive
-  );
-
-  const localFileSystem = new FuseLocalFileSystem();
-
-  const { bus: eventBus } = DependencyInjectionEventBus;
 
   const folderRepositoryInitiator = new FolderRepositoryInitializer(repository);
 
   await folderRepositoryInitiator.run(initialFolders);
 
-  const parentFolderFinder = new ParentFolderFinder(repository);
-  const singleFolderMatchingFinder = new SingleFolderMatchingFinder(repository);
-  const singleFolderMatchingSearcher = new SingleFolderMatchingSearcher(
-    repository
-  );
+  const clients = DependencyInjectionHttpClientsProvider.get();
 
-  const foldersByParentPathSearcher = new FoldersByParentPathLister(
-    singleFolderMatchingFinder,
-    repository
-  );
+  builder.register(SyncFolderMessenger).use(MainProcessSyncFolderMessenger);
+  // TODO: can be private?
 
-  const folderMover = new FolderMover(
-    repository,
-    remoteFileSystem,
-    parentFolderFinder
-  );
+  builder
+    .register(RemoteFileSystem)
+    .useFactory(() => {
+      return new HttpRemoteFileSystem(
+        // @ts-ignore
+        clients.drive,
+        clients.newDrive
+      );
+    })
+    .private();
 
-  const folderRenamer = new FolderRenamer(
-    repository,
-    remoteFileSystem,
-    eventBus,
-    syncFolderMessenger
-  );
+  builder.register(LocalFileSystem).use(FuseLocalFileSystem);
 
-  const folderPathUpdater = new FolderPathUpdater(
-    repository,
-    folderMover,
-    folderRenamer
-  );
+  builder
+    .register(ParentFolderFinder)
+    .useFactory(() => new ParentFolderFinder(repository));
 
-  const allParentFoldersStatusIsExists = new AllParentFoldersStatusIsExists(
-    repository
-  );
+  builder
+    .register(SingleFolderMatchingFinder)
+    .useFactory(() => new SingleFolderMatchingFinder(repository));
 
-  const folderCreatorFromOfflineFolder = new FolderCreatorFromOfflineFolder(
-    repository,
-    remoteFileSystem,
-    eventBus,
-    syncFolderMessenger
-  );
+  builder
+    .register(SingleFolderMatchingSearcher)
+    .useFactory(() => new SingleFolderMatchingSearcher(repository));
 
-  const folderCreator = new FolderCreator(
-    repository,
-    parentFolderFinder,
-    remoteFileSystem,
-    eventBus
-  );
+  builder
+    .register(FoldersByParentPathLister)
+    .useFactory(
+      (c) =>
+        new FoldersByParentPathLister(
+          c.get(SingleFolderMatchingFinder),
+          repository
+        )
+    );
 
-  const folderDeleter = new FolderDeleter(
-    repository,
-    remoteFileSystem,
-    localFileSystem,
-    allParentFoldersStatusIsExists
-  );
+  builder
+    .register(FolderMover)
+    .useFactory(
+      (c) =>
+        new FolderMover(
+          repository,
+          c.get(RemoteFileSystem),
+          c.get(ParentFolderFinder)
+        )
+    );
 
-  return {
-    parentFolderFinder,
-    foldersByParentPathLister: foldersByParentPathSearcher,
-    folderPathUpdater,
-    allParentFoldersStatusIsExists,
-    folderCreatorFromOfflineFolder,
-    folderCreator,
-    folderDeleter,
-    syncFolderMessenger,
-    folderRepositoryInitiator,
-    singleFolderMatchingFinder,
-    singleFolderMatchingSearcher,
+  builder
+    .register(FolderRenamer)
+    .useFactory(
+      (c) =>
+        new FolderRenamer(
+          repository,
+          c.get(RemoteFileSystem),
+          container.get(EventBus),
+          c.get(SyncFolderMessenger)
+        )
+    );
+  builder
+    .register(FolderPathUpdater)
+    .useFactory(
+      (c) =>
+        new FolderPathUpdater(
+          repository,
+          c.get(FolderMover),
+          c.get(FolderRenamer)
+        )
+    );
+
+  builder
+    .register(AllParentFoldersStatusIsExists)
+    .useFactory(() => new AllParentFoldersStatusIsExists(repository));
+
+  builder
+    .register(FolderCreatorFromOfflineFolder)
+    .useFactory(
+      (c) =>
+        new FolderCreatorFromOfflineFolder(
+          repository,
+          c.get(RemoteFileSystem),
+          container.get(EventBus),
+          c.get(SyncFolderMessenger)
+        )
+    );
+  builder
+    .register(FolderCreator)
+    .useFactory(
+      (c) =>
+        new FolderCreator(
+          repository,
+          c.get(ParentFolderFinder),
+          c.get(RemoteFileSystem),
+          container.get(EventBus)
+        )
+    );
+  builder
+    .register(FolderDeleter)
+    .useFactory(
+      (c) =>
+        new FolderDeleter(
+          repository,
+          c.get(RemoteFileSystem),
+          c.get(LocalFileSystem),
+          c.get(AllParentFoldersStatusIsExists)
+        )
+    );
+
+  const c = builder.build();
+
+  const old = {
+    parentFolderFinder: c.get(ParentFolderFinder),
+    foldersByParentPathLister: c.get(FoldersByParentPathLister),
+    folderPathUpdater: c.get(FolderPathUpdater),
+    allParentFoldersStatusIsExists: c.get(AllParentFoldersStatusIsExists),
+    folderCreatorFromOfflineFolder: c.get(FolderCreatorFromOfflineFolder),
+    folderCreator: c.get(FolderCreator),
+    folderDeleter: c.get(FolderDeleter),
+    syncFolderMessenger: c.get(SyncFolderMessenger),
+    singleFolderMatchingFinder: c.get(SingleFolderMatchingFinder),
+    singleFolderMatchingSearcher: c.get(SingleFolderMatchingSearcher),
   };
+
+  return { old, c };
 }

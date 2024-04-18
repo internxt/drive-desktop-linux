@@ -1,8 +1,8 @@
+import { Service } from 'diod';
 import { SingleFolderMatchingFinder } from '../../folders/application/SingleFolderMatchingFinder';
 import { File } from '../domain/File';
 import { FileRepository } from '../domain/FileRepository';
 import { FileStatuses } from '../domain/FileStatus';
-import { Service } from 'diod';
 
 @Service()
 export class FilesByFolderPathSearcher {
