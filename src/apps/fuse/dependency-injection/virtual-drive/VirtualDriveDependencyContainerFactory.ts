@@ -4,6 +4,7 @@ import { buildFilesContainer } from './files/builder';
 import { buildFoldersContainer } from './folders/builder';
 import { buildSharedContainer } from './shared/builder';
 import { buildTreeContainer } from './tree/builder';
+import { Container } from 'diod';
 
 export class VirtualDriveDependencyContainerFactory {
   private static _container: VirtualDriveDependencyContainer | undefined;
@@ -23,7 +24,7 @@ export class VirtualDriveDependencyContainerFactory {
     return VirtualDriveDependencyContainerFactory._container[key];
   }
 
-  async build(): Promise<VirtualDriveDependencyContainer> {
+  async build(c: Container): Promise<VirtualDriveDependencyContainer> {
     if (VirtualDriveDependencyContainerFactory._container !== undefined) {
       return VirtualDriveDependencyContainerFactory._container;
     }
@@ -34,11 +35,12 @@ export class VirtualDriveDependencyContainerFactory {
 
     const sharedContainer = await buildSharedContainer();
 
-    const folderContainer = await buildFoldersContainer(tree.folders);
+    const folderContainer = await buildFoldersContainer(tree.folders, c);
     const contentsContainer = await buildContentsContainer(sharedContainer);
     const filesContainer = await buildFilesContainer(
       tree.files,
-      folderContainer
+      folderContainer,
+      c
     );
 
     const container = {

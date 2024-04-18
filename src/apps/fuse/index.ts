@@ -6,6 +6,7 @@ import { FuseApp } from './FuseApp';
 import path from 'path';
 import { FuseDependencyContainerFactory } from './dependency-injection/FuseDependencyContainerFactory';
 import { getRootVirtualDrive } from '../main/virtual-root-folder/service';
+import { HydrationApi } from '../hydration-api/HydrationApi';
 
 let fuseApp: FuseApp;
 
@@ -17,8 +18,16 @@ async function startFuseApp() {
   const appData = app.getPath('appData');
   const local = path.join(appData, 'internxt-drive', 'downloaded');
 
+  const hydrationApi = new HydrationApi();
+
+  await hydrationApi.start({ debug: true });
+
+  if (!hydrationApi.c) {
+    throw new Error('CANNOT ACCESS CONTAINER');
+  }
+
   const containerFactory = new FuseDependencyContainerFactory();
-  const container = await containerFactory.build();
+  const container = await containerFactory.build(hydrationApi.c);
 
   fuseApp = new FuseApp(container, {
     root,

@@ -9,8 +9,7 @@ export function folders(builder: ContainerBuilder): ContainerBuilder {
   builder
     .register(FolderRepository)
     .use(InMemoryFolderRepository)
-    .asSingleton()
-    .private();
+    .asSingleton();
 
   builder.registerAndUse(ParentFolderFinder);
   builder.registerAndUse(SingleFolderMatchingFinder);

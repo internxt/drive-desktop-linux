@@ -7,11 +7,7 @@ import { RetrieveAllFiles } from '../../../../../context/virtual-drive/files/app
 import { FilesSearcherByPartialMatch } from '../../../../../context/virtual-drive/files/application/search-all/FilesSearcherByPartialMatch';
 
 export function files(builder: ContainerBuilder): ContainerBuilder {
-  builder
-    .register(FileRepository)
-    .use(InMemoryFileRepository)
-    .asSingleton()
-    .private();
+  builder.register(FileRepository).use(InMemoryFileRepository).asSingleton();
 
   builder.registerAndUse(FilesByFolderPathSearcher);
   builder.registerAndUse(FirstsFileSearcher);

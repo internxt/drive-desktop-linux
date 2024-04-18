@@ -1,29 +1,30 @@
+import { Container } from 'diod';
 import { AllParentFoldersStatusIsExists } from '../../../../../context/virtual-drive/folders/application/AllParentFoldersStatusIsExists';
 import { FolderCreator } from '../../../../../context/virtual-drive/folders/application/FolderCreator';
 import { FolderCreatorFromOfflineFolder } from '../../../../../context/virtual-drive/folders/application/FolderCreatorFromOfflineFolder';
 import { FolderDeleter } from '../../../../../context/virtual-drive/folders/application/FolderDeleter';
-import { ParentFolderFinder } from '../../../../../context/virtual-drive/folders/application/ParentFolderFinder';
 import { FolderMover } from '../../../../../context/virtual-drive/folders/application/FolderMover';
 import { FolderPathUpdater } from '../../../../../context/virtual-drive/folders/application/FolderPathUpdater';
 import { FolderRenamer } from '../../../../../context/virtual-drive/folders/application/FolderRenamer';
 import { FolderRepositoryInitializer } from '../../../../../context/virtual-drive/folders/application/FolderRepositoryInitializer';
 import { FoldersByParentPathLister } from '../../../../../context/virtual-drive/folders/application/FoldersByParentPathLister';
+import { ParentFolderFinder } from '../../../../../context/virtual-drive/folders/application/ParentFolderFinder';
+import { SingleFolderMatchingFinder } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingFinder';
+import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import { FuseLocalFileSystem } from '../../../../../context/virtual-drive/folders/infrastructure/FuseLocalFileSystem';
 import { HttpRemoteFileSystem } from '../../../../../context/virtual-drive/folders/infrastructure/HttpRemoteFileSystem';
 import { MainProcessSyncFolderMessenger } from '../../../../../context/virtual-drive/folders/infrastructure/SyncMessengers/MainProcessSyncFolderMessenger';
-import { InMemoryFolderRepositorySingleton } from '../../../../shared/dependency-injection/virtual-drive/folders/InMemoryFolderRepositorySingleton';
 import { DependencyInjectionHttpClientsProvider } from '../../common/clients';
 import { DependencyInjectionEventBus } from '../../common/eventBus';
-
 import { FoldersContainer } from './FoldersContainer';
-import { SingleFolderMatchingFinder } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingFinder';
-import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
+import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 
 export async function buildFoldersContainer(
-  initialFolders: Array<Folder>
+  initialFolders: Array<Folder>,
+  container: Container
 ): Promise<FoldersContainer> {
-  const repository = InMemoryFolderRepositorySingleton.instance;
+  const repository = container.get(FolderRepository);
   const clients = DependencyInjectionHttpClientsProvider.get();
 
   const syncFolderMessenger = new MainProcessSyncFolderMessenger();

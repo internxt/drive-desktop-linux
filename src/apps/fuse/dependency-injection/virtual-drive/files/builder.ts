@@ -16,18 +16,21 @@ import { DependencyInjectionEventBus } from '../../common/eventBus';
 import { DependencyInjectionEventRepository } from '../../common/eventRepository';
 import { DependencyInjectionStorageSdk } from '../../common/sdk';
 import { DependencyInjectionUserProvider } from '../../common/user';
-import { FoldersContainer } from '../folders/FoldersContainer';
 import { FilesContainer } from './FilesContainer';
-import { InMemoryFileRepositorySingleton } from '../../../../shared/dependency-injection/virtual-drive/files/InMemoryFileRepositorySingleton';
 import { SingleFileMatchingSearcher } from '../../../../../context/virtual-drive/files/application/SingleFileMatchingSearcher';
 import { FilesSearcherByPartialMatch } from '../../../../../context/virtual-drive/files/application/search-all/FilesSearcherByPartialMatch';
 import { FileOverrider } from '../../../../../context/virtual-drive/files/application/override/FileOverrider';
+import { Container } from 'diod';
+import { SingleFolderMatchingFinder } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingFinder';
+import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
+import { FoldersContainer } from '../folders/FoldersContainer';
 
 export async function buildFilesContainer(
   initialFiles: Array<File>,
-  folderContainer: FoldersContainer
+  folderContainer: FoldersContainer,
+  container: Container
 ): Promise<FilesContainer> {
-  const repository = InMemoryFileRepositorySingleton.instance;
+  const repository = container.get(FileRepository);
   const eventRepository = DependencyInjectionEventRepository.get();
   const user = DependencyInjectionUserProvider.get();
   const sdk = await DependencyInjectionStorageSdk.get();
@@ -42,7 +45,7 @@ export async function buildFilesContainer(
 
   const filesByFolderPathNameLister = new FilesByFolderPathSearcher(
     repository,
-    folderContainer.singleFolderMatchingFinder
+    container.get(SingleFolderMatchingFinder)
   );
 
   const filesSearcher = new FirstsFileSearcher(repository);

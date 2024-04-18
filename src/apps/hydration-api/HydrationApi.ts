@@ -3,7 +3,7 @@ import express, { Router } from 'express';
 import { buildContentsRouter } from './routes/contents';
 import { buildFilesRouter } from './routes/files';
 import { build } from './dependency-injection/build';
-
+import { Container } from 'diod';
 export interface HydrationApiOptions {
   debug: boolean;
 }
@@ -11,6 +11,7 @@ export interface HydrationApiOptions {
 export class HydrationApi {
   private static readonly PORT = 4567;
   private readonly app;
+  public c: Container | undefined;
 
   constructor() {
     this.app = express();
@@ -18,6 +19,7 @@ export class HydrationApi {
 
   private async buildRouters() {
     const container = await build();
+    this.c = container;
 
     const routers = {
       contents: buildContentsRouter(container),

@@ -1,4 +1,4 @@
-import { Container, ContainerBuilder } from 'diod';
+import { Container } from 'diod';
 import { base } from '../../shared/dependency-injection/base';
 import { common } from '../../shared/dependency-injection/main/common';
 import { files } from './virtual-drive/files/files';

@@ -3,6 +3,7 @@ import { FuseDomainEventSubscribers } from './FuseDomainEventSubscribers';
 import { DependencyInjectionEventBus } from './common/eventBus';
 import { OfflineDriveDependencyContainerFactory } from './offline/OfflineDriveDependencyContainerFactory';
 import { VirtualDriveDependencyContainerFactory } from './virtual-drive/VirtualDriveDependencyContainerFactory';
+import { Container } from 'diod';
 
 type FuseDependencyContainerFactorySubscribers = Array<
   | keyof FuseDependencyContainer['offlineDriveContainer']
@@ -25,7 +26,7 @@ export class FuseDependencyContainerFactory {
     return FuseDependencyContainerFactory._container[key];
   }
 
-  async build(): Promise<FuseDependencyContainer> {
+  async build(c: Container): Promise<FuseDependencyContainer> {
     if (FuseDependencyContainerFactory._container !== undefined) {
       return FuseDependencyContainerFactory._container;
     }
@@ -34,7 +35,7 @@ export class FuseDependencyContainerFactory {
 
     const virtualDriveContainerFactory =
       new VirtualDriveDependencyContainerFactory();
-    const virtualDriveContainer = await virtualDriveContainerFactory.build();
+    const virtualDriveContainer = await virtualDriveContainerFactory.build(c);
 
     const offlineDriveContainerFactory =
       new OfflineDriveDependencyContainerFactory();
