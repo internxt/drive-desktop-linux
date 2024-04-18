@@ -26,6 +26,10 @@ function extensionFile() {
   }
 }
 
+export async function isInstalled(): Promise<boolean> {
+  return await doesFileExist(destination);
+}
+
 export async function copyNautilusExtensionFile(): Promise<void> {
   const alreadyExists = await doesFileExist(destination);
   if (alreadyExists) return;
