@@ -1,13 +1,13 @@
 import Logger from 'electron-log';
 import {
-  installNautilusExtension,
+  copyNautilusExtensionFile,
   reloadNautilus,
-  uninstallNautilusExtension,
-} from './install';
+  deleteNautilusExtensionFile,
+} from './service';
 
 async function reload() {
-  await uninstallNautilusExtension();
-  await installNautilusExtension();
+  await deleteNautilusExtensionFile();
+  await copyNautilusExtensionFile();
   await reloadNautilus();
 }
 
