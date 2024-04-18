@@ -3,7 +3,9 @@ import { FolderNotFoundError } from '../domain/errors/FolderNotFoundError';
 import { Folder } from '../domain/Folder';
 import { FolderRepository } from '../domain/FolderRepository';
 import { FolderStatuses } from '../domain/FolderStatus';
+import { Service } from 'diod';
 
+@Service()
 export class ParentFolderFinder {
   constructor(private readonly repository: FolderRepository) {}
 

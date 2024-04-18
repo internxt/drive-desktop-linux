@@ -1,6 +1,8 @@
 import { File } from '../domain/File';
 import { FileRepository } from '../domain/FileRepository';
+import { Service } from 'diod';
 
+@Service()
 export class RetrieveAllFiles {
   constructor(private readonly repository: FileRepository) {}
 

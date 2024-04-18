@@ -1,7 +1,9 @@
 import { Folder } from '../domain/Folder';
 import { FolderRepository } from '../domain/FolderRepository';
 import { SingleFolderMatchingFinder } from './SingleFolderMatchingFinder';
+import { Service } from 'diod';
 
+@Service()
 export class FoldersByParentPathLister {
   constructor(
     private readonly SingleFolderMatchingFinder: SingleFolderMatchingFinder,

@@ -1,5 +1,11 @@
-import { getUser } from '../../../main/auth/service';
 import { User } from '../../../main/types';
+import ConfigStore from '../../../main/config';
+
+function getUser(): User | null {
+  const user = ConfigStore.get('userData');
+
+  return user && Object.keys(user).length ? user : null;
+}
 
 export class DependencyInjectionUserProvider {
   private static _user: User;

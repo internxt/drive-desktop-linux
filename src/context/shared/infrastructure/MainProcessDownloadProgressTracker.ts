@@ -3,7 +3,9 @@ import { setTrayStatus } from '../../../apps/main/tray/tray';
 import { broadcastToWindows } from '../../../apps/main/windows';
 import { DownloadProgressTracker } from '../domain/DownloadProgressTracker';
 import { SyncMessenger } from '../domain/SyncMessenger';
+import { Service } from 'diod';
 
+@Service()
 export class MainProcessDownloadProgressTracker
   extends SyncMessenger
   implements DownloadProgressTracker

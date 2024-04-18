@@ -1,8 +1,8 @@
 import Logger from 'electron-log';
 import express, { Router } from 'express';
-import { DependencyContainerFactory } from './dependency-injection/DependencyContainerFactory';
 import { buildContentsRouter } from './routes/contents';
 import { buildFilesRouter } from './routes/files';
+import { build } from './dependency-injection/build';
 
 export interface HydrationApiOptions {
   debug: boolean;
@@ -17,8 +17,7 @@ export class HydrationApi {
   }
 
   private async buildRouters() {
-    const containerFactory = new DependencyContainerFactory();
-    const container = await containerFactory.build();
+    const container = await build();
 
     const routers = {
       contents: buildContentsRouter(container),
