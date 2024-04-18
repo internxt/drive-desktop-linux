@@ -8,10 +8,10 @@ import { EnvironmentRemoteFileContentsManagersFactory } from '../../../../../con
 import { FSLocalFileSystem } from '../../../../../context/virtual-drive/contents/infrastructure/FSLocalFileSystem';
 import { LocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/domain/LocalFileContentsDirectoryProvider';
 import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
-import { DependencyInjectionUserProvider } from '../../../../shared/dependency-injection/main/DependencyInjectionUserProvider';
+import { DependencyInjectionMainProcessUserProvider } from '../../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
 
 export function contents(builder: ContainerBuilder): ContainerBuilder {
-  const user = DependencyInjectionUserProvider.get();
+  const user = DependencyInjectionMainProcessUserProvider.get();
 
   // Private
   builder

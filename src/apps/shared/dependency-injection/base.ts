@@ -1,5 +1,5 @@
 import { ContainerBuilder } from 'diod';
-import { DependencyInjectionUserProvider } from './main/DependencyInjectionUserProvider';
+import { DependencyInjectionMainProcessUserProvider } from './main/DependencyInjectionMainProcessUserProvider';
 import { Environment } from '@internxt/inxt-js';
 import { EventBus } from '../../../context/virtual-drive/shared/domain/EventBus';
 import { EventRepository } from '../../../context/virtual-drive/shared/domain/EventRepository';
@@ -7,14 +7,14 @@ import { EventRecorder } from '../../../context/virtual-drive/shared/infrastruct
 import { NodeJsEventBus } from '../../../context/virtual-drive/shared/infrastructure/NodeJsEventBus';
 import { Traverser } from '../../../context/virtual-drive/tree/application/Traverser';
 import crypt from '../../../context/shared/infrastructure/crypt';
-import { DependencyInjectionMnemonicProvider } from './main/DependencyInjectionMnemonicProvider';
+import { DependencyInjectionMainProcessMnemonicProvider } from './main/DependencyInjectionMainProcessMnemonicProvider';
 import { InMemoryEventRepository } from '../../../context/virtual-drive/shared/infrastructure/InMemoryEventHistory';
 
 export function base(): ContainerBuilder {
   const builder = new ContainerBuilder();
 
-  const user = DependencyInjectionUserProvider.get();
-  const mnemonic = DependencyInjectionMnemonicProvider.get();
+  const user = DependencyInjectionMainProcessUserProvider.get();
+  const mnemonic = DependencyInjectionMainProcessMnemonicProvider.get();
 
   const environment = new Environment({
     bridgeUrl: process.env.BRIDGE_URL,

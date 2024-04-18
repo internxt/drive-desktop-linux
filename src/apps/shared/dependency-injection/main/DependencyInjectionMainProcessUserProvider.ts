@@ -7,17 +7,17 @@ function getUser(): User | null {
   return user && Object.keys(user).length ? user : null;
 }
 
-export class DependencyInjectionUserProvider {
+export class DependencyInjectionMainProcessUserProvider {
   private static _user: User;
 
   static get() {
-    if (DependencyInjectionUserProvider._user)
-      return DependencyInjectionUserProvider._user;
+    if (DependencyInjectionMainProcessUserProvider._user)
+      return DependencyInjectionMainProcessUserProvider._user;
 
     const user = getUser();
 
     if (user) {
-      DependencyInjectionUserProvider._user = user;
+      DependencyInjectionMainProcessUserProvider._user = user;
       return user;
     }
 
