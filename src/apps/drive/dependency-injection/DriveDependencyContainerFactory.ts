@@ -5,7 +5,7 @@ import { FolderRepositoryInitializer } from '../../../context/virtual-drive/fold
 import { EventBus } from '../../../context/virtual-drive/shared/domain/EventBus';
 import { TreeBuilder } from '../../../context/virtual-drive/tree/application/TreeBuilder';
 import { mainProcessSharedInfraBuilder } from '../../shared/dependency-injection/main/mainProcessSharedInfraContainer';
-import { OfflineDriveDependencyContainerFactory } from './offline/OfflineDriveDependencyContainerFactory';
+import { OfflineDependencyContainerFactory } from './offline/OfflineDependencyContainerFactory';
 import { VirtualDriveDependencyContainerFactory } from './virtual-drive/VirtualDriveDependencyContainerFactory';
 import { Container } from 'diod';
 
@@ -15,7 +15,7 @@ export class DriveDependencyContainerFactory {
 
     await VirtualDriveDependencyContainerFactory.build(builder);
 
-    await OfflineDriveDependencyContainerFactory.build(builder);
+    await OfflineDependencyContainerFactory.build(builder);
 
     const container = builder.build();
 

@@ -1,15 +1,15 @@
 import { ContainerBuilder } from 'diod';
-import { registerContentsServices } from './contents/registerContentsServices';
-import { registerFilesServices } from './files/builder';
-import { registerFolderServices } from './folders/builder';
-import { buildSharedContainer } from './shared/builder';
-import { registerTreeServices } from './tree/registerTreeServices';
+import { registerContentsServices } from './registerContentsServices';
+import { registerFilesServices } from './registerFilesServices';
+import { registerFolderServices } from './registerFolderServices';
+import { registerSharedServices } from './registerSharedServices';
+import { registerTreeServices } from './registerTreeServices';
 
 export class VirtualDriveDependencyContainerFactory {
   static async build(builder: ContainerBuilder): Promise<void> {
     registerTreeServices(builder);
 
-    await buildSharedContainer(builder);
+    await registerSharedServices(builder);
 
     await registerFolderServices(builder);
 

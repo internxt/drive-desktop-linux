@@ -1,10 +1,10 @@
 import { ContainerBuilder } from 'diod';
 import path from 'path';
-import { AbsolutePathToRelativeConverter } from '../../../../../context/virtual-drive/shared/application/AbsolutePathToRelativeConverter';
-import { RelativePathToAbsoluteConverter } from '../../../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
-import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
+import { AbsolutePathToRelativeConverter } from '../../../../context/virtual-drive/shared/application/AbsolutePathToRelativeConverter';
+import { RelativePathToAbsoluteConverter } from '../../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
+import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
 
-export async function buildSharedContainer(
+export async function registerSharedServices(
   builder: ContainerBuilder
 ): Promise<void> {
   const localFileContentsDirectoryProvider =
