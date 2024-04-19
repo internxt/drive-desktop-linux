@@ -49,8 +49,8 @@ export function sharedInfraBuilder(): ContainerBuilder {
       return Traverser.existingItems(crypt, user.root_folder_id);
     })
     .asSingleton()
-    .private()
     .addTag('shared');
+  // TODO: should be private
 
   return builder;
 }

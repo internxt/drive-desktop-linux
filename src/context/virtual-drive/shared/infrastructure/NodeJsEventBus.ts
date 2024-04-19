@@ -17,4 +17,8 @@ export class NodeJsEventBus extends EventEmitter implements EventBus {
       });
     });
   }
+
+  instance() {
+    return this;
+  }
 }

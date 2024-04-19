@@ -84,4 +84,8 @@ export class MainProcessDownloadProgressTracker
       name: nameWithExtension,
     });
   }
+
+  instance(): DownloadProgressTracker {
+    return this;
+  }
 }

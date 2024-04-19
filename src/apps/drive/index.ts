@@ -1,14 +1,11 @@
-import Logger from 'electron-log';
-
 import { app, ipcMain } from 'electron';
-import eventBus from '../main/event-bus';
-import { FuseApp } from './FuseApp';
+import Logger from 'electron-log';
 import path from 'path';
-import { FuseDependencyContainerFactory } from './dependency-injection/FuseDependencyContainerFactory';
-import { getRootVirtualDrive } from '../main/virtual-root-folder/service';
+import { FuseApp } from '../fuse/FuseApp';
 import { HydrationApi } from '../hydration-api/HydrationApi';
-import { mainProcessSharedInfraContainer } from '../shared/dependency-injection/main/mainProcessSharedInfraContainer';
-import { HydrationApiContainerFactory } from '../hydration-api/dependency-injection/HydrationApiContainerFactory';
+import eventBus from '../main/event-bus';
+import { getRootVirtualDrive } from '../main/virtual-root-folder/service';
+import { DriveDependencyContainerFactory } from './dependency-injection/DriveDependencyContainerFactory';
 
 let fuseApp: FuseApp;
 
@@ -20,19 +17,11 @@ async function startFuseApp() {
   const appData = app.getPath('appData');
   const local = path.join(appData, 'internxt-drive', 'downloaded');
 
-  const sharedInfrastructure = await mainProcessSharedInfraContainer();
+  const container = await DriveDependencyContainerFactory.build();
 
-  const hydrationApiContainer = await HydrationApiContainerFactory.build(
-    sharedInfrastructure
-  );
+  const hydrationApi = new HydrationApi(container);
 
-  const fuseContainer = await FuseDependencyContainerFactory.build(
-    sharedInfrastructure
-  );
-
-  const hydrationApi = new HydrationApi(hydrationApiContainer);
-
-  fuseApp = new FuseApp(fuseContainer, {
+  fuseApp = new FuseApp(container, {
     root,
     local,
   });

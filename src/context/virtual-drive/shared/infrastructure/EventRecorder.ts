@@ -19,4 +19,8 @@ export class EventRecorder implements EventBus {
   addSubscribers(subscribers: Array<DomainEventSubscriber<DomainEvent>>): void {
     this.bus.addSubscribers(subscribers);
   }
+
+  instance() {
+    return this;
+  }
 }

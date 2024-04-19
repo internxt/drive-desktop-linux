@@ -10,7 +10,7 @@ import { TemporalOfflineDeleter } from '../../../../../context/offline-drive/fil
 import { InMemoryOfflineFileRepository } from '../../../../../context/offline-drive/files/infrastructure/InMemoryOfflineFileRepository';
 import { OfflineFileRepository } from '../../../../../context/offline-drive/files/domain/OfflineFileRepository';
 
-export async function buildOfflineFilesContainer(
+export async function registerOfflineFilesServices(
   builder: ContainerBuilder
 ): Promise<void> {
   // Infra

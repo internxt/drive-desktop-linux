@@ -18,16 +18,12 @@ import { LocalFileContentsDirectoryProvider } from '../../../../../context/virtu
 import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
 import { DependencyInjectionMainProcessUserProvider } from '../../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
 
-export async function buildOfflineContentsContainer(
+export async function registerOfflineContentsServices(
   builder: ContainerBuilder
 ): Promise<void> {
   const user = DependencyInjectionMainProcessUserProvider.get();
 
   // Infra
-  builder
-    .register(LocalFileContentsDirectoryProvider)
-    .use(FuseAppDataLocalFileContentsDirectoryProvider)
-    .private();
 
   builder
     .register(OfflineContentsRepository)
@@ -43,13 +39,7 @@ export async function buildOfflineContentsContainer(
     })
     .private();
 
-  builder
-    .register(UploadProgressTracker)
-    .use(MainProcessUploadProgressTracker)
-    .private();
-
   // Services
-  builder.registerAndUse(OfflineContentsAppender);
   builder.registerAndUse(OfflineContentsAppender);
 
   builder

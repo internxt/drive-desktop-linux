@@ -1,49 +1,31 @@
 import { Environment } from '@internxt/inxt-js';
+import { ContainerBuilder } from 'diod';
+import { AllLocalContentsDeleter } from '../../../../../context/virtual-drive/contents/application/AllLocalContentsDeleter';
 import { ContentsUploader } from '../../../../../context/virtual-drive/contents/application/ContentsUploader';
 import { DownloadContentsToPlainFile } from '../../../../../context/virtual-drive/contents/application/DownloadContentsToPlainFile';
 import { LocalContentChecker } from '../../../../../context/virtual-drive/contents/application/LocalContentChecker';
+import { LocalContentsMover } from '../../../../../context/virtual-drive/contents/application/LocalContentsMover';
+import { MoveOfflineContentsOnContentsUploaded } from '../../../../../context/virtual-drive/contents/application/MoveOfflineContentsOnContentsUploaded';
 import { RetryContentsUploader } from '../../../../../context/virtual-drive/contents/application/RetryContentsUploader';
+import { ContentsManagersFactory } from '../../../../../context/virtual-drive/contents/domain/ContentsManagersFactory';
+import { LocalContentsProvider } from '../../../../../context/virtual-drive/contents/domain/LocalFileProvider';
+import { LocalFileSystem } from '../../../../../context/virtual-drive/contents/domain/LocalFileSystem';
 import { EnvironmentRemoteFileContentsManagersFactory } from '../../../../../context/virtual-drive/contents/infrastructure/EnvironmentRemoteFileContentsManagersFactory';
 import { FSLocalFileProvider } from '../../../../../context/virtual-drive/contents/infrastructure/FSLocalFileProvider';
 import { FSLocalFileSystem } from '../../../../../context/virtual-drive/contents/infrastructure/FSLocalFileSystem';
-import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
-import { MoveOfflineContentsOnContentsUploaded } from '../../../../../context/virtual-drive/contents/application/MoveOfflineContentsOnContentsUploaded';
-import { LocalContentsMover } from '../../../../../context/virtual-drive/contents/application/LocalContentsMover';
-import { AllLocalContentsDeleter } from '../../../../../context/virtual-drive/contents/application/AllLocalContentsDeleter';
-import { MainProcessUploadProgressTracker } from '../../../../../context/shared/infrastructure/MainProcessUploadProgressTracker';
-import { MainProcessDownloadProgressTracker } from '../../../../../context/shared/infrastructure/MainProcessDownloadProgressTracker';
-import { Container, ContainerBuilder } from 'diod';
-import { DependencyInjectionMainProcessUserProvider } from '../../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
-import { EventBus } from '../../../../../context/virtual-drive/shared/domain/EventBus';
-import { UploadProgressTracker } from '../../../../../context/shared/domain/UploadProgressTracker';
-import { ContentsManagersFactory } from '../../../../../context/virtual-drive/contents/domain/ContentsManagersFactory';
 import { LocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/domain/LocalFileContentsDirectoryProvider';
-import { LocalFileSystem } from '../../../../../context/virtual-drive/contents/domain/LocalFileSystem';
-import { DownloadProgressTracker } from '../../../../../context/shared/domain/DownloadProgressTracker';
-import { LocalContentsProvider } from '../../../../../context/virtual-drive/contents/domain/LocalFileProvider';
+import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
+import { DependencyInjectionMainProcessUserProvider } from '../../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
 
-export function registerContentsServices(
-  builder: ContainerBuilder,
-  sharedInfrastructure: Container
-): void {
+export function registerContentsServices(builder: ContainerBuilder): void {
   const user = DependencyInjectionMainProcessUserProvider.get();
-
-  const eventBus = sharedInfrastructure.get(EventBus);
-  const environment = sharedInfrastructure.get(Environment);
-
-  builder.register(EventBus).useInstance(eventBus);
-
-  builder
-    .register(UploadProgressTracker)
-    .use(MainProcessUploadProgressTracker)
-    .private();
 
   builder
     .register(ContentsManagersFactory)
     .useFactory(
-      () =>
+      (c) =>
         new EnvironmentRemoteFileContentsManagersFactory(
-          environment,
+          c.get(Environment),
           user.bucket
         )
     )
@@ -63,11 +45,6 @@ export function registerContentsServices(
           'downloaded'
         )
     )
-    .private();
-
-  builder
-    .register(DownloadProgressTracker)
-    .use(MainProcessDownloadProgressTracker)
     .private();
 
   builder.register(LocalContentsProvider).use(FSLocalFileProvider).private();
