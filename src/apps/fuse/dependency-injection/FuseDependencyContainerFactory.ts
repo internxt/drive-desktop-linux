@@ -1,53 +1,39 @@
-import { FuseDependencyContainer } from './FuseDependencyContainer';
-import { FuseDomainEventSubscribers } from './FuseDomainEventSubscribers';
-import { DependencyInjectionEventBus } from './common/eventBus';
+import { DomainEvent } from '../../../context/shared/domain/DomainEvent';
+import { DomainEventSubscriber } from '../../../context/shared/domain/DomainEventSubscriber';
+import { EventBus } from '../../../context/virtual-drive/shared/domain/EventBus';
 import { OfflineDriveDependencyContainerFactory } from './offline/OfflineDriveDependencyContainerFactory';
 import { VirtualDriveDependencyContainerFactory } from './virtual-drive/VirtualDriveDependencyContainerFactory';
-import { Container } from 'diod';
-
-type FuseDependencyContainerFactorySubscribers = Array<
-  | keyof FuseDependencyContainer['offlineDriveContainer']
-  | keyof FuseDependencyContainer['virtualDriveContainer']
->;
+import { Container, ContainerBuilder, Newable } from 'diod';
 
 export class FuseDependencyContainerFactory {
-  private static _container: FuseDependencyContainer | undefined;
+  static async build(sharedInfrastructure: Container): Promise<Container> {
+    const builder = new ContainerBuilder();
 
-  static readonly subscribers: FuseDependencyContainerFactorySubscribers = [
-    ...VirtualDriveDependencyContainerFactory.subscribers,
-    ...OfflineDriveDependencyContainerFactory.subscribers,
-  ];
+    const sharedServices = sharedInfrastructure
+      .findTaggedServiceIdentifiers('shared')
+      .map((identifier) => sharedInfrastructure.get(identifier));
 
-  eventSubscribers(
-    key: keyof FuseDependencyContainer
-  ): FuseDependencyContainer[keyof FuseDependencyContainer] | undefined {
-    if (!FuseDependencyContainerFactory._container) return undefined;
+    sharedServices.forEach((service) =>
+      builder.registerAndUse(service as Newable<unknown>)
+    );
 
-    return FuseDependencyContainerFactory._container[key];
-  }
+    await VirtualDriveDependencyContainerFactory.build(
+      builder,
+      sharedInfrastructure
+    );
 
-  async build(c: Container): Promise<FuseDependencyContainer> {
-    if (FuseDependencyContainerFactory._container !== undefined) {
-      return FuseDependencyContainerFactory._container;
-    }
+    await OfflineDriveDependencyContainerFactory.build(builder);
 
-    const { bus } = DependencyInjectionEventBus;
+    const container = builder.build();
 
-    const virtualDriveContainerFactory =
-      new VirtualDriveDependencyContainerFactory();
-    const virtualDriveContainer = await virtualDriveContainerFactory.build(c);
+    const subscribers = container
+      .findTaggedServiceIdentifiers<DomainEventSubscriber<DomainEvent>>(
+        'event-handler'
+      )
+      .map((identifier) => container.get(identifier));
 
-    const offlineDriveContainerFactory =
-      new OfflineDriveDependencyContainerFactory();
-    const offlineDriveContainer = await offlineDriveContainerFactory.build();
-
-    const container = {
-      offlineDriveContainer,
-      virtualDriveContainer,
-    };
-
-    bus.addSubscribers(FuseDomainEventSubscribers.from(container));
-    FuseDependencyContainerFactory._container = container;
+    const eventBus = container.get(EventBus);
+    eventBus.addSubscribers(subscribers);
 
     return container;
   }

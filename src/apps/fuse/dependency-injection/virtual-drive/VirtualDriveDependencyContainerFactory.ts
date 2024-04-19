@@ -1,65 +1,26 @@
-import { VirtualDriveDependencyContainer } from './VirtualDriveDependencyContainer';
-import { buildContentsContainer } from './contents/builder';
-import { buildFilesContainer } from './files/builder';
-import { buildFoldersContainer } from './folders/builder';
-import { buildSharedContainer } from './shared/builder';
-import { buildTreeContainer } from './tree/builder';
 import { Container, ContainerBuilder } from 'diod';
+import { registerContentsServices } from './contents/registerContentsServices';
+import { registerFilesServices } from './files/builder';
+import { registerFolderServices } from './folders/builder';
+import { buildSharedContainer } from './shared/builder';
+import { registerTreeServices } from './tree/registerTreeServices';
+import { TreeBuilder } from '../../../../context/virtual-drive/tree/application/TreeBuilder';
 
 export class VirtualDriveDependencyContainerFactory {
-  private static _container: VirtualDriveDependencyContainer | undefined;
+  static async build(
+    builder: ContainerBuilder,
+    sharedInfrastructure: Container
+  ): Promise<void> {
+    registerTreeServices(builder, sharedInfrastructure);
 
-  static readonly subscribers: Array<keyof VirtualDriveDependencyContainer> = [
-    'createFileOnOfflineFileUploaded',
-    'moveOfflineContentsOnContentsUploaded',
-  ];
+    const tree = await sharedInfrastructure.get(TreeBuilder).run();
 
-  eventSubscribers(
-    key: keyof VirtualDriveDependencyContainer
-  ):
-    | VirtualDriveDependencyContainer[keyof VirtualDriveDependencyContainer]
-    | undefined {
-    if (!VirtualDriveDependencyContainerFactory._container) return undefined;
+    await buildSharedContainer(builder);
 
-    return VirtualDriveDependencyContainerFactory._container[key];
-  }
+    await registerFolderServices(builder, sharedInfrastructure, tree.folders);
 
-  async build(
-    hydrationContainer: Container
-  ): Promise<VirtualDriveDependencyContainer> {
-    if (VirtualDriveDependencyContainerFactory._container !== undefined) {
-      return VirtualDriveDependencyContainerFactory._container;
-    }
+    registerContentsServices(builder, sharedInfrastructure);
 
-    const builder = new ContainerBuilder();
-
-    const treeContainer = buildTreeContainer();
-
-    const tree = await treeContainer.existingNodesTreeBuilder.run();
-
-    const sharedContainer = await buildSharedContainer();
-
-    const { old: folderContainer } = await buildFoldersContainer(
-      tree.folders,
-      builder,
-      hydrationContainer
-    );
-
-    const contentsContainer = await buildContentsContainer(sharedContainer);
-    const { old: filesContainer } = await buildFilesContainer(
-      tree.files,
-      builder,
-      hydrationContainer
-    );
-
-    const container = {
-      ...treeContainer,
-      ...folderContainer,
-      ...filesContainer,
-      ...contentsContainer,
-      ...sharedContainer,
-    };
-
-    return container;
+    await registerFilesServices(builder, sharedInfrastructure, tree.files);
   }
 }

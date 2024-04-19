@@ -4,6 +4,7 @@ import { SQLiteRemoteItemsGenerator } from '../../../../../context/virtual-drive
 import { NameDecrypt } from '../../../../../context/virtual-drive/tree/domain/NameDecrypt';
 import { CryptoJsNameDecrypt } from '../../../../../context/virtual-drive/tree/infrastructure/CryptoJsNameDecrypt';
 import { TreeBuilder } from '../../../../../context/virtual-drive/tree/application/TreeBuilder';
+
 export function tree(builder: ContainerBuilder): ContainerBuilder {
   builder
     .register(RemoteItemsGenerator)

@@ -1,10 +1,12 @@
+import { ContainerBuilder } from 'diod';
 import path from 'path';
+import { AbsolutePathToRelativeConverter } from '../../../../../context/virtual-drive/shared/application/AbsolutePathToRelativeConverter';
 import { RelativePathToAbsoluteConverter } from '../../../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
 import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
-import { SharedContainer } from './SharedContainer';
-import { AbsolutePathToRelativeConverter } from '../../../../../context/virtual-drive/shared/application/AbsolutePathToRelativeConverter';
 
-export async function buildSharedContainer(): Promise<SharedContainer> {
+export async function buildSharedContainer(
+  builder: ContainerBuilder
+): Promise<void> {
   const localFileContentsDirectoryProvider =
     new FuseAppDataLocalFileContentsDirectoryProvider();
 
@@ -12,16 +14,10 @@ export async function buildSharedContainer(): Promise<SharedContainer> {
 
   const base = path.join(dir, 'downloaded');
 
-  const relativePathToAbsoluteConverter = new RelativePathToAbsoluteConverter(
-    base
-  );
-
-  const absolutePathToRelativeConverter = new AbsolutePathToRelativeConverter(
-    base
-  );
-
-  return {
-    relativePathToAbsoluteConverter,
-    absolutePathToRelativeConverter,
-  };
+  builder
+    .register(RelativePathToAbsoluteConverter)
+    .useFactory(() => new RelativePathToAbsoluteConverter(base));
+  builder
+    .register(AbsolutePathToRelativeConverter)
+    .useFactory(() => new AbsolutePathToRelativeConverter(base));
 }

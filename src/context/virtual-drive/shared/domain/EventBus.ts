@@ -1,9 +1,9 @@
-import { Service } from 'diod';
-import { SyncEngineDomainEventSubscribers } from '../../../../apps/sync-engine/dependency-injection/SyncEngineDomainEventSubscribers';
 import { DomainEvent } from '../../../shared/domain/DomainEvent';
+import { DomainEventSubscriber } from '../../../shared/domain/DomainEventSubscriber';
 
-@Service()
 export abstract class EventBus {
   abstract publish(events: Array<DomainEvent>): Promise<void>;
-  abstract addSubscribers(subscribers: SyncEngineDomainEventSubscribers): void;
+  abstract addSubscribers(
+    subscribers: Array<DomainEventSubscriber<DomainEvent>>
+  ): void;
 }

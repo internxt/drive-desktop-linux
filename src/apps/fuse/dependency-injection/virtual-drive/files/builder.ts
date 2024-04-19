@@ -25,38 +25,34 @@ import { SingleFolderMatchingFinder } from '../../../../../context/virtual-drive
 import { EventBus } from '../../../../../context/virtual-drive/shared/domain/EventBus';
 import { EventRepository } from '../../../../../context/virtual-drive/shared/domain/EventRepository';
 import { DependencyInjectionHttpClientsProvider } from '../../common/clients';
-import { DependencyInjectionStorageSdk } from '../../common/sdk';
-import { DependencyInjectionUserProvider } from '../../common/user';
-import { FilesContainer } from './FilesContainer';
+import { DependencyInjectionMainProcessStorageSdk } from '../../../../shared/dependency-injection/main/DependencyInjectionMainProcessStorageSdk';
+import { DependencyInjectionMainProcessUserProvider } from '../../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
 
-export async function buildFilesContainer(
-  initialFiles: Array<File>,
-  fuseBuilder: ContainerBuilder,
-  hydrationContainer: Container
-): Promise<{
-  old: FilesContainer;
-  c: Container;
-}> {
+export async function registerFilesServices(
+  builder: ContainerBuilder,
+  hydrationContainer: Container,
+  initialFiles: Array<File>
+): Promise<void> {
   const repository = hydrationContainer.get(FileRepository);
 
-  const user = DependencyInjectionUserProvider.get();
-  const sdk = await DependencyInjectionStorageSdk.get();
+  const user = DependencyInjectionMainProcessUserProvider.get();
+  const sdk = await DependencyInjectionMainProcessStorageSdk.get();
   const clients = DependencyInjectionHttpClientsProvider.get();
 
   const repositoryPopulator = new FileRepositoryInitializer(repository);
 
   await repositoryPopulator.run(initialFiles);
 
-  fuseBuilder.register(SyncFileMessenger).use(MainProcessSyncFileMessenger);
+  builder.register(SyncFileMessenger).use(MainProcessSyncFileMessenger);
 
-  fuseBuilder
+  builder
     .register(FirstsFileSearcher)
     .useFactory(() => new FirstsFileSearcher(repository));
-  fuseBuilder
+  builder
     .register(SingleFileMatchingSearcher)
     .useFactory(() => new SingleFileMatchingSearcher(repository));
 
-  fuseBuilder
+  builder
     .register(FilesByFolderPathSearcher)
     .useFactory(
       () =>
@@ -66,15 +62,15 @@ export async function buildFilesContainer(
         )
     );
 
-  fuseBuilder
+  builder
     .register(RemoteFileSystem)
     .useFactory(
       () => new SDKRemoteFileSystem(sdk, clients, crypt, user.bucket)
     );
 
-  fuseBuilder.register(LocalFileSystem).use(FuseLocalFileSystem);
+  builder.register(LocalFileSystem).use(FuseLocalFileSystem);
 
-  fuseBuilder.register(FilePathUpdater).useFactory((c) => {
+  builder.register(FilePathUpdater).useFactory((c) => {
     return new FilePathUpdater(
       c.get(RemoteFileSystem),
       c.get(LocalFileSystem),
@@ -85,7 +81,7 @@ export async function buildFilesContainer(
     );
   });
 
-  fuseBuilder.register(SameFileWasMoved).useFactory((c) => {
+  builder.register(SameFileWasMoved).useFactory((c) => {
     return new SameFileWasMoved(
       c.get(SingleFileMatchingSearcher),
       c.get(LocalFileSystem),
@@ -93,7 +89,7 @@ export async function buildFilesContainer(
     );
   });
 
-  fuseBuilder.register(FileDeleter).useFactory((c) => {
+  builder.register(FileDeleter).useFactory((c) => {
     return new FileDeleter(
       c.get(RemoteFileSystem),
       c.get(LocalFileSystem),
@@ -103,7 +99,7 @@ export async function buildFilesContainer(
     );
   });
 
-  fuseBuilder.register(FileCreator).useFactory((c) => {
+  builder.register(FileCreator).useFactory((c) => {
     return new FileCreator(
       c.get(RemoteFileSystem),
       repository,
@@ -114,11 +110,11 @@ export async function buildFilesContainer(
     );
   });
 
-  fuseBuilder.register(FilesSearcherByPartialMatch).useFactory((c) => {
+  builder.register(FilesSearcherByPartialMatch).useFactory(() => {
     return new FilesSearcherByPartialMatch(repository);
   });
 
-  fuseBuilder.register(FileOverrider).useFactory((c) => {
+  builder.register(FileOverrider).useFactory((c) => {
     return new FileOverrider(
       c.get(RemoteFileSystem),
       repository,
@@ -126,7 +122,7 @@ export async function buildFilesContainer(
     );
   });
 
-  fuseBuilder
+  builder
     .register(CreateFileOnOfflineFileUploaded)
     .useFactory((c) => {
       return new CreateFileOnOfflineFileUploaded(
@@ -135,24 +131,4 @@ export async function buildFilesContainer(
       );
     })
     .addTag('event-handler');
-
-  const c = fuseBuilder.build();
-
-  const old = {
-    filesByFolderPathNameLister: c.get(FilesByFolderPathSearcher),
-    filesSearcher: c.get(FirstsFileSearcher),
-    filePathUpdater: c.get(FilePathUpdater),
-    sameFileWasMoved: c.get(SameFileWasMoved),
-    fileCreator: c.get(FileCreator),
-    fileDeleter: c.get(FileDeleter),
-    syncFileMessenger: c.get(SyncFileMessenger),
-    filesSearcherByPartialMatch: c.get(FilesSearcherByPartialMatch),
-    // event handlers
-    createFileOnOfflineFileUploaded: c.get(CreateFileOnOfflineFileUploaded),
-  };
-
-  return {
-    old,
-    c,
-  };
 }

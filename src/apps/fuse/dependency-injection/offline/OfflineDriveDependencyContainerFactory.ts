@@ -1,46 +1,14 @@
-import { buildBoundaryBridgeContainer } from './BoundaryBridge/boundaryBridgeContainerBuilder';
-import { buildOfflineContentsContainer } from './OfflineContents/offlineContentsContainerBuilder';
-import { OfflineDriveDependencyContainer } from './OfflineDriveDependencyContainer';
-import { buildOfflineFilesContainer } from './OfflineFiles/builder';
+import { ContainerBuilder } from 'diod';
+import { buildBoundaryBridgeContainer as registerBoundaryBridgeContainer } from './BoundaryBridge/boundaryBridgeContainerBuilder';
+import { buildOfflineContentsContainer as registerOfflineContentsServices } from './OfflineContents/registerOfflineContentsServices';
+import { buildOfflineFilesContainer as registerOfflineFilesServices } from './OfflineFiles/buildOfflineFilesContainer';
 
 export class OfflineDriveDependencyContainerFactory {
-  private static _container: OfflineDriveDependencyContainer | undefined;
+  static async build(builder: ContainerBuilder): Promise<void> {
+    await registerOfflineFilesServices(builder);
 
-  static readonly subscribers: Array<keyof OfflineDriveDependencyContainer> = [
-    'clearOfflineFileOnFileCreated',
-  ];
+    await registerOfflineContentsServices(builder);
 
-  eventSubscribers(
-    key: keyof OfflineDriveDependencyContainer
-  ):
-    | OfflineDriveDependencyContainer[keyof OfflineDriveDependencyContainer]
-    | undefined {
-    if (!OfflineDriveDependencyContainerFactory._container) return undefined;
-
-    return OfflineDriveDependencyContainerFactory._container[key];
-  }
-
-  async build(): Promise<OfflineDriveDependencyContainer> {
-    if (OfflineDriveDependencyContainerFactory._container !== undefined) {
-      return OfflineDriveDependencyContainerFactory._container;
-    }
-
-    const filesContainer = await buildOfflineFilesContainer();
-    const contentsContainer = await buildOfflineContentsContainer(
-      filesContainer
-    );
-
-    const boundaryBridgeContainer = await buildBoundaryBridgeContainer(
-      filesContainer,
-      contentsContainer
-    );
-
-    const container = {
-      ...filesContainer,
-      ...contentsContainer,
-      ...boundaryBridgeContainer,
-    };
-
-    return container;
+    await registerBoundaryBridgeContainer(builder);
   }
 }

@@ -10,7 +10,7 @@ import { FilesSearcherByPartialMatch } from '../../../../../context/virtual-driv
 
 export interface FilesContainer {
   filesByFolderPathNameLister: FilesByFolderPathSearcher;
-  filesSearcher: FirstsFileSearcher;
+  FirstsFileSearcher: FirstsFileSearcher;
   filePathUpdater: FilePathUpdater;
   fileCreator: FileCreator;
   fileDeleter: FileDeleter;

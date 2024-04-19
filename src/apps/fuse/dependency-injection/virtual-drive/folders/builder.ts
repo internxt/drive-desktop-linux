@@ -16,22 +16,18 @@ import { FuseLocalFileSystem } from '../../../../../context/virtual-drive/folder
 import { HttpRemoteFileSystem } from '../../../../../context/virtual-drive/folders/infrastructure/HttpRemoteFileSystem';
 import { MainProcessSyncFolderMessenger } from '../../../../../context/virtual-drive/folders/infrastructure/SyncMessengers/MainProcessSyncFolderMessenger';
 import { DependencyInjectionHttpClientsProvider } from '../../common/clients';
-import { FoldersContainer } from './FoldersContainer';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import { SyncFolderMessenger } from '../../../../../context/virtual-drive/folders/domain/SyncFolderMessenger';
 import { RemoteFileSystem } from '../../../../../context/virtual-drive/folders/domain/file-systems/RemoteFileSystem';
 import { LocalFileSystem } from '../../../../../context/virtual-drive/folders/domain/file-systems/LocalFileSystem';
 import { EventBus } from '../../../../../context/virtual-drive/shared/domain/EventBus';
 
-export async function buildFoldersContainer(
-  initialFolders: Array<Folder>,
+export async function registerFolderServices(
   builder: ContainerBuilder,
-  container: Container
-): Promise<{
-  old: FoldersContainer;
-  c: Container;
-}> {
-  const repository = container.get(FolderRepository);
+  sharedInfrastructure: Container,
+  initialFolders: Array<Folder>
+): Promise<void> {
+  const repository = sharedInfrastructure.get(FolderRepository);
 
   const folderRepositoryInitiator = new FolderRepositoryInitializer(repository);
 
@@ -95,7 +91,7 @@ export async function buildFoldersContainer(
         new FolderRenamer(
           repository,
           c.get(RemoteFileSystem),
-          container.get(EventBus),
+          sharedInfrastructure.get(EventBus),
           c.get(SyncFolderMessenger)
         )
     );
@@ -121,7 +117,7 @@ export async function buildFoldersContainer(
         new FolderCreatorFromOfflineFolder(
           repository,
           c.get(RemoteFileSystem),
-          container.get(EventBus),
+          sharedInfrastructure.get(EventBus),
           c.get(SyncFolderMessenger)
         )
     );
@@ -133,7 +129,7 @@ export async function buildFoldersContainer(
           repository,
           c.get(ParentFolderFinder),
           c.get(RemoteFileSystem),
-          container.get(EventBus)
+          sharedInfrastructure.get(EventBus)
         )
     );
   builder
@@ -147,21 +143,4 @@ export async function buildFoldersContainer(
           c.get(AllParentFoldersStatusIsExists)
         )
     );
-
-  const c = builder.build();
-
-  const old = {
-    parentFolderFinder: c.get(ParentFolderFinder),
-    foldersByParentPathLister: c.get(FoldersByParentPathLister),
-    folderPathUpdater: c.get(FolderPathUpdater),
-    allParentFoldersStatusIsExists: c.get(AllParentFoldersStatusIsExists),
-    folderCreatorFromOfflineFolder: c.get(FolderCreatorFromOfflineFolder),
-    folderCreator: c.get(FolderCreator),
-    folderDeleter: c.get(FolderDeleter),
-    syncFolderMessenger: c.get(SyncFolderMessenger),
-    singleFolderMatchingFinder: c.get(SingleFolderMatchingFinder),
-    singleFolderMatchingSearcher: c.get(SingleFolderMatchingSearcher),
-  };
-
-  return { old, c };
 }
