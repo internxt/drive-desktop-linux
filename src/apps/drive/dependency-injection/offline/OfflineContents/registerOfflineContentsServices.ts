@@ -12,10 +12,8 @@ import { OfflineContentsManagersFactory } from '../../../../../context/offline-d
 import { OfflineContentsRepository } from '../../../../../context/offline-drive/contents/domain/OfflineContentsRepository';
 import { EnvironmentOfflineContentsManagersFactory } from '../../../../../context/offline-drive/contents/infrastructure/EnvironmentRemoteFileContentsManagersFactory';
 import { NodeFSOfflineContentsRepository } from '../../../../../context/offline-drive/contents/infrastructure/NodeFSOfflineContentsRepository';
-import { UploadProgressTracker } from '../../../../../context/shared/domain/UploadProgressTracker';
 import { MainProcessUploadProgressTracker } from '../../../../../context/shared/infrastructure/MainProcessUploadProgressTracker';
 import { LocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/domain/LocalFileContentsDirectoryProvider';
-import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
 import { DependencyInjectionMainProcessUserProvider } from '../../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
 
 export async function registerOfflineContentsServices(
