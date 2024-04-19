@@ -1,5 +1,3 @@
-import { OfflineDriveDependencyContainer } from '../dependency-injection/offline/OfflineDriveDependencyContainer';
-import { VirtualDriveDependencyContainer } from '../dependency-injection/virtual-drive/VirtualDriveDependencyContainer';
 import { FileStatuses } from '../../../context/virtual-drive/files/domain/FileStatus';
 import { Either, right } from '../../../context/shared/domain/Either';
 import { FuseError } from './FuseErrors';
