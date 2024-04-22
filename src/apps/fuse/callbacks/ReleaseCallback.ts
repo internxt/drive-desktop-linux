@@ -20,17 +20,21 @@ export class ReleaseCallback extends NotifyFuseCallback {
       });
 
       if (offlineFile) {
+        this.logDebugMessage('Offline File found');
         if (offlineFile.size.value === 0) {
+          this.logDebugMessage('Offline File Size is 0');
           return this.right();
         }
 
         if (offlineFile.isAuxiliary()) {
+          this.logDebugMessage('Offline File is Auxiliary');
           return this.right();
         }
 
         await this.container
           .get(OfflineContentsUploader)
           .run(offlineFile.id, offlineFile.path);
+        this.logDebugMessage('Offline File has been uploaded');
         return this.right();
       }
 
@@ -39,6 +43,7 @@ export class ReleaseCallback extends NotifyFuseCallback {
       });
 
       if (virtualFile) {
+        this.logDebugMessage('Virtual File has been uploaded');
         const contentsPath = this.container
           .get(RelativePathToAbsoluteConverter)
           .run(virtualFile.contentsId);
@@ -48,6 +53,7 @@ export class ReleaseCallback extends NotifyFuseCallback {
         return this.right();
       }
 
+      this.logDebugMessage(`File with ${path} not found`);
       return this.right();
     } catch (err: unknown) {
       Logger.error('RELEASE', err);

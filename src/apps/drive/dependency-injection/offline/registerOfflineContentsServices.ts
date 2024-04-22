@@ -12,9 +12,9 @@ import { OfflineContentsManagersFactory } from '../../../../context/offline-driv
 import { OfflineContentsRepository } from '../../../../context/offline-drive/contents/domain/OfflineContentsRepository';
 import { EnvironmentOfflineContentsManagersFactory } from '../../../../context/offline-drive/contents/infrastructure/EnvironmentRemoteFileContentsManagersFactory';
 import { NodeFSOfflineContentsRepository } from '../../../../context/offline-drive/contents/infrastructure/NodeFSOfflineContentsRepository';
+import { UploadProgressTracker } from '../../../../context/shared/domain/UploadProgressTracker';
 import { LocalFileContentsDirectoryProvider } from '../../../../context/virtual-drive/shared/domain/LocalFileContentsDirectoryProvider';
 import { DependencyInjectionMainProcessUserProvider } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
-import { UploadProgressTracker } from '../../../../context/shared/domain/UploadProgressTracker';
 
 export async function registerOfflineContentsServices(
   builder: ContainerBuilder

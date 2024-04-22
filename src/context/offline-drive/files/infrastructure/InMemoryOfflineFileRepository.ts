@@ -19,8 +19,6 @@ export class InMemoryOfflineFileRepository implements OfflineFileRepository {
 
     const values = Array.from(this.files.values());
 
-    // Logger.debug(values);
-
     const file = values.find((attributes) => {
       return keys.every(
         (key: keyof OfflineFileAttributes) => attributes[key] == partial[key]
