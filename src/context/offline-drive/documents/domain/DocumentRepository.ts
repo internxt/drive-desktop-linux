@@ -7,11 +7,9 @@ export abstract class DocumentRepository {
 
   abstract delete(path: DocumentPath): Promise<void>;
 
-  abstract filter(
-    fn: (document: Document) => boolean
-  ): Promise<Array<Document>>;
+  abstract matchingDirectory(path: string): Promise<Array<DocumentPath>>;
 
-  abstract read(path: DocumentPath, from: number, to: number): Promise<Buffer>;
+  abstract read(path: DocumentPath): Promise<Buffer>;
 
   abstract write(
     path: DocumentPath,

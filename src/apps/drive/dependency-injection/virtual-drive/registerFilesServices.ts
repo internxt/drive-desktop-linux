@@ -79,7 +79,6 @@ export async function registerFilesServices(
   builder.registerAndUse(FileOverrider);
 
   // Event Handlers
-
   builder
     .registerAndUse(CreateFileOnOfflineFileUploaded)
     .addTag('event-handler');

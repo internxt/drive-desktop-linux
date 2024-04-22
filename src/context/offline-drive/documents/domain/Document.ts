@@ -1,10 +1,8 @@
 import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
-import { DocumentId } from './DocumentId';
 import { DocumentPath } from './DocumentPath';
 import { DocumentSize } from './DocumentSize';
 
 export type DocumentAttributes = {
-  id: string;
   createdAt: Date;
   modifiedAt: Date;
   path: string;
@@ -17,7 +15,6 @@ export class Document extends AggregateRoot {
   private static readonly OUTPUT_STREAM_NAME_PREFIX = '.~lock.';
 
   private constructor(
-    private _id: DocumentId,
     private _createdAt: Date,
     private _path: DocumentPath,
     private _size: DocumentSize,
@@ -26,9 +23,6 @@ export class Document extends AggregateRoot {
     super();
   }
 
-  public get id() {
-    return this._id;
-  }
   public get createdAt() {
     return this._createdAt;
   }
@@ -52,17 +46,15 @@ export class Document extends AggregateRoot {
   }
 
   static create(path: DocumentPath, size: DocumentSize): Document {
-    const id = DocumentId.create();
     const createdAt = new Date();
 
-    const file = new Document(id, createdAt, path, size, createdAt);
+    const file = new Document(createdAt, path, size, createdAt);
 
     return file;
   }
 
   static from(attributes: DocumentAttributes): Document {
     return new Document(
-      new DocumentId(attributes.id),
       attributes.createdAt,
       new DocumentPath(attributes.path),
       new DocumentSize(attributes.size),
@@ -96,7 +88,6 @@ export class Document extends AggregateRoot {
 
   attributes(): DocumentAttributes {
     return {
-      id: this._id.value,
       createdAt: this._createdAt,
       modifiedAt: this._modifiedTime,
       path: this._path.value,

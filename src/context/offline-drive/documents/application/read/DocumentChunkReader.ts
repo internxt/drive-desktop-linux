@@ -11,7 +11,7 @@ export class DocumentChunkReader {
     private readonly repository: DocumentRepository
   ) {}
 
-  private getChunk(
+  private async getChunk(
     documentPath: DocumentPath,
     from: number,
     to: number
@@ -20,7 +20,7 @@ export class DocumentChunkReader {
       return this.cache.read(documentPath, from, to);
     }
 
-    return this.repository.read(documentPath, from, to);
+    return this.repository.read(documentPath);
   }
 
   async run(
