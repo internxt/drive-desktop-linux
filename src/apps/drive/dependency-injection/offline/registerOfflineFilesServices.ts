@@ -17,6 +17,7 @@ export async function registerOfflineFilesServices(
   builder
     .register(OfflineFileRepository)
     .use(InMemoryOfflineFileRepository)
+    .asSingleton()
     .private();
 
   // Services
