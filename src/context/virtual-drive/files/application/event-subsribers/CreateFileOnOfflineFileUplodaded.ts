@@ -5,6 +5,7 @@ import { DomainEventClass } from '../../../../shared/domain/DomainEvent';
 import { DomainEventSubscriber } from '../../../../shared/domain/DomainEventSubscriber';
 import { FileCreator } from '../FileCreator';
 import { FileOverrider } from '../override/FileOverrider';
+import { DocumentUploadedDomainEvent } from '../../../../offline-drive/documents/domain/upload/DocumentUploadedDomainEvent';
 
 @Service()
 export class CreateFileOnOfflineFileUploaded
@@ -16,7 +17,7 @@ export class CreateFileOnOfflineFileUploaded
   ) {}
 
   subscribedTo(): DomainEventClass[] {
-    return [OfflineContentsUploadedDomainEvent];
+    return [OfflineContentsUploadedDomainEvent, DocumentUploadedDomainEvent];
   }
 
   private async create(

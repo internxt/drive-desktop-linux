@@ -1,5 +1,5 @@
 import { Container } from 'diod';
-import { OfflineContentsAppender } from '../../../context/offline-drive/contents/application/OfflineContentsAppender';
+import { BufferToDocumentWriter } from '../../../context/offline-drive/documents/application/write/BufferToDocumentWriter';
 
 export class WriteCallback {
   constructor(private readonly container: Container) {}
@@ -13,7 +13,7 @@ export class WriteCallback {
     cb: (a: number) => void
   ) {
     await this.container
-      .get(OfflineContentsAppender)
+      .get(BufferToDocumentWriter)
       .run(path, buffer, len, pos);
 
     return cb(len);

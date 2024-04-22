@@ -5,7 +5,7 @@ import { FuseCallback } from './FuseCallback';
 import { FuseError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
 import { SingleFolderMatchingSearcher } from '../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
-import { OfflineFileSearcher } from '../../../context/offline-drive/files/application/OfflineFileSearcher';
+import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
 
 type GetAttributesCallbackData = {
   mode: number;
@@ -80,8 +80,8 @@ export class GetAttributesCallback extends FuseCallback<GetAttributesCallbackDat
     }
 
     const offlineFile = await this.container
-      .get(OfflineFileSearcher)
-      .run({ path });
+      .get(DocumentByPathFinder)
+      .run(path);
 
     if (offlineFile) {
       return this.right({

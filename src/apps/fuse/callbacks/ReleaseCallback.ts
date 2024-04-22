@@ -1,8 +1,7 @@
 import { Container } from 'diod';
-import Logger from 'electron-log';
 import { OfflineContentsCacheCleaner } from '../../../context/offline-drive/contents/application/OfflineContentsCacheCleaner';
-import { OfflineContentsUploader } from '../../../context/offline-drive/contents/application/OfflineContentsUploader';
-import { OfflineFileSearcher } from '../../../context/offline-drive/files/application/OfflineFileSearcher';
+import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
+import { DocumentUploader } from '../../../context/offline-drive/documents/application/upload/DocumentUploader';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
 import { RelativePathToAbsoluteConverter } from '../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
 import { NotifyFuseCallback } from './FuseCallback';
@@ -15,9 +14,9 @@ export class ReleaseCallback extends NotifyFuseCallback {
 
   async execute(path: string, _fd: number) {
     try {
-      const offlineFile = await this.container.get(OfflineFileSearcher).run({
-        path,
-      });
+      const offlineFile = await this.container
+        .get(DocumentByPathFinder)
+        .run(path);
 
       if (offlineFile) {
         this.logDebugMessage('Offline File found');
@@ -31,9 +30,7 @@ export class ReleaseCallback extends NotifyFuseCallback {
           return this.right();
         }
 
-        await this.container
-          .get(OfflineContentsUploader)
-          .run(offlineFile.id, offlineFile.path);
+        await this.container.get(DocumentUploader).run(offlineFile.path.value);
         this.logDebugMessage('Offline File has been uploaded');
         return this.right();
       }
@@ -56,7 +53,6 @@ export class ReleaseCallback extends NotifyFuseCallback {
       this.logDebugMessage(`File with ${path} not found`);
       return this.right();
     } catch (err: unknown) {
-      Logger.error('RELEASE', err);
       return this.left(new FuseIOError());
     }
   }

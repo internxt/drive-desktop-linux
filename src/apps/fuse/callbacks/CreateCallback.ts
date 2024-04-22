@@ -10,8 +10,6 @@ export class CreateCallback extends NotifyFuseCallback {
   async execute(path: string, _mode: number) {
     await this.container.get(DocumentCreator).run(path);
 
-    // await this.container.get(OfflineFileAndContentsCreator).run(path);
-
     return this.right();
   }
 }

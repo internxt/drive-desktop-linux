@@ -8,6 +8,7 @@ import * as uuid from 'uuid';
 import { Document } from '../domain/Document';
 import { DocumentPath } from '../domain/DocumentPath';
 import { DocumentRepository } from '../domain/DocumentRepository';
+import { Optional } from '../../../../shared/types/Optional';
 
 @Service()
 export class FsDocumentRepository implements DocumentRepository {
@@ -90,13 +91,11 @@ export class FsDocumentRepository implements DocumentRepository {
     length: number,
     position: number
   ): Promise<void> {
-    const id = this.map.get(documentPath.value);
+    const pathToWrite = this.map.get(documentPath.value);
 
-    if (!id) {
+    if (!pathToWrite) {
       throw new Error(`Document with path ${documentPath.value} not found`);
     }
-
-    const pathToWrite = path.join(this.writeBaseFolder, id);
 
     const fd = fs.openSync(pathToWrite, 'r+');
 
@@ -108,44 +107,40 @@ export class FsDocumentRepository implements DocumentRepository {
   }
 
   async stream(documentPath: DocumentPath): Promise<Readable> {
-    const id = this.map.get(documentPath.value);
+    const pathToRead = this.map.get(documentPath.value);
 
-    if (!id) {
+    if (!pathToRead) {
       throw new Error(`Document with path ${documentPath.value} not found`);
     }
-
-    const pathToRead = path.join(this.readBaseFolder, id);
 
     return createReadStream(pathToRead);
   }
 
-  async find(documentPath: DocumentPath): Promise<Document> {
-    const id = this.map.get(documentPath.value);
+  async find(documentPath: DocumentPath): Promise<Optional<Document>> {
+    const pathToSearch = this.map.get(documentPath.value);
 
-    if (!id) {
-      throw new Error(`Document with path ${documentPath.value} not found`);
+    if (!pathToSearch) {
+      return Optional.empty();
     }
-
-    const pathToSearch = path.join(this.writeBaseFolder, id);
 
     const stat = fs.statSync(pathToSearch);
 
-    return Document.from({
+    const doc = Document.from({
       createdAt: stat.ctime,
       modifiedAt: stat.mtime,
       path: documentPath.value,
       size: stat.size,
     });
+
+    return Optional.of(doc);
   }
 
   watchFile(documentPath: DocumentPath, callback: () => void): () => void {
-    const id = this.map.get(documentPath.value);
+    const pathToWatch = this.map.get(documentPath.value);
 
-    if (!id) {
+    if (!pathToWatch) {
       throw new Error(`Document with path ${documentPath.value} not found`);
     }
-
-    const pathToWatch = path.join(this.writeBaseFolder, id);
 
     const watcher = watch(pathToWatch, (_, filename) => {
       if (filename !== documentPath.nameWithExtension()) {

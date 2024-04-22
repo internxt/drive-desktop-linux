@@ -1,11 +1,11 @@
 import { Container } from 'diod';
 import Logger from 'electron-log';
 import { ContentsChunkReader } from '../../../context/offline-drive/contents/application/ContentsChunkReader';
-import { AuxiliarOfflineContentsChucksReader } from '../../../context/offline-drive/contents/application/auxiliar/AuxiliarOfflineContentsChucksReader';
-import { OfflineFileSearcher } from '../../../context/offline-drive/files/application/OfflineFileSearcher';
+import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
 import { RelativePathToAbsoluteConverter } from '../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
 import { Optional } from '../../../shared/types/Optional';
+import { DocumentChunkReader } from '../../../context/offline-drive/documents/application/read/DocumentChunkReader';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
@@ -57,19 +57,17 @@ export class ReadCallback {
     });
 
     if (!virtualFile) {
-      const offlineFile = await this.container.get(OfflineFileSearcher).run({
-        path,
-      });
+      const document = await this.container.get(DocumentByPathFinder).run(path);
 
-      if (!offlineFile) {
+      if (!document) {
         Logger.error('READ FILE NOT FOUND', path);
         cb(fuse.ENOENT);
         return;
       }
 
       const chunk = await this.container
-        .get(AuxiliarOfflineContentsChucksReader)
-        .run(offlineFile.id, len, pos);
+        .get(DocumentChunkReader)
+        .run(document.path.value, len, pos);
 
       const result = await this.copyToBuffer(buf, chunk);
 

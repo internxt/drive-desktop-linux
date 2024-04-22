@@ -18,6 +18,7 @@ import { EnvironmentDocumentUploaderFactory } from '../../../../context/offline-
 import { UploadProgressTracker } from '../../../../context/shared/domain/UploadProgressTracker';
 import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
 import { DependencyInjectionMainProcessUserProvider } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
+import { DocumentByPathFinder } from '../../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
 
 export async function registerDocumentServices(builder: ContainerBuilder) {
   // Infra
@@ -53,6 +54,7 @@ export async function registerDocumentServices(builder: ContainerBuilder) {
           c.get(UploadProgressTracker)
         )
     )
+    .asSingleton()
     .private();
 
   // Services
@@ -61,6 +63,7 @@ export async function registerDocumentServices(builder: ContainerBuilder) {
   builder.registerAndUse(DocumentCreator);
   builder.registerAndUse(DocumentDeleter);
   builder.registerAndUse(DocumentsFinderByFolder);
+  builder.registerAndUse(DocumentByPathFinder);
   builder.registerAndUse(DocumentChunkReader);
   builder.registerAndUse(DocumentUploader);
   builder.registerAndUse(BufferToDocumentWriter);

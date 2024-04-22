@@ -18,7 +18,14 @@ export class DocumentUploader {
   async run(path: string, replaces?: Replaces): Promise<string> {
     const documentPath = new DocumentPath(path);
 
-    const document = await this.repository.find(documentPath);
+    const documentOption = await this.repository.find(documentPath);
+
+    if (!documentOption.isPresent()) {
+      throw new Error(`Could not find ${path}`);
+    }
+
+    const document = documentOption.get();
+
     const stream = await this.repository.stream(documentPath);
 
     const controller = new AbortController();

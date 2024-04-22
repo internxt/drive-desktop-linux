@@ -1,10 +1,10 @@
 import { Container } from 'diod';
 import Logger from 'electron-log';
-import { OfflineFileSearcher } from '../../../context/offline-drive/files/application/OfflineFileSearcher';
 import { DownloadContentsToPlainFile } from '../../../context/virtual-drive/contents/application/DownloadContentsToPlainFile';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
 import { FuseCallback } from './FuseCallback';
 import { FuseIOError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
+import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
 
 export class OpenCallback extends FuseCallback<number> {
   constructor(private readonly container: Container) {
@@ -15,9 +15,7 @@ export class OpenCallback extends FuseCallback<number> {
     const virtual = await this.container.get(FirstsFileSearcher).run({ path });
 
     if (!virtual) {
-      const offline = await this.container
-        .get(OfflineFileSearcher)
-        .run({ path });
+      const offline = await this.container.get(DocumentByPathFinder).run(path);
       if (offline) {
         return this.right(0);
       }
