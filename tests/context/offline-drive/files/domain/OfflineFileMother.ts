@@ -13,6 +13,7 @@ export class OfflineFileMother {
       createdAt: new Date(),
       path: FilePathMother.random().value,
       size: FileSizeMother.random().value,
+      modifiedAt: new Date(),
     });
   }
 

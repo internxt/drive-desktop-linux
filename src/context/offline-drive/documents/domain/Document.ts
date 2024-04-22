@@ -1,9 +1,9 @@
 import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
-import { OfflineFileId } from './OfflineFileId';
-import { OfflineFilePath } from './OfflineFilePath';
-import { OfflineFileSize } from './OfflineFileSize';
+import { DocumentId } from './DocumentId';
+import { DocumentPath } from './DocumentPath';
+import { DocumentSize } from './DocumentSize';
 
-export type OfflineFileAttributes = {
+export type DocumentAttributes = {
   id: string;
   createdAt: Date;
   modifiedAt: Date;
@@ -11,16 +11,16 @@ export type OfflineFileAttributes = {
   size: number;
 };
 
-export class OfflineFile extends AggregateRoot {
+export class Document extends AggregateRoot {
   private static readonly TEMPORAL_EXTENSION = 'tmp';
   private static readonly LOCK_FILE_NAME_PREFIX = '.~lock.';
   private static readonly OUTPUT_STREAM_NAME_PREFIX = '.~lock.';
 
   private constructor(
-    private _id: OfflineFileId,
+    private _id: DocumentId,
     private _createdAt: Date,
-    private _path: OfflineFilePath,
-    private _size: OfflineFileSize,
+    private _path: DocumentPath,
+    private _size: DocumentSize,
     private readonly _modifiedTime: Date
   ) {
     super();
@@ -51,21 +51,21 @@ export class OfflineFile extends AggregateRoot {
     return this._modifiedTime;
   }
 
-  static create(path: OfflineFilePath, size: OfflineFileSize): OfflineFile {
-    const id = OfflineFileId.create();
+  static create(path: DocumentPath, size: DocumentSize): Document {
+    const id = DocumentId.create();
     const createdAt = new Date();
 
-    const file = new OfflineFile(id, createdAt, path, size, createdAt);
+    const file = new Document(id, createdAt, path, size, createdAt);
 
     return file;
   }
 
-  static from(attributes: OfflineFileAttributes): OfflineFile {
-    return new OfflineFile(
-      new OfflineFileId(attributes.id),
+  static from(attributes: DocumentAttributes): Document {
+    return new Document(
+      new DocumentId(attributes.id),
       attributes.createdAt,
-      new OfflineFilePath(attributes.path),
-      new OfflineFileSize(attributes.size),
+      new DocumentPath(attributes.path),
+      new DocumentSize(attributes.size),
       attributes.modifiedAt
     );
   }
@@ -83,18 +83,18 @@ export class OfflineFile extends AggregateRoot {
   }
 
   isLockFile(): boolean {
-    return this.name.startsWith(OfflineFile.LOCK_FILE_NAME_PREFIX);
+    return this.name.startsWith(Document.LOCK_FILE_NAME_PREFIX);
   }
 
   isTemporal(): boolean {
-    return this.extension === OfflineFile.TEMPORAL_EXTENSION;
+    return this.extension === Document.TEMPORAL_EXTENSION;
   }
 
   isOutputStream(): boolean {
-    return this.name.startsWith(OfflineFile.OUTPUT_STREAM_NAME_PREFIX);
+    return this.name.startsWith(Document.OUTPUT_STREAM_NAME_PREFIX);
   }
 
-  attributes(): OfflineFileAttributes {
+  attributes(): DocumentAttributes {
     return {
       id: this._id.value,
       createdAt: this._createdAt,
