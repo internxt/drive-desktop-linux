@@ -6,6 +6,7 @@ import { FirstsFileSearcher } from '../../../context/virtual-drive/files/applica
 import { RelativePathToAbsoluteConverter } from '../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
 import { NotifyFuseCallback } from './FuseCallback';
 import { FuseIOError } from './FuseErrors';
+import Logger from 'electron-log';
 
 export class ReleaseCallback extends NotifyFuseCallback {
   constructor(private readonly container: Container) {
@@ -40,7 +41,7 @@ export class ReleaseCallback extends NotifyFuseCallback {
       });
 
       if (virtualFile) {
-        this.logDebugMessage('Virtual File has been uploaded');
+        this.logDebugMessage('Virtual File founded');
         const contentsPath = this.container
           .get(RelativePathToAbsoluteConverter)
           .run(virtualFile.contentsId);
@@ -53,6 +54,7 @@ export class ReleaseCallback extends NotifyFuseCallback {
       this.logDebugMessage(`File with ${path} not found`);
       return this.right();
     } catch (err: unknown) {
+      Logger.error(err);
       return this.left(new FuseIOError());
     }
   }

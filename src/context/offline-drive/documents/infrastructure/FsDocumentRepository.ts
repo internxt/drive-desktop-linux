@@ -45,7 +45,7 @@ export class FsDocumentRepository implements DocumentRepository {
       throw new Error('Document not found');
     }
 
-    return new Promise<void>((resolve, reject) => {
+    const fsDeletion = new Promise<void>((resolve, reject) => {
       fs.unlink(pathToDelete, (err: NodeJS.ErrnoException | null) => {
         if (err) {
           if (err.code !== 'ENOENT') {
@@ -63,6 +63,10 @@ export class FsDocumentRepository implements DocumentRepository {
         resolve();
       });
     });
+
+    await fsDeletion;
+
+    this.map.delete(documentPath.value);
   }
 
   async matchingDirectory(directory: string): Promise<DocumentPath[]> {
