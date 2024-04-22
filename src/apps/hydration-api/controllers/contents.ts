@@ -10,8 +10,6 @@ export function buildContentsController(container: Container) {
 
     const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
 
-    Logger.info('DOWNLOAD:', path);
-
     const file = await container.get(FirstsFileSearcher).run({ path });
 
     if (!file) {
