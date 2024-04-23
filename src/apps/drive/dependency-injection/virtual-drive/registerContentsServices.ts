@@ -5,7 +5,6 @@ import { ContentsUploader } from '../../../../context/virtual-drive/contents/app
 import { DownloadContentsToPlainFile } from '../../../../context/virtual-drive/contents/application/DownloadContentsToPlainFile';
 import { LocalContentChecker } from '../../../../context/virtual-drive/contents/application/LocalContentChecker';
 import { LocalContentsMover } from '../../../../context/virtual-drive/contents/application/LocalContentsMover';
-import { MoveOfflineContentsOnContentsUploaded } from '../../../../context/virtual-drive/contents/application/MoveOfflineContentsOnContentsUploaded';
 import { RetryContentsUploader } from '../../../../context/virtual-drive/contents/application/RetryContentsUploader';
 import { ContentsManagersFactory } from '../../../../context/virtual-drive/contents/domain/ContentsManagersFactory';
 import { LocalContentsProvider } from '../../../../context/virtual-drive/contents/domain/LocalFileProvider';
@@ -59,8 +58,4 @@ export function registerContentsServices(builder: ContainerBuilder): void {
   builder.registerAndUse(AllLocalContentsDeleter);
 
   // Event subscribers
-
-  builder
-    .registerAndUse(MoveOfflineContentsOnContentsUploaded)
-    .addTag('event-handler');
 }

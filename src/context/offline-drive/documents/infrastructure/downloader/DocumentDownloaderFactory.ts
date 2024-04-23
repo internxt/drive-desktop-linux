@@ -3,7 +3,7 @@ import { Service } from 'diod';
 import Logger from 'electron-log';
 import { Readable } from 'stream';
 import { UploadProgressTracker } from '../../../../shared/domain/UploadProgressTracker';
-import { EnvironmentOfflineContentsUploader } from '../../../contents/infrastructure/EnvironmentOfflineContentsUploader';
+import { EnvironmentDocumentUploader } from '../upload/EnvironmentDocumentUploader';
 import { DocumentUploaderFactory } from '../../domain/upload/DocumentUploaderFactory';
 import { Replaces } from '../../domain/upload/Replaces';
 import { Document } from '../../domain/Document';
@@ -23,7 +23,7 @@ export class DocumentDownloaderFactory implements DocumentUploaderFactory {
     private readonly progressTracker: UploadProgressTracker
   ) {}
 
-  private registerEvents(uploader: EnvironmentOfflineContentsUploader) {
+  private registerEvents(uploader: EnvironmentDocumentUploader) {
     if (!this._document) {
       return;
     }
@@ -103,7 +103,7 @@ export class DocumentDownloaderFactory implements DocumentUploaderFactory {
         ? this.environment.uploadMultipartFile
         : this.environment.upload;
 
-    const uploader = new EnvironmentOfflineContentsUploader(
+    const uploader = new EnvironmentDocumentUploader(
       fn,
       this.bucket,
       this._abortController?.signal

@@ -1,9 +1,15 @@
 import { UploadStrategyFunction } from '@internxt/inxt-js/build/lib/core/upload/strategy';
 import { EventEmitter, Readable } from 'stream';
-import { Stopwatch } from '../../../../apps/shared/types/Stopwatch';
-import { OfflineContentsUploadEvents } from '../domain/OfflineContentsManagersFactory';
+import { Stopwatch } from '../../../../../apps/shared/types/Stopwatch';
 
-export class EnvironmentOfflineContentsUploader {
+export type UploadEvents = {
+  start: () => void;
+  progress: (progress: number) => void;
+  finish: (contentsId: string) => void;
+  error: (error: Error) => void;
+};
+
+export class EnvironmentDocumentUploader {
   private eventEmitter: EventEmitter;
   private stopwatch: Stopwatch;
 
@@ -49,8 +55,8 @@ export class EnvironmentOfflineContentsUploader {
   }
 
   on(
-    event: keyof OfflineContentsUploadEvents,
-    handler: OfflineContentsUploadEvents[keyof OfflineContentsUploadEvents]
+    event: keyof UploadEvents,
+    handler: UploadEvents[keyof UploadEvents]
   ): void {
     this.eventEmitter.on(event, handler);
   }

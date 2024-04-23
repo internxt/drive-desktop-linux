@@ -1,9 +1,7 @@
 import { Container } from 'diod';
-import { OfflineContentsCacheCleaner } from '../../../context/offline-drive/contents/application/OfflineContentsCacheCleaner';
 import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
 import { DocumentUploader } from '../../../context/offline-drive/documents/application/upload/DocumentUploader';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
-import { RelativePathToAbsoluteConverter } from '../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
 import { NotifyFuseCallback } from './FuseCallback';
 import { FuseIOError } from './FuseErrors';
 import Logger from 'electron-log';
