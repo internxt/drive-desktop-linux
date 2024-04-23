@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { DocumentRepository } from '../../domain/DocumentRepository';
 import { DocumentPath } from '../../domain/DocumentPath';
-import { OfflineContentsIOError } from '../../../contents/domain/errors/IOError';
+import { DocumentIOError } from '../../domain/errors/DocumentIOError';
 
 @Service()
 export class BufferToDocumentWriter {
@@ -18,7 +18,7 @@ export class BufferToDocumentWriter {
     try {
       this.repository.write(documentPath, buffer, length, position);
     } catch (error: unknown) {
-      throw new OfflineContentsIOError();
+      throw new DocumentIOError();
     }
   }
 }
