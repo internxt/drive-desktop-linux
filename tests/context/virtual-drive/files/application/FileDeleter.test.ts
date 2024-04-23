@@ -4,10 +4,10 @@ import { RemoteFileSystemMock } from '../__mocks__/RemoteFileSystemMock';
 import { LocalFileSystemMock } from '../__mocks__/LocalFileSystemMock';
 import { FileDeleter } from '../../../../../src/context/virtual-drive/files/application/FileDeleter';
 import { FolderRepositoryMock } from '../../folders/__mocks__/FolderRepositoryMock';
-import { ContentsIdMother } from '../../contents/domain/ContentsIdMother';
 import { AllParentFoldersStatusIsExists } from '../../../../../src/context/virtual-drive/folders/application/AllParentFoldersStatusIsExists';
 import { FileSyncNotifierMock } from '../__mocks__/FileSyncNotifierMock';
 import { FileStatus } from '../../../../../src/context/virtual-drive/files/domain/FileStatus';
+import { BucketEntryIdMother } from '../../shared/domain/BucketEntryIdMother';
 
 describe('File Deleter', () => {
   let repository: FileRepositoryMock;
@@ -38,7 +38,7 @@ describe('File Deleter', () => {
   });
 
   it('does not nothing if the file its not found', async () => {
-    const contentsId = ContentsIdMother.primitive();
+    const contentsId = BucketEntryIdMother.primitive();
 
     repository.matchingPartialMock.mockReturnValueOnce([]);
     jest

@@ -2,7 +2,6 @@ import { Service } from 'diod';
 import Logger from 'electron-log';
 import { basename } from 'path';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
-import { ContentsId } from '../../contents/domain/ContentsId';
 import { ParentFolderFinder } from '../../folders/application/ParentFolderFinder';
 import { PlatformPathConverter } from '../../shared/application/PlatformPathConverter';
 import { EventBus } from '../../shared/domain/EventBus';
@@ -15,6 +14,7 @@ import { OfflineFile } from '../domain/OfflineFile';
 import { SyncFileMessenger } from '../domain/SyncFileMessenger';
 import { RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { FileDeleter } from './FileDeleter';
+import { ContentsId } from '../domain/ContentsId';
 
 @Service()
 export class FileCreator {

@@ -9,6 +9,8 @@ import { LocalFileCache } from '../../../../context/offline-drive/LocalFile/doma
 import { LocalFileRepository } from '../../../../context/offline-drive/LocalFile/domain/LocalFileRepository';
 import { NodeLocalFilesRepository } from '../../../../context/offline-drive/LocalFile/infrastructure/NodeLocalFilesRepository';
 import { InMemoryLocalFileCache } from '../../../../context/offline-drive/LocalFile/infrastructure/cache/InMemoryLocalFileCache';
+import { LocalFileDeleter } from '../../../../context/offline-drive/LocalFile/application/delete/LocalFileDeleter';
+import { ClearLocalFiles } from '../../../../context/offline-drive/LocalFile/application/delete/ClearLocalFiles';
 
 export async function registerLocalFilesServices(
   builder: ContainerBuilder
@@ -34,4 +36,6 @@ export async function registerLocalFilesServices(
   builder.registerAndUse(LocalFileChunkReader);
   builder.registerAndUse(LocalFileCacheDeleter);
   builder.registerAndUse(LocalFileWriter);
+  builder.registerAndUse(LocalFileDeleter);
+  builder.registerAndUse(ClearLocalFiles);
 }

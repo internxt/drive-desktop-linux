@@ -14,10 +14,10 @@ import { ensureFolderExists } from './../shared/fs/ensure-folder-exists';
 import { mountPromise, unmountPromise } from './helpers';
 import { FuseDriveStatus } from './FuseDriveStatus';
 import { Container } from 'diod';
-import { AllLocalContentsDeleter } from '../../context/virtual-drive/contents/application/AllLocalContentsDeleter';
 import { TreeBuilder } from '../../context/virtual-drive/tree/application/TreeBuilder';
 import { FolderRepositoryInitializer } from '../../context/virtual-drive/folders/application/FolderRepositoryInitializer';
 import { FileRepositoryInitializer } from '../../context/virtual-drive/files/application/FileRepositoryInitializer';
+import { ClearLocalFiles } from '../../context/offline-drive/LocalFile/application/delete/ClearLocalFiles';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
@@ -97,7 +97,7 @@ export class FuseApp {
   }
 
   async clearCache(): Promise<void> {
-    await this.container.get(AllLocalContentsDeleter).run();
+    await this.container.get(ClearLocalFiles).run();
   }
 
   async update(): Promise<void> {

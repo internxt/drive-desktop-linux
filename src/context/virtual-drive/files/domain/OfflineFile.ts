@@ -1,9 +1,9 @@
-import { ContentsId } from '../../contents/domain/ContentsId';
 import { Folder } from '../../folders/domain/Folder';
 import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
 import { FilePath } from './FilePath';
 import { FileSize } from './FileSize';
 import { FileCreatedDomainEvent } from './events/FileCreatedDomainEvent';
+import { ContentsId } from './ContentsId';
 
 export type OfflineFileAttributes = {
   contentsId: string;

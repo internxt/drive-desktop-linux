@@ -23,7 +23,10 @@ import { FileRepository } from '../../../../context/virtual-drive/files/domain/F
 import { InMemoryFileRepository } from '../../../../context/virtual-drive/files/infrastructure/InMemoryFileRepository';
 import { FileRepositoryInitializer } from '../../../../context/virtual-drive/files/application/FileRepositoryInitializer';
 import { RetrieveAllFiles } from '../../../../context/virtual-drive/files/application/RetrieveAllFiles';
-import { FileDownloader } from '../../../../context/virtual-drive/contents/application/FileDownloader';
+import { FileDownloader } from '../../../../context/virtual-drive/files/application/download/FileDownloader';
+import { FileDownloaderHandlerFactory } from '../../../../context/virtual-drive/files/domain/download/FileDownloaderHandlerFactory';
+import { EnvironmentFileDownloaderHandlerFactory } from '../../../../context/virtual-drive/files/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
+import { Environment } from '@internxt/inxt-js';
 
 export async function registerFilesServices(
   builder: ContainerBuilder
@@ -54,6 +57,15 @@ export async function registerFilesServices(
     );
 
   builder.register(LocalFileSystem).use(FuseLocalFileSystem);
+  builder
+    .register(FileDownloaderHandlerFactory)
+    .useFactory(
+      (c) =>
+        new EnvironmentFileDownloaderHandlerFactory(
+          c.get(Environment),
+          user.bucket
+        )
+    );
 
   // Services
 

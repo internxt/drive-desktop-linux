@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import { Readable } from 'form-data';
-import { readFile, readdir } from 'fs/promises';
+import { readFile, readdir, unlink } from 'fs/promises';
 import path from 'path';
 import { WriteReadableToFile } from '../../../../apps/shared/fs/write-readable-to-file';
 import { LocalFileId } from '../domain/LocalFileId';
@@ -43,5 +43,25 @@ export class NodeLocalFilesRepository implements LocalFileRepository {
 
   async exists(id: LocalFileId): Promise<boolean> {
     return this.map.has(id.value);
+  }
+
+  async delete(id: LocalFileId): Promise<void> {
+    const pathToUnlink = path.join(this.baseFolder, id.value);
+
+    await unlink(pathToUnlink);
+
+    this.map.delete(id.value);
+  }
+
+  async deleteAll(): Promise<void> {
+    const iterator = this.map.keys();
+
+    let result = iterator.next();
+
+    while (!result.done) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.delete(new LocalFileId(result.value));
+      result = iterator.next();
+    }
   }
 }

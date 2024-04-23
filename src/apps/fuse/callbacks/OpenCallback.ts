@@ -7,8 +7,8 @@ import { TemporalFileByPathFinder } from '../../../context/offline-drive/Tempora
 import { LocalFileIsAvailable } from '../../../context/offline-drive/LocalFile/application/find/LocalFileIsAvaliable';
 import { TemporalFile } from '../../../context/offline-drive/TemporalFiles/domain/TemporalFile';
 import { File } from '../../../context/virtual-drive/files/domain/File';
-import { FileDownloader } from '../../../context/virtual-drive/contents/application/FileDownloader';
 import { LocalFileWriter } from '../../../context/offline-drive/LocalFile/application/write/LocalFileWriter';
+import { FileDownloader } from '../../../context/virtual-drive/files/application/download/FileDownloader';
 
 export class OpenCallback extends FuseCallback<number> {
   constructor(private readonly container: Container) {

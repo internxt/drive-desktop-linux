@@ -9,12 +9,12 @@ import { FileNameShouldDifferFromOriginalError } from './errors/FileNameShouldDi
 import { FileActionCannotModifyExtension } from './errors/FileActionCannotModifyExtension';
 import { FileDeletedDomainEvent } from './events/FileDeletedDomainEvent';
 import { FileStatus, FileStatuses } from './FileStatus';
-import { ContentsId } from '../../contents/domain/ContentsId';
 import { FileMovedDomainEvent } from './events/FileMovedDomainEvent';
 import { FileRenamedDomainEvent } from './events/FileRenamedDomainEvent';
 import { FilePlaceholderId, createFilePlaceholderId } from './PlaceholderId';
 import { FileOverriddenDomainEvent } from './events/FileOverriddenDomainEvent';
 import { FileUuid } from './FileUuid';
+import { ContentsId } from './ContentsId';
 
 export type FileAttributes = {
   id: number;
