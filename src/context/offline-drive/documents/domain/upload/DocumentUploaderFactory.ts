@@ -4,7 +4,7 @@ import { Replaces } from './Replaces';
 
 export abstract class DocumentUploaderFactory {
   abstract read(readable: Readable): this;
-  abstract document(size: Document): this;
+  abstract document(document: Document): this;
   abstract replaces(r?: Replaces): this;
   abstract abort(controller?: AbortController): this;
   abstract build(): () => Promise<string>;

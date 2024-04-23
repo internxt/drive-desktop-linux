@@ -3,7 +3,7 @@ import { ReaddirCallback } from './callbacks/ReaddirCallback';
 import { GetAttributesCallback } from './callbacks/GetAttributesCallback';
 import { OpenCallback } from './callbacks/OpenCallback';
 import { ReadCallback } from './callbacks/ReadCallback';
-import { RenameOrMoveCallback } from './callbacks/RenameOrMoveCallback';
+import { RenameMoveOrTrashCallback } from './callbacks/RenameOrMoveCallback';
 import { CreateCallback } from './callbacks/CreateCallback';
 import { MakeDirectoryCallback } from './callbacks/MakeDirectoryCallback';
 import { TrashFileCallback } from './callbacks/TrashFileCallback';
@@ -40,7 +40,7 @@ export class FuseApp {
     const getattr = new GetAttributesCallback(this.container);
     const open = new OpenCallback(this.container);
     const read = new ReadCallback(this.container);
-    const renameOrMove = new RenameOrMoveCallback(this.container);
+    const renameOrMove = new RenameMoveOrTrashCallback(this.container);
     const create = new CreateCallback(this.container);
     const makeDirectory = new MakeDirectoryCallback(this.container);
     const trashFile = new TrashFileCallback(this.container);

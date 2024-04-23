@@ -7,12 +7,13 @@ import { Readable } from 'stream';
 import * as uuid from 'uuid';
 import { Document } from '../domain/Document';
 import { DocumentPath } from '../domain/DocumentPath';
-import { DocumentRepository } from '../domain/DocumentRepository';
+import { DocumentRepository } from '../domain/WritableDocumentRepository';
 import { Optional } from '../../../../shared/types/Optional';
+import { exec } from 'child_process';
 
 @Service()
-export class FsDocumentRepository implements DocumentRepository {
-  private readonly map = new Map<string, string>();
+export class FsWritableDocumentRepository implements DocumentRepository {
+  private readonly writableFilesMap = new Map<string, string>();
 
   constructor(
     private readonly readBaseFolder: string,
@@ -24,7 +25,7 @@ export class FsDocumentRepository implements DocumentRepository {
 
     const pathToWrite = path.join(this.writeBaseFolder, id);
 
-    this.map.set(documentPath.value, pathToWrite);
+    this.writableFilesMap.set(documentPath.value, pathToWrite);
 
     return new Promise((resolve, reject) => {
       fs.writeFile(pathToWrite, '', (err) => {
@@ -38,11 +39,35 @@ export class FsDocumentRepository implements DocumentRepository {
     });
   }
 
+  areEqual(doc1: DocumentPath, doc2: DocumentPath): Promise<boolean> {
+    const file1 = this.writableFilesMap.get(doc1.value);
+    const file2 = this.writableFilesMap.get(doc2.value);
+
+    if (!file1) {
+      throw new Error(`${doc1.value} not found`);
+    }
+    if (!file2) {
+      throw new Error(`${doc2.value} not found`);
+    }
+
+    return new Promise((resolve, reject) => {
+      exec(`diff ${file1} ${file2}`, (error, stdout) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        const filesAreEqual = stdout === null;
+        resolve(filesAreEqual);
+      });
+    });
+  }
+
   async delete(documentPath: DocumentPath): Promise<void> {
-    const pathToDelete = this.map.get(documentPath.value);
+    const pathToDelete = this.writableFilesMap.get(documentPath.value);
 
     if (!pathToDelete) {
-      throw new Error('Document not found');
+      return;
     }
 
     const fsDeletion = new Promise<void>((resolve, reject) => {
@@ -66,11 +91,11 @@ export class FsDocumentRepository implements DocumentRepository {
 
     await fsDeletion;
 
-    this.map.delete(documentPath.value);
+    this.writableFilesMap.delete(documentPath.value);
   }
 
   async matchingDirectory(directory: string): Promise<DocumentPath[]> {
-    const paths = Array.from(this.map.keys());
+    const paths = Array.from(this.writableFilesMap.keys());
 
     return paths
       .filter((p) => path.dirname(p) === directory)
@@ -78,7 +103,7 @@ export class FsDocumentRepository implements DocumentRepository {
   }
 
   read(documentPath: DocumentPath): Promise<Buffer> {
-    const id = this.map.get(documentPath.value);
+    const id = this.writableFilesMap.get(documentPath.value);
 
     if (!id) {
       throw new Error(`Document with path ${documentPath.value} not found`);
@@ -95,7 +120,7 @@ export class FsDocumentRepository implements DocumentRepository {
     length: number,
     position: number
   ): Promise<void> {
-    const pathToWrite = this.map.get(documentPath.value);
+    const pathToWrite = this.writableFilesMap.get(documentPath.value);
 
     if (!pathToWrite) {
       throw new Error(`Document with path ${documentPath.value} not found`);
@@ -111,7 +136,7 @@ export class FsDocumentRepository implements DocumentRepository {
   }
 
   async stream(documentPath: DocumentPath): Promise<Readable> {
-    const pathToRead = this.map.get(documentPath.value);
+    const pathToRead = this.writableFilesMap.get(documentPath.value);
 
     if (!pathToRead) {
       throw new Error(`Document with path ${documentPath.value} not found`);
@@ -121,7 +146,7 @@ export class FsDocumentRepository implements DocumentRepository {
   }
 
   async find(documentPath: DocumentPath): Promise<Optional<Document>> {
-    const pathToSearch = this.map.get(documentPath.value);
+    const pathToSearch = this.writableFilesMap.get(documentPath.value);
 
     if (!pathToSearch) {
       return Optional.empty();
@@ -140,7 +165,7 @@ export class FsDocumentRepository implements DocumentRepository {
   }
 
   watchFile(documentPath: DocumentPath, callback: () => void): () => void {
-    const pathToWatch = this.map.get(documentPath.value);
+    const pathToWatch = this.writableFilesMap.get(documentPath.value);
 
     if (!pathToWatch) {
       throw new Error(`Document with path ${documentPath.value} not found`);

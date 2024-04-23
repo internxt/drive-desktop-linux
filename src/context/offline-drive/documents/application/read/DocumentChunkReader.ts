@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { Optional } from '../../../../../shared/types/Optional';
 import { DocumentPath } from '../../domain/DocumentPath';
-import { DocumentRepository } from '../../domain/DocumentRepository';
+import { DocumentRepository } from '../../domain/WritableDocumentRepository';
 import { DocumentCache } from '../../domain/DocumentCache';
 
 @Service()

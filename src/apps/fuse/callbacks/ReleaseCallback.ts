@@ -10,28 +10,26 @@ import Logger from 'electron-log';
 
 export class ReleaseCallback extends NotifyFuseCallback {
   constructor(private readonly container: Container) {
-    super('Release');
+    super('Release', { debug: false });
   }
 
   async execute(path: string, _fd: number) {
     try {
-      const offlineFile = await this.container
-        .get(DocumentByPathFinder)
-        .run(path);
+      const document = await this.container.get(DocumentByPathFinder).run(path);
 
-      if (offlineFile) {
+      if (document) {
         this.logDebugMessage('Offline File found');
-        if (offlineFile.size.value === 0) {
+        if (document.size.value === 0) {
           this.logDebugMessage('Offline File Size is 0');
           return this.right();
         }
 
-        if (offlineFile.isAuxiliary()) {
+        if (document.isAuxiliary()) {
           this.logDebugMessage('Offline File is Auxiliary');
           return this.right();
         }
 
-        await this.container.get(DocumentUploader).run(offlineFile.path.value);
+        await this.container.get(DocumentUploader).run(document.path.value);
         this.logDebugMessage('Offline File has been uploaded');
         return this.right();
       }

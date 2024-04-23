@@ -1,12 +1,11 @@
 import { Container } from 'diod';
-import { AuxiliarOfflineContentsDeleter } from '../../../context/offline-drive/contents/application/auxiliar/AuxiliarOfflineContentsDeleter';
-import { OfflineFileSearcher } from '../../../context/offline-drive/files/application/OfflineFileSearcher';
-import { TemporalOfflineDeleter } from '../../../context/offline-drive/files/application/TemporalOfflineDeleter';
 import { FileDeleter } from '../../../context/virtual-drive/files/application/FileDeleter';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
 import { FileStatuses } from '../../../context/virtual-drive/files/domain/FileStatus';
 import { NotifyFuseCallback } from './FuseCallback';
 import { FuseIOError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
+import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
+import { DocumentDeleter } from '../../../context/offline-drive/documents/application/deletion/DocumentDeleter';
 
 export class TrashFileCallback extends NotifyFuseCallback {
   constructor(private readonly container: Container) {
@@ -20,18 +19,13 @@ export class TrashFileCallback extends NotifyFuseCallback {
     });
 
     if (!file) {
-      const offline = await this.container.get(OfflineFileSearcher).run({
-        path,
-      });
+      const document = await this.container.get(DocumentByPathFinder).run(path);
 
-      if (!offline) {
+      if (!document) {
         return this.left(new FuseNoSuchFileOrDirectoryError(path));
       }
 
-      if (offline.isAuxiliary()) {
-        await this.container.get(AuxiliarOfflineContentsDeleter).run(offline);
-        await this.container.get(TemporalOfflineDeleter).run(offline);
-      }
+      await this.container.get(DocumentDeleter).run(path);
 
       return this.right();
     }

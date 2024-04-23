@@ -23,6 +23,7 @@ import { FileRepository } from '../../../../context/virtual-drive/files/domain/F
 import { InMemoryFileRepository } from '../../../../context/virtual-drive/files/infrastructure/InMemoryFileRepository';
 import { FileRepositoryInitializer } from '../../../../context/virtual-drive/files/application/FileRepositoryInitializer';
 import { RetrieveAllFiles } from '../../../../context/virtual-drive/files/application/RetrieveAllFiles';
+import { FileDownloader } from '../../../../context/virtual-drive/contents/application/FileDownloader';
 
 export async function registerFilesServices(
   builder: ContainerBuilder
@@ -77,6 +78,8 @@ export async function registerFilesServices(
   builder.registerAndUse(FilesSearcherByPartialMatch);
 
   builder.registerAndUse(FileOverrider);
+
+  builder.registerAndUse(FileDownloader);
 
   // Event Handlers
   builder

@@ -10,14 +10,14 @@ export abstract class DocumentRepository {
 
   abstract matchingDirectory(path: string): Promise<Array<DocumentPath>>;
 
-  abstract read(path: DocumentPath): Promise<Buffer>;
-
   abstract write(
     path: DocumentPath,
     buffer: Buffer,
     length: number,
     position: number
   ): Promise<void>;
+
+  abstract read(path: DocumentPath): Promise<Buffer>;
 
   abstract stream(path: DocumentPath): Promise<Readable>;
 
@@ -27,4 +27,6 @@ export abstract class DocumentRepository {
     documentPath: DocumentPath,
     callback: () => void
   ): () => void;
+
+  abstract areEqual(doc1: DocumentPath, doc2: DocumentPath): Promise<boolean>;
 }

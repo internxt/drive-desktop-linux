@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import Logger from 'electron-log';
-import { DocumentRepository } from '../../domain/DocumentRepository';
+import { DocumentRepository } from '../../domain/WritableDocumentRepository';
 import { DocumentPath } from '../../domain/DocumentPath';
 import { DocumentUploaderFactory } from '../../domain/upload/DocumentUploaderFactory';
 import { DocumentUploadedDomainEvent } from '../../domain/upload/DocumentUploadedDomainEvent';

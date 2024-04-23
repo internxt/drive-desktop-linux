@@ -79,17 +79,15 @@ export class GetAttributesCallback extends FuseCallback<GetAttributesCallbackDat
       });
     }
 
-    const offlineFile = await this.container
-      .get(DocumentByPathFinder)
-      .run(path);
+    const document = await this.container.get(DocumentByPathFinder).run(path);
 
-    if (offlineFile) {
+    if (document) {
       return this.right({
         mode: GetAttributesCallback.FILE,
-        size: offlineFile.size.value,
+        size: document.size.value,
         mtime: new Date(),
-        ctime: offlineFile.createdAt,
-        atime: offlineFile.createdAt,
+        ctime: document.createdAt,
+        atime: document.createdAt,
         uid: process.getuid(),
         gid: process.getgid(),
       });

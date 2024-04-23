@@ -1,5 +1,5 @@
 import { Service } from 'diod';
-import { DocumentRepository } from '../../domain/DocumentRepository';
+import { DocumentRepository } from '../../domain/WritableDocumentRepository';
 import { DocumentPath } from '../../domain/DocumentPath';
 import { Document } from '../../domain/Document';
 

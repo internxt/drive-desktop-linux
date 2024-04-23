@@ -1,11 +1,10 @@
 import { Container } from 'diod';
 import Logger from 'electron-log';
-import { ContentsChunkReader } from '../../../context/offline-drive/contents/application/ContentsChunkReader';
 import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
-import { RelativePathToAbsoluteConverter } from '../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
 import { Optional } from '../../../shared/types/Optional';
 import { DocumentChunkReader } from '../../../context/offline-drive/documents/application/read/DocumentChunkReader';
+import { LocalFileChunkReader } from '../../../context/offline-drive/LocalFile/application/read/LocalFileChunkReader';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
@@ -14,14 +13,14 @@ export class ReadCallback {
   constructor(private readonly container: Container) {}
 
   private async read(
-    filePath: string,
+    contentsId: string,
     buffer: Buffer,
     length: number,
     position: number
   ): Promise<number> {
     const readResult = await this.container
-      .get(ContentsChunkReader)
-      .run(filePath, length, position);
+      .get(LocalFileChunkReader)
+      .run(contentsId, length, position);
 
     if (!readResult.isPresent()) {
       return 0;
@@ -75,12 +74,12 @@ export class ReadCallback {
       return;
     }
 
-    const filePath = this.container
-      .get(RelativePathToAbsoluteConverter)
-      .run(virtualFile.contentsId);
+    // const filePath = this.container
+    //   .get(RelativePathToAbsoluteConverter)
+    //   .run(virtualFile.contentsId);
 
     try {
-      const bytesRead = await this.read(filePath, buf, len, pos);
+      const bytesRead = await this.read(virtualFile.contentsId, buf, len, pos);
       cb(bytesRead);
     } catch (err) {
       Logger.error(`Error reading file: ${err}`);

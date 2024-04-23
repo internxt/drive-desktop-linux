@@ -5,20 +5,22 @@ import { DocumentFromCacheDeleter } from '../../../../context/offline-drive/docu
 import { DocumentCreator } from '../../../../context/offline-drive/documents/application/creation/DocumentCreator';
 import { DeleteDocumentOnFileCreated } from '../../../../context/offline-drive/documents/application/deletion/ClearOfflineFileOnFileCreated';
 import { DocumentDeleter } from '../../../../context/offline-drive/documents/application/deletion/DocumentDeleter';
-import { DocumentsFinderByFolder } from '../../../../context/offline-drive/documents/application/find/DocumentsFinderByFolder';
+import { DocumentsPathFinderByFolder } from '../../../../context/offline-drive/documents/application/find/DocumentsPathFinderByFolder';
 import { DocumentChunkReader } from '../../../../context/offline-drive/documents/application/read/DocumentChunkReader';
 import { DocumentUploader } from '../../../../context/offline-drive/documents/application/upload/DocumentUploader';
 import { BufferToDocumentWriter } from '../../../../context/offline-drive/documents/application/write/BufferToDocumentWriter';
 import { DocumentCache } from '../../../../context/offline-drive/documents/domain/DocumentCache';
-import { DocumentRepository } from '../../../../context/offline-drive/documents/domain/DocumentRepository';
+import { DocumentRepository } from '../../../../context/offline-drive/documents/domain/WritableDocumentRepository';
 import { DocumentUploaderFactory } from '../../../../context/offline-drive/documents/domain/upload/DocumentUploaderFactory';
-import { FsDocumentRepository } from '../../../../context/offline-drive/documents/infrastructure/FsDocumentRepository';
+import { FsWritableDocumentRepository } from '../../../../context/offline-drive/documents/infrastructure/FsWritableDocumentRepository';
 import { InMemoryDocumentCache } from '../../../../context/offline-drive/documents/infrastructure/cache/InMemoryDocumentCache';
 import { EnvironmentDocumentUploaderFactory } from '../../../../context/offline-drive/documents/infrastructure/upload/DocumentUploaderFactory';
 import { UploadProgressTracker } from '../../../../context/shared/domain/UploadProgressTracker';
 import { FuseAppDataLocalFileContentsDirectoryProvider } from '../../../../context/virtual-drive/shared/infrastructure/LocalFileContentsDirectoryProviders/FuseAppDataLocalFileContentsDirectoryProvider';
 import { DependencyInjectionMainProcessUserProvider } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
 import { DocumentByPathFinder } from '../../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
+import { DocumentByteByByteComparator } from '../../../../context/offline-drive/documents/application/comparation/DocumentByteByByteComparator';
+import { DocumentsFinderByFolder } from '../../../../context/offline-drive/documents/application/find/DocumentsFinderByFolder';
 
 export async function registerDocumentServices(builder: ContainerBuilder) {
   // Infra
@@ -34,7 +36,7 @@ export async function registerDocumentServices(builder: ContainerBuilder) {
 
   builder
     .register(DocumentRepository)
-    .useFactory(() => new FsDocumentRepository(read, write))
+    .useFactory(() => new FsWritableDocumentRepository(read, write))
     .private()
     .asSingleton();
 
@@ -62,11 +64,13 @@ export async function registerDocumentServices(builder: ContainerBuilder) {
   builder.registerAndUse(DocumentFromCacheDeleter);
   builder.registerAndUse(DocumentCreator);
   builder.registerAndUse(DocumentDeleter);
-  builder.registerAndUse(DocumentsFinderByFolder);
+  builder.registerAndUse(DocumentsPathFinderByFolder);
   builder.registerAndUse(DocumentByPathFinder);
   builder.registerAndUse(DocumentChunkReader);
   builder.registerAndUse(DocumentUploader);
   builder.registerAndUse(BufferToDocumentWriter);
+  builder.registerAndUse(DocumentByteByByteComparator);
+  builder.registerAndUse(DocumentsFinderByFolder);
 
   // Event handlers
   builder.registerAndUse(DeleteDocumentOnFileCreated).addTag('event-handler');

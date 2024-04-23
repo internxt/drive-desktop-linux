@@ -3,6 +3,7 @@ import { registerOfflineContentsServices } from './registerOfflineContentsServic
 import { registerOfflineFilesServices } from './registerOfflineFilesServices';
 import { registerBoundaryBridgeContainer } from './registerBoundaryBridgeContainer';
 import { registerDocumentServices } from './registerDocumentServices';
+import { registerLocalFileServices } from './registerLocalFileServices';
 
 export class OfflineDependencyContainerFactory {
   static async build(builder: ContainerBuilder): Promise<void> {
@@ -13,5 +14,6 @@ export class OfflineDependencyContainerFactory {
     await registerBoundaryBridgeContainer(builder);
 
     await registerDocumentServices(builder);
+    await registerLocalFileServices(builder);
   }
 }
