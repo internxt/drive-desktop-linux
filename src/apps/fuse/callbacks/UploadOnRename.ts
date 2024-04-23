@@ -4,7 +4,7 @@ import { FuseError } from './FuseErrors';
 import Logger from 'electron-log';
 import { File } from '../../../context/virtual-drive/files/domain/File';
 import { Container } from 'diod';
-import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
+import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { RelativePathToAbsoluteConverter } from '../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
 import { TemporalFileUploader } from '../../../context/offline-drive/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileByPathFinder } from '../../../context/offline-drive/TemporalFiles/application/find/TemporalFileByPathFinder';

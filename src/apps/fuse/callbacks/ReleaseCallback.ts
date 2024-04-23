@@ -1,7 +1,7 @@
 import { Container } from 'diod';
 import { TemporalFileByPathFinder } from '../../../context/offline-drive/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFileUploader } from '../../../context/offline-drive/TemporalFiles/application/upload/TemporalFileUploader';
-import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
+import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { NotifyFuseCallback } from './FuseCallback';
 import { FuseIOError } from './FuseErrors';
 import Logger from 'electron-log';

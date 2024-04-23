@@ -1,25 +1,23 @@
 import { Service } from 'diod';
 import Logger from 'electron-log';
-import { ParentFolderFinder } from '../../folders/application/ParentFolderFinder';
-import { EventBus } from '../../shared/domain/EventBus';
-import { File } from '../domain/File';
-import { FilePath } from '../domain/FilePath';
-import { FileRepository } from '../domain/FileRepository';
-import { FileStatuses } from '../domain/FileStatus';
-import { ActionNotPermittedError } from '../domain/errors/ActionNotPermittedError';
-import { FileAlreadyExistsError } from '../domain/errors/FileAlreadyExistsError';
-import { FileNotFoundError } from '../domain/errors/FileNotFoundError';
-import { FileRenameFailedDomainEvent } from '../domain/events/FileRenameFailedDomainEvent';
-import { FileRenameStartedDomainEvent } from '../domain/events/FileRenameStartedDomainEvent';
-import { LocalFileSystem } from '../domain/file-systems/LocalFileSystem';
-import { RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
-import { SingleFileMatchingSearcher } from './SingleFileMatchingSearcher';
+import { ParentFolderFinder } from '../../../folders/application/ParentFolderFinder';
+import { EventBus } from '../../../shared/domain/EventBus';
+import { File } from '../../domain/File';
+import { FilePath } from '../../domain/FilePath';
+import { FileRepository } from '../../domain/FileRepository';
+import { FileStatuses } from '../../domain/FileStatus';
+import { ActionNotPermittedError } from '../../domain/errors/ActionNotPermittedError';
+import { FileAlreadyExistsError } from '../../domain/errors/FileAlreadyExistsError';
+import { FileNotFoundError } from '../../domain/errors/FileNotFoundError';
+import { FileRenameFailedDomainEvent } from '../../domain/events/FileRenameFailedDomainEvent';
+import { FileRenameStartedDomainEvent } from '../../domain/events/FileRenameStartedDomainEvent';
+import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
+import { SingleFileMatchingSearcher } from '../search/SingleFileMatchingSearcher';
 
 @Service()
 export class FilePathUpdater {
   constructor(
     private readonly remote: RemoteFileSystem,
-    private readonly local: LocalFileSystem,
     private readonly repository: FileRepository,
     private readonly singleFileMatching: SingleFileMatchingSearcher,
     private readonly parentFolderFinder: ParentFolderFinder,
@@ -45,12 +43,9 @@ export class FilePathUpdater {
   }
 
   private async move(file: File, destination: FilePath) {
-    const trackerId = await this.local.getLocalFileId(file);
-    Logger.debug('trackerId', trackerId);
-
     const destinationFolder = await this.parentFolderFinder.run(destination);
     Logger.debug('destinationFolder', destinationFolder);
-    file.moveTo(destinationFolder, trackerId);
+    file.moveTo(destinationFolder);
 
     Logger.debug('REMOTE CHANGES');
     await this.remote.move(file);

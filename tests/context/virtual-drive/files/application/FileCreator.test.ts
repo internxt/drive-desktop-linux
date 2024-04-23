@@ -1,6 +1,6 @@
-import { FileCreator } from '../../../../../src/context/virtual-drive/files/application/FileCreator';
-import { FileDeleter } from '../../../../../src/context/virtual-drive/files/application/FileDeleter';
-import { ContentsId } from '../../../../../src/context/virtual-drive/files/domain/ContentsId';
+import { FileCreator } from '../../../../../src/context/virtual-drive/files/application/create/FileCreator';
+import { FileTrasher } from '../../../../../src/context/virtual-drive/files/application/trash/FileTrasher';
+import { FileContentsId } from '../../../../../src/context/virtual-drive/files/domain/FileContentsId';
 import { FilePath } from '../../../../../src/context/virtual-drive/files/domain/FilePath';
 import { FolderFinderFactory } from '../../folders/__mocks__/FolderFinderFactory';
 import { EventBusMock } from '../../shared/__mock__/EventBusMock';
@@ -15,7 +15,7 @@ import { FileSizeMother } from '../domain/FileSizeMother';
 describe('File Creator', () => {
   let remoteFileSystemMock: RemoteFileSystemMock;
   let fileRepository: FileRepositoryMock;
-  let fileDeleter: FileDeleter;
+  let fileDeleter: FileTrasher;
   let eventBus: EventBusMock;
   let notifier: FileSyncNotifierMock;
 
@@ -59,7 +59,7 @@ describe('File Creator', () => {
 
     expect(fileRepository.addMock).toBeCalledWith(
       expect.objectContaining({
-        _contentsId: new ContentsId(fileAttributes.contentsId),
+        _contentsId: new FileContentsId(fileAttributes.contentsId),
       })
     );
   });
@@ -124,7 +124,7 @@ describe('File Creator', () => {
     );
     expect(fileRepository.addMock).toBeCalledWith(
       expect.objectContaining({
-        _contentsId: new ContentsId(fileAttributes.contentsId),
+        _contentsId: new FileContentsId(fileAttributes.contentsId),
       })
     );
   });

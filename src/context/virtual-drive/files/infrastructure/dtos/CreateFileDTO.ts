@@ -1,4 +1,4 @@
-export interface AddFileDTO {
+export interface CreateFileDTO {
   file: {
     bucket: string;
     encrypt_version: '03-aes';
@@ -9,6 +9,5 @@ export interface AddFileDTO {
     plain_name: string;
     size: number;
     type: string;
-    modificationTime: number;
   };
 }

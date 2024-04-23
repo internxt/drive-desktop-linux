@@ -3,11 +3,11 @@ import Logger from 'electron-log';
 import { TemporalFileUploadedDomainEvent } from '../../../../offline-drive/TemporalFiles/domain/upload/TemporalFileUploadedDomainEvent';
 import { DomainEventClass } from '../../../../shared/domain/DomainEvent';
 import { DomainEventSubscriber } from '../../../../shared/domain/DomainEventSubscriber';
-import { FileCreator } from '../FileCreator';
+import { FileCreator } from './FileCreator';
 import { FileOverrider } from '../override/FileOverrider';
 
 @Service()
-export class CreateFileOnOfflineFileUploaded
+export class CreateFileOnTemporalFileUploaded
   implements DomainEventSubscriber<TemporalFileUploadedDomainEvent>
 {
   constructor(

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Logger from 'electron-log';
 import { Container } from 'diod';
-import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
+import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FileDownloader } from '../../../context/virtual-drive/files/application/download/FileDownloader';
 import { LocalFileWriter } from '../../../context/offline-drive/LocalFile/application/write/LocalFileWriter';
 import { LocalFileDeleter } from '../../../context/offline-drive/LocalFile/application/delete/LocalFileDeleter';

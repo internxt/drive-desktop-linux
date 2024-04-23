@@ -5,7 +5,7 @@ import { FileRepository } from '../../domain/FileRepository';
 import { FileSize } from '../../domain/FileSize';
 import { FileNotFoundError } from '../../domain/errors/FileNotFoundError';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
-import { ContentsId } from '../../domain/ContentsId';
+import { FileContentsId } from '../../domain/FileContentsId';
 
 @Service()
 export class FileOverrider {
@@ -26,7 +26,10 @@ export class FileOverrider {
       throw new FileNotFoundError(oldContentsId);
     }
 
-    file.changeContents(new ContentsId(newContentsId), new FileSize(newSize));
+    file.changeContents(
+      new FileContentsId(newContentsId),
+      new FileSize(newSize)
+    );
 
     await this.rfs.override(file);
 

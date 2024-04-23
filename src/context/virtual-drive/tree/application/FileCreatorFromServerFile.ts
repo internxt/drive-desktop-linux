@@ -1,6 +1,6 @@
 import { ServerFile } from '../../../shared/domain/ServerFile';
-import { File } from '../domain/File';
-import { FileStatuses } from '../domain/FileStatus';
+import { File } from '../../files/domain/File';
+import { FileStatuses } from '../../files/domain/FileStatus';
 
 export function createFileFromServerFile(
   server: ServerFile,

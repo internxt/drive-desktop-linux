@@ -1,19 +1,17 @@
 import { Service } from 'diod';
 import Logger from 'electron-log';
-import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
-import { AllParentFoldersStatusIsExists } from '../../folders/application/AllParentFoldersStatusIsExists';
-import { File } from '../domain/File';
-import { FileRepository } from '../domain/FileRepository';
-import { FileStatuses } from '../domain/FileStatus';
-import { SyncFileMessenger } from '../domain/SyncFileMessenger';
-import { LocalFileSystem } from '../domain/file-systems/LocalFileSystem';
-import { RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
+import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
+import { AllParentFoldersStatusIsExists } from '../../../folders/application/AllParentFoldersStatusIsExists';
+import { File } from '../../domain/File';
+import { FileRepository } from '../../domain/FileRepository';
+import { FileStatuses } from '../../domain/FileStatus';
+import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
+import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 
 @Service()
-export class FileDeleter {
+export class FileTrasher {
   constructor(
     private readonly remote: RemoteFileSystem,
-    private readonly local: LocalFileSystem,
     private readonly repository: FileRepository,
     private readonly allParentFoldersStatusIsExists: AllParentFoldersStatusIsExists,
     private readonly notifier: SyncFileMessenger
@@ -67,9 +65,6 @@ export class FileDeleter {
         cause,
         name: file.nameWithExtension,
       });
-
-      // TODO: add an event and an event handler to recreate placeholders if needed
-      this.local.createPlaceHolder(file);
 
       throw error;
     }

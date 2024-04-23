@@ -1,6 +1,6 @@
 import { Container } from 'diod';
 import Logger from 'electron-log';
-import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
+import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FuseCallback } from './FuseCallback';
 import { FuseIOError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
 import { TemporalFileByPathFinder } from '../../../context/offline-drive/TemporalFiles/application/find/TemporalFileByPathFinder';

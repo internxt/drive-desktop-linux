@@ -1,6 +1,6 @@
 import { Container } from 'diod';
-import { FileDeleter } from '../../../context/virtual-drive/files/application/FileDeleter';
-import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
+import { FileTrasher } from '../../../context/virtual-drive/files/application/trash/FileTrasher';
+import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FileStatuses } from '../../../context/virtual-drive/files/domain/FileStatus';
 import { NotifyFuseCallback } from './FuseCallback';
 import { FuseIOError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
@@ -33,7 +33,7 @@ export class TrashFileCallback extends NotifyFuseCallback {
     }
 
     try {
-      await this.container.get(FileDeleter).run(file.contentsId);
+      await this.container.get(FileTrasher).run(file.contentsId);
 
       return this.right();
     } catch {
