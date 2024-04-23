@@ -2,7 +2,7 @@ import { Container } from 'diod';
 import { FuseCallback } from './FuseCallback';
 import { FilesByFolderPathSearcher } from '../../../context/virtual-drive/files/application/FilesByFolderPathSearcher';
 import { FoldersByParentPathLister } from '../../../context/virtual-drive/folders/application/FoldersByParentPathLister';
-import { DocumentsFinderByFolder } from '../../../context/offline-drive/documents/application/find/DocumentsFinderByFolder';
+import { TemporalFileByFolderFinder } from '../../../context/offline-drive/TemporalFiles/application/find/TemporalFileByFolderFinder';
 
 export class ReaddirCallback extends FuseCallback<Array<string>> {
   constructor(private readonly container: Container) {
@@ -19,7 +19,7 @@ export class ReaddirCallback extends FuseCallback<Array<string>> {
       .run(path);
 
     const documents = await this.container
-      .get(DocumentsFinderByFolder)
+      .get(TemporalFileByFolderFinder)
       .run(path);
 
     const auxiliaryFileName = documents

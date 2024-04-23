@@ -1,11 +1,11 @@
 import { FileSizeMother } from '../FileSizeMother';
 import { FilePathMother } from '../FilePathMother';
 import { ContentsIdMother } from '../../../contents/domain/ContentsIdMother';
-import { DocumentUploadedDomainEvent } from '../../../../../../src/context/offline-drive/documents/domain/upload/DocumentUploadedDomainEvent';
+import { TemporalFileUploadedDomainEvent } from '../../../../../../src/context/offline-drive/TemporalFiles/domain/upload/TemporalFileUploadedDomainEvent';
 
 export class OfflineContentsUploadedDomainEventMother {
-  static replacesContents(): DocumentUploadedDomainEvent {
-    return new DocumentUploadedDomainEvent({
+  static replacesContents(): TemporalFileUploadedDomainEvent {
+    return new TemporalFileUploadedDomainEvent({
       aggregateId: ContentsIdMother.primitive(),
       size: FileSizeMother.random().value,
       path: FilePathMother.random().value,
@@ -13,8 +13,8 @@ export class OfflineContentsUploadedDomainEventMother {
     });
   }
 
-  static doesNotReplace(): DocumentUploadedDomainEvent {
-    return new DocumentUploadedDomainEvent({
+  static doesNotReplace(): TemporalFileUploadedDomainEvent {
+    return new TemporalFileUploadedDomainEvent({
       aggregateId: ContentsIdMother.primitive(),
       size: FileSizeMother.random().value,
       path: FilePathMother.random().value,

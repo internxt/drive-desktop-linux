@@ -1,6 +1,6 @@
 import { Container } from 'diod';
-import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
-import { DocumentUploader } from '../../../context/offline-drive/documents/application/upload/DocumentUploader';
+import { TemporalFileByPathFinder } from '../../../context/offline-drive/TemporalFiles/application/find/TemporalFileByPathFinder';
+import { TemporalFileUploader } from '../../../context/offline-drive/TemporalFiles/application/upload/TemporalFileUploader';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
 import { NotifyFuseCallback } from './FuseCallback';
 import { FuseIOError } from './FuseErrors';
@@ -14,7 +14,9 @@ export class ReleaseCallback extends NotifyFuseCallback {
 
   async execute(path: string, _fd: number) {
     try {
-      const document = await this.container.get(DocumentByPathFinder).run(path);
+      const document = await this.container
+        .get(TemporalFileByPathFinder)
+        .run(path);
 
       if (document) {
         this.logDebugMessage('Offline File found');
@@ -28,7 +30,7 @@ export class ReleaseCallback extends NotifyFuseCallback {
           return this.right();
         }
 
-        await this.container.get(DocumentUploader).run(document.path.value);
+        await this.container.get(TemporalFileUploader).run(document.path.value);
         this.logDebugMessage('Offline File has been uploaded');
         return this.right();
       }

@@ -3,9 +3,9 @@ import Logger from 'electron-log';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
 import { FuseCallback } from './FuseCallback';
 import { FuseIOError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
-import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
+import { TemporalFileByPathFinder } from '../../../context/offline-drive/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { LocalFileIsAvailable } from '../../../context/offline-drive/LocalFile/application/find/LocalFileIsAvaliable';
-import { Document } from '../../../context/offline-drive/documents/domain/Document';
+import { TemporalFile } from '../../../context/offline-drive/TemporalFiles/domain/TemporalFile';
 import { File } from '../../../context/virtual-drive/files/domain/File';
 import { FileDownloader } from '../../../context/virtual-drive/contents/application/FileDownloader';
 import { LocalFileWriter } from '../../../context/offline-drive/LocalFile/application/write/LocalFileWriter';
@@ -17,14 +17,14 @@ export class OpenCallback extends FuseCallback<number> {
 
   private async searchForTemporalFiles(
     path: string
-  ): Promise<Document | undefined> {
+  ): Promise<TemporalFile | undefined> {
     const localIsAvaliable = await this.container
-      .get(DocumentByPathFinder)
+      .get(TemporalFileByPathFinder)
       .run(path);
 
     if (!localIsAvaliable) return;
 
-    return await this.container.get(DocumentByPathFinder).run(path);
+    return await this.container.get(TemporalFileByPathFinder).run(path);
   }
 
   private async download(file: File) {

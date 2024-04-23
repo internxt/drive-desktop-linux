@@ -1,5 +1,5 @@
 import { Container } from 'diod';
-import { BufferToDocumentWriter } from '../../../context/offline-drive/documents/application/write/BufferToDocumentWriter';
+import { TemporalFileWriter } from '../../../context/offline-drive/TemporalFiles/application/write/TemporalFileWriter';
 
 export class WriteCallback {
   constructor(private readonly container: Container) {}
@@ -12,9 +12,7 @@ export class WriteCallback {
     pos: number,
     cb: (a: number) => void
   ) {
-    await this.container
-      .get(BufferToDocumentWriter)
-      .run(path, buffer, len, pos);
+    await this.container.get(TemporalFileWriter).run(path, buffer, len, pos);
 
     return cb(len);
   }

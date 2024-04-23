@@ -4,8 +4,8 @@ import { FirstsFileSearcher } from '../../../context/virtual-drive/files/applica
 import { FileStatuses } from '../../../context/virtual-drive/files/domain/FileStatus';
 import { NotifyFuseCallback } from './FuseCallback';
 import { FuseIOError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
-import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
-import { DocumentDeleter } from '../../../context/offline-drive/documents/application/deletion/DocumentDeleter';
+import { TemporalFileByPathFinder } from '../../../context/offline-drive/TemporalFiles/application/find/TemporalFileByPathFinder';
+import { TemporalFileDeleter } from '../../../context/offline-drive/TemporalFiles/application/deletion/TemporalFileDeleter';
 
 export class TrashFileCallback extends NotifyFuseCallback {
   constructor(private readonly container: Container) {
@@ -19,13 +19,15 @@ export class TrashFileCallback extends NotifyFuseCallback {
     });
 
     if (!file) {
-      const document = await this.container.get(DocumentByPathFinder).run(path);
+      const document = await this.container
+        .get(TemporalFileByPathFinder)
+        .run(path);
 
       if (!document) {
         return this.left(new FuseNoSuchFileOrDirectoryError(path));
       }
 
-      await this.container.get(DocumentDeleter).run(path);
+      await this.container.get(TemporalFileDeleter).run(path);
 
       return this.right();
     }

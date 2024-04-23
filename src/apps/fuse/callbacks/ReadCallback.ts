@@ -1,9 +1,9 @@
 import { Container } from 'diod';
 import Logger from 'electron-log';
-import { DocumentByPathFinder } from '../../../context/offline-drive/documents/application/find/DocumentByPathFinder';
+import { TemporalFileByPathFinder } from '../../../context/offline-drive/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FirstsFileSearcher } from '../../../context/virtual-drive/files/application/FirstsFileSearcher';
 import { Optional } from '../../../shared/types/Optional';
-import { DocumentChunkReader } from '../../../context/offline-drive/documents/application/read/DocumentChunkReader';
+import { TemporalFileChunkReader } from '../../../context/offline-drive/TemporalFiles/application/read/TemporalFileChunkReader';
 import { LocalFileChunkReader } from '../../../context/offline-drive/LocalFile/application/read/LocalFileChunkReader';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -58,7 +58,7 @@ export class ReadCallback {
 
       if (!virtualFile) {
         const document = await this.container
-          .get(DocumentByPathFinder)
+          .get(TemporalFileByPathFinder)
           .run(path);
 
         if (!document) {
@@ -68,7 +68,7 @@ export class ReadCallback {
         }
 
         const chunk = await this.container
-          .get(DocumentChunkReader)
+          .get(TemporalFileChunkReader)
           .run(document.path.value, len, pos);
 
         const result = await this.copyToBuffer(buf, chunk);

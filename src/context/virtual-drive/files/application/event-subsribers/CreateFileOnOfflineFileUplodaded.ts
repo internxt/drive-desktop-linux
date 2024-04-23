@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import Logger from 'electron-log';
-import { DocumentUploadedDomainEvent } from '../../../../offline-drive/documents/domain/upload/DocumentUploadedDomainEvent';
+import { TemporalFileUploadedDomainEvent } from '../../../../offline-drive/TemporalFiles/domain/upload/TemporalFileUploadedDomainEvent';
 import { DomainEventClass } from '../../../../shared/domain/DomainEvent';
 import { DomainEventSubscriber } from '../../../../shared/domain/DomainEventSubscriber';
 import { FileCreator } from '../FileCreator';
@@ -8,7 +8,7 @@ import { FileOverrider } from '../override/FileOverrider';
 
 @Service()
 export class CreateFileOnOfflineFileUploaded
-  implements DomainEventSubscriber<DocumentUploadedDomainEvent>
+  implements DomainEventSubscriber<TemporalFileUploadedDomainEvent>
 {
   constructor(
     private readonly creator: FileCreator,
@@ -16,10 +16,10 @@ export class CreateFileOnOfflineFileUploaded
   ) {}
 
   subscribedTo(): DomainEventClass[] {
-    return [DocumentUploadedDomainEvent, DocumentUploadedDomainEvent];
+    return [TemporalFileUploadedDomainEvent, TemporalFileUploadedDomainEvent];
   }
 
-  private async create(event: DocumentUploadedDomainEvent): Promise<void> {
+  private async create(event: TemporalFileUploadedDomainEvent): Promise<void> {
     if (event.replaces) {
       await this.fileOverrider.run(
         event.replaces,
@@ -32,7 +32,7 @@ export class CreateFileOnOfflineFileUploaded
     await this.creator.run(event.path, event.aggregateId, event.size);
   }
 
-  async on(event: DocumentUploadedDomainEvent): Promise<void> {
+  async on(event: TemporalFileUploadedDomainEvent): Promise<void> {
     try {
       this.create(event);
     } catch (err) {

@@ -1,6 +1,6 @@
 import { Container } from 'diod';
 import { NotifyFuseCallback } from './FuseCallback';
-import { DocumentCreator } from '../../../context/offline-drive/documents/application/creation/DocumentCreator';
+import { TemporalFileCreator } from '../../../context/offline-drive/TemporalFiles/application/creation/TemporalFileCreator';
 
 export class CreateCallback extends NotifyFuseCallback {
   constructor(private readonly container: Container) {
@@ -8,7 +8,7 @@ export class CreateCallback extends NotifyFuseCallback {
   }
 
   async execute(path: string, _mode: number) {
-    await this.container.get(DocumentCreator).run(path);
+    await this.container.get(TemporalFileCreator).run(path);
 
     return this.right();
   }
