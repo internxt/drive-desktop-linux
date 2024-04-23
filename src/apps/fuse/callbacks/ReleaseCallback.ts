@@ -7,6 +7,7 @@ import { RelativePathToAbsoluteConverter } from '../../../context/virtual-drive/
 import { NotifyFuseCallback } from './FuseCallback';
 import { FuseIOError } from './FuseErrors';
 import Logger from 'electron-log';
+import { LocalFileCacheDeleter } from '../../../context/offline-drive/LocalFile/application/delete/LocalFileCacheDeleter';
 
 export class ReleaseCallback extends NotifyFuseCallback {
   constructor(private readonly container: Container) {
@@ -39,12 +40,13 @@ export class ReleaseCallback extends NotifyFuseCallback {
       });
 
       if (virtualFile) {
-        this.logDebugMessage('Virtual File founded');
-        const contentsPath = this.container
-          .get(RelativePathToAbsoluteConverter)
+        await this.container
+          .get(LocalFileCacheDeleter)
           .run(virtualFile.contentsId);
 
-        await this.container.get(OfflineContentsCacheCleaner).run(contentsPath);
+        this.logDebugMessage(
+          `${virtualFile.path} removed from local file cache`
+        );
 
         return this.right();
       }

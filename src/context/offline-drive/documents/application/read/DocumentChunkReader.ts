@@ -1,27 +1,11 @@
 import { Service } from 'diod';
 import { Optional } from '../../../../../shared/types/Optional';
 import { DocumentPath } from '../../domain/DocumentPath';
-import { DocumentRepository } from '../../domain/WritableDocumentRepository';
-import { DocumentCache } from '../../domain/DocumentCache';
+import { DocumentRepository } from '../../domain/DocumentRepository';
 
 @Service()
 export class DocumentChunkReader {
-  constructor(
-    private readonly cache: DocumentCache,
-    private readonly repository: DocumentRepository
-  ) {}
-
-  private async getChunk(
-    documentPath: DocumentPath,
-    from: number,
-    to: number
-  ): Promise<Buffer> {
-    if (this.cache.has(documentPath)) {
-      return this.cache.read(documentPath, from, to);
-    }
-
-    return this.repository.read(documentPath);
-  }
+  constructor(private readonly repository: DocumentRepository) {}
 
   async run(
     path: string,
@@ -33,7 +17,9 @@ export class DocumentChunkReader {
     const from = position;
     const to = position + length;
 
-    const chunk = await this.getChunk(documentPath, from, to);
+    const data = await this.repository.read(documentPath);
+
+    const chunk = data.slice(from, to);
 
     if (chunk.byteLength === 0) {
       return Optional.empty();

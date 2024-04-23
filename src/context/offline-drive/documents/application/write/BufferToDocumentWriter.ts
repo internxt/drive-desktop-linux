@@ -1,5 +1,5 @@
 import { Service } from 'diod';
-import { DocumentRepository } from '../../domain/WritableDocumentRepository';
+import { DocumentRepository } from '../../domain/DocumentRepository';
 import { DocumentPath } from '../../domain/DocumentPath';
 import { OfflineContentsIOError } from '../../../contents/domain/errors/IOError';
 

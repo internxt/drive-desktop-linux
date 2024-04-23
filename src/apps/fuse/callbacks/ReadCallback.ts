@@ -51,34 +51,32 @@ export class ReadCallback {
     pos: number,
     cb: (code: number, params?: any) => void
   ) {
-    const virtualFile = await this.container.get(FirstsFileSearcher).run({
-      path,
-    });
+    try {
+      const virtualFile = await this.container.get(FirstsFileSearcher).run({
+        path,
+      });
 
-    if (!virtualFile) {
-      const document = await this.container.get(DocumentByPathFinder).run(path);
+      if (!virtualFile) {
+        const document = await this.container
+          .get(DocumentByPathFinder)
+          .run(path);
 
-      if (!document) {
-        Logger.error('READ FILE NOT FOUND', path);
-        cb(fuse.ENOENT);
+        if (!document) {
+          Logger.error('READ FILE NOT FOUND', path);
+          cb(fuse.ENOENT);
+          return;
+        }
+
+        const chunk = await this.container
+          .get(DocumentChunkReader)
+          .run(document.path.value, len, pos);
+
+        const result = await this.copyToBuffer(buf, chunk);
+
+        cb(result);
         return;
       }
 
-      const chunk = await this.container
-        .get(DocumentChunkReader)
-        .run(document.path.value, len, pos);
-
-      const result = await this.copyToBuffer(buf, chunk);
-
-      cb(result);
-      return;
-    }
-
-    // const filePath = this.container
-    //   .get(RelativePathToAbsoluteConverter)
-    //   .run(virtualFile.contentsId);
-
-    try {
       const bytesRead = await this.read(virtualFile.contentsId, buf, len, pos);
       cb(bytesRead);
     } catch (err) {

@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import { Service } from 'diod';
 import { DocumentPath } from '../../domain/DocumentPath';
-import { DocumentRepository } from '../../domain/WritableDocumentRepository';
+import { DocumentRepository } from '../../domain/DocumentRepository';
 
 @Service()
 export class DocumentByteByByteComparator {

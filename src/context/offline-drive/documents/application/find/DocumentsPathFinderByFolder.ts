@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import { dirname } from 'path';
-import { DocumentRepository } from '../../domain/WritableDocumentRepository';
+import { DocumentRepository } from '../../domain/DocumentRepository';
 import { DocumentPath } from '../../domain/DocumentPath';
 
 @Service()

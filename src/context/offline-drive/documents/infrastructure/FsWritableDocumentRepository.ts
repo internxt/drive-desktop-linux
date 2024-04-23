@@ -7,7 +7,7 @@ import { Readable } from 'stream';
 import * as uuid from 'uuid';
 import { Document } from '../domain/Document';
 import { DocumentPath } from '../domain/DocumentPath';
-import { DocumentRepository } from '../domain/WritableDocumentRepository';
+import { DocumentRepository } from '../domain/DocumentRepository';
 import { Optional } from '../../../../shared/types/Optional';
 import { exec } from 'child_process';
 
