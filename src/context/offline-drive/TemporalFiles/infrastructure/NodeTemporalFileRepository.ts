@@ -13,19 +13,38 @@ import { exec } from 'child_process';
 
 @Service()
 export class NodeTemporalFileRepository implements TemporalFileRepository {
-  private readonly writableFilesMap = new Map<string, string>();
+  private readonly map = new Map<string, string>();
 
   constructor(
     private readonly readBaseFolder: string,
     private readonly writeBaseFolder: string
   ) {}
 
+  async exits(documentPath: TemporalFilePath): Promise<boolean> {
+    const pathToRead = this.map.get(documentPath.value);
+
+    if (!pathToRead) {
+      return false;
+    }
+
+    return new Promise((resolve) => {
+      fs.stat(pathToRead, (err) => {
+        if (err) {
+          resolve(false);
+          return;
+        }
+
+        resolve(true);
+      });
+    });
+  }
+
   create(documentPath: TemporalFilePath): Promise<void> {
     const id = uuid.v4();
 
     const pathToWrite = path.join(this.writeBaseFolder, id);
 
-    this.writableFilesMap.set(documentPath.value, pathToWrite);
+    this.map.set(documentPath.value, pathToWrite);
 
     return new Promise((resolve, reject) => {
       fs.writeFile(pathToWrite, '', (err) => {
@@ -40,8 +59,8 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
   }
 
   areEqual(doc1: TemporalFilePath, doc2: TemporalFilePath): Promise<boolean> {
-    const file1 = this.writableFilesMap.get(doc1.value);
-    const file2 = this.writableFilesMap.get(doc2.value);
+    const file1 = this.map.get(doc1.value);
+    const file2 = this.map.get(doc2.value);
 
     if (!file1) {
       throw new Error(`${doc1.value} not found`);
@@ -64,7 +83,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
   }
 
   async delete(documentPath: TemporalFilePath): Promise<void> {
-    const pathToDelete = this.writableFilesMap.get(documentPath.value);
+    const pathToDelete = this.map.get(documentPath.value);
 
     if (!pathToDelete) {
       return;
@@ -91,11 +110,11 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
 
     await fsDeletion;
 
-    this.writableFilesMap.delete(documentPath.value);
+    this.map.delete(documentPath.value);
   }
 
   async matchingDirectory(directory: string): Promise<TemporalFilePath[]> {
-    const paths = Array.from(this.writableFilesMap.keys());
+    const paths = Array.from(this.map.keys());
 
     return paths
       .filter((p) => path.dirname(p) === directory)
@@ -103,7 +122,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
   }
 
   read(documentPath: TemporalFilePath): Promise<Buffer> {
-    const id = this.writableFilesMap.get(documentPath.value);
+    const id = this.map.get(documentPath.value);
 
     if (!id) {
       throw new Error(`Document with path ${documentPath.value} not found`);
@@ -120,7 +139,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     length: number,
     position: number
   ): Promise<void> {
-    const pathToWrite = this.writableFilesMap.get(documentPath.value);
+    const pathToWrite = this.map.get(documentPath.value);
 
     if (!pathToWrite) {
       throw new Error(`Document with path ${documentPath.value} not found`);
@@ -136,7 +155,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
   }
 
   async stream(documentPath: TemporalFilePath): Promise<Readable> {
-    const pathToRead = this.writableFilesMap.get(documentPath.value);
+    const pathToRead = this.map.get(documentPath.value);
 
     if (!pathToRead) {
       throw new Error(`Document with path ${documentPath.value} not found`);
@@ -146,7 +165,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
   }
 
   async find(documentPath: TemporalFilePath): Promise<Optional<TemporalFile>> {
-    const pathToSearch = this.writableFilesMap.get(documentPath.value);
+    const pathToSearch = this.map.get(documentPath.value);
 
     if (!pathToSearch) {
       return Optional.empty();
@@ -165,7 +184,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
   }
 
   watchFile(documentPath: TemporalFilePath, callback: () => void): () => void {
-    const pathToWatch = this.writableFilesMap.get(documentPath.value);
+    const pathToWatch = this.map.get(documentPath.value);
 
     if (!pathToWatch) {
       throw new Error(`Document with path ${documentPath.value} not found`);

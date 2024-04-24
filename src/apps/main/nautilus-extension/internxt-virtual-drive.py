@@ -33,6 +33,8 @@ status_to_emblem_map = {
    "downloading": "appointment-soon"
 }
 
+base_url = "http://localhost:4567/hydration/"
+
 
 class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.ColumnProvider,
                       Nautilus.InfoProvider):
@@ -113,51 +115,61 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
         if len(filtered_files) > 0:
             download = Nautilus.MenuItem(
                 name="InternxtVirtualDrive::DOWNLOAD" + group,
-                label="Download",
+                label="Make locally avaliable",
             )
-            download.connect("activate", self._download, filtered_files)
+            download.connect("activate", self._make_locally_available, filtered_files)
             active_items.append(download)
 
 
             clear = Nautilus.MenuItem(
                 name="InternxtVirtualDrive::CLEAR" + group,
-                label="Clear",
+                label="Make remote only",
             )
-            clear.connect("activate", self._clear, filtered_files)
+            clear.connect("activate", self._make_remote_only, filtered_files)
 
             active_items.append(clear)
 
         return active_items
 
-    def _download(self, menu, files):
+    def _encode_file_path(self, file):
+      relative_path = file.get_uri().replace(self.file_base_dir, '')
+
+      parsed = urllib.parse.unquote(relative_path)
+
+      bytes_data = parsed.encode('utf-8')
+      return base64.b64encode(bytes_data).decode('utf-8')
+
+
+    def _make_locally_available(self, menu, files):
         for file in files:
             self._setItemStatus(file, 'downloading')
 
-            relative_path = file.get_uri().replace(self.file_base_dir, '')
+            base64_encoded = self._encode_file_path(file)
 
-            print(relative_path)
+            url = base_url + base64_encoded
 
-            bytes_data = relative_path.encode('utf-8')
-            base64_encoded = base64.b64encode(bytes_data).decode('utf-8')
-            url = "http://localhost:4567/contents/" + base64_encoded
+            response = requests.post(url)
 
-            print(url)
+            print(response.status_code)
 
-            requests.post(url)
+            if (response.status_code == 201):
+              self._setItemStatus(file, 'on_local')
 
-            self._setItemStatus(file, 'on_local')
-
-
-    def _clear(self, menu, files):
-        # base_path = "file:///home/jvalles/InternxtDrive/"
+    def _make_remote_only(self, menu, files):
         for file in files:
-            relative_path = file.get_uri().replace(self.file_base_dir, '')
-            print(relative_path)
-            bytes_data = relative_path.encode('utf-8')
-            base64_encoded = base64.b64encode(bytes_data).decode('utf-8')
-            url = "http://localhost:4567/contents/" + base64_encoded
+            self._setItemStatus(file, 'downloading')
+
+            base64_encoded = self._encode_file_path(file)
+            url = base_url + base64_encoded
+
             print(url)
-            requests.delete(url)
+
+            response = requests.delete(url)
+
+            print(response.status_code)
+
+            if (response.status_code == 201):
+              self._setItemStatus(file, 'on_remote')
 
 
     def get_columns(self):
@@ -171,7 +183,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
             return
 
         print(f'update file info {file.get_uri()}')
-        self._set_emblem_status(file)
+        # self._set_emblem_status(file)
 
         file.add_string_attribute(SYNC_STATUS_ATTRIBUTE_NAME,SYNC_STATUS_ONLY_ONLINE)
         self.get_columns()

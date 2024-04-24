@@ -19,6 +19,7 @@ import { TrashFileCallback } from './callbacks/TrashFileCallback';
 import { TrashFolderCallback } from './callbacks/TrashFolderCallback';
 import { WriteCallback } from './callbacks/WriteCallback';
 import { mountPromise, unmountPromise } from './helpers';
+import { VirtualDrive } from '../drive/VirtualDrive';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
@@ -29,6 +30,7 @@ export class FuseApp {
   private _fuse: any;
 
   constructor(
+    private readonly virtualDrive: VirtualDrive,
     private readonly container: Container,
     private readonly paths: {
       root: string;
@@ -39,7 +41,7 @@ export class FuseApp {
   private async getOpt() {
     const readdir = new ReaddirCallback(this.container);
     const getattr = new GetAttributesCallback(this.container);
-    const open = new OpenCallback(this.container);
+    const open = new OpenCallback(this.virtualDrive);
     const read = new ReadCallback(this.container);
     const renameOrMove = new RenameMoveOrTrashCallback(this.container);
     const create = new CreateCallback(this.container);
@@ -48,7 +50,7 @@ export class FuseApp {
     const trashFolder = new TrashFolderCallback(this.container);
     const write = new WriteCallback(this.container);
     const release = new ReleaseCallback(this.container);
-    const getXAttributes = new GetXAttributeCallback(this.container);
+    const getXAttributes = new GetXAttributeCallback(this.virtualDrive);
 
     return {
       getattr: getattr.handle.bind(getattr),
