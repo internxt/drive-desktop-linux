@@ -1,10 +1,10 @@
 import { Container } from 'diod';
 import Logger from 'electron-log';
-import { ClearLocalFiles } from '../../context/offline-drive/LocalFile/application/delete/ClearLocalFiles';
-import { FileRepositoryInitializer } from '../../context/virtual-drive/files/application/FileRepositoryInitializer';
-import { FolderRepositoryInitializer } from '../../context/virtual-drive/folders/application/FolderRepositoryInitializer';
-import { TreeBuilder } from '../../context/virtual-drive/tree/application/TreeBuilder';
-import { ensureFolderExists } from './../shared/fs/ensure-folder-exists';
+import { ClearLocalFiles } from '../../../context/offline-drive/LocalFile/application/delete/ClearLocalFiles';
+import { FileRepositoryInitializer } from '../../../context/virtual-drive/files/application/FileRepositoryInitializer';
+import { FolderRepositoryInitializer } from '../../../context/virtual-drive/folders/application/FolderRepositoryInitializer';
+import { TreeBuilder } from '../../../context/virtual-drive/tree/application/TreeBuilder';
+import { ensureFolderExists } from '../../shared/fs/ensure-folder-exists';
 import { FuseDriveStatus } from './FuseDriveStatus';
 import { CreateCallback } from './callbacks/CreateCallback';
 import { GetAttributesCallback } from './callbacks/GetAttributesCallback';
@@ -19,7 +19,7 @@ import { TrashFileCallback } from './callbacks/TrashFileCallback';
 import { TrashFolderCallback } from './callbacks/TrashFolderCallback';
 import { WriteCallback } from './callbacks/WriteCallback';
 import { mountPromise, unmountPromise } from './helpers';
-import { VirtualDrive } from '../drive/VirtualDrive';
+import { VirtualDrive } from '../VirtualDrive';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');

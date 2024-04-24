@@ -1,5 +1,5 @@
 import { FuseCallback } from './FuseCallback';
-import { VirtualDrive } from '../../drive/VirtualDrive';
+import { VirtualDrive } from '../../VirtualDrive';
 import Logger from 'electron-log';
 
 export class GetXAttributeCallback extends FuseCallback<Buffer> {

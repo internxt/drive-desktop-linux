@@ -1,7 +1,7 @@
 import { app, ipcMain } from 'electron';
 import Logger from 'electron-log';
 import path from 'path';
-import { FuseApp } from '../fuse/FuseApp';
+import { FuseApp } from './fuse/FuseApp';
 import { HydrationApi } from './hydration-api/HydrationApi';
 import eventBus from '../main/event-bus';
 import { getRootVirtualDrive } from '../main/virtual-root-folder/service';

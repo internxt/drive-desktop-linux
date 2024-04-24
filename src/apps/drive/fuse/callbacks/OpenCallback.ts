@@ -1,5 +1,5 @@
 import Logger from 'electron-log';
-import { VirtualDrive } from '../../drive/VirtualDrive';
+import { VirtualDrive } from '../../VirtualDrive';
 import { FuseCallback } from './FuseCallback';
 import { FuseIOError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
 
