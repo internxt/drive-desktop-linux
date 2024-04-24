@@ -182,8 +182,8 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
         if not self._file_is_in_virtual_drive(file):
             return
 
-        print(f'update file info {file.get_uri()}')
-        # self._set_emblem_status(file)
+        # print(f'update file info {file.get_uri()}')
+        self._set_emblem_status(file)
 
         file.add_string_attribute(SYNC_STATUS_ATTRIBUTE_NAME,SYNC_STATUS_ONLY_ONLINE)
         self.get_columns()
