@@ -27,10 +27,18 @@ SYNC_STATUS_ONLY_ONLINE="Only online"
 
 VIRTUAL_DRIVE_ROOT_FOLDER_NAME = "Internxt%20Drive"
 
+status_to_column_status_map = {
+  "on_local": "Offline Available",
+  "on_remote": "Online Only",
+  "downloading": "Downloading",
+  "removing": "Removing"
+}
+
 status_to_emblem_map = {
    "on_local": "drive-removable-media",
    "on_remote": "weather-overcast",
-   "downloading": "appointment-soon"
+   "downloading": "appointment-soon",
+   "removing": "appointment-soon"
 }
 
 base_url = "http://localhost:4567/hydration/"
@@ -84,28 +92,39 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
       file.invalidate_extension_info()
       file.add_emblem(emblem)
 
-    def _set_emblem_status(self, file):
-      target_key = 'status'
 
+    def _get_x_attribute(self, file, key):
       path = file.get_uri().replace('file://', '').replace('%20', ' ')
 
       decoded_uri = urllib.parse.unquote(path)
 
       attrs = xattr.xattr(decoded_uri)
 
-      if target_key.encode() in attrs:
-        status = attrs.get(target_key.encode()).decode('utf-8')
+      if key.encode() in attrs:
+        return attrs.get(key.encode()).decode('utf-8')
 
-        self._setItemStatus(file, status)
+    def _update_file_status(self, file):
 
-      else:
-        file.invalidate_extension_info()
-        print(f"Key '{target_key}' not found")
+      if file.is_directory():
+        return
 
+      status = self._get_x_attribute(file, 'hydration-status')
+
+      if status is None:
+         file.invalidate_extension_info()
+         return
+
+      self._setItemStatus(file, status)
+      self._set_sync_status_column_attribute(file, status)
+
+    def _set_sync_status_column_attribute(self, file, status):
+
+      text = status_to_column_status_map[status]
+
+      file.add_string_attribute(SYNC_STATUS_ATTRIBUTE_NAME, text)
 
     def _create_menu_items(self, files, group):
         active_items = []
-
 
         filtered_files = []
         for file in files:
@@ -115,7 +134,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
         if len(filtered_files) > 0:
             download = Nautilus.MenuItem(
                 name="InternxtVirtualDrive::DOWNLOAD" + group,
-                label="Make locally avaliable",
+                label="Make Available Offline",
             )
             download.connect("activate", self._make_locally_available, filtered_files)
             active_items.append(download)
@@ -157,7 +176,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
     def _make_remote_only(self, menu, files):
         for file in files:
-            self._setItemStatus(file, 'downloading')
+            self._setItemStatus(file, 'removing')
 
             base64_encoded = self._encode_file_path(file)
             url = base_url + base64_encoded
@@ -182,8 +201,4 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
         if not self._file_is_in_virtual_drive(file):
             return
 
-        # print(f'update file info {file.get_uri()}')
-        self._set_emblem_status(file)
-
-        file.add_string_attribute(SYNC_STATUS_ATTRIBUTE_NAME,SYNC_STATUS_ONLY_ONLINE)
-        self.get_columns()
+        self._update_file_status(file)
