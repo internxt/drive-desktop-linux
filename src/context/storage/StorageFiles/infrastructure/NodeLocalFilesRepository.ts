@@ -4,11 +4,11 @@ import { readFile, readdir, unlink } from 'fs/promises';
 import path from 'path';
 import { ensureFolderExists } from '../../../../apps/shared/fs/ensure-folder-exists';
 import { WriteReadableToFile } from '../../../../apps/shared/fs/write-readable-to-file';
-import { LocalFileId } from '../domain/LocalFileId';
-import { LocalFileRepository } from '../domain/LocalFileRepository';
+import { StorageFileId } from '../domain/StorageFileId';
+import { StorageFileRepository } from '../domain/StorageFileRepository';
 
 @Service()
-export class NodeLocalFilesRepository implements LocalFileRepository {
+export class NodeStorageFilesRepository implements StorageFileRepository {
   private readonly map = new Map<string, string>();
   constructor(private readonly baseFolder: string) {}
 
@@ -24,7 +24,7 @@ export class NodeLocalFilesRepository implements LocalFileRepository {
     });
   }
 
-  async store(id: LocalFileId, readable: Readable): Promise<void> {
+  async store(id: StorageFileId, readable: Readable): Promise<void> {
     const pathToWrite = path.join(this.baseFolder, id.value);
 
     await WriteReadableToFile.write(readable, pathToWrite);
@@ -32,7 +32,7 @@ export class NodeLocalFilesRepository implements LocalFileRepository {
     this.map.set(id.value, pathToWrite);
   }
 
-  async read(id: LocalFileId): Promise<Buffer> {
+  async read(id: StorageFileId): Promise<Buffer> {
     if (!this.map.has(id.value)) {
       throw new Error(`Local file ${id.value} not found`);
     }
@@ -44,11 +44,11 @@ export class NodeLocalFilesRepository implements LocalFileRepository {
     return buffer;
   }
 
-  async exists(id: LocalFileId): Promise<boolean> {
+  async exists(id: StorageFileId): Promise<boolean> {
     return this.map.has(id.value);
   }
 
-  async delete(id: LocalFileId): Promise<void> {
+  async delete(id: StorageFileId): Promise<void> {
     const pathToUnlink = path.join(this.baseFolder, id.value);
 
     await unlink(pathToUnlink);
@@ -63,7 +63,7 @@ export class NodeLocalFilesRepository implements LocalFileRepository {
 
     while (!result.done) {
       // eslint-disable-next-line no-await-in-loop
-      await this.delete(new LocalFileId(result.value));
+      await this.delete(new StorageFileId(result.value));
       result = iterator.next();
     }
   }

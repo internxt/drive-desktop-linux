@@ -1,15 +1,15 @@
 import { Container } from 'diod';
-import { LocalFileIsAvailable } from '../../context/offline-drive/LocalFile/application/find/LocalFileIsAvaliable';
+import { StorageFileIsAvailableOffline } from '../../context/storage/StorageFiles/application/find/StorageFileIsAvailableOffline';
 import { FirstsFileSearcher } from '../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FileDownloader } from '../../context/virtual-drive/files/application/download/FileDownloader';
-import { LocalFileWriter } from '../../context/offline-drive/LocalFile/application/write/LocalFileWriter';
+import { StorageFileWriter } from '../../context/storage/StorageFiles/application/write/StorageFileWriter';
 import { Either, left, right } from '../../context/shared/domain/Either';
 import {
   FileNotFoundVirtualDriveError,
   VirtualDriveError,
 } from './errors/VirtualDriveError';
-import { LocalFileDeleter } from '../../context/offline-drive/LocalFile/application/delete/LocalFileDeleter';
-import { TemporalFileByPathFinder } from '../../context/offline-drive/TemporalFiles/application/find/TemporalFileByPathFinder';
+import { StorageFileDeleter } from '../../context/storage/StorageFiles/application/delete/StorageFileDeleter';
+import { TemporalFileByPathFinder } from '../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 
 export class VirtualDrive {
   constructor(private readonly container: Container) {}
@@ -26,7 +26,7 @@ export class VirtualDrive {
     }
 
     const isAvailable = await this.container
-      .get(LocalFileIsAvailable)
+      .get(StorageFileIsAvailableOffline)
       .run(virtualFile.contentsId);
 
     return right(isAvailable);
@@ -45,7 +45,7 @@ export class VirtualDrive {
 
     const stream = await this.container.get(FileDownloader).run(virtualFile);
     await this.container
-      .get(LocalFileWriter)
+      .get(StorageFileWriter)
       .run(virtualFile.contentsId, stream);
 
     return right(undefined);
@@ -62,7 +62,7 @@ export class VirtualDrive {
       return left(new FileNotFoundVirtualDriveError(path));
     }
 
-    await this.container.get(LocalFileDeleter).run(file.contentsId);
+    await this.container.get(StorageFileDeleter).run(file.contentsId);
 
     return right(undefined);
   }

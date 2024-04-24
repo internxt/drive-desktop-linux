@@ -1,7 +1,7 @@
 import { BucketEntry } from '../../../shared/domain/value-objects/BucketEntry';
 import { ValueObject } from '../../../shared/domain/value-objects/ValueObject';
 
-export class LocalFileSize extends ValueObject<number> {
+export class StorageFileSize extends ValueObject<number> {
   public static MAX_SIZE = BucketEntry.MAX_SIZE;
 
   constructor(value: number) {

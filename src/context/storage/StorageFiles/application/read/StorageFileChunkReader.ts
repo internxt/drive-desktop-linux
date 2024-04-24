@@ -1,17 +1,17 @@
 import { Service } from 'diod';
 import { Optional } from '../../../../../shared/types/Optional';
-import { LocalFileId } from '../../domain/LocalFileId';
-import { LocalFileRepository } from '../../domain/LocalFileRepository';
-import { LocalFileCache } from '../../domain/LocalFileCache';
+import { StorageFileId } from '../../domain/StorageFileId';
+import { StorageFileRepository } from '../../domain/StorageFileRepository';
+import { StorageFileCache } from '../../domain/StorageFileCache';
 
 @Service()
-export class LocalFileChunkReader {
+export class StorageFileChunkReader {
   constructor(
-    private readonly cache: LocalFileCache,
-    private readonly repository: LocalFileRepository
+    private readonly cache: StorageFileCache,
+    private readonly repository: StorageFileRepository
   ) {}
 
-  private async obtainData(id: LocalFileId): Promise<Buffer> {
+  private async obtainData(id: StorageFileId): Promise<Buffer> {
     const isCached = await this.cache.has(id);
 
     if (isCached) {
@@ -30,9 +30,9 @@ export class LocalFileChunkReader {
     length: number,
     position: number
   ): Promise<Optional<Buffer>> {
-    const localFileId = new LocalFileId(id);
+    const storageId = new StorageFileId(id);
 
-    const data = await this.obtainData(localFileId);
+    const data = await this.obtainData(storageId);
 
     if (position >= data.length) {
       return Optional.empty();

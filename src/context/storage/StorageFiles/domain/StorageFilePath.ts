@@ -1,7 +1,7 @@
 import path from 'path';
 import { Path } from '../../../shared/domain/value-objects/Path';
 
-export class LocalFilePath extends Path {
+export class StorageFilePath extends Path {
   constructor(value: string) {
     super(value);
   }
@@ -9,7 +9,7 @@ export class LocalFilePath extends Path {
   static fromParts(parts: Array<string>) {
     const full = path.posix.join(...parts);
 
-    return new LocalFilePath(full);
+    return new StorageFilePath(full);
   }
 
   extension(): string {
@@ -36,7 +36,7 @@ export class LocalFilePath extends Path {
     return base;
   }
 
-  hasSameDirname(other: LocalFilePath): boolean {
+  hasSameDirname(other: StorageFilePath): boolean {
     return this.dirname() === other.dirname();
   }
 
@@ -44,15 +44,15 @@ export class LocalFilePath extends Path {
     return this.extension() === extension;
   }
 
-  hasSameExtension(other: LocalFilePath): boolean {
+  hasSameExtension(other: StorageFilePath): boolean {
     return this.extension() === other.extension();
   }
 
-  changeFolder(folder: string): LocalFilePath {
-    return LocalFilePath.fromParts([folder, this.nameWithExtension()]);
+  changeFolder(folder: string): StorageFilePath {
+    return StorageFilePath.fromParts([folder, this.nameWithExtension()]);
   }
 
-  updateName(name: string): LocalFilePath {
-    return LocalFilePath.fromParts([this.dirname(), name]);
+  updateName(name: string): StorageFilePath {
+    return StorageFilePath.fromParts([this.dirname(), name]);
   }
 }
