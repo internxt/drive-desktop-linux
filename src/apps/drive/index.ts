@@ -1,22 +1,16 @@
-import { app, ipcMain } from 'electron';
+import { ipcMain } from 'electron';
 import Logger from 'electron-log';
-import path from 'path';
-import { FuseApp } from './fuse/FuseApp';
-import { HydrationApi } from './hydration-api/HydrationApi';
 import eventBus from '../main/event-bus';
 import { getRootVirtualDrive } from '../main/virtual-root-folder/service';
-import { DriveDependencyContainerFactory } from './dependency-injection/DriveDependencyContainerFactory';
 import { VirtualDrive } from './VirtualDrive';
+import { DriveDependencyContainerFactory } from './dependency-injection/DriveDependencyContainerFactory';
+import { FuseApp } from './fuse/FuseApp';
+import { HydrationApi } from './hydration-api/HydrationApi';
 
 let fuseApp: FuseApp;
 
 async function startFuseApp() {
   const root = getRootVirtualDrive();
-
-  Logger.debug('ROOT FOLDER: ', root);
-
-  const appData = app.getPath('appData');
-  const local = path.join(appData, 'internxt-drive', 'downloaded');
 
   const container = await DriveDependencyContainerFactory.build();
 
@@ -24,10 +18,7 @@ async function startFuseApp() {
 
   const hydrationApi = new HydrationApi(virtualDrive, container);
 
-  fuseApp = new FuseApp(virtualDrive, container, {
-    root,
-    local,
-  });
+  fuseApp = new FuseApp(virtualDrive, container, root);
 
   await hydrationApi.start({ debug: true });
 

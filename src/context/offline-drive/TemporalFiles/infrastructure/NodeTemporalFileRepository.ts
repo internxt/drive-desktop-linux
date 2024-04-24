@@ -10,15 +10,17 @@ import { TemporalFilePath } from '../domain/TemporalFilePath';
 import { TemporalFileRepository } from '../domain/TemporalFileRepository';
 import { Optional } from '../../../../shared/types/Optional';
 import { exec } from 'child_process';
+import { ensureFolderExists } from '../../../../apps/shared/fs/ensure-folder-exists';
 
 @Service()
 export class NodeTemporalFileRepository implements TemporalFileRepository {
   private readonly map = new Map<string, string>();
 
-  constructor(
-    private readonly readBaseFolder: string,
-    private readonly writeBaseFolder: string
-  ) {}
+  constructor(private readonly folder: string) {}
+
+  init() {
+    ensureFolderExists(this.folder);
+  }
 
   async exits(documentPath: TemporalFilePath): Promise<boolean> {
     const pathToRead = this.map.get(documentPath.value);
@@ -42,7 +44,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
   create(documentPath: TemporalFilePath): Promise<void> {
     const id = uuid.v4();
 
-    const pathToWrite = path.join(this.writeBaseFolder, id);
+    const pathToWrite = path.join(this.folder, id);
 
     this.map.set(documentPath.value, pathToWrite);
 
@@ -128,7 +130,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
       throw new Error(`Document with path ${documentPath.value} not found`);
     }
 
-    const pathToRead = path.join(this.readBaseFolder, id);
+    const pathToRead = path.join(this.folder, id);
 
     return readFile(pathToRead);
   }

@@ -4,7 +4,7 @@ import { ClearLocalFiles } from '../../../context/offline-drive/LocalFile/applic
 import { FileRepositoryInitializer } from '../../../context/virtual-drive/files/application/FileRepositoryInitializer';
 import { FolderRepositoryInitializer } from '../../../context/virtual-drive/folders/application/FolderRepositoryInitializer';
 import { TreeBuilder } from '../../../context/virtual-drive/tree/application/TreeBuilder';
-import { ensureFolderExists } from '../../shared/fs/ensure-folder-exists';
+import { VirtualDrive } from '../VirtualDrive';
 import { FuseDriveStatus } from './FuseDriveStatus';
 import { CreateCallback } from './callbacks/CreateCallback';
 import { GetAttributesCallback } from './callbacks/GetAttributesCallback';
@@ -19,7 +19,6 @@ import { TrashFileCallback } from './callbacks/TrashFileCallback';
 import { TrashFolderCallback } from './callbacks/TrashFolderCallback';
 import { WriteCallback } from './callbacks/WriteCallback';
 import { mountPromise, unmountPromise } from './helpers';
-import { VirtualDrive } from '../VirtualDrive';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
@@ -32,10 +31,7 @@ export class FuseApp {
   constructor(
     private readonly virtualDrive: VirtualDrive,
     private readonly container: Container,
-    private readonly paths: {
-      root: string;
-      local: string;
-    }
+    private readonly root: string
   ) {}
 
   private async getOpt() {
@@ -70,10 +66,8 @@ export class FuseApp {
 
   async start(): Promise<void> {
     const ops = await this.getOpt();
-    ensureFolderExists(this.paths.root);
-    ensureFolderExists(this.paths.local);
 
-    this._fuse = new fuse(this.paths.root, ops, {
+    this._fuse = new fuse(this.root, ops, {
       debug: false,
       force: true,
       maxRead: FuseApp.MAX_INT_32,
