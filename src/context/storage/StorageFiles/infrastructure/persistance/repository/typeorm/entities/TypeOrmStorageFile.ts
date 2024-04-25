@@ -1,4 +1,8 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryColumn,
+} from '../../../../../../../../apps/node_modules/typeorm';
 
 @Entity('storage_file')
 export class TypeOrmStorageFile {
@@ -10,6 +14,6 @@ export class TypeOrmStorageFile {
   @Column({ nullable: false })
   path!: string;
 
-  @Column({ nullable: false, unique: true })
+  @Column({ nullable: false, unique: false })
   size!: number;
 }

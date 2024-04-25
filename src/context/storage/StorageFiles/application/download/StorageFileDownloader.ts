@@ -31,7 +31,7 @@ export class StorageFileDownloader {
   }
 
   async run(file: StorageFile): Promise<Readable> {
-    Logger.debug(`downloading "${file}"`);
+    Logger.debug(`downloading "${file.path.nameWithExtension()}"`);
 
     const downloader = this.managerFactory.downloader();
 

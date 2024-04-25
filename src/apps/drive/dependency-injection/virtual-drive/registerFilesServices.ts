@@ -21,6 +21,7 @@ import { InMemoryFileRepository } from '../../../../context/virtual-drive/files/
 import { FileRepositoryInitializer } from '../../../../context/virtual-drive/files/application/FileRepositoryInitializer';
 import { RetrieveAllFiles } from '../../../../context/virtual-drive/files/application/RetrieveAllFiles';
 import { StorageFileDownloader } from '../../../../context/storage/StorageFiles/application/download/StorageFileDownloader';
+import { SingleFileMatchingFinder } from '../../../../context/virtual-drive/files/application/SingleFileMatchingFinder';
 
 export async function registerFilesServices(
   builder: ContainerBuilder
@@ -73,6 +74,8 @@ export async function registerFilesServices(
   builder.registerAndUse(FileOverrider);
 
   builder.registerAndUse(StorageFileDownloader);
+
+  builder.registerAndUse(SingleFileMatchingFinder);
 
   // Event Handlers
   builder

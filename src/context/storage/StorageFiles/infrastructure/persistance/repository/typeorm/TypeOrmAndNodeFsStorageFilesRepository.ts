@@ -3,7 +3,10 @@ import { Readable } from 'form-data';
 import { PathLike } from 'fs';
 import { readFile, unlink } from 'fs/promises';
 import path from 'path';
-import { DataSource, Repository } from 'typeorm';
+import {
+  DataSource,
+  Repository,
+} from '../../../../../../../apps/node_modules/typeorm';
 import { ensureFolderExists } from '../../../../../../../apps/shared/fs/ensure-folder-exists';
 import { WriteReadableToFile } from '../../../../../../../apps/shared/fs/write-readable-to-file';
 import { StorageFile } from '../../../../domain/StorageFile';
@@ -84,8 +87,8 @@ export class TypeOrmAndNodeFsStorageFilesRepository
     const all = await this.db.find();
 
     const deleted = all
-      .map((att) => new StorageFileId(att.id))
-      .map((id) => this.delete(id));
+      .map((att: { id: string }) => new StorageFileId(att.id))
+      .map((id: StorageFileId) => this.delete(id));
 
     await Promise.all(deleted);
   }

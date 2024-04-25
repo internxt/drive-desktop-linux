@@ -10,6 +10,11 @@ import TerserPlugin from 'terser-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import Dotenv from 'dotenv-webpack';
+import checkNodeEnv from '../scripts/check-node-env';
+import deleteSourceMaps from '../scripts/delete-source-maps';
+
+checkNodeEnv('production');
+deleteSourceMaps();
 
 const configuration: webpack.Configuration = {
   mode: process.env.NODE_ENV,
@@ -28,11 +33,7 @@ const configuration: webpack.Configuration = {
 
   output: {
     path: webpackPaths.distVirtualDrivePath,
-    publicPath: './',
-    filename: 'renderer.js',
-    library: {
-      type: 'umd',
-    },
+    filename: '[name].js',
   },
 
   optimization: {
@@ -44,20 +45,7 @@ const configuration: webpack.Configuration = {
     ],
   },
 
-  plugins: [
-    new Dotenv({ ignoreStub: true }),
-
-    new HtmlWebpackPlugin({
-      filename: 'index.html',
-      minify: {
-        collapseWhitespace: true,
-        removeAttributeQuotes: true,
-        removeComments: true,
-      },
-      isBrowser: false,
-      isDevelopment: process.env.NODE_ENV !== 'production',
-    }),
-  ],
+  plugins: [new Dotenv({ ignoreStub: true })],
 };
 
 export default merge(baseConfig, configuration);

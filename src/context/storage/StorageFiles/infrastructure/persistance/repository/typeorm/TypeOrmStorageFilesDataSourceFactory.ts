@@ -1,9 +1,9 @@
-import { DataSource } from 'typeorm';
+import { DataSource } from '../../../../../../../apps/node_modules/typeorm';
 import { TypeOrmStorageFile } from './entities/TypeOrmStorageFile';
 import { app } from 'electron';
 
 export class TypeOrmStorageFilesDataSourceFactory {
-  static create(): Promise<DataSource> {
+  static async create(): Promise<DataSource> {
     const dbPath =
       app.getPath('appData') + '/internxt-drive/internxt_desktop.db';
 
