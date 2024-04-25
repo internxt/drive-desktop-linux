@@ -16,7 +16,7 @@ async function startFuseApp() {
 
   const virtualDrive = new VirtualDrive(container);
 
-  const hydrationApi = new HydrationApi(virtualDrive, container);
+  const hydrationApi = new HydrationApi(container);
 
   fuseApp = new FuseApp(virtualDrive, container, root);
 

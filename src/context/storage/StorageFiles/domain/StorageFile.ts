@@ -25,12 +25,17 @@ export class StorageFile extends AggregateRoot {
   public get path() {
     return this._path;
   }
+
   public get size() {
     return this._size;
   }
 
   public get name() {
     return this._path.name();
+  }
+
+  public get nameWithExtension() {
+    return this._path.nameWithExtension();
   }
 
   public get extension() {

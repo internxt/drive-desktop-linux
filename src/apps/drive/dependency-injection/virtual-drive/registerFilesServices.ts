@@ -20,10 +20,7 @@ import { FileRepository } from '../../../../context/virtual-drive/files/domain/F
 import { InMemoryFileRepository } from '../../../../context/virtual-drive/files/infrastructure/InMemoryFileRepository';
 import { FileRepositoryInitializer } from '../../../../context/virtual-drive/files/application/FileRepositoryInitializer';
 import { RetrieveAllFiles } from '../../../../context/virtual-drive/files/application/RetrieveAllFiles';
-import { FileDownloader } from '../../../../context/virtual-drive/files/application/download/FileDownloader';
-import { FileDownloaderHandlerFactory } from '../../../../context/virtual-drive/files/domain/download/FileDownloaderHandlerFactory';
-import { EnvironmentFileDownloaderHandlerFactory } from '../../../../context/virtual-drive/files/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
-import { Environment } from '@internxt/inxt-js';
+import { StorageFileDownloader } from '../../../../context/storage/StorageFiles/application/download/StorageFileDownloader';
 
 export async function registerFilesServices(
   builder: ContainerBuilder
@@ -53,16 +50,6 @@ export async function registerFilesServices(
         )
     );
 
-  builder
-    .register(FileDownloaderHandlerFactory)
-    .useFactory(
-      (c) =>
-        new EnvironmentFileDownloaderHandlerFactory(
-          c.get(Environment),
-          user.bucket
-        )
-    );
-
   // Services
 
   builder.registerAndUse(FileRepositoryInitializer);
@@ -85,7 +72,7 @@ export async function registerFilesServices(
 
   builder.registerAndUse(FileOverrider);
 
-  builder.registerAndUse(FileDownloader);
+  builder.registerAndUse(StorageFileDownloader);
 
   // Event Handlers
   builder

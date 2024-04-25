@@ -2,15 +2,18 @@ import { ContainerBuilder } from 'diod';
 import { app } from 'electron';
 import path from 'path';
 import { StorageCacheDeleter } from '../../../../context/storage/StorageFiles/application/delete/StorageCacheDeleter';
-import { StorageFileIsAvailableOffline } from '../../../../context/storage/StorageFiles/application/find/StorageFileIsAvailableOffline';
+import { StorageFileIsAvailableOffline } from '../../../../context/storage/StorageFiles/application/offline/StorageFileIsAvailableOffline';
 import { StorageFileChunkReader } from '../../../../context/storage/StorageFiles/application/read/StorageFileChunkReader';
-import { StorageFileWriter } from '../../../../context/storage/StorageFiles/application/write/StorageFileWriter';
 import { StorageFileCache } from '../../../../context/storage/StorageFiles/domain/StorageFileCache';
 import { StorageFileRepository } from '../../../../context/storage/StorageFiles/domain/StorageFileRepository';
 import { NodeStorageFilesRepository } from '../../../../context/storage/StorageFiles/infrastructure/NodeLocalFilesRepository';
 import { InMemoryStorageFileCache } from '../../../../context/storage/StorageFiles/infrastructure/cache/InMemoryStorageFileCache';
 import { StorageFileDeleter } from '../../../../context/storage/StorageFiles/application/delete/StorageFileDeleter';
 import { StorageClearer } from '../../../../context/storage/StorageFiles/application/delete/StorageClearer';
+import { DownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
+import { EnvironmentFileDownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
+import { Environment } from '@internxt/inxt-js';
+import { DependencyInjectionMainProcessUserProvider } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
 
 export async function registerStorageFilesServices(
   builder: ContainerBuilder
@@ -20,10 +23,22 @@ export async function registerStorageFilesServices(
   const appData = app.getPath('appData');
   const local = path.join(appData, 'internxt-drive', 'downloaded');
 
+  const user = DependencyInjectionMainProcessUserProvider.get();
+
   const repo = new NodeStorageFilesRepository(local);
   await repo.init();
 
   builder.register(StorageFileRepository).useInstance(repo).private();
+
+  builder
+    .register(DownloaderHandlerFactory)
+    .useFactory(
+      (c) =>
+        new EnvironmentFileDownloaderHandlerFactory(
+          c.get(Environment),
+          user.bucket
+        )
+    );
 
   builder
     .register(StorageFileCache)
@@ -35,7 +50,6 @@ export async function registerStorageFilesServices(
   builder.registerAndUse(StorageFileIsAvailableOffline);
   builder.registerAndUse(StorageFileChunkReader);
   builder.registerAndUse(StorageCacheDeleter);
-  builder.registerAndUse(StorageFileWriter);
   builder.registerAndUse(StorageFileDeleter);
   builder.registerAndUse(StorageClearer);
 }

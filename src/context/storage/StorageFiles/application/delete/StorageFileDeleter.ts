@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { StorageFileRepository } from '../../domain/StorageFileRepository';
 import { StorageFileCache } from '../../domain/StorageFileCache';
-import { StorageFileId } from '../../domain/StorageFileId';
+import { StorageFilePath } from '../../domain/StorageFilePath';
 
 @Service()
 export class StorageFileDeleter {
@@ -10,19 +10,23 @@ export class StorageFileDeleter {
     private readonly cache: StorageFileCache
   ) {}
 
-  async run(id: string) {
-    const storageId = new StorageFileId(id);
+  async run(path: string) {
+    const storagePath = new StorageFilePath(path);
 
-    const exists = await this.repository.exists(storageId);
+    const exists = await this.repository.exists(storagePath);
 
-    if (exists) {
-      await this.repository.delete(storageId);
+    if (!exists) {
+      return;
     }
 
-    const isCached = await this.cache.has(storageId);
+    const file = await this.repository.retrieve(storagePath);
+
+    await this.repository.delete(file.id);
+
+    const isCached = await this.cache.has(file.id);
 
     if (isCached) {
-      this.cache.delete(storageId);
+      this.cache.delete(file.id);
     }
   }
 }

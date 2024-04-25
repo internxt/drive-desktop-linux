@@ -6,34 +6,69 @@ import { ensureFolderExists } from '../../../../apps/shared/fs/ensure-folder-exi
 import { WriteReadableToFile } from '../../../../apps/shared/fs/write-readable-to-file';
 import { StorageFileId } from '../domain/StorageFileId';
 import { StorageFileRepository } from '../domain/StorageFileRepository';
+import { StorageFilePath } from '../domain/StorageFilePath';
+import { StorageFile, StorageFileAttributes } from '../domain/StorageFile';
+import { PathLike, statSync } from 'fs';
+import Logger from 'electron-log';
 
 @Service()
 export class NodeStorageFilesRepository implements StorageFileRepository {
-  private readonly map = new Map<string, string>();
+  private readonly storageIdStorageFileMap = new Map<
+    StorageFileId['value'],
+    StorageFileAttributes
+  >();
+
   constructor(private readonly baseFolder: string) {}
+
+  private calculateRelativePath(folderPath: string): string {
+    const relativePath = path.relative(this.baseFolder, folderPath);
+    const relativeFolders = path.dirname(relativePath);
+    const fileName = path.basename(folderPath);
+
+    return path.join(relativeFolders, fileName);
+  }
+
+  private calculateFsPath(file: StorageFile): PathLike {
+    return path.join(this.baseFolder, file.id.value);
+  }
+
+  private save(file: StorageFile): void {
+    this.storageIdStorageFileMap.set(file.id.value, file.attributes());
+  }
 
   async init(): Promise<void> {
     ensureFolderExists(this.baseFolder);
 
-    const files = await readdir(this.baseFolder);
+    const paths = await readdir(this.baseFolder);
 
-    files.forEach((file) => {
-      const id = path.basename(file);
+    paths
+      .map((absolutePath) => {
+        Logger.debug(absolutePath);
+        const id = path.basename(absolutePath);
+        // TODO: USE SQL LITE TABLE
+        const fsPath = this.calculateRelativePath(absolutePath);
 
-      this.map.set(id, path.join(this.baseFolder, id));
-    });
+        const { size } = statSync(fsPath);
+
+        return StorageFile.from({
+          id: id,
+          path: fsPath,
+          size: size,
+        });
+      })
+      .forEach((file) =>
+        this.storageIdStorageFileMap.set(file.id.value, file.attributes())
+      );
   }
 
-  async store(id: StorageFileId, readable: Readable): Promise<void> {
-    const pathToWrite = path.join(this.baseFolder, id.value);
+  async store(file: StorageFile, readable: Readable): Promise<void> {
+    await WriteReadableToFile.write(readable, this.calculateFsPath(file));
 
-    await WriteReadableToFile.write(readable, pathToWrite);
-
-    this.map.set(id.value, pathToWrite);
+    this.save(file);
   }
 
   async read(id: StorageFileId): Promise<Buffer> {
-    if (!this.map.has(id.value)) {
+    if (!this.storageIdStorageFileMap.has(id.value)) {
       throw new Error(`Local file ${id.value} not found`);
     }
 
@@ -44,8 +79,28 @@ export class NodeStorageFilesRepository implements StorageFileRepository {
     return buffer;
   }
 
-  async exists(id: StorageFileId): Promise<boolean> {
-    return this.map.has(id.value);
+  async exists(storageFilePath: StorageFilePath): Promise<boolean> {
+    const attributesIterator = this.storageIdStorageFileMap.values();
+    const allFilesAttributes = Array.from(attributesIterator);
+
+    return allFilesAttributes.some(
+      (attributes) => storageFilePath.value === attributes.path
+    );
+  }
+
+  async retrieve(storageFilePath: StorageFilePath): Promise<StorageFile> {
+    const attributesIterator = this.storageIdStorageFileMap.values();
+    const allFilesAttributes = Array.from(attributesIterator);
+
+    const attributes = allFilesAttributes.find(
+      (attributes) => storageFilePath.value === attributes.path
+    );
+
+    if (!attributes) {
+      throw new Error(`Storage file ${storageFilePath.value} not found`);
+    }
+
+    return StorageFile.from(attributes);
   }
 
   async delete(id: StorageFileId): Promise<void> {
@@ -53,11 +108,11 @@ export class NodeStorageFilesRepository implements StorageFileRepository {
 
     await unlink(pathToUnlink);
 
-    this.map.delete(id.value);
+    this.storageIdStorageFileMap.delete(id.value);
   }
 
   async deleteAll(): Promise<void> {
-    const iterator = this.map.keys();
+    const iterator = this.storageIdStorageFileMap.keys();
 
     let result = iterator.next();
 
