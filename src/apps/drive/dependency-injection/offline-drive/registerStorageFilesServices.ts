@@ -6,14 +6,15 @@ import { StorageFileIsAvailableOffline } from '../../../../context/storage/Stora
 import { StorageFileChunkReader } from '../../../../context/storage/StorageFiles/application/read/StorageFileChunkReader';
 import { StorageFileCache } from '../../../../context/storage/StorageFiles/domain/StorageFileCache';
 import { StorageFileRepository } from '../../../../context/storage/StorageFiles/domain/StorageFileRepository';
-import { NodeStorageFilesRepository } from '../../../../context/storage/StorageFiles/infrastructure/NodeLocalFilesRepository';
-import { InMemoryStorageFileCache } from '../../../../context/storage/StorageFiles/infrastructure/cache/InMemoryStorageFileCache';
+import { TypeOrmAndNodeFsStorageFilesRepository } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmAndNodeFsStorageFilesRepository';
 import { StorageFileDeleter } from '../../../../context/storage/StorageFiles/application/delete/StorageFileDeleter';
 import { StorageClearer } from '../../../../context/storage/StorageFiles/application/delete/StorageClearer';
 import { DownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
 import { EnvironmentFileDownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
 import { Environment } from '@internxt/inxt-js';
 import { DependencyInjectionMainProcessUserProvider } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
+import { TypeOrmStorageFilesDataSourceFactory } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmStorageFilesDataSourceFactory';
+import { InMemoryStorageFileCache } from '../../../../context/storage/StorageFiles/infrastructure/persistance/cache/InMemoryStorageFileCache';
 
 export async function registerStorageFilesServices(
   builder: ContainerBuilder
@@ -25,7 +26,9 @@ export async function registerStorageFilesServices(
 
   const user = DependencyInjectionMainProcessUserProvider.get();
 
-  const repo = new NodeStorageFilesRepository(local);
+  const dataSource = TypeOrmStorageFilesDataSourceFactory.create();
+
+  const repo = new TypeOrmAndNodeFsStorageFilesRepository(local, dataSource);
   await repo.init();
 
   builder.register(StorageFileRepository).useInstance(repo).private();
