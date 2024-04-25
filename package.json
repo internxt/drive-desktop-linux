@@ -310,7 +310,6 @@
     "regenerator-runtime": "^0.13.9",
     "socket.io-client": "^4.4.1",
     "tiny-glob": "^0.2.9",
-    "typeorm": "^0.3.20",
     "uuid": "^8.3.2"
   },
   "devEngines": {

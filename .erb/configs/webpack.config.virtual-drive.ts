@@ -14,7 +14,7 @@ import Dotenv from 'dotenv-webpack';
 const configuration: webpack.Configuration = {
   mode: process.env.NODE_ENV,
 
-  target: 'electron-renderer',
+  target: 'electron-main',
 
   module: {
     rules: [{ test: /\.node$/, loader: 'node-loader' }],

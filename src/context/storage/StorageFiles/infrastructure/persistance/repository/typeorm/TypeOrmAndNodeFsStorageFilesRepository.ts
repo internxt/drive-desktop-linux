@@ -3,7 +3,7 @@ import { Readable } from 'form-data';
 import { PathLike } from 'fs';
 import { readFile, unlink } from 'fs/promises';
 import path from 'path';
-import { Repository, DataSource } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { ensureFolderExists } from '../../../../../../../apps/shared/fs/ensure-folder-exists';
 import { WriteReadableToFile } from '../../../../../../../apps/shared/fs/write-readable-to-file';
 import { StorageFile } from '../../../../domain/StorageFile';
@@ -19,7 +19,7 @@ export class TypeOrmAndNodeFsStorageFilesRepository
   private readonly db: Repository<TypeOrmStorageFile>;
 
   constructor(private readonly baseFolder: string, dataSource: DataSource) {
-    this.db = dataSource.getRepository(TypeOrmStorageFile);
+    this.db = dataSource.getRepository('storage_file');
   }
 
   private calculateFsPath(file: StorageFile): PathLike {

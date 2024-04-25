@@ -26,7 +26,7 @@ export async function registerStorageFilesServices(
 
   const user = DependencyInjectionMainProcessUserProvider.get();
 
-  const dataSource = TypeOrmStorageFilesDataSourceFactory.create();
+  const dataSource = await TypeOrmStorageFilesDataSourceFactory.create();
 
   const repo = new TypeOrmAndNodeFsStorageFilesRepository(local, dataSource);
   await repo.init();
