@@ -1,8 +1,8 @@
 import { DomainEvent } from '../../../context/shared/domain/DomainEvent';
 import { DomainEventSubscriber } from '../../../context/shared/domain/DomainEventSubscriber';
 import { SubscribeDomainEventsHandlerToTheirEvents } from '../../../context/shared/infrastructure/domain-events/SubscribeDomainEventsHandlerToTheirEvents';
-import { FileRepositoryInitializer } from '../../../context/virtual-drive/files/application/FileRepositoryInitializer';
-import { FolderRepositoryInitializer } from '../../../context/virtual-drive/folders/application/FolderRepositoryInitializer';
+import { FileRepositorySynchronizer } from '../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
+import { FolderRepositorySynchronizer } from '../../../context/virtual-drive/folders/application/FolderRepositorySynchronizer';
 import { TreeBuilder } from '../../../context/virtual-drive/tree/application/TreeBuilder';
 import { mainProcessSharedInfraBuilder } from '../../shared/dependency-injection/main/mainProcessSharedInfraContainer';
 import { OfflineDependencyContainerFactory } from './offline-drive/OfflineDependencyContainerFactory';
@@ -41,9 +41,9 @@ export class DriveDependencyContainerFactory {
     // init
     const tree = await container.get(TreeBuilder).run();
 
-    await container.get(FolderRepositoryInitializer).run(tree.folders);
+    await container.get(FolderRepositorySynchronizer).run(tree.folders);
 
-    await container.get(FileRepositoryInitializer).run(tree.files);
+    await container.get(FileRepositorySynchronizer).run(tree.files);
 
     return container;
   }

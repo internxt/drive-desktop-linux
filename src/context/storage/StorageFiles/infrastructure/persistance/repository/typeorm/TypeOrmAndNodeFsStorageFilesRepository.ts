@@ -11,12 +11,13 @@ import { ensureFolderExists } from '../../../../../../../apps/shared/fs/ensure-f
 import { WriteReadableToFile } from '../../../../../../../apps/shared/fs/write-readable-to-file';
 import { StorageFile } from '../../../../domain/StorageFile';
 import { StorageFileId } from '../../../../domain/StorageFileId';
-import { StorageFileRepository } from '../../../../domain/StorageFileRepository';
+import { StorageFilesRepository } from '../../../../domain/StorageFilesRepository';
 import { TypeOrmStorageFile } from './entities/TypeOrmStorageFile';
+import { StorageVirtualId } from '../../../../domain/StorageVirtualFileId';
 
 @Service()
 export class TypeOrmAndNodeFsStorageFilesRepository
-  implements StorageFileRepository
+  implements StorageFilesRepository
 {
   private readonly db: Repository<TypeOrmStorageFile>;
 
@@ -79,7 +80,7 @@ export class TypeOrmAndNodeFsStorageFilesRepository
 
     await unlink(pathToUnlink);
 
-    await this.db.delete(id.value);
+    await this.db.delete({ id: id.value });
   }
 
   async deleteAll(): Promise<void> {
@@ -90,5 +91,11 @@ export class TypeOrmAndNodeFsStorageFilesRepository
       .map((id: StorageFileId) => this.delete(id));
 
     await Promise.all(deleted);
+  }
+
+  async all(): Promise<StorageFile[]> {
+    const all = await this.db.find();
+
+    return all.map(StorageFile.from);
   }
 }

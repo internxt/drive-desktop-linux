@@ -1,5 +1,5 @@
 import { Service } from 'diod';
-import { StorageFileRepository } from '../../domain/StorageFileRepository';
+import { StorageFilesRepository } from '../../domain/StorageFilesRepository';
 import { StorageFileDownloader } from '../download/StorageFileDownloader';
 import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';
 import { SingleFileMatchingFinder } from '../../../../virtual-drive/files/application/SingleFileMatchingFinder';
@@ -9,7 +9,7 @@ import { StorageFileId } from '../../domain/StorageFileId';
 @Service()
 export class MakeStorageFileAvaliableOffline {
   constructor(
-    private readonly repository: StorageFileRepository,
+    private readonly repository: StorageFilesRepository,
     private readonly virtualFileFinder: SingleFileMatchingFinder,
     private readonly downloader: StorageFileDownloader
   ) {}
@@ -30,6 +30,7 @@ export class MakeStorageFileAvaliableOffline {
 
     const storage = StorageFile.from({
       id: virtual.contentsId,
+      virtualId: virtual.uuid,
       size: virtual.size,
     });
 

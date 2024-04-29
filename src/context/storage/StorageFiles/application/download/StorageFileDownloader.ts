@@ -41,7 +41,7 @@ export class StorageFileDownloader {
       size: number;
     }
   ): Promise<Readable> {
-    Logger.debug(`downloading "${metadata.name}.${metadata.type}"`);
+    Logger.debug(`downloading "${metadata.name}.${metadata.type}" with ${file.id.value}`);
 
     const downloader = this.managerFactory.downloader();
 
