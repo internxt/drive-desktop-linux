@@ -5,6 +5,7 @@ import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus'
 import { SingleFileMatchingFinder } from '../../../../virtual-drive/files/application/SingleFileMatchingFinder';
 import { StorageFile } from '../../domain/StorageFile';
 import { StorageFileId } from '../../domain/StorageFileId';
+import Logger from 'electron-log';
 
 @Service()
 export class MakeStorageFileAvaliableOffline {
@@ -36,5 +37,9 @@ export class MakeStorageFileAvaliableOffline {
 
     const readable = await this.downloader.run(storage, virtual);
     await this.repository.store(storage, readable);
+
+    Logger.debug(
+      `File "${virtual.nameWithExtension}" with ${storage.id.value} is avaliable offline`
+    );
   }
 }
