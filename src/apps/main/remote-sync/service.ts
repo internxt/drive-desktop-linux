@@ -27,6 +27,14 @@ export const remoteSyncManager = new RemoteSyncManager(
   }
 );
 
+remoteSyncManager.onStatusChange(async (newStatus) => {
+  if (!isInitialSyncReady() && newStatus === 'SYNCED') {
+    setInitialSyncState('READY');
+    eventBus.emit('INITIAL_SYNC_READY');
+  }
+  broadcastToWindows('remote-sync-status-change', newStatus);
+});
+
 export async function getUpdatedRemoteItems() {
   try {
     const [allDriveFiles, allDriveFolders] = await Promise.all([
@@ -55,14 +63,6 @@ export async function getUpdatedRemoteItems() {
 export async function startRemoteSync(): Promise<void> {
   await remoteSyncManager.startRemoteSync();
 }
-
-remoteSyncManager.onStatusChange(async (newStatus) => {
-  if (!isInitialSyncReady() && newStatus === 'SYNCED') {
-    setInitialSyncState('READY');
-    eventBus.emit('INITIAL_SYNC_READY');
-  }
-  broadcastToWindows('remote-sync-status-change', newStatus);
-});
 
 const debouncedSynchronization = debounce(async () => {
   await startRemoteSync();
