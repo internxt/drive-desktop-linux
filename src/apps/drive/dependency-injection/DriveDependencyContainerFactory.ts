@@ -1,3 +1,4 @@
+import { Container } from 'diod';
 import { DomainEvent } from '../../../context/shared/domain/DomainEvent';
 import { DomainEventSubscriber } from '../../../context/shared/domain/DomainEventSubscriber';
 import { SubscribeDomainEventsHandlerToTheirEvents } from '../../../context/shared/infrastructure/domain-events/SubscribeDomainEventsHandlerToTheirEvents';
@@ -6,12 +7,14 @@ import { FolderRepositorySynchronizer } from '../../../context/virtual-drive/fol
 import { TreeBuilder } from '../../../context/virtual-drive/tree/application/TreeBuilder';
 import { mainProcessSharedInfraBuilder } from '../../shared/dependency-injection/main/mainProcessSharedInfraContainer';
 import { OfflineDependencyContainerFactory } from './offline-drive/OfflineDependencyContainerFactory';
+import { SharedDependencyContainerFactory } from './shared/SharedDependecyContainerFactory';
 import { VirtualDriveDependencyContainerFactory } from './virtual-drive/VirtualDriveDependencyContainerFactory';
-import { Container } from 'diod';
 
 export class DriveDependencyContainerFactory {
   private static async buildContexts(): Promise<Container> {
     const builder = await mainProcessSharedInfraBuilder();
+
+    SharedDependencyContainerFactory.build(builder);
 
     await VirtualDriveDependencyContainerFactory.build(builder);
 

@@ -1,6 +1,5 @@
 import { Service } from 'diod';
 import { Readable } from 'form-data';
-import { PathLike } from 'fs';
 import { readFile, unlink } from 'fs/promises';
 import path from 'path';
 import {
