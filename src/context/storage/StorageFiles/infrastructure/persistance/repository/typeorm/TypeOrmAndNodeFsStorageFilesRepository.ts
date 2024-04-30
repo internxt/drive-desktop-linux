@@ -13,7 +13,6 @@ import { StorageFile } from '../../../../domain/StorageFile';
 import { StorageFileId } from '../../../../domain/StorageFileId';
 import { StorageFilesRepository } from '../../../../domain/StorageFilesRepository';
 import { TypeOrmStorageFile } from './entities/TypeOrmStorageFile';
-import { StorageVirtualId } from '../../../../domain/StorageVirtualFileId';
 
 @Service()
 export class TypeOrmAndNodeFsStorageFilesRepository
@@ -25,22 +24,16 @@ export class TypeOrmAndNodeFsStorageFilesRepository
     this.db = dataSource.getRepository('storage_file');
   }
 
-  private calculateFsPath(file: StorageFile): PathLike {
-    return path.join(this.baseFolder, file.id.value);
-  }
-
-  private save(file: StorageFile): void {
-    this.db.save(file.attributes());
-  }
-
   async init(): Promise<void> {
     ensureFolderExists(this.baseFolder);
   }
 
   async store(file: StorageFile, readable: Readable): Promise<void> {
-    await WriteReadableToFile.write(readable, this.calculateFsPath(file));
+    const where = path.join(this.baseFolder, file.id.value);
 
-    this.save(file);
+    await WriteReadableToFile.write(readable, where);
+
+    await this.db.save(file.attributes());
   }
 
   async read(id: StorageFileId): Promise<Buffer> {
