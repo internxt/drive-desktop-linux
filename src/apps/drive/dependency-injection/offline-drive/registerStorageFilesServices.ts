@@ -17,6 +17,7 @@ import { TypeOrmAndNodeFsStorageFilesRepository } from '../../../../context/stor
 import { TypeOrmStorageFilesDataSourceFactory } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmStorageFilesDataSourceFactory';
 import { DependencyInjectionMainProcessUserProvider } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
 import { StorageRemoteChangesSyncher } from '../../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
+import { AllFilesInFolderAreAvailableOffline } from '../../../../context/storage/StorageFiles/application/offline/AllFilesInFolderAreAvailableOffline';
 
 export async function registerStorageFilesServices(
   builder: ContainerBuilder
@@ -60,4 +61,5 @@ export async function registerStorageFilesServices(
   builder.registerAndUse(StorageFileDeleter);
   builder.registerAndUse(StorageClearer);
   builder.registerAndUse(StorageRemoteChangesSyncher);
+  builder.registerAndUse(AllFilesInFolderAreAvailableOffline);
 }

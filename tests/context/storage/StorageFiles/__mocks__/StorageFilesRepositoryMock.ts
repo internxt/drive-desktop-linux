@@ -13,7 +13,15 @@ export class StorageFilesRepositoryMock implements StorageFilesRepository {
   private allMock = jest.fn();
 
   async exists(id: StorageFileId): Promise<boolean> {
+    expect(this.existsMock).toHaveBeenCalledWith(id);
     return this.existsMock(id);
+  }
+
+  shouldExists(a: Array<{ id: StorageFileId; value: boolean }>): void {
+    a.forEach(({ id, value }) => {
+      this.existsMock(id);
+      this.existsMock.mockReturnValue(value);
+    });
   }
 
   async retrieve(id: StorageFileId): Promise<StorageFile> {

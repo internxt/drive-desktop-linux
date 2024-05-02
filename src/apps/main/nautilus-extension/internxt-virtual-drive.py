@@ -104,14 +104,13 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
     def _update_file_status(self, file):
 
-      if file.is_directory():
-        return
-
       status = self._get_x_attribute(file, 'hydration-status')
 
+      print(file.get_name(), status)
       if status is None:
          file.invalidate_extension_info()
          return
+
 
       self._setItemStatus(file, status)
       self._set_sync_status_column_attribute(file, status)
@@ -208,5 +207,8 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
       if not self._file_is_in_virtual_drive(file):
         return
 
-
       self._update_file_status(file)
+
+
+
+
