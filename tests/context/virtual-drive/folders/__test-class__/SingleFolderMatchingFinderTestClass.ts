@@ -12,11 +12,16 @@ export class SingleFolderMatchingFinderTestClass extends SingleFolderMatchingFin
     super({} as FolderRepository);
   }
 
-  async run(p: Partial<FolderAttributes>) {
-    return this.mock(p);
+  async run(partial: Partial<FolderAttributes>) {
+    return this.mock(partial);
   }
 
-  finds(folder: Folder) {
-    this.mock.mockReturnValueOnce(folder);
+  finds(
+    values: Array<{ partial: Partial<FolderAttributes>; folder: Folder }>
+  ): void {
+    values.forEach(({ partial, folder }) => {
+      this.mock(partial);
+      this.mock.mockReturnValueOnce(folder);
+    });
   }
 }

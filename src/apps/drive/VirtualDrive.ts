@@ -7,14 +7,16 @@ import { MakeStorageFileAvaliableOffline } from '../../context/storage/StorageFi
 import { StorageFileIsAvailableOffline } from '../../context/storage/StorageFiles/application/offline/StorageFileIsAvailableOffline';
 import { TemporalFileByPathFinder } from '../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { VirtualDriveError } from './errors/VirtualDriveError';
+import Logger from 'electron-log';
 
 export class VirtualDrive {
   constructor(private readonly container: Container) {}
 
   private async isFileLocallyAvailable(path: string): Promise<boolean> {
     try {
-      return this.container.get(StorageFileIsAvailableOffline).run(path);
-    } catch {
+      return await this.container.get(StorageFileIsAvailableOffline).run(path);
+    } catch (error) {
+      Logger.debug((error as Error).message);
       // If the path is from a folder it will not find it as a file
       return false;
     }
@@ -25,7 +27,8 @@ export class VirtualDrive {
       return await this.container
         .get(AllFilesInFolderAreAvailableOffline)
         .run(path);
-    } catch {
+    } catch (error) {
+      Logger.debug((error as Error).message);
       // If the path is from a file it will not find it as a folder
       return false;
     }

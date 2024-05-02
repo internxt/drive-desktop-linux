@@ -17,8 +17,8 @@ export class StorageFilesRepositoryMock implements StorageFilesRepository {
     return this.existsMock(id);
   }
 
-  shouldExists(a: Array<{ id: StorageFileId; value: boolean }>): void {
-    a.forEach(({ id, value }) => {
+  shouldExists(values: Array<{ id: StorageFileId; value: boolean }>): void {
+    values.forEach(({ id, value }) => {
       this.existsMock(id);
       this.existsMock.mockReturnValue(value);
     });

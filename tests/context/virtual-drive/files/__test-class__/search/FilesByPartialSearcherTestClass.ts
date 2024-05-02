@@ -10,13 +10,18 @@ export class FilesByPartialSearcherTestClass extends FilesByPartialSearcher {
 
   constructor() {
     super({} as FileRepository);
+    this.mock.mockReturnValue([]);
   }
 
   run(partial: Partial<FileAttributes>): Promise<File[]> {
     return this.mock(partial);
   }
 
-  finds(files: Array<File>) {
+  findsOnce(files: Array<File>) {
     this.mock.mockReturnValueOnce(files);
+  }
+
+  finds(files: Array<File>) {
+    this.mock.mockReturnValue(files);
   }
 }
