@@ -88,7 +88,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
     
     def _file_is_virtual_drive(self, file):
         file_uri = file.get_uri();
-        return self.root_folder == file_uri
+        return self.file_base_dir == file_uri
 
     def _setItemStatus(self, file, status):
 
@@ -104,30 +104,14 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
       file.add_emblem(emblem)
 
 
-    def _get_x_attribute(self, file, key):
-
-      if self.connected:
-        path = file.get_uri().replace('file://', '').replace('%20', ' ')
-
-        decoded_uri = urllib.parse.unquote(path)
-
-        try:
-        # Attempt to retrieve extended attribute
-          attrs = xattr.getxattr(decoded_uri, 'user.my_attribute')
-          print("Extended attribute value:", attrs)
-        except FileNotFoundError:
-          print("Error: File not found")
-          return
-        except:
-          self.connected = False
-          self._get_x_attribute(file, key)
-
-        if key.encode() in attrs:
-          return attrs.get(key.encode()).decode('utf-8')
-        
+    def _get_availability(self, file):        
       base64_encoded = self._encode_file_path(file)
 
-      url = base_url + base64_encoded
+      if file.is_directory() :
+        url = base_url + 'folders/' + base64_encoded
+      else :
+        url = base_url + 'files/' + base64_encoded
+
 
       response = requests.get(url)
 
@@ -145,7 +129,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
     def _update_file_status(self, file):
 
-      status = self._get_x_attribute(file, 'hydration-status')
+      status = self._get_availability(file)
 
       # if status is None:
       #    file.invalidate_extension_info()
@@ -171,7 +155,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
         for file in files:
           if self._file_is_in_virtual_drive(file):
-            status = self._get_x_attribute(file, 'hydration-status')
+            status = self._get_availability(file)
 
             if (status == 'on_local'):
               local_files.append(file)

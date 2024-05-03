@@ -109,9 +109,37 @@ export function buildContentsController(container: Container) {
     res.json({ locallyAvaliable });
   };
 
+  const getFile = async (req: Request, res: Response) => {
+    const decodedBuffer = Buffer.from(req.params.path, 'base64');
+
+    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+
+    const fileIsAvaliable = await isFileLocallyAvailable(path);
+
+    const locallyAvaliable =
+      fileIsAvaliable.isPresent() && fileIsAvaliable.get();
+
+    res.json({ locallyAvaliable });
+  };
+
+  const getFolder = async (req: Request, res: Response) => {
+    const decodedBuffer = Buffer.from(req.params.path, 'base64');
+
+    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+
+    const folderIsAvaliable = await isFolderLocallyAvailable(path);
+
+    const locallyAvaliable =
+      folderIsAvaliable.isPresent() && folderIsAvaliable.get();
+
+    res.json({ locallyAvaliable });
+  };
+
   return {
     download,
     remove,
     get,
+    getFile,
+    getFolder,
   };
 }

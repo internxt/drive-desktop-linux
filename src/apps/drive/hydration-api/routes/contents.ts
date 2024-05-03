@@ -9,6 +9,8 @@ export function buildHydrationRouter(container: Container): Router {
   router.post('/:path', controllers.download);
   router.delete('/:path', controllers.remove);
   router.get('/:path', controllers.get);
+  router.get('/files/:path', controllers.getFile);
+  router.get('/folders/:path', controllers.getFolder);
 
   return router;
 }
