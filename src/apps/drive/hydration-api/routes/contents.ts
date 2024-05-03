@@ -7,10 +7,15 @@ export function buildHydrationRouter(container: Container): Router {
   const router = express.Router();
 
   router.post('/:path', controllers.download);
-  router.delete('/:path', controllers.remove);
   router.get('/:path', controllers.get);
-  router.get('/files/:path', controllers.getFile);
+
+  // folders
   router.get('/folders/:path', controllers.getFolder);
+  router.delete('/folders/:path', controllers.removeFolder);
+
+  // files
+  router.get('/files/:path', controllers.getFile);
+  router.delete('/files/:path', controllers.removeFile);
 
   return router;
 }

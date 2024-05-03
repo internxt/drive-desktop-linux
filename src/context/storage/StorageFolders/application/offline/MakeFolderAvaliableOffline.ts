@@ -1,5 +1,5 @@
 import { Service } from 'diod';
-import { MakeStorageFileAvaliableOffline } from './MakeStorageFileAvaliableOffline';
+import { MakeStorageFileAvaliableOffline } from '../../../StorageFiles/application/offline/MakeStorageFileAvaliableOffline';
 import { FilesByPartialSearcher } from '../../../../virtual-drive/files/application/search/FilesByPartialSearcher';
 import { SingleFolderMatchingFinder } from '../../../../virtual-drive/folders/application/SingleFolderMatchingFinder';
 import { FoldersSearcherByPartial } from '../../../../virtual-drive/folders/application/search/FoldersSearcherByPartial';

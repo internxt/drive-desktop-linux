@@ -7,7 +7,8 @@ import { AllFilesInFolderAreAvailableOffline } from '../../../../context/storage
 import { MakeStorageFileAvaliableOffline } from '../../../../context/storage/StorageFiles/application/offline/MakeStorageFileAvaliableOffline';
 import { StorageFileIsAvailableOffline } from '../../../../context/storage/StorageFiles/application/offline/StorageFileIsAvailableOffline';
 import { Optional } from '../../../../shared/types/Optional';
-import { MakeFolderAvaliableOffline } from '../../../../context/storage/StorageFiles/application/offline/MakeFolderAvaliableOffline';
+import { MakeFolderAvaliableOffline } from '../../../../context/storage/StorageFolders/application/offline/MakeFolderAvaliableOffline';
+import { StorageFolderDeleter } from '../../../../context/storage/StorageFolders/application/delete/StorageFolderDeleter';
 
 export function buildContentsController(container: Container) {
   async function isFileLocallyAvailable(
@@ -89,16 +90,6 @@ export function buildContentsController(container: Container) {
     res.status(201).send();
   };
 
-  const remove = async (req: Request, res: Response) => {
-    const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
-
-    await container.get(StorageFileDeleter).run(path);
-
-    res.status(201).send();
-  };
-
   const get = async (req: Request, res: Response) => {
     const decodedBuffer = Buffer.from(req.params.path, 'base64');
 
@@ -122,6 +113,16 @@ export function buildContentsController(container: Container) {
     res.json({ locallyAvaliable });
   };
 
+  const removeFile = async (req: Request, res: Response) => {
+    const decodedBuffer = Buffer.from(req.params.path, 'base64');
+
+    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+
+    await container.get(StorageFileDeleter).run(path);
+
+    res.status(201).send();
+  };
+
   const getFolder = async (req: Request, res: Response) => {
     const decodedBuffer = Buffer.from(req.params.path, 'base64');
 
@@ -135,11 +136,22 @@ export function buildContentsController(container: Container) {
     res.json({ locallyAvaliable });
   };
 
+  const removeFolder = async (req: Request, res: Response) => {
+    const decodedBuffer = Buffer.from(req.params.path, 'base64');
+
+    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+
+    await container.get(StorageFolderDeleter).run(path);
+
+    res.status(201).send();
+  };
+
   return {
     download,
-    remove,
+    removeFile,
     get,
     getFile,
     getFolder,
+    removeFolder,
   };
 }

@@ -3,10 +3,8 @@ import os
 
 
 from gi.repository import Nautilus, GObject, Gtk, Gdk
-from urllib.parse import urlparse, unquote
 import requests
 import base64
-import xattr
 import urllib.parse
 
 try:
@@ -85,7 +83,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
     def _file_is_in_virtual_drive(self, file):
         file_uri = file.get_uri();
         return self.root_folder in file_uri
-    
+
     def _file_is_virtual_drive(self, file):
         file_uri = file.get_uri();
         return self.file_base_dir == file_uri
@@ -104,7 +102,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
       file.add_emblem(emblem)
 
 
-    def _get_availability(self, file):        
+    def _get_availability(self, file):
       base64_encoded = self._encode_file_path(file)
 
       if file.is_directory() :
@@ -122,10 +120,10 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
           return 'on_local'
         else:
           return 'on_remote'
-      
+
       else:
          return None
-      
+
 
     def _update_file_status(self, file):
 
@@ -211,7 +209,11 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
             self._setItemStatus(file, 'removing')
 
             base64_encoded = self._encode_file_path(file)
-            url = base_url + base64_encoded
+
+            if file.is_directory() :
+              url = base_url + 'folders/' + base64_encoded
+            else:
+              url = base_url + 'files/' + base64_encoded
 
             print(url)
 
@@ -232,13 +234,13 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
     def update_file_info(self, file):
       if not self._file_is_in_virtual_drive(file):
         return
-      
+
       if self._file_is_virtual_drive(file):
         return
-      
-      # if file.is_directory(): 
+
+      # if file.is_directory():
       #   return
-      
+
       self._update_file_status(file)
 
 
