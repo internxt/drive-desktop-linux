@@ -60,6 +60,10 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
         app.connect("window-removed", self._window_removed)
 
 
+        # Represents if is connected to the fuse folder
+        self.connected = True
+
+
         user_home = os.path.expanduser("~")
         root_folder = os.path.join(user_home, VIRTUAL_DRIVE_ROOT_FOLDER_NAME)
         self.root_folder = root_folder
@@ -81,8 +85,16 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
     def _file_is_in_virtual_drive(self, file):
         file_uri = file.get_uri();
         return self.root_folder in file_uri
+    
+    def _file_is_virtual_drive(self, file):
+        file_uri = file.get_uri();
+        return self.root_folder == file_uri
 
     def _setItemStatus(self, file, status):
+
+      if status is None:
+        return
+
       emblem = status_to_emblem_map[status]
 
       if emblem == '' or emblem is None:
@@ -93,24 +105,54 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
 
     def _get_x_attribute(self, file, key):
-      path = file.get_uri().replace('file://', '').replace('%20', ' ')
 
-      decoded_uri = urllib.parse.unquote(path)
+      if self.connected:
+        path = file.get_uri().replace('file://', '').replace('%20', ' ')
 
-      attrs = xattr.xattr(decoded_uri)
+        decoded_uri = urllib.parse.unquote(path)
 
-      if key.encode() in attrs:
-        return attrs.get(key.encode()).decode('utf-8')
+        try:
+        # Attempt to retrieve extended attribute
+          attrs = xattr.getxattr(decoded_uri, 'user.my_attribute')
+          print("Extended attribute value:", attrs)
+        except FileNotFoundError:
+          print("Error: File not found")
+          return
+        except:
+          self.connected = False
+          self._get_x_attribute(file, key)
+
+        if key.encode() in attrs:
+          return attrs.get(key.encode()).decode('utf-8')
+        
+      base64_encoded = self._encode_file_path(file)
+
+      url = base_url + base64_encoded
+
+      response = requests.get(url)
+
+      if (response.status_code == 200):
+        data = response.json()
+
+        if data['locallyAvaliable']:
+          return 'on_local'
+        else:
+          return 'on_remote'
+      
+      else:
+         return None
+      
 
     def _update_file_status(self, file):
 
       status = self._get_x_attribute(file, 'hydration-status')
 
-      print(file.get_name(), status)
-      if status is None:
-         file.invalidate_extension_info()
-         return
+      # if status is None:
+      #    file.invalidate_extension_info()
+      #    return
 
+      if status is None:
+        return
 
       self._setItemStatus(file, status)
       self._set_sync_status_column_attribute(file, status)
@@ -128,7 +170,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
         remote_files = []
 
         for file in files:
-          if self._file_is_in_virtual_drive(file) and not file.is_directory():
+          if self._file_is_in_virtual_drive(file):
             status = self._get_x_attribute(file, 'hydration-status')
 
             if (status == 'on_local'):
@@ -206,7 +248,13 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
     def update_file_info(self, file):
       if not self._file_is_in_virtual_drive(file):
         return
-
+      
+      if self._file_is_virtual_drive(file):
+        return
+      
+      # if file.is_directory(): 
+      #   return
+      
       self._update_file_status(file)
 
 
