@@ -1,12 +1,12 @@
 import { Service } from 'diod';
-import { StorageFilesRepository } from '../../../StorageFiles/domain/StorageFilesRepository';
-import { StorageFileId } from '../../../StorageFiles/domain/StorageFileId';
 import { SingleFolderMatchingFinder } from '../../../../virtual-drive/folders/application/SingleFolderMatchingFinder';
 import { FilesByPartialSearcher } from '../../../../virtual-drive/files/application/search/FilesByPartialSearcher';
 import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';
 import { FoldersSearcherByPartial } from '../../../../virtual-drive/folders/application/search/FoldersSearcherByPartial';
 import { FolderStatuses } from '../../../../virtual-drive/folders/domain/FolderStatus';
 import { Folder } from '../../../../virtual-drive/folders/domain/Folder';
+import { StorageFileId } from '../../../StorageFiles/domain/StorageFileId';
+import { StorageFilesRepository } from '../../../StorageFiles/domain/StorageFilesRepository';
 
 @Service()
 export class AllFilesInFolderAreAvailableOffline {
@@ -23,13 +23,14 @@ export class AllFilesInFolderAreAvailableOffline {
       status: FolderStatuses.EXISTS,
     });
 
-    const subfoldersExistsPromise = subfolders.map((subfolder) => {
-      return this.folderIsAvaliableOffline(subfolder);
-    });
+    for (const subfolder of subfolders) {
+      // eslint-disable-next-line no-await-in-loop
+      const locallyAvailable = await this.folderIsAvaliableOffline(subfolder);
 
-    const subfoldersExists = await Promise.all(subfoldersExistsPromise);
+      if (!locallyAvailable) return false;
+    }
 
-    return subfoldersExists.every((e) => e);
+    return true;
   }
 
   private async filesExists(folder: Folder): Promise<boolean> {
@@ -42,18 +43,23 @@ export class AllFilesInFolderAreAvailableOffline {
       return true;
     }
 
-    const ids = files.map((file) => new StorageFileId(file.contentsId));
+    for (const file of files) {
+      const id = new StorageFileId(file.contentsId);
 
-    const idsExistsPromise = ids.map((id) => this.repository.exists(id));
+      // eslint-disable-next-line no-await-in-loop
+      const locallyAvailable = await this.repository.exists(id);
 
-    const idsExists = await Promise.all(idsExistsPromise);
+      if (!locallyAvailable) return false;
+    }
 
-    return idsExists.every((e) => e);
+    return true;
   }
 
   private async folderIsAvaliableOffline(folder: Folder): Promise<boolean> {
-    const subfoldersExists = await this.subfoldersExists(folder);
-    const filesExists = await this.filesExists(folder);
+    const [subfoldersExists, filesExists] = await Promise.all([
+      this.subfoldersExists(folder),
+      this.filesExists(folder),
+    ]);
 
     return filesExists && subfoldersExists;
   }

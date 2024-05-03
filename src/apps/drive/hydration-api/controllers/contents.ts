@@ -9,6 +9,7 @@ import { StorageFileIsAvailableOffline } from '../../../../context/storage/Stora
 import { Optional } from '../../../../shared/types/Optional';
 import { MakeFolderAvaliableOffline } from '../../../../context/storage/StorageFolders/application/offline/MakeFolderAvaliableOffline';
 import { StorageFolderDeleter } from '../../../../context/storage/StorageFolders/application/delete/StorageFolderDeleter';
+import { Stopwatch } from '../../../shared/types/Stopwatch';
 
 export function buildContentsController(container: Container) {
   async function isFileLocallyAvailable(
@@ -68,28 +69,6 @@ export function buildContentsController(container: Container) {
     return false;
   }
 
-  const download = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-      const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
-
-      await container.get(MakeStorageFileAvaliableOffline).run(path);
-    } catch {
-      try {
-        const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-        const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
-        await container.get(MakeFolderAvaliableOffline).run(path);
-      } catch (error) {
-        next(error);
-        return;
-      }
-    }
-
-    res.status(201).send();
-  };
-
   const get = async (req: Request, res: Response) => {
     const decodedBuffer = Buffer.from(req.params.path, 'base64');
 
@@ -123,6 +102,25 @@ export function buildContentsController(container: Container) {
     res.status(201).send();
   };
 
+  const downloadFile = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const decodedBuffer = Buffer.from(req.params.path, 'base64');
+
+      const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+
+      container.get(MakeStorageFileAvaliableOffline).run(path);
+
+      res.status(202).send();
+    } catch (error) {
+      next(error);
+      return;
+    }
+  };
+
   const getFolder = async (req: Request, res: Response) => {
     const decodedBuffer = Buffer.from(req.params.path, 'base64');
 
@@ -146,12 +144,32 @@ export function buildContentsController(container: Container) {
     res.status(201).send();
   };
 
+  const downloadFolder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const decodedBuffer = Buffer.from(req.params.path, 'base64');
+
+      const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+
+      container.get(MakeFolderAvaliableOffline).run(path);
+
+      res.status(202).send();
+    } catch (error) {
+      next(error);
+      return;
+    }
+  };
+
   return {
-    download,
+    downloadFile,
     removeFile,
     get,
     getFile,
     getFolder,
     removeFolder,
+    downloadFolder,
   };
 }

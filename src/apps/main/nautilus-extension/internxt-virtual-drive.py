@@ -195,14 +195,17 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
             base64_encoded = self._encode_file_path(file)
 
-            url = base_url + base64_encoded
+            if file.is_directory():
+              url = base_url + 'folders/' + base64_encoded
+            else:
+              url = base_url + 'files/' + base64_encoded
 
             response = requests.post(url)
 
             print(response.status_code)
 
-            if (response.status_code == 201):
-              self._setItemStatus(file, 'on_local')
+            # if (response.status_code == 202):
+            #   self._setItemStatus(file, 'on_local')
 
     def _make_remote_only(self, menu, files):
         for file in files:
