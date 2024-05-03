@@ -8,6 +8,7 @@ import { StorageFileDeleter } from '../../../../context/storage/StorageFiles/app
 import { MakeStorageFileAvaliableOffline } from '../../../../context/storage/StorageFiles/application/offline/MakeStorageFileAvaliableOffline';
 import { StorageFileIsAvailableOffline } from '../../../../context/storage/StorageFiles/application/offline/StorageFileIsAvailableOffline';
 import { StorageFileChunkReader } from '../../../../context/storage/StorageFiles/application/read/StorageFileChunkReader';
+import { StorageRemoteChangesSyncher } from '../../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import { StorageFileCache } from '../../../../context/storage/StorageFiles/domain/StorageFileCache';
 import { StorageFilesRepository } from '../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
 import { DownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
@@ -16,8 +17,6 @@ import { InMemoryStorageFileCache } from '../../../../context/storage/StorageFil
 import { TypeOrmAndNodeFsStorageFilesRepository } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmAndNodeFsStorageFilesRepository';
 import { TypeOrmStorageFilesDataSourceFactory } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmStorageFilesDataSourceFactory';
 import { DependencyInjectionMainProcessUserProvider } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
-import { StorageRemoteChangesSyncher } from '../../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
-import { AllFilesInFolderAreAvailableOffline } from '../../../../context/storage/StorageFiles/application/offline/AllFilesInFolderAreAvailableOffline';
 
 export async function registerStorageFilesServices(
   builder: ContainerBuilder
@@ -61,5 +60,4 @@ export async function registerStorageFilesServices(
   builder.registerAndUse(StorageFileDeleter);
   builder.registerAndUse(StorageClearer);
   builder.registerAndUse(StorageRemoteChangesSyncher);
-  builder.registerAndUse(AllFilesInFolderAreAvailableOffline);
 }

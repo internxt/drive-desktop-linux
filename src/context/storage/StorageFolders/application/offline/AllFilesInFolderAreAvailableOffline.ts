@@ -1,6 +1,6 @@
 import { Service } from 'diod';
-import { StorageFilesRepository } from '../../domain/StorageFilesRepository';
-import { StorageFileId } from '../../domain/StorageFileId';
+import { StorageFilesRepository } from '../../../StorageFiles/domain/StorageFilesRepository';
+import { StorageFileId } from '../../../StorageFiles/domain/StorageFileId';
 import { SingleFolderMatchingFinder } from '../../../../virtual-drive/folders/application/SingleFolderMatchingFinder';
 import { FilesByPartialSearcher } from '../../../../virtual-drive/files/application/search/FilesByPartialSearcher';
 import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';

@@ -1,4 +1,4 @@
-import { AllFilesInFolderAreAvailableOffline } from '../../../../../../src/context/storage/StorageFiles/application/offline/AllFilesInFolderAreAvailableOffline';
+import { AllFilesInFolderAreAvailableOffline } from '../../../../../../src/context/storage/StorageFolders/application/offline/AllFilesInFolderAreAvailableOffline';
 import { StorageFileId } from '../../../../../../src/context/storage/StorageFiles/domain/StorageFileId';
 import { FilesByPartialSearcherTestClass } from '../../../../virtual-drive/files/__test-class__/search/FilesByPartialSearcherTestClass';
 import { FileMother } from '../../../../virtual-drive/files/domain/FileMother';

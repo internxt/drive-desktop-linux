@@ -3,7 +3,7 @@ import Logger from 'electron-log';
 import { NextFunction, Request, Response } from 'express';
 import { extname } from 'path';
 import { StorageFileDeleter } from '../../../../context/storage/StorageFiles/application/delete/StorageFileDeleter';
-import { AllFilesInFolderAreAvailableOffline } from '../../../../context/storage/StorageFiles/application/offline/AllFilesInFolderAreAvailableOffline';
+import { AllFilesInFolderAreAvailableOffline } from '../../../../context/storage/StorageFolders/application/offline/AllFilesInFolderAreAvailableOffline';
 import { MakeStorageFileAvaliableOffline } from '../../../../context/storage/StorageFiles/application/offline/MakeStorageFileAvaliableOffline';
 import { StorageFileIsAvailableOffline } from '../../../../context/storage/StorageFiles/application/offline/StorageFileIsAvailableOffline';
 import { Optional } from '../../../../shared/types/Optional';
