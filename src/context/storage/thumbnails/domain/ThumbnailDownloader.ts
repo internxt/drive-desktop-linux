@@ -1,10 +1,10 @@
 import { Readable } from 'stream';
-import { ThumbnailAtributes } from './Thumbnail';
+import { ThumbnailAttributes } from './Thumbnail';
 
 export type ThumbnailDownloadEvents = {
   start: () => void;
   progress: (progress: number) => void;
-  finish: (contentsId: ThumbnailAtributes['contentsId']) => void;
+  finish: (contentsId: ThumbnailAttributes['contentsId']) => void;
   error: (error: Error) => void;
 };
 
