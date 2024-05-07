@@ -8,5 +8,5 @@ export abstract class ThumbnailsRepository {
 
   abstract pull(thumbnail: Thumbnail): Promise<Readable>;
 
-  abstract push(thumbnail: Thumbnail, stream: Readable): Promise<void>;
+  abstract push(file: File, stream: Readable): Promise<void>;
 }

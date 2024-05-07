@@ -2,37 +2,37 @@ import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
 import { ThumbnailContentId } from './ThumbnailContentId';
 
 export type ThumbnailAttributes = {
-  id: number;
-  contentsId: string;
+  id?: number;
+  contentsId?: string;
   type: string;
-  bucket: string;
+  bucket?: string;
   updatedAt: Date;
 };
 
 export class Thumbnail extends AggregateRoot {
   private constructor(
-    private _id: number,
-    private _contentsId: ThumbnailContentId,
     private _type: string,
-    private _bucket: string,
-    private _updatedAt: Date
+    private _updatedAt: Date,
+    private _bucket?: string,
+    private _id?: number,
+    private _contentsId?: ThumbnailContentId
   ) {
     super();
   }
 
-  public get id(): number {
+  public get id(): number | undefined {
     return this._id;
   }
 
-  public get contentsId(): string {
-    return this._contentsId.value;
+  public get contentsId(): string | undefined {
+    return this._contentsId?.value;
   }
 
   public get type(): string {
     return this._type;
   }
 
-  public get bucket(): string {
+  public get bucket(): string | undefined {
     return this._bucket;
   }
   public get updatedAt(): Date {
@@ -41,11 +41,13 @@ export class Thumbnail extends AggregateRoot {
 
   static from(attributes: ThumbnailAttributes): Thumbnail {
     return new Thumbnail(
-      attributes.id,
-      new ThumbnailContentId(attributes.contentsId),
       attributes.type,
+      attributes.updatedAt,
       attributes.bucket,
-      attributes.updatedAt
+      attributes.id,
+      attributes.contentsId
+        ? new ThumbnailContentId(attributes.contentsId)
+        : undefined
     );
   }
 

@@ -3,7 +3,7 @@ import { ThumbnailCollection } from '../../../../../../src/context/storage/thumb
 import { DateMother } from '../../../../shared/domain/DateMother';
 import { FileMother } from '../../../../virtual-drive/files/domain/FileMother';
 import { ThumbnailsRepositoryMock } from '../../__mock__/ThumbnailsRepositoryMock';
-import { ThumbnailMother } from '../../domain/ThumanilMother';
+import { ThumbnailMother } from '../../domain/ThumbnailMother';
 
 describe('Thumbnail Synchronizer', () => {
   let SUT: ThumbnailSynchronizer;

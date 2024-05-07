@@ -2,6 +2,7 @@ import { Service } from 'diod';
 import { File } from '../../../../virtual-drive/files/domain/File';
 import { ThumbnailsRepository } from '../../domain/ThumbnailsRepository';
 import { ThumbnailCollection } from '../../domain/ThumbnailCollection';
+import Logger from 'electron-log';
 
 @Service()
 export class ThumbnailSynchronizer {
@@ -17,7 +18,7 @@ export class ThumbnailSynchronizer {
     const collectionToUpdate = remoteCollections.filter((remoteCollection) => {
       const localCollection = localCollections.find(
         (remoteCollection: ThumbnailCollection) => {
-          return remoteCollection.uuid === remoteCollection.uuid;
+          return remoteCollection.file === remoteCollection.file;
         }
       );
 
@@ -37,7 +38,7 @@ export class ThumbnailSynchronizer {
         const thumbnail = remoteCollection.getLatestThumbnail();
 
         const stream = await this.remote.pull(thumbnail);
-        await this.local.push(thumbnail, stream);
+        await this.local.push(remoteCollection.file, stream);
       }
     );
 
