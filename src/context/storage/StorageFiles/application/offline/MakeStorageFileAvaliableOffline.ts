@@ -39,7 +39,7 @@ export class MakeStorageFileAvaliableOffline {
     await this.repository.store(storage, readable);
 
     Logger.debug(
-      `File "${virtual.nameWithExtension}" with ${storage.id.value} is now avaliable offline`
+      `File "${virtual.nameWithExtension}" with ${storage.id.value} is now avaliable locally`
     );
   }
 }
