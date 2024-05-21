@@ -74,4 +74,22 @@ export class Tree {
     parent.addChild(node);
     this.addNode(node);
   }
+
+  has(id: string): boolean {
+    return this.tree.has(id);
+  }
+
+  get(id: string): File | Folder {
+    const node = this.tree.get(id);
+
+    if (!node) {
+      throw new Error(`Could not get the node ${id}`);
+    }
+
+    if (node.isFile()) {
+      return node.file;
+    }
+
+    return node.folder;
+  }
 }

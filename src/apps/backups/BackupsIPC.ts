@@ -1,9 +1,9 @@
 import { ipcRenderer } from 'electron';
 import { TypedIPC } from '../shared/IPC/IPCs';
-import { BackupData } from './BackupData';
+import { BackupInfo } from './BackupInfo';
 
 export type MainProcessBackupsMessages = {
-  'BACKUPS:GET_BACKUPS': () => Promise<BackupData>;
+  'BACKUPS:GET_BACKUPS': () => Promise<BackupInfo>;
 };
 
 export type BackupsIPC = TypedIPC<MainProcessBackupsMessages, never>;
