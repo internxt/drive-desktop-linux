@@ -2,7 +2,7 @@ import { Service } from 'diod';
 import { LocalFile } from '../../domain/LocalFile';
 import { LocalFileUploader } from '../../domain/LocalFileUploader';
 import { SimpleFileCreator } from '../../../../virtual-drive/files/application/create/SimpleFileCreator';
-import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/Tree';
+import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/RemoteTree';
 
 @Service()
 export class FileBatchUploader {

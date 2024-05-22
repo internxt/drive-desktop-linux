@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { LocalFile } from '../../domain/LocalFile';
 import { LocalFileUploader } from '../../domain/LocalFileUploader';
-import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/Tree';
+import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/RemoteTree';
 import { SimpleFileOverrider } from '../../../../virtual-drive/files/application/override/SimpleFileOverrider';
 import path from 'path';
 import { LocalFolder } from '../../../localFolder/domain/LocalFolder';

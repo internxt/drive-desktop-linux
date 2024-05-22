@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import { RemoteItemsGenerator } from '../domain/RemoteItemsGenerator';
-import { RemoteTree } from '../domain/Tree';
+import { RemoteTree } from '../domain/RemoteTree';
 import { Traverser } from './Traverser';
 
 @Service()

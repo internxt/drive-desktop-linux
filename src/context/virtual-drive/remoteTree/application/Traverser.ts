@@ -18,7 +18,7 @@ import {
 } from '../../folders/domain/FolderStatus';
 import { EitherTransformer } from '../../shared/application/EitherTransformer';
 import { NameDecrypt } from '../domain/NameDecrypt';
-import { RemoteTree } from '../domain/Tree';
+import { RemoteTree } from '../domain/RemoteTree';
 
 type Items = {
   files: Array<ServerFile>;

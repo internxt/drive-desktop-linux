@@ -3,7 +3,7 @@ import { AbsolutePath } from '../../../context/local/localFile/infrastructure/Ab
 import { File } from '../../../context/virtual-drive/files/domain/File';
 import path from 'path';
 import { LocalTree } from '../../../context/local/localTree/domain/LocalTree';
-import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/Tree';
+import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/RemoteTree';
 
 export type DiffFiles = {
   added: Array<LocalFile>;

@@ -10,7 +10,7 @@ import { FileDeleter } from '../../context/virtual-drive/files/application/delet
 import { File } from '../../context/virtual-drive/files/domain/File';
 import { SimpleFolderCreator } from '../../context/virtual-drive/folders/application/create/SimpleFolderCreator';
 import { RemoteTreeBuilder } from '../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
-import { RemoteTree } from '../../context/virtual-drive/remoteTree/domain/Tree';
+import { RemoteTree } from '../../context/virtual-drive/remoteTree/domain/RemoteTree';
 import { BackupInfo } from './BackupInfo';
 import { AddedFilesBatchCreator } from './batches/AddedFilesBatchCreator';
 import { ModifiedFilesBatchCreator } from './batches/ModifiedFilesBatchCreator';

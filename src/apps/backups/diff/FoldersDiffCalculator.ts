@@ -2,7 +2,7 @@ import path from 'path';
 import { LocalFolder } from '../../../context/local/localFolder/domain/LocalFolder';
 import { LocalTree } from '../../../context/local/localTree/domain/LocalTree';
 import { Folder } from '../../../context/virtual-drive/folders/domain/Folder';
-import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/Tree';
+import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/RemoteTree';
 
 export type FolderDiff = {
   added: Array<LocalFolder>;
