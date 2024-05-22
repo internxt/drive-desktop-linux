@@ -1,6 +1,6 @@
-import { LocalFile } from '../../../../../src/context/backups/localFile/domain/LocalFile';
-import { LocalFileRepository } from '../../../../../src/context/backups/localFile/domain/LocalFileRepository';
-import { AbsolutePath } from '../../../../../src/context/backups/localFile/infrastructure/AbsolutePath';
+import { LocalFile } from '../../../../../src/context/local/localFile/domain/LocalFile';
+import { LocalFileRepository } from '../../../../../src/context/local/localFile/domain/LocalFileRepository';
+import { AbsolutePath } from '../../../../../src/context/local/localFile/infrastructure/AbsolutePath';
 
 export class LocalFileRepositoryMock implements LocalFileRepository {
   private readonly filesMock = jest.fn();

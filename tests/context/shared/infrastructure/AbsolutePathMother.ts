@@ -1,6 +1,6 @@
 import path from 'path';
 import Chance from './Chance';
-import { AbsolutePath } from '../../../../src/context/backups/localFile/infrastructure/AbsolutePath';
+import { AbsolutePath } from '../../../../src/context/local/localFile/infrastructure/AbsolutePath';
 
 export class AbsolutePathMother {
   static anyFolder(): AbsolutePath {

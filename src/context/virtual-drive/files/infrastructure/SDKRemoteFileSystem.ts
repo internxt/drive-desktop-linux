@@ -80,6 +80,10 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     }
   }
 
+  delete(file: File): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
   async rename(file: File): Promise<void> {
     await this.sdk.updateFile({
       fileId: file.contentsId,

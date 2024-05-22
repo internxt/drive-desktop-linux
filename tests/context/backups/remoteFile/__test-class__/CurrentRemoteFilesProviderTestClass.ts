@@ -1,7 +1,7 @@
-import { AbsolutePath } from '../../../../../src/context/backups/localFile/infrastructure/AbsolutePath';
-import { CurrentRemoteFilesProvider } from '../../../../../src/context/backups/remoteFile/application/CurrentRemoteFilesProvider';
-import { RemoteFile } from '../../../../../src/context/backups/remoteFile/domain/RemoteFile';
-import { FilesIndexedByPath } from '../../../../../src/context/backups/shared/application/FilesIndexedByPath';
+import { AbsolutePath } from '../../../../../src/context/local/localFile/infrastructure/AbsolutePath';
+import { CurrentRemoteFilesProvider } from '../../../../../src/context/local/remoteFile/application/CurrentRemoteFilesProvider';
+import { RemoteFile } from '../../../../../src/context/local/remoteFile/domain/RemoteFile';
+import { FilesIndexedByPath } from '../../../../../src/context/local/shared/application/FilesIndexedByPath';
 
 export class CurrentRemoteFilesProviderTestClass extends CurrentRemoteFilesProvider {
   private readonly mock = jest.fn();

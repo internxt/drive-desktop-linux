@@ -5,7 +5,7 @@ import { EventBus } from '../../../context/virtual-drive/shared/domain/EventBus'
 import { EventRepository } from '../../../context/virtual-drive/shared/domain/EventRepository';
 import { EventRecorder } from '../../../context/virtual-drive/shared/infrastructure/EventRecorder';
 import { NodeJsEventBus } from '../../../context/virtual-drive/shared/infrastructure/NodeJsEventBus';
-import { Traverser } from '../../../context/virtual-drive/tree/application/Traverser';
+import { Traverser } from '../../../context/virtual-drive/remoteTree/application/Traverser';
 import crypt from '../../../context/shared/infrastructure/crypt';
 import { DependencyInjectionMainProcessMnemonicProvider } from './main/DependencyInjectionMainProcessMnemonicProvider';
 import { InMemoryEventRepository } from '../../../context/virtual-drive/shared/infrastructure/InMemoryEventHistory';

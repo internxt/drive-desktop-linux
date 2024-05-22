@@ -1,6 +1,6 @@
 import path from 'path';
-import { FsLocalFileRepository } from '../../../../../src/context/backups/localFile/infrastructure/FsLocalFileRepository';
-import { AbsolutePath } from '../../../../../src/context/backups/localFile/infrastructure/AbsolutePath';
+import { FsLocalFileRepository } from '../../../../../src/context/local/localFile/infrastructure/FsLocalFileRepository';
+import { AbsolutePath } from '../../../../../src/context/local/localFile/infrastructure/AbsolutePath';
 import {
   createFolderStructure,
   removeFolderStructure,

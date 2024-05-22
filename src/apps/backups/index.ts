@@ -1,9 +1,9 @@
-import { DiffFilesCalculator } from '../../context/backups/shared/application/DiffFilesCalculator';
+import { DiffFilesCalculator } from './diff/DiffFilesCalculator';
 import { BackupsIPC } from './BackupsIPC';
 import { BackupsDependencyContainerFactory } from './dependency-injection/BackupsDependencyContainerFactory';
-import { AbsolutePath } from '../../context/backups/localFile/infrastructure/AbsolutePath';
-import { FileUploaderByChunks } from '../../context/backups/remoteFile/application/upload/FileUploaderByChunks';
-import { GroupFilesBySize } from '../../context/backups/remoteFile/application/upload/GroupFilesBySize';
+import { AbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
+import { AddedFilesBatchCreator } from './batches/AddedFilesBatchCreator';
+import { GroupFilesBySize } from './batches/GroupFilesBySize';
 
 async function backupFolder() {
   const data = await BackupsIPC.invoke('BACKUPS:GET_BACKUPS');
@@ -14,7 +14,7 @@ async function backupFolder() {
     .get(DiffFilesCalculator)
     .run(data.path as AbsolutePath);
 
-  const uploadFiles = container.get(FileUploaderByChunks);
+  const uploadFiles = container.get(AddedFilesBatchCreator);
 
   await uploadFiles.run(
     GroupFilesBySize.small.run(added),

@@ -4,7 +4,7 @@ import { DomainEventSubscriber } from '../../../context/shared/domain/DomainEven
 import { SubscribeDomainEventsHandlerToTheirEvents } from '../../../context/shared/infrastructure/domain-events/SubscribeDomainEventsHandlerToTheirEvents';
 import { FileRepositorySynchronizer } from '../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
 import { FolderRepositorySynchronizer } from '../../../context/virtual-drive/folders/application/FolderRepositorySynchronizer';
-import { TreeBuilder } from '../../../context/virtual-drive/tree/application/TreeBuilder';
+import { RemoteTreeBuilder } from '../../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
 import { mainProcessSharedInfraBuilder } from '../../shared/dependency-injection/main/mainProcessSharedInfraContainer';
 import { OfflineDependencyContainerFactory } from './offline-drive/OfflineDependencyContainerFactory';
 import { SharedDependencyContainerFactory } from './shared/SharedDependecyContainerFactory';
@@ -42,7 +42,7 @@ export class DriveDependencyContainerFactory {
     await DriveDependencyContainerFactory.addEventSubscribers(container);
 
     // init
-    const tree = await container.get(TreeBuilder).run();
+    const tree = await container.get(RemoteTreeBuilder).run();
 
     await container.get(FolderRepositorySynchronizer).run(tree.folders);
 

@@ -6,7 +6,7 @@ import {
   ServerFolderStatus,
   ServerFolder,
 } from '../../../../../src/context/shared/domain/ServerFolder';
-import { Traverser } from '../../../../../src/context/virtual-drive/tree/application/Traverser';
+import { Traverser } from '../../../../../src/context/virtual-drive/remoteTree/application/Traverser';
 import { UuidMother } from '../../../shared/domain/UuidMother';
 import { BucketEntryIdMother } from '../../shared/domain/BucketEntryIdMother';
 import { FakeNameDecrypt } from '../infrastructure/FakeNameDecrypt';

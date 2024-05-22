@@ -1,15 +1,16 @@
-import { Container, ContainerBuilder } from 'diod';
-import { DiffFilesCalculator } from '../../../context/backups/shared/application/DiffFilesCalculator';
-import { FileUploaderByChunks } from '../../../context/backups/remoteFile/application/upload/FileUploaderByChunks';
-import CurrentLocalFilesProvider from '../../../context/backups/localFile/application/CurrentLocalFilesProvider';
+import { Container } from 'diod';
+import { backgroundProcessSharedInfraBuilder } from '../../shared/dependency-injection/background/backgroundProcessSharedInfraBuilder';
+import { registerFilesServices } from './virtual-drive/registerFilesServices';
+import { registerFolderServices } from './virtual-drive/registerFolderServices';
+import { registerLocalFileServices } from './local/registerLocalFileServices';
 
 export class BackupsDependencyContainerFactory {
   static async build(): Promise<Container> {
-    const builder = new ContainerBuilder();
+    const builder = await backgroundProcessSharedInfraBuilder();
 
-    builder.registerAndUse(CurrentLocalFilesProvider);
-    builder.registerAndUse(DiffFilesCalculator);
-    builder.registerAndUse(FileUploaderByChunks);
+    await registerFilesServices(builder);
+    registerFolderServices(builder);
+    registerLocalFileServices(builder);
 
     const container = builder.build();
 

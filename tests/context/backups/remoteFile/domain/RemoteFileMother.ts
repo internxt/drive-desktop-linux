@@ -1,11 +1,10 @@
 import {
   RemoteFile,
   RemoteFileAttributes,
-} from '../../../../../src/context/backups/remoteFile/domain/RemoteFile';
+} from '../../../../../src/context/local/remoteFile/domain/RemoteFile';
 import { DateMother } from '../../../shared/domain/DateMother';
 import { AbsolutePathMother } from '../../../shared/infrastructure/AbsolutePathMother';
 import Chance from '../../../shared/infrastructure/Chance';
-import { RemoteFileSizeMother } from './RemoteFileSizeMother';
 
 export class RemoteFileMother {
   static any(): RemoteFile {

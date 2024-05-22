@@ -3,7 +3,7 @@ import Logger from 'electron-log';
 import { StorageClearer } from '../../../context/storage/StorageFiles/application/delete/StorageClearer';
 import { FileRepositorySynchronizer } from '../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
 import { FolderRepositorySynchronizer } from '../../../context/virtual-drive/folders/application/FolderRepositorySynchronizer';
-import { TreeBuilder } from '../../../context/virtual-drive/tree/application/TreeBuilder';
+import { RemoteTreeBuilder } from '../../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
 import { VirtualDrive } from '../VirtualDrive';
 import { FuseDriveStatus } from './FuseDriveStatus';
 import { CreateCallback } from './callbacks/CreateCallback';
@@ -105,7 +105,7 @@ export class FuseApp {
 
   async update(): Promise<void> {
     try {
-      const tree = await this.container.get(TreeBuilder).run();
+      const tree = await this.container.get(RemoteTreeBuilder).run();
 
       await this.container.get(FileRepositorySynchronizer).run(tree.files);
       await this.container.get(ThumbnailSynchronizer).run(tree.files);

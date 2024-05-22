@@ -1,7 +1,7 @@
 import {
   LocalFile,
   LocalFileAttributes,
-} from '../../../../../src/context/backups/localFile/domain/LocalFile';
+} from '../../../../../src/context/local/localFile/domain/LocalFile';
 import { DateMother } from '../../../shared/domain/DateMother';
 import { AbsolutePathMother } from '../../../shared/infrastructure/AbsolutePathMother';
 import Chance from '../../../shared/infrastructure/Chance';
@@ -9,33 +9,27 @@ import Chance from '../../../shared/infrastructure/Chance';
 export class LocalFileMother {
   static any(): LocalFile {
     return LocalFile.from({
-      path: AbsolutePathMother.anyFolder(),
+      path: AbsolutePathMother.anyFile(),
       modificationTime: DateMother.today().getTime(),
-      size: Chance.integer({ min: 1 }),
+      size: Chance.integer({ min: 1, max: 10_000 }),
     });
   }
 
-  static fromPartial(partial?: Partial<LocalFileAttributes>): LocalFile {
-    const random = LocalFileMother.any();
-
-    if (!partial) {
-      return random;
-    }
-
+  static fromPartial(partial: Partial<LocalFileAttributes>): LocalFile {
     return LocalFile.from({
-      ...(random.attributes() as LocalFileAttributes),
+      ...LocalFileMother.any().attributes(),
       ...partial,
     });
   }
 
   static array(
-    n: number,
-    g?: () => Partial<LocalFileAttributes>
+    numberOfElements: number,
+    generator?: (position: number) => Partial<LocalFileAttributes>
   ): Array<LocalFile> {
     const array = [];
 
-    for (let i = 0; i < n; i++) {
-      array.push(LocalFileMother.fromPartial(g ? g() : {}));
+    for (let i = 0; i < numberOfElements; i++) {
+      array.push(LocalFileMother.fromPartial(generator ? generator(i) : {}));
     }
 
     return array;

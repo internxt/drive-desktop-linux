@@ -1,8 +1,8 @@
-import CurrentLocalFilesProvider from '../../../../../src/context/backups/localFile/application/CurrentLocalFilesProvider';
-import { LocalFile } from '../../../../../src/context/backups/localFile/domain/LocalFile';
-import { LocalFileRepository } from '../../../../../src/context/backups/localFile/domain/LocalFileRepository';
-import { AbsolutePath } from '../../../../../src/context/backups/localFile/infrastructure/AbsolutePath';
-import { FilesIndexedByPath } from '../../../../../src/context/backups/shared/application/FilesIndexedByPath';
+import CurrentLocalFilesProvider from '../../../../../src/context/local/localFile/application/CurrentLocalFilesProvider';
+import { LocalFile } from '../../../../../src/context/local/localFile/domain/LocalFile';
+import { LocalFileRepository } from '../../../../../src/context/local/localFile/domain/LocalFileRepository';
+import { AbsolutePath } from '../../../../../src/context/local/localFile/infrastructure/AbsolutePath';
+import { FilesIndexedByPath } from '../../../../../src/context/local/shared/application/FilesIndexedByPath';
 
 export class CurrentLocalFilesProviderTestClass extends CurrentLocalFilesProvider {
   private readonly mock = jest.fn();

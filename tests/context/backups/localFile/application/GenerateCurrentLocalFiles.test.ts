@@ -1,4 +1,4 @@
-import CurrentLocalFilesProvider from '../../../../../src/context/backups/localFile/application/CurrentLocalFilesProvider';
+import CurrentLocalFilesProvider from '../../../../../src/context/local/localFile/application/CurrentLocalFilesProvider';
 import { AbsolutePathMother } from '../../../shared/infrastructure/AbsolutePathMother';
 import { LocalFileRepositoryMock } from '../__mocks__/LocalFileRepositoryMock';
 import { LocalFileMother } from '../domain/LocalFileMother';
