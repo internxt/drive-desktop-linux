@@ -1,0 +1,44 @@
+import { BrowserWindow } from 'electron';
+import Logger from 'electron-log';
+import path from 'path';
+
+export class BackupWorker {
+  private static readonly DEV_PATH =
+    '../../release/app/dist/backups/index.html';
+
+  private static readonly PROD_PATH = `${path.join(
+    __dirname,
+    '..',
+    'backups'
+  )}/index.html`;
+
+  private constructor(protected readonly worker: BrowserWindow) {}
+
+  static spawn(): BackupWorker {
+    const worker = new BrowserWindow({
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
+      show: false,
+    });
+
+    worker
+      .loadFile(
+        process.env.NODE_ENV === 'development'
+          ? BackupWorker.DEV_PATH
+          : BackupWorker.PROD_PATH
+      )
+      .catch(Logger.error);
+
+    return new BackupWorker(worker);
+  }
+
+  destroy(): void {
+    if (!this.worker) {
+      return;
+    }
+
+    this.worker.destroy();
+  }
+}
