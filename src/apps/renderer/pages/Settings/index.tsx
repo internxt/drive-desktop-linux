@@ -4,6 +4,7 @@ import WindowTopBar from '../../components/WindowTopBar';
 import AccountSection from './Account';
 import GeneralSection from './General';
 import Header, { Section } from './Header';
+import BackupsSection from './Backups';
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState<Section>('GENERAL');
@@ -39,6 +40,7 @@ export default function Settings() {
       <div className="bg-gray-1 p-5">
         <GeneralSection active={activeSection === 'GENERAL'} />
         <AccountSection active={activeSection === 'ACCOUNT'} />
+        <BackupsSection active={activeSection === 'BACKUPS'} />
       </div>
     </div>
   );

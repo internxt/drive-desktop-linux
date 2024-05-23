@@ -9,12 +9,7 @@ import { BackupsStopController } from './BackupsStopController/BackupsStopContro
 import { launchBackupProcesses } from './launchBackupProcesses';
 import Logger from 'electron-log';
 
-export type BackupProgress = {
-  currentFolder: number;
-  totalFolders: number;
-  completedItems?: number;
-  totalItems?: number;
-};
+import './BackupConfiguration/BackupConfiguration';
 
 export async function setUpBackups() {
   Logger.debug('[BACKUPS] Setting up backups');

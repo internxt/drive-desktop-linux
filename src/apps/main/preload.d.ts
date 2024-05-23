@@ -103,6 +103,22 @@ declare interface Window {
 
     stopBackupsProcess(): void;
 
+    getBackupsStatus(): Promise<
+      import('./background-processes/backups/BackupsProcessStatus/BackupsStatus').BackupsStatus
+    >;
+
+    onBackupsStatusChanged(
+      func: (
+        value: import('./background-processes/backups/BackupsProcessStatus/BackupsStatus').BackupsStatus
+      ) => void
+    ): () => void;
+
+    onBackupProgress(
+      func: (
+        value: import('./background-processes/backups/types/BackupProgress').BackupProgress
+      ) => void
+    ): () => void;
+
     getVirtualDriveRoot(): Promise<string>;
 
     chooseSyncRootWithDialog: typeof import('./virtual-root-folder/service').chooseSyncRootWithDialog;

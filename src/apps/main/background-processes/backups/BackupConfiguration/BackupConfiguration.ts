@@ -28,7 +28,8 @@ class BackupConfiguration {
   }
 
   toggleEnabled() {
-    this.enabled = !this.enabled;
+    const enabled = !this.enabled;
+    this.enabled = enabled;
   }
 
   async obtainBackupsInfo(): Promise<Array<BackupInfo>> {

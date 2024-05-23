@@ -1,20 +1,19 @@
 import { broadcastToWindows } from '../../../windows';
-
-type Status = 'STANDBY' | 'RUNNING';
+import { BackupsStatus } from './BackupsStatus';
 
 export class BackupsProcessStatus {
-  constructor(private status: Status) {}
+  constructor(private status: BackupsStatus) {}
 
-  set(status: Status) {
+  set(status: BackupsStatus) {
     this.status = status;
     broadcastToWindows('backups-status-changed', status);
   }
 
-  isIn(status: Status): boolean {
+  isIn(status: BackupsStatus): boolean {
     return this.status === status;
   }
 
-  current(): Status {
+  current(): BackupsStatus {
     return this.status;
   }
 }
