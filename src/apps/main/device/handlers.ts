@@ -11,7 +11,11 @@ import {
   getOrCreateDevice,
   renameDevice,
   createBackupsFromLocalPaths,
+  getDevices,
 } from './service';
+
+ipcMain.handle('devices.get-all', () => getDevices());
+
 ipcMain.handle('get-or-create-device', getOrCreateDevice);
 
 ipcMain.handle('rename-device', (_, v) => renameDevice(v));

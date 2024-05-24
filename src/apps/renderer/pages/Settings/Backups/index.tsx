@@ -2,7 +2,7 @@ import { ReactNode, useContext, useState } from 'react';
 import { DeviceContext } from '../../../context/DeviceContext';
 import Spinner from '../../../assets/spinner.svg';
 import BackupsList from './List';
-import BackupsPanel from './Panel';
+import BackupsSetting from './BackupsSetting';
 
 export default function BackupsSection({ active }: { active: boolean }) {
   const [subsection, setSubsection] = useState<'panel' | 'list'>('panel');
@@ -14,13 +14,13 @@ export default function BackupsSection({ active }: { active: boolean }) {
   if (deviceState.status === 'LOADING')
     content = (
       <div className="flex h-32 items-center justify-center">
-        <Spinner className=" h-9 w-9 animate-spin fill-neutral-500" />
+        <Spinner className=" fill-neutral-500 h-9 w-9 animate-spin" />
       </div>
     );
   else if (deviceState.status === 'ERROR')
     content = (
       <div className="flex h-32 items-center justify-center">
-        <p className="text-sm text-red-60">
+        <p className="text-red-60 text-sm">
           There was an error loading your backups
         </p>
       </div>
@@ -29,7 +29,7 @@ export default function BackupsSection({ active }: { active: boolean }) {
     content = (
       <>
         {subsection === 'panel' && (
-          <BackupsPanel onGoToList={() => setSubsection('list')} />
+          <BackupsSetting onGoToList={() => setSubsection('list')} />
         )}
         {subsection === 'list' && (
           <BackupsList onGoToPanel={() => setSubsection('panel')} />

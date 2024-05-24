@@ -129,6 +129,10 @@ declare interface Window {
 
     renameDevice: typeof import('../main/device/service').renameDevice;
 
+    devices: {
+      getDevices: () => Promise<Array<import('../main/device/service').Device>>;
+    };
+
     getBackups: typeof import('../main/device/service').getBackupsFromDevice;
 
     addBackup: typeof import('../main/device/service').addBackup;

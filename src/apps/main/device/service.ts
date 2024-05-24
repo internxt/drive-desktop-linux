@@ -31,6 +31,20 @@ function createDevice(deviceName: string) {
   });
 }
 
+export async function getDevices(): Promise<Array<Device>> {
+  const response = await fetch(
+    `${process.env.API_URL}/api/backup/deviceAsFolder`,
+    {
+      method: 'GET',
+      headers: getHeaders(true),
+    }
+  );
+
+  const devices = (await response.json()) as Array<Device>;
+
+  return devices.map((device) => decryptDeviceName(device));
+}
+
 async function tryToCreateDeviceWithDifferentNames(): Promise<Device> {
   let res = await createDevice(os.hostname());
 

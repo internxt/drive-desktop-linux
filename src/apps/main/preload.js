@@ -180,6 +180,11 @@ contextBridge.exposeInMainWorld('electron', {
   renameDevice(deviceName) {
     return ipcRenderer.invoke('rename-device', deviceName);
   },
+  devices: {
+    getDevices: () => {
+      return ipcRenderer.invoke('devices.get-all');
+    },
+  },
   getBackups() {
     return ipcRenderer.invoke('get-backups');
   },

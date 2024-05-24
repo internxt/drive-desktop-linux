@@ -34,9 +34,11 @@ export async function setUpBackups() {
   eventBus.on('USER_LOGGED_OUT', stopAndClearBackups);
   eventBus.on('USER_WAS_UNAUTHORIZED', stopAndClearBackups);
 
-  ipcMain.on('start-backups-process', () =>
-    launchBackupProcesses(false, tracker, status, errors, stopController)
-  );
+  ipcMain.on('start-backups-process', async () => {
+    Logger.debug('Backups started manually');
+
+    await launchBackupProcesses(false, tracker, status, errors, stopController);
+  });
 
   Logger.debug('[BACKUPS] Start service');
 

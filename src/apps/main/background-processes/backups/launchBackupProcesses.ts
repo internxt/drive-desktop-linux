@@ -17,7 +17,7 @@ export async function launchBackupProcesses(
   status: BackupsProcessStatus,
   errors: BackupFatalErrors,
   stopController: BackupsStopController
-) {
+): Promise<void> {
   if (!backupsCanRun(status)) {
     return;
   }

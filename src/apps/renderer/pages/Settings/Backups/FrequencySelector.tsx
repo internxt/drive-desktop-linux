@@ -3,7 +3,7 @@ import { UilAngleDown, UilCheck } from '@iconscout/react-unicons';
 import { Fragment } from 'react';
 import { useTranslationContext } from '../../../context/LocalContext';
 
-export default function Dropdown({
+export default function FrequencySelector({
   value,
   onChange,
   className = '',
@@ -32,31 +32,34 @@ export default function Dropdown({
     },
   ];
 
-  const { display } = intervals.find((interval) => interval.value === value)!;
+  const { display } = intervals.find(
+    (interval) => interval.value === value
+  ) || { display: 'no' };
 
   return (
     <div className={className}>
       <Listbox value={value} onChange={onChange}>
         {({ open }) => (
-          <div className="relative mt-1">
-            <Listbox.Button className="border-l-neutral-40 relative w-fit cursor-pointer rounded-md border bg-white py-1 pl-3 pr-8 text-left drop-shadow-sm">
+          <div className="relative">
+            <Listbox.Button className="relative w-fit cursor-pointer rounded-md border border border-gray-20 border-l-gray-20 bg-white py-1 pl-3 pr-8 text-left drop-shadow-sm">
               <span className="text-neutral-500 block truncate text-sm">
                 {display}
               </span>
-              <span className="bg-blue-60 pointer-events-none absolute inset-y-0 right-0 flex items-center rounded-r-md text-white">
+              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center rounded-r-md">
                 <UilAngleDown />
               </span>
             </Listbox.Button>
+
             <Transition
-              show={open}
-              as={Fragment}
               enterFrom="scale-95 opacity-0"
               enterTo="scale-100 opacity-1"
               leaveFrom="scale-100 opacity-1"
               leaveTo="scale-95 opacity-0"
               unmount={false}
+              appear={open}
+              show={open}
             >
-              <Listbox.Options className="border-l-neutral-40 absolute bottom-full max-h-60 w-fit transform overflow-auto rounded-md border bg-white p-1 text-sm shadow-lg transition duration-150 ease-in-out">
+              <Listbox.Options className="border-l-neutral-40 absolute bottom-full max-h-60 w-fit transform overflow-auto rounded-md border border-gray-20 bg-white p-1 text-sm shadow-lg transition duration-150 ease-in-out">
                 {intervals.map((interval) => (
                   <Listbox.Option
                     key={interval.value}
