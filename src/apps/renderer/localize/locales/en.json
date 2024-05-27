@@ -286,9 +286,9 @@
         }
       },
       "folders": {
-        "explanation": "Folders you want to add to the next backup",
         "no-folders": "No backups yet",
-        "done": "Done",
+        "save": "Save",
+        "cancel": "Cancel",
         "stop-baking-up": {
           "title": "Stop backing up ",
           "explanation": "New files added to this folder will no longer backup in your Internxt Drive. Original files will remain on your computer",

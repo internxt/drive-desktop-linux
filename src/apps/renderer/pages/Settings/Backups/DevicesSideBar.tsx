@@ -1,8 +1,28 @@
 import { useContext } from 'react';
 import { DeviceContext } from '../../../context/DeviceContext';
 import { Question } from '@phosphor-icons/react';
-import { DevicePill } from '../../../components/Device/DevicePill';
 import { useDevices } from '../../../hooks/devices/useDevices';
+import { Device } from '../../../../main/device/service';
+
+interface DevicePillProps {
+  device: Device;
+  current: boolean;
+}
+
+export function DevicePill({ device, current }: DevicePillProps) {
+  const borderStyle = current
+    ? 'rounded-lg border border-gray-10 bg-surface shadow-sm dark:bg-gray-5'
+    : '';
+
+  const styles = `${borderStyle} flex flex-col px-3 py-2 `;
+
+  return (
+    <div className={styles}>
+      {current && <div className="text-blue-800 text-xs">This device</div>}
+      {device.name}
+    </div>
+  );
+}
 
 function Help() {
   const handleOpenURL = async () => {

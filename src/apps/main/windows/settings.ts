@@ -17,7 +17,7 @@ async function openSettingsWindow(section?: string) {
   }
 
   settingsWindow = new BrowserWindow({
-    width: 600,
+    width: 625,
     height: 600,
     show: false,
     webPreferences: {

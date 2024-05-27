@@ -1,41 +1,42 @@
-import { ReactNode, useContext, useState } from 'react';
+import { useContext } from 'react';
 import { DeviceContext } from '../../../context/DeviceContext';
+import { DeviceSettings } from './DeviceSettings';
+import { DevicesSideBar } from './DevicesSideBar';
+
 import Spinner from '../../../assets/spinner.svg';
-import BackupsList from './List';
-import BackupsSetting from './BackupsSetting';
 
-export default function BackupsSection({ active }: { active: boolean }) {
-  const [subsection, setSubsection] = useState<'panel' | 'list'>('panel');
+interface BackupsSectionProps {
+  active: boolean;
+  showBackedFolders: () => void;
+}
 
+export default function BackupsSection({
+  active,
+  showBackedFolders,
+}: BackupsSectionProps) {
   const [deviceState] = useContext(DeviceContext);
 
-  let content: ReactNode;
-
-  if (deviceState.status === 'LOADING')
-    content = (
-      <div className="flex h-32 items-center justify-center">
-        <Spinner className=" fill-neutral-500 h-9 w-9 animate-spin" />
-      </div>
-    );
-  else if (deviceState.status === 'ERROR')
-    content = (
-      <div className="flex h-32 items-center justify-center">
-        <p className="text-red-60 text-sm">
-          There was an error loading your backups
-        </p>
-      </div>
-    );
-  else
-    content = (
-      <>
-        {subsection === 'panel' && (
-          <BackupsSetting onGoToList={() => setSubsection('list')} />
-        )}
-        {subsection === 'list' && (
-          <BackupsList onGoToPanel={() => setSubsection('panel')} />
-        )}
-      </>
-    );
-
-  return <div className={active ? 'block' : 'hidden'}>{content}</div>;
+  return (
+    <div className={active ? 'block' : 'hidden'}>
+      {deviceState.status === 'LOADING' && (
+        <div className="flex h-32 items-center justify-center">
+          <Spinner className=" fill-neutral-500 h-9 w-9 animate-spin" />
+        </div>
+      )}
+      {deviceState.status === 'ERROR' && (
+        <div className="flex h-32 items-center justify-center">
+          <p className="text-red-60 text-sm">
+            There was an error loading your backups
+          </p>
+        </div>
+      )}
+      {deviceState.status === 'SUCCESS' && (
+        <section className="flex h-full">
+          <DevicesSideBar className="w-1/3" />
+          <div className="mx-2 border-l border-gray-10"></div>
+          <DeviceSettings className="w-2/3" onGoToList={showBackedFolders} />
+        </section>
+      )}
+    </div>
+  );
 }

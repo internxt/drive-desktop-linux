@@ -5,9 +5,11 @@ import AccountSection from './Account';
 import GeneralSection from './General';
 import Header, { Section } from './Header';
 import BackupsSection from './Backups';
+import BackupFolderSelector from './Backups/Selector/BackupFolderSelector';
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState<Section>('GENERAL');
+  const [subsection, setSubsection] = useState<'panel' | 'list'>('panel');
 
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -32,16 +34,26 @@ export default function Settings() {
 
   return (
     <div ref={rootRef}>
-      <WindowTopBar
-        title="Internxt Drive"
-        className="bg-surface dark:bg-gray-5"
-      />
-      <Header active={activeSection} onClick={setActiveSection} />
-      <div className="bg-gray-1 p-5">
-        <GeneralSection active={activeSection === 'GENERAL'} />
-        <AccountSection active={activeSection === 'ACCOUNT'} />
-        <BackupsSection active={activeSection === 'BACKUPS'} />
-      </div>
+      {subsection === 'list' && (
+        <BackupFolderSelector onClose={() => setSubsection('panel')} />
+      )}
+      {subsection === 'panel' && (
+        <>
+          <WindowTopBar
+            title="Internxt Drive"
+            className="bg-surface dark:bg-gray-5"
+          />
+          <Header active={activeSection} onClick={setActiveSection} />
+          <div className="bg-gray-1 p-5">
+            <GeneralSection active={activeSection === 'GENERAL'} />
+            <AccountSection active={activeSection === 'ACCOUNT'} />
+            <BackupsSection
+              active={activeSection === 'BACKUPS'}
+              showBackedFolders={() => setSubsection('list')}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }

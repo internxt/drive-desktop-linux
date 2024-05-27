@@ -281,13 +281,13 @@
           "6h": "Cada 6 horas",
           "12h": "Cada 12 horas",
           "24h": "Cada día",
-          "manually": "Manualmente"
+          "manually": "Manual"
         }
       },
       "folders": {
-        "explanation": "Carpetas a añadir en la siguiente copia de seguridad",
         "no-folders": "No hay carpetas seleccionadas",
-        "done": "Hecho",
+        "save": "Guardar",
+        "cancel": "Cancelar",
         "stop-baking-up": {
           "title": "¿Detener la copia de seguridad de ",
           "explanation": "Los archivos nuevos que se añadan a esta carpeta ya no se copiarán en Internxt Drive. Los archivos originales permanecerán en tu ordenador",

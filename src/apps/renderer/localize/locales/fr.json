@@ -280,9 +280,9 @@
         }
       },
       "folders": {
-        "explanation": "Dossiers à ajouter lors de la prochaine sauvegarde",
         "no-folders": "Pas encore de sauvegardes",
-        "done": "Finaliser",
+        "save": "Sauvegarder",
+        "cancel": "Annuler",
         "stop-baking-up": {
           "title": "Arrêter la sauvegarde de ",
           "explanation": "Les nouveaux fichiers ajoutés à ce dossier ne seront plus copiés sur Internxt Drive. Les fichiers originaux resteront sur votre ordinateur",
