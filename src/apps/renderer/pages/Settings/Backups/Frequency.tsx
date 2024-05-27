@@ -26,8 +26,9 @@ export function Frequency() {
     },
   ].map(({ value, name }) => ({ value: value.toString(), name }));
 
-  const onStringValueChange = (value: string) =>
+  const onStringValueChange = (value: string) => {
     updateBackupsInterval(Number(value));
+  };
 
   return (
     <>
@@ -39,6 +40,12 @@ export function Frequency() {
         value={backupsInterval.toString()}
         onValueChange={onStringValueChange}
       />
+      {backupsInterval < 0 && (
+        <p className="mt-1 text-xs text-gray-50">
+          Folders won't automatically backup until you click “Backup now”. This
+          mode is not recommended.
+        </p>
+      )}
     </>
   );
 }

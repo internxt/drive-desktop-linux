@@ -5,11 +5,21 @@ import { DevicePill } from '../../../components/Device/DevicePill';
 import { useDevices } from '../../../hooks/devices/useDevices';
 
 function Help() {
+  const handleOpenURL = async () => {
+    try {
+      await window.electron.openUrl(
+        'https://help.internxt.com/en/articles/6583477-how-do-backups-work-on-internxt-drive'
+      );
+    } catch (error) {
+      reportError(error);
+    }
+  };
+
   return (
-    <>
+    <div className="mt-auto hover:cursor-pointer" onClick={handleOpenURL}>
       <Question className="mr-1 inline" />
       <span className="text-gray-100">Backups help</span>
-    </>
+    </div>
   );
 }
 
@@ -25,15 +35,17 @@ export function DevicesSideBar({ className }: DevicesSideBarProps) {
 
   return (
     <aside className={className}>
-      <h1>Devices</h1>
-      <ul>
-        {devices.map((device) => (
-          <li className="my-1">
-            {<DevicePill device={device} current={isCurrent(device.id)} />}
-          </li>
-        ))}
-      </ul>
-      <Help />
+      <div className="flex h-full flex-col">
+        <h1>Devices</h1>
+        <ul>
+          {devices.map((device) => (
+            <li className="my-1" key={device.id}>
+              {<DevicePill device={device} current={isCurrent(device.id)} />}
+            </li>
+          ))}
+        </ul>
+        <Help />
+      </div>
     </aside>
   );
 }

@@ -26,7 +26,7 @@ export function DeviceBackups({ device, onGoToList }: DeviceBackupsProps) {
         size={20000}
       />
       <div className="grid grid-cols-2 gap-2">
-        <StartBackup className="w-full" status={backupStatus} />
+        <StartBackup className="w-full " status={backupStatus} />
         <ViewBackups className="w-full" />
       </div>
       <FoldersSelector className="mt-2" onGoToList={onGoToList} />

@@ -11,7 +11,7 @@ export function StartBackup({ status, className }: StartBackupProps) {
 
   return (
     <Button
-      className={className}
+      className={`${className} hover:cursor-pointer`}
       variant={status === 'STANDBY' ? 'primary' : 'danger'}
       size="md"
       onClick={() => {

@@ -9,6 +9,7 @@ export function useBackupsInterval() {
 
   async function updateBackupsInterval(interval: number) {
     await window.electron.setBackupsInterval(interval);
+    refreshBackupsInterval();
   }
 
   useEffect(() => {

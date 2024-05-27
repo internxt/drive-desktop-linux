@@ -16,7 +16,11 @@ export function ViewBackups({ className }: ViewBackupsProps) {
 
   return (
     <>
-      <Button className={className} variant="secondary" onClick={handleOpenURL}>
+      <Button
+        className={`${className} hover:cursor-pointer`}
+        variant="secondary"
+        onClick={handleOpenURL}
+      >
         {translate('settings.backups.view-backups')}
       </Button>
     </>
