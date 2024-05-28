@@ -21,7 +21,7 @@ export async function registerFilesServices(builder: ContainerBuilder) {
           c.get(Storage),
           c.get(AuthorizedClients),
           crypt,
-          user.bucket
+          user.backupsBucket
         )
     )
     .private();

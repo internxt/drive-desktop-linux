@@ -38,6 +38,8 @@ export async function launchBackupProcesses(
   tracker.track(backups);
 
   stopController.on('forced-by-user', () => {
+    Logger.debug('[BACKUPS] Stopping backups');
+
     ipcMain.emit('BACKUP_PROCESS_FINISHED', {
       scheduled,
       foldersToBackup: tracker.totalBackups(),
@@ -65,8 +67,8 @@ export async function launchBackupProcesses(
   for (const backupInfo of backups) {
     tracker.backing(backupInfo);
 
-    if (stopController.hasFinished()) {
-      Logger.debug('[BACKUPS] Already finished');
+    if (stopController.hasStopped()) {
+      Logger.debug('[BACKUPS] Stop controller stopped');
       continue;
     }
 
@@ -80,8 +82,6 @@ export async function launchBackupProcesses(
     tracker.backupFinishedWith(finishReason);
   }
 
-  ipcMain.emit('BACKUPS:PROCESS_FINISHED');
-
   status.set('STANDBY');
 
   stopController.reset();
@@ -92,5 +92,6 @@ export async function launchBackupProcesses(
 
   powerSaveBlocker.stop(suspensionBlockId);
 
+  ipcMain.emit('BACKUPS:PROCESS_FINISHED');
   ipcMain.removeAllListeners('BACKUP_PROGRESS');
 }

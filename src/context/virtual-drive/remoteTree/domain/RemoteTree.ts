@@ -94,6 +94,13 @@ export class RemoteTree {
     return node.folder;
   }
 
+  hasParent(id: string): boolean {
+    const dirname = path.posix.dirname(id);
+    const parentId = dirname === '.' ? path.posix.sep : dirname;
+
+    return this.has(parentId);
+  }
+
   getParent(id: string): Folder {
     const dirname = path.posix.dirname(id);
     const parentId = dirname === '.' ? path.posix.sep : dirname;

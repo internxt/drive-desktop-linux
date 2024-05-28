@@ -17,7 +17,6 @@ function configureIpcForBackup(
   BackupsIPCMain.handleOnce('backups.get-backup', () => info);
 
   BackupsIPCMain.on('backups.backup-completed', (_, folderId) => {
-    stopController.backupCompleted();
     ipcMain.emit('BACKUP_COMPLETED', folderId);
   });
 
@@ -39,20 +38,15 @@ function configureIpcForBackup(
     BackupsIPCMain.removeAllListeners('backups.backup-completed');
     BackupsIPCMain.removeAllListeners('backups.backup-failed');
   });
-}
-
-async function spawn(
-  stopController: BackupsStopController
-): Promise<StopReason> {
-  let worker: BackupWorker | undefined = undefined;
 
   return new Promise<StopReason>((resolve) => {
-    stopController.onFinished((reason: StopReason) => {
-      worker?.destroy();
-      resolve(reason);
+    BackupsIPCMain.on('backups.backup-completed', () => {
+      resolve('backup-completed');
     });
 
-    worker = BackupWorker.spawn();
+    BackupsIPCMain.on('backups.backup-failed', () => {
+      resolve('failed');
+    });
   });
 }
 
@@ -61,9 +55,13 @@ export async function executeBackupWorker(
   errors: BackupFatalErrors,
   stopController: BackupsStopController
 ): Promise<StopReason> {
-  configureIpcForBackup(info, errors, stopController);
+  const finished = configureIpcForBackup(info, errors, stopController);
 
-  const backupEnded = spawn(stopController);
+  const worker = BackupWorker.spawn();
 
-  return await backupEnded;
+  const reason = await finished;
+
+  worker.destroy();
+
+  return reason;
 }

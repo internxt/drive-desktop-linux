@@ -17,6 +17,7 @@ import { ModifiedFilesBatchCreator } from './batches/ModifiedFilesBatchCreator';
 import { DiffFilesCalculator } from './diff/DiffFilesCalculator';
 import { FoldersDiffCalculator } from './diff/FoldersDiffCalculator';
 import Logger from 'electron-log';
+import { relative } from './utils/relative';
 
 @Service()
 export class Backup {
@@ -40,13 +41,14 @@ export class Backup {
     Logger.info('[BACKUPS] Generating remote tree');
     const remote = await this.remoteTreeBuilder.run(info.folderId);
 
-    Logger.info('[BACKUPS] Backing folders');
     await this.backupFolders(local, remote);
 
     await this.backupFiles(local, remote, abortController);
   }
 
   private async backupFolders(local: LocalTree, remote: RemoteTree) {
+    Logger.info('[BACKUPS] Backing folders');
+
     const { added } = FoldersDiffCalculator.calculate(local, remote);
 
     Logger.info('[BACKUPS] Folders added', added.length);
@@ -59,20 +61,25 @@ export class Backup {
 
     do {
       for (const localFolder of added) {
-        const parentPath = localFolder.basedir();
+        const remoteParentPath = relative(
+          local.root.path,
+          localFolder.basedir()
+        );
 
-        const parentExists = remote.has(parentPath);
+        const parentExists = remote.has(remoteParentPath);
 
         if (!parentExists) {
           queue.push(localFolder);
           continue;
         }
 
-        const parent = remote.getParent(parentPath);
+        const parent = remote.getParent(
+          relative(local.root.path, localFolder.path)
+        );
 
         // eslint-disable-next-line no-await-in-loop
         const folder = await this.simpleFolderCreator.run(
-          localFolder.path,
+          relative(local.root.path, localFolder.path),
           parent.id
         );
 
@@ -87,6 +94,7 @@ export class Backup {
     abortController: AbortController
   ) {
     Logger.info('[BACKUPS] Backing files');
+    Logger.info('[BACKUPS] ', remote.folderPaths);
 
     const { added, modified, deleted } = await DiffFilesCalculator.calculate(
       local,
@@ -95,28 +103,18 @@ export class Backup {
 
     Logger.info('[BACKUPS] Files added', added.length);
 
-    await this.uploadAndCreateAdded(
-      local.root.path,
-      added,
-      remote,
-      abortController
-    );
+    await this.uploadAndCreate(local.root.path, added, remote, abortController);
 
     Logger.info('[BACKUPS] Files modified', modified.size);
 
-    await this.uploadAndUploadModified(
-      modified,
-      local,
-      remote,
-      abortController
-    );
+    await this.uploadAndUpdate(modified, local, remote, abortController);
 
     Logger.info('[BACKUPS] Files deleted', deleted.length);
 
     await this.deleteRemoteFiles(deleted);
   }
 
-  private async uploadAndCreateAdded(
+  private async uploadAndCreate(
     localRootPath: string,
     added: Array<LocalFile>,
     tree: RemoteTree,
@@ -135,7 +133,7 @@ export class Backup {
     }
   }
 
-  private async uploadAndUploadModified(
+  private async uploadAndUpdate(
     modified: Map<LocalFile, File>,
     localTree: LocalTree,
     remoteTree: RemoteTree,

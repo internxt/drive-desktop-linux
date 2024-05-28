@@ -64,7 +64,6 @@ ipcMain.handle('set-backups-interval', (_, interval: number) => {
 });
 
 ipcMain.handle('get-last-backup-timestamp', () => {
-  Logger.debug('get-last-backup-timestamp', config.lastBackup);
   return config.lastBackup;
 });
 

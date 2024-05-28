@@ -3,7 +3,7 @@ import { LocalFile } from '../../domain/LocalFile';
 import { LocalFileUploader } from '../../domain/LocalFileUploader';
 import { SimpleFileCreator } from '../../../../virtual-drive/files/application/create/SimpleFileCreator';
 import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/RemoteTree';
-import path from 'path';
+import { relative } from '../../../../../apps/backups/utils/relative';
 
 @Service()
 export class FileBatchUploader {
@@ -26,7 +26,7 @@ export class FileBatchUploader {
         signal
       );
 
-      const remotePath = path.posix.relative(localRootPath, localFile.path);
+      const remotePath = relative(localRootPath, localFile.path);
 
       const parent = remoteTree.getParent(remotePath);
 
