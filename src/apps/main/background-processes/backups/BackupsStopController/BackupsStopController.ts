@@ -17,7 +17,7 @@ const listenerNotSet = (reason: StopReason) => {
 };
 
 export class BackupsStopController {
-  private readonly controller = new AbortController();
+  private controller = new AbortController();
   private finishedReason: StopReason | undefined = undefined;
 
   private end: Array<(reason: StopReason) => void> = [];
@@ -29,6 +29,13 @@ export class BackupsStopController {
   };
 
   constructor() {
+    this.reset();
+  }
+
+  reset() {
+    this.finishedReason = undefined;
+    this.controller = new AbortController();
+
     this.controller.signal.addEventListener('abort', () => {
       const { reason, payload } = this.controller.signal.reason as {
         reason: StopReason;

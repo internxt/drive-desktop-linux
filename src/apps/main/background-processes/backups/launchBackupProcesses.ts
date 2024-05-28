@@ -6,6 +6,7 @@ import { BackupFatalErrors } from './BackupFatalErrors/BackupFatalErrors';
 import { BackupsProcessTracker } from './BackupsProcessTracker/BackupsProcessTracker';
 import backupsConfig from './BackupConfiguration/BackupConfiguration';
 import { executeBackupWorker } from './BackukpWorker/executeBackupWorker';
+import Logger from 'electron-log';
 
 function backupsCanRun(status: BackupsProcessStatus) {
   return status.isIn('STANDBY') && backupsConfig.enabled;
@@ -19,6 +20,7 @@ export async function launchBackupProcesses(
   stopController: BackupsStopController
 ): Promise<void> {
   if (!backupsCanRun(status)) {
+    Logger.debug('[BACKUPS] Already running');
     return;
   }
 
@@ -61,21 +63,26 @@ export async function launchBackupProcesses(
   for (const backupInfo of backups) {
     tracker.backing(backupInfo);
 
-    if (!stopController.hasFinished()) {
-      // eslint-disable-next-line no-await-in-loop
-      const finishReason = await executeBackupWorker(
-        backupInfo,
-        errors,
-        stopController
-      );
-
-      tracker.backupFinishedWith(finishReason);
+    if (stopController.hasFinished()) {
+      Logger.debug('[BACKUPS] Already finished');
+      continue;
     }
+
+    // eslint-disable-next-line no-await-in-loop
+    const finishReason = await executeBackupWorker(
+      backupInfo,
+      errors,
+      stopController
+    );
+
+    tracker.backupFinishedWith(finishReason);
   }
 
   ipcMain.emit('BACKUPS:PROCESS_FINISHED');
 
   status.set('STANDBY');
+
+  stopController.reset();
 
   ipcMain.removeAllListeners('stop-backups-process');
 

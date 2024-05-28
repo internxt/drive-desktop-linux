@@ -30,7 +30,7 @@ export class Backup {
   ) {}
 
   async run(info: BackupInfo, abortController: AbortController): Promise<void> {
-    Logger.info('[BACKUPS] Backing:', JSON.stringify(info, null, 2));
+    Logger.info('[BACKUPS] Backing:', info.pathname);
 
     Logger.info('[BACKUPS] Generating local tree');
     const local = await this.localTreeBuilder.run(
