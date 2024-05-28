@@ -8,6 +8,8 @@ import backupsConfig from './BackupConfiguration/BackupConfiguration';
 import { executeBackupWorker } from './BackukpWorker/executeBackupWorker';
 import Logger from 'electron-log';
 
+import backupConfiguration from './BackupConfiguration/BackupConfiguration';
+
 function backupsCanRun(status: BackupsProcessStatus) {
   return status.isIn('STANDBY') && backupsConfig.enabled;
 }
@@ -83,6 +85,8 @@ export async function launchBackupProcesses(
   status.set('STANDBY');
 
   stopController.reset();
+
+  backupConfiguration.backupFinished();
 
   ipcMain.removeAllListeners('stop-backups-process');
 

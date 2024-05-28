@@ -5,6 +5,7 @@ import {
   getOrCreateDevice,
   getBackupsFromDevice,
 } from '../../../device/service';
+import Logger from 'electron-log';
 
 class BackupConfiguration {
   get backupInterval(): number {
@@ -17,6 +18,10 @@ class BackupConfiguration {
 
   get lastBackup(): number {
     return configStore.get('lastBackup');
+  }
+
+  backupFinished() {
+    configStore.set('lastBackup', Date.now());
   }
 
   get enabled(): boolean {
@@ -59,6 +64,7 @@ ipcMain.handle('set-backups-interval', (_, interval: number) => {
 });
 
 ipcMain.handle('get-last-backup-timestamp', () => {
+  Logger.debug('get-last-backup-timestamp', config.lastBackup);
   return config.lastBackup;
 });
 
