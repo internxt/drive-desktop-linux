@@ -69,6 +69,8 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       }
     );
 
+    Logger.debug('delete status', result.status);
+
     if (result.status !== 200) {
       Logger.error(
         '[FILE FILE SYSTEM] File deletion failed with status: ',
@@ -80,8 +82,8 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     }
   }
 
-  delete(file: File): Promise<void> {
-    throw new Error('Method not implemented.');
+  async delete(file: File): Promise<void> {
+    await this.trash(file.contentsId);
   }
 
   async rename(file: File): Promise<void> {

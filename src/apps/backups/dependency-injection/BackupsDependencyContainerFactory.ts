@@ -3,6 +3,9 @@ import { backgroundProcessSharedInfraBuilder } from '../../shared/dependency-inj
 import { registerFilesServices } from './virtual-drive/registerFilesServices';
 import { registerFolderServices } from './virtual-drive/registerFolderServices';
 import { registerLocalFileServices } from './local/registerLocalFileServices';
+import { Backup } from '../Backup';
+import { registerLocalTreeServices } from './local/registerLocalTreeServices';
+import { registerRemoteTreeServices } from './virtual-drive/registerRemoteTreeServices';
 
 export class BackupsDependencyContainerFactory {
   static async build(): Promise<Container> {
@@ -10,7 +13,12 @@ export class BackupsDependencyContainerFactory {
 
     await registerFilesServices(builder);
     registerFolderServices(builder);
+    registerRemoteTreeServices(builder);
+
     registerLocalFileServices(builder);
+    registerLocalTreeServices(builder);
+
+    builder.registerAndUse(Backup);
 
     const container = builder.build();
 

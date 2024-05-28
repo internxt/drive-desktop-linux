@@ -4,7 +4,7 @@ import path from 'path';
 
 export class BackupWorker {
   private static readonly DEV_PATH =
-    '../../release/app/dist/backups/index.html';
+    '../../../release/app/dist/backups/index.html';
 
   private static readonly PROD_PATH = `${path.join(
     __dirname,

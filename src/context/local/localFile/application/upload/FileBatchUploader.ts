@@ -3,6 +3,7 @@ import { LocalFile } from '../../domain/LocalFile';
 import { LocalFileUploader } from '../../domain/LocalFileUploader';
 import { SimpleFileCreator } from '../../../../virtual-drive/files/application/create/SimpleFileCreator';
 import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/RemoteTree';
+import path from 'path';
 
 @Service()
 export class FileBatchUploader {
@@ -12,6 +13,7 @@ export class FileBatchUploader {
   ) {}
 
   async run(
+    localRootPath: string,
     remoteTree: RemoteTree,
     batch: Array<LocalFile>,
     signal: AbortSignal
@@ -24,7 +26,9 @@ export class FileBatchUploader {
         signal
       );
 
-      const parent = remoteTree.getParent(localFile.path);
+      const remotePath = path.posix.relative(localRootPath, localFile.path);
+
+      const parent = remoteTree.getParent(remotePath);
 
       // eslint-disable-next-line no-await-in-loop
       const file = await this.creator.run(

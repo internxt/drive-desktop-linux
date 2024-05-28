@@ -9,6 +9,7 @@ import { mainProcessSharedInfraBuilder } from '../../shared/dependency-injection
 import { OfflineDependencyContainerFactory } from './offline-drive/OfflineDependencyContainerFactory';
 import { SharedDependencyContainerFactory } from './shared/SharedDependecyContainerFactory';
 import { VirtualDriveDependencyContainerFactory } from './virtual-drive/VirtualDriveDependencyContainerFactory';
+import { DependencyInjectionUserProvider } from '../../shared/dependency-injection/DependencyInjectionUserProvider';
 
 export class DriveDependencyContainerFactory {
   private static async buildContexts(): Promise<Container> {
@@ -42,7 +43,9 @@ export class DriveDependencyContainerFactory {
     await DriveDependencyContainerFactory.addEventSubscribers(container);
 
     // init
-    const tree = await container.get(RemoteTreeBuilder).run();
+    const { root_folder_id } = DependencyInjectionUserProvider.get();
+
+    const tree = await container.get(RemoteTreeBuilder).run(root_folder_id);
 
     await container.get(FolderRepositorySynchronizer).run(tree.folders);
 

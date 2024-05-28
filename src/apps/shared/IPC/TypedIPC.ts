@@ -61,4 +61,20 @@ export interface TypedIPC<
       ...args: Parameters<NonVoidReturnHandler<ListenedEvents>[Event]>
     ) => void
   ): Promise<ReturnType<ListenedEvents[Event]>>;
+
+  handleOnce<Event extends keyof NonVoidReturnHandler<ListenedEvents>>(
+    event: Event,
+    listener: (
+      event: IpcMainEvent,
+      ...args: Parameters<NonVoidReturnHandler<ListenedEvents>[Event]>
+    ) => void
+  ): Promise<ReturnType<ListenedEvents[Event]>>;
+
+  removeHandler<Event extends keyof NonVoidReturnHandler<ListenedEvents>>(
+    event: Event
+  ): void;
+
+  removeAllListeners<Event extends keyof VoidReturnHandler<ListenedEvents>>(
+    event: Event
+  ): void;
 }

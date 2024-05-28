@@ -6,12 +6,12 @@ import { RemoteFileSystem } from '../../../../context/virtual-drive/files/domain
 import crypt from '../../../../context/shared/infrastructure/crypt';
 import { SDKRemoteFileSystem } from '../../../../context/virtual-drive/files/infrastructure/SDKRemoteFileSystem';
 import { AuthorizedClients } from '../../../shared/HttpClient/Clients';
-import { DependencyInjectionMainProcessUserProvider } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessUserProvider';
+import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { Storage } from '@internxt/sdk/dist/drive/storage';
 
 export async function registerFilesServices(builder: ContainerBuilder) {
   // Infra
-  const user = DependencyInjectionMainProcessUserProvider.get();
+  const user = DependencyInjectionUserProvider.get();
 
   builder
     .register(RemoteFileSystem)

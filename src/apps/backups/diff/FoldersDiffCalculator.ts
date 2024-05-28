@@ -16,6 +16,10 @@ export class FoldersDiffCalculator {
     const added = local.folders.filter((folder) => {
       const remotePath = path.posix.relative(rootPath, folder.path);
 
+      if (!remotePath) {
+        return false;
+      }
+
       return !remote.has(remotePath);
     });
 

@@ -38,7 +38,7 @@ class BackupConfiguration {
     const enabledBackupEntries = await getBackupsFromDevice();
 
     const backups: BackupInfo[] = enabledBackupEntries.map((backup) => ({
-      path: backup.pathname,
+      pathname: backup.pathname,
       folderId: backup.id,
       tmpPath: app.getPath('temp'),
       backupsBucket: device.bucket,

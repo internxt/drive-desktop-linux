@@ -7,35 +7,37 @@ import {
   BackupsStopController,
   StopReason,
 } from '../BackupsStopController/BackupsStopController';
+import { BackupsIPCMain } from '../BackupsIpc';
 
 function configureIpcForBackup(
   info: BackupInfo,
   errors: BackupFatalErrors,
   stopController: BackupsStopController
 ) {
-  ipcMain.handleOnce('get-backups-details', () => info);
+  BackupsIPCMain.handleOnce('backups.get-backup', () => info);
 
-  ipcMain.once('BACKUP_FATAL_ERROR', (_, _folderId, errorName) =>
-    stopController.failed(errorName)
-  );
-
-  ipcMain.once('BACKUP_EXIT', (_, folderId) => {
+  BackupsIPCMain.on('backups.backup-completed', (_, folderId) => {
     stopController.backupCompleted();
     ipcMain.emit('BACKUP_COMPLETED', folderId);
   });
 
+  BackupsIPCMain.on('backups.backup-failed', (_, _folderId, error) => {
+    Logger.error(`[Backup] error: ${error}`);
+    stopController.failed(error);
+  });
+
   stopController.on('failed', ({ errorName }) => {
-    errors.add([{ errorName, ...info }]);
+    errors.add([{ errorName, path: info.pathname, ...info }]);
   });
 
   stopController.onFinished((reason: StopReason) => {
     Logger.log(
-      `[Backup Finished] ${info.path} (${info.folderId}) reason: ${reason}`
+      `[Backup] Finished ${info.pathname} (${info.folderId}) reason: ${reason}`
     );
 
-    ipcMain.removeHandler('get-backups-details');
-    ipcMain.removeAllListeners('BACKUP_FATAL_ERROR');
-    ipcMain.removeAllListeners('BACKUP_EXIT');
+    BackupsIPCMain.removeHandler('backups.get-backup');
+    BackupsIPCMain.removeAllListeners('backups.backup-completed');
+    BackupsIPCMain.removeAllListeners('backups.backup-failed');
   });
 }
 

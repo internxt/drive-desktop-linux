@@ -10,9 +10,9 @@ export class RemoteTreeBuilder {
     private readonly traverser: Traverser
   ) {}
 
-  async run(): Promise<RemoteTree> {
+  async run(rootFolderId: number): Promise<RemoteTree> {
     const items = await this.remoteItemsGenerator.getAll();
 
-    return this.traverser.run(items);
+    return this.traverser.run(rootFolderId, items);
   }
 }

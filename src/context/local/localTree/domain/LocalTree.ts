@@ -5,12 +5,16 @@ import { LocalFolderNode } from './LocalFolderNode';
 import { Node } from './Node';
 
 export class LocalTree {
-  private tree = new Map<string, Node>();
+  private tree: Map<string, Node>;
+  public readonly root: LocalFolder;
 
   constructor(rootFolder: LocalFolder) {
-    const node = LocalFolderNode.from(rootFolder);
+    const clone = LocalFolder.from(rootFolder.attributes());
+    const node = LocalFolderNode.from(clone);
+    this.root = clone;
 
-    this.tree.set('/', node);
+    this.tree = new Map<string, Node>();
+    this.tree.set(clone.path, node);
   }
 
   public get files(): Array<LocalFile> {
@@ -45,12 +49,6 @@ export class LocalTree {
     return this.folders.map((f) => f.path);
   }
 
-  public get root(): LocalFolder {
-    const node = this.tree.get('/') as LocalFolderNode;
-
-    return node.folder;
-  }
-
   private addNode(node: Node): void {
     this.tree.set(node.id, node);
   }
@@ -59,7 +57,13 @@ export class LocalTree {
     const parent = this.tree.get(parentNode.path) as LocalFolderNode;
 
     if (!parent) {
-      throw new Error('Parent node not found');
+      throw new Error(
+        `Parent node not found for ${JSON.stringify(
+          file.attributes(),
+          null,
+          2
+        )}`
+      );
     }
 
     const node = LocalFileNode.from(file);

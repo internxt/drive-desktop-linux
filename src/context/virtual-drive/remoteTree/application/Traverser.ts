@@ -28,29 +28,27 @@ type Items = {
 export class Traverser {
   constructor(
     private readonly decrypt: NameDecrypt,
-    private readonly baseFolderId: number,
     private readonly fileStatusesToFilter: Array<ServerFileStatus>,
     private readonly folderStatusesToFilter: Array<ServerFolderStatus>
   ) {}
 
-  static existingItems(decrypt: NameDecrypt, baseFolderId: number): Traverser {
+  static existingItems(decrypt: NameDecrypt): Traverser {
     return new Traverser(
       decrypt,
-      baseFolderId,
       [ServerFileStatus.EXISTS],
       [ServerFolderStatus.EXISTS]
     );
   }
 
-  static allItems(decrypt: NameDecrypt, baseFolderId: number): Traverser {
-    return new Traverser(decrypt, baseFolderId, [], []);
+  static allItems(decrypt: NameDecrypt): Traverser {
+    return new Traverser(decrypt, [], []);
   }
 
-  private createRootFolder(): Folder {
+  private createRootFolder(id: number): Folder {
     const rootFolderUuid = '43711926-15c2-5ebf-8c24-5099fa9af3c3';
 
     return Folder.from({
-      id: this.baseFolderId,
+      id: id,
       uuid: rootFolderUuid,
       parentId: null,
       updatedAt: new Date().toISOString(),
@@ -145,8 +143,8 @@ export class Traverser {
     });
   }
 
-  public run(items: Items): RemoteTree {
-    const rootFolder = this.createRootFolder();
+  public run(rootFolderId: number, items: Items): RemoteTree {
+    const rootFolder = this.createRootFolder(rootFolderId);
 
     const tree = new RemoteTree(rootFolder);
 

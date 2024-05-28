@@ -33,7 +33,8 @@ export class FuseApp {
   constructor(
     private readonly virtualDrive: VirtualDrive,
     private readonly container: Container,
-    private readonly root: string
+    private readonly localRoot: string,
+    private readonly remoteRoot: number
   ) {}
 
   private getOpt() {
@@ -71,7 +72,7 @@ export class FuseApp {
 
     await this.update();
 
-    this._fuse = new fuse(this.root, ops, {
+    this._fuse = new fuse(this.localRoot, ops, {
       debug: false,
       force: true,
       maxRead: FuseApp.MAX_INT_32,
@@ -105,7 +106,9 @@ export class FuseApp {
 
   async update(): Promise<void> {
     try {
-      const tree = await this.container.get(RemoteTreeBuilder).run();
+      const tree = await this.container
+        .get(RemoteTreeBuilder)
+        .run(this.remoteRoot);
 
       await this.container.get(FileRepositorySynchronizer).run(tree.files);
       await this.container.get(ThumbnailSynchronizer).run(tree.files);

@@ -1,9 +1,6 @@
-import bytes from 'bytes';
 import { Device } from '../../../../main/device/service';
 import { DetailedDevicePill } from '../../../components/Backups/DetailedDevicePill';
 import useBackupStatus from '../../../hooks/backups/useBackupsStatus';
-import { useLastBackup } from '../../../hooks/backups/useLastBackup';
-import useUsage from '../../../hooks/useUsage';
 import { FoldersSelector } from './FoldersSelector';
 import { Frequency } from './Frequency';
 import { StartBackup } from './StartBackup';

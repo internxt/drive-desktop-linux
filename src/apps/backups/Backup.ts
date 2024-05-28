@@ -16,6 +16,7 @@ import { AddedFilesBatchCreator } from './batches/AddedFilesBatchCreator';
 import { ModifiedFilesBatchCreator } from './batches/ModifiedFilesBatchCreator';
 import { DiffFilesCalculator } from './diff/DiffFilesCalculator';
 import { FoldersDiffCalculator } from './diff/FoldersDiffCalculator';
+import Logger from 'electron-log';
 
 @Service()
 export class Backup {
@@ -28,17 +29,18 @@ export class Backup {
     private readonly simpleFolderCreator: SimpleFolderCreator
   ) {}
 
-  // private listenForConnectionLost() {
-  //   window.addEventListener('offline', () => {
-  //     Logger.log('[BACKUPS] Internet connection lost');
-  //     this.abortController.abort('CONNECTION_LOST');
-  //   });
-  // }
-
   async run(info: BackupInfo, abortController: AbortController): Promise<void> {
-    const local = await this.localTreeBuilder.run(info.path as AbsolutePath);
-    const remote = await this.remoteTreeBuilder.run();
+    Logger.info('[BACKUPS] Backing:', JSON.stringify(info, null, 2));
 
+    Logger.info('[BACKUPS] Generating local tree');
+    const local = await this.localTreeBuilder.run(
+      info.pathname as AbsolutePath
+    );
+
+    Logger.info('[BACKUPS] Generating remote tree');
+    const remote = await this.remoteTreeBuilder.run(info.folderId);
+
+    Logger.info('[BACKUPS] Backing folders');
     await this.backupFolders(local, remote);
 
     await this.backupFiles(local, remote, abortController);
@@ -46,6 +48,12 @@ export class Backup {
 
   private async backupFolders(local: LocalTree, remote: RemoteTree) {
     const { added } = FoldersDiffCalculator.calculate(local, remote);
+
+    Logger.info('[BACKUPS] Folders added', added.length);
+
+    if (added.length === 0) {
+      return;
+    }
 
     const queue: Array<LocalFolder> = [];
 
@@ -78,12 +86,23 @@ export class Backup {
     remote: RemoteTree,
     abortController: AbortController
   ) {
+    Logger.info('[BACKUPS] Backing files');
+
     const { added, modified, deleted } = await DiffFilesCalculator.calculate(
       local,
       remote
     );
 
-    await this.uploadAndCreateAdded(added, remote, abortController);
+    Logger.info('[BACKUPS] Files added', added.length);
+
+    await this.uploadAndCreateAdded(
+      local.root.path,
+      added,
+      remote,
+      abortController
+    );
+
+    Logger.info('[BACKUPS] Files modified', modified.size);
 
     await this.uploadAndUploadModified(
       modified,
@@ -92,10 +111,13 @@ export class Backup {
       abortController
     );
 
+    Logger.info('[BACKUPS] Files deleted', deleted.length);
+
     await this.deleteRemoteFiles(deleted);
   }
 
   private async uploadAndCreateAdded(
+    localRootPath: string,
     added: Array<LocalFile>,
     tree: RemoteTree,
     abortController: AbortController
@@ -104,7 +126,12 @@ export class Backup {
 
     for (const batch of batches) {
       // eslint-disable-next-line no-await-in-loop
-      await this.fileBatchUploader.run(tree, batch, abortController.signal);
+      await this.fileBatchUploader.run(
+        localRootPath,
+        tree,
+        batch,
+        abortController.signal
+      );
     }
   }
 

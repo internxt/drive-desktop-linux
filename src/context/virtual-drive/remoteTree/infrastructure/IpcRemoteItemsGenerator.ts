@@ -1,3 +1,4 @@
+import { Service } from 'diod';
 import { SyncEngineIpc } from '../../../../apps/sync-engine/SyncEngineIpc';
 import {
   ServerFile,
@@ -9,6 +10,7 @@ import {
 } from '../../../shared/domain/ServerFolder';
 import { RemoteItemsGenerator } from '../domain/RemoteItemsGenerator';
 
+@Service()
 export class IpcRemoteItemsGenerator implements RemoteItemsGenerator {
   constructor(private readonly ipc: SyncEngineIpc) {}
 

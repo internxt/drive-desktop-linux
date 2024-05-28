@@ -16,8 +16,8 @@ export function StartBackup({ status, className }: StartBackupProps) {
       size="md"
       onClick={() => {
         status === 'STANDBY'
-          ? window.electron.startBackupsProcess
-          : window.electron.stopBackupsProcess;
+          ? window.electron.startBackupsProcess()
+          : window.electron.stopBackupsProcess();
       }}
     >
       {translate(

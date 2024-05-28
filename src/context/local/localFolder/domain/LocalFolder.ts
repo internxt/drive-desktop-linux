@@ -32,7 +32,7 @@ export class LocalFolder extends AggregateRoot {
     return dirname;
   }
 
-  from(attributes: LocalFolderAttributes): LocalFolder {
+  static from(attributes: LocalFolderAttributes): LocalFolder {
     return new LocalFolder(attributes.path, attributes.modificationTime);
   }
 

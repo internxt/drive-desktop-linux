@@ -1,35 +1,50 @@
-import { DiffFilesCalculator } from './diff/DiffFilesCalculator';
-import { BackupsIPC } from './BackupsIPC';
+import Logger from 'electron-log';
+import { Backup } from './Backup';
+import { BackupInfo } from './BackupInfo';
+import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 import { BackupsDependencyContainerFactory } from './dependency-injection/BackupsDependencyContainerFactory';
-import { AbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
-import { AddedFilesBatchCreator } from './batches/AddedFilesBatchCreator';
-import { GroupFilesBySize } from './batches/GroupFilesBySize';
+
+async function obtainBackup(): Promise<BackupInfo> {
+  try {
+    return BackupsIPCRenderer.invoke('backups.get-backup');
+  } catch (error: unknown) {
+    Logger.error(error);
+
+    if (error instanceof Error) {
+      BackupsIPCRenderer.send('backups.process-error', error.message);
+      return Promise.reject(error.name);
+    }
+
+    BackupsIPCRenderer.send('backups.process-error', 'unknown');
+    return Promise.reject('unknown');
+  }
+}
 
 async function backupFolder() {
-  const data = await BackupsIPC.invoke('BACKUPS:GET_BACKUPS');
+  const data = await obtainBackup();
 
-  const container = await BackupsDependencyContainerFactory.build();
+  try {
+    const container = await BackupsDependencyContainerFactory.build();
 
-  const { added, modified, deleted } = await container
-    .get(DiffFilesCalculator)
-    .run(data.path as AbsolutePath);
+    const abortController = new AbortController();
 
-  const uploadFiles = container.get(AddedFilesBatchCreator);
+    window.addEventListener('offline', () => {
+      Logger.log('[BACKUPS] Internet connection lost');
+      abortController.abort('CONNECTION_LOST');
+    });
 
-  await uploadFiles.run(
-    GroupFilesBySize.small.run(added),
-    NUMBER_OF_PARALLEL_QUEUES_FOR_SMALL_FILES
-  );
+    const backup = container.get(Backup);
 
-  await uploadFiles.run(
-    GroupFilesBySize.medium.run(added),
-    NUMBER_OF_PARALLEL_QUEUES_FOR_MEDIUM_FILES
-  );
+    await backup.run(data, abortController);
+    Logger.info('[BACKUPS] done');
 
-  await uploadFiles.run(
-    GroupFilesBySize.big.run(added),
-    NUMBER_OF_PARALLEL_QUEUES_FOR_BIG_FILES
-  );
+    BackupsIPCRenderer.send('backups.backup-completed', data.folderId);
+  } catch (error) {
+    Logger.error(error);
+
+    BackupsIPCRenderer.send('backups.backup-failed', data.folderId, 'UNKNOWN');
+    Logger.error('[BACKUPS] ', error);
+  }
 }
 
 backupFolder();

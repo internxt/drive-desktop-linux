@@ -9,7 +9,10 @@ import { LocalFolder } from '../../localFolder/domain/LocalFolder';
 export default class LocalTreeBuilder {
   constructor(private readonly generator: LocalItemsGenerator) {}
 
-  private async traverse(tree: LocalTree, currentFolder: LocalFolder) {
+  private async traverse(
+    tree: LocalTree,
+    currentFolder: LocalFolder
+  ): Promise<LocalTree> {
     const { files, folders } = await this.generator.getAll(currentFolder.path);
 
     files.forEach((fileAttributes) => {
@@ -25,6 +28,8 @@ export default class LocalTreeBuilder {
       // eslint-disable-next-line no-await-in-loop
       await this.traverse(tree, folder);
     }
+
+    return tree;
   }
 
   async run(folder: AbsolutePath): Promise<LocalTree> {
@@ -34,8 +39,6 @@ export default class LocalTreeBuilder {
 
     const tree = new LocalTree(rootFolder);
 
-    await this.traverse(tree, rootFolder);
-
-    return tree;
+    return this.traverse(tree, rootFolder);
   }
 }
