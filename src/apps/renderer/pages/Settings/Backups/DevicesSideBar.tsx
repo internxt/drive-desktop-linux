@@ -18,7 +18,7 @@ export function DevicePill({ device, current }: DevicePillProps) {
 
   return (
     <div className={styles}>
-      {current && <div className="text-blue-800 text-xs">This device</div>}
+      {current && <div className="text-xs text-primary">This device</div>}
       {device.name}
     </div>
   );
