@@ -25,7 +25,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
   async persist(dataToPersists: FileDataToPersist): Promise<PersistedFileData> {
     const encryptedName = this.crypt.encryptName(
       dataToPersists.path.name(),
-      dataToPersists.folderId.toString()
+      dataToPersists.folderId.value.toString()
     );
 
     if (!encryptedName) {
@@ -68,8 +68,6 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
         items: [{ type: 'file', id: contentsId }],
       }
     );
-
-    Logger.debug('delete status', result.status);
 
     if (result.status !== 200) {
       Logger.error(
