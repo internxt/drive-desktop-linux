@@ -32,11 +32,6 @@ export default function FrequencySelector({
     },
   ].map(({ value, name }) => ({ value: value.toString(), name }));
 
-  const display = 'hola';
-  // const { display } = intervals.find(
-  //   (interval) => interval.value === value
-  // ) || { display: 'no' };
-
   const onChangeWrapper = (value: string) => onChange(Number(value));
 
   return (

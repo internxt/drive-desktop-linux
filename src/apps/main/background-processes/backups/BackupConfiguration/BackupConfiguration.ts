@@ -5,7 +5,6 @@ import {
   getOrCreateDevice,
   getBackupsFromDevice,
 } from '../../../device/service';
-import Logger from 'electron-log';
 
 class BackupConfiguration {
   get backupInterval(): number {

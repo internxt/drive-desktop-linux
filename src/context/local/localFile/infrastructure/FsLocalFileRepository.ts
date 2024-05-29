@@ -23,9 +23,9 @@ export class FsLocalFileRepository implements LocalFileRepository {
         const { mtime, size } = await fs.stat(fileAbsolutePath);
 
         return LocalFile.from({
-          path: fileAbsolutePath,
-          modifiedTime: mtime.getTime(),
           size: size,
+          path: fileAbsolutePath,
+          modificationTime: mtime.getTime(),
         });
       });
 

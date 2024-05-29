@@ -4,6 +4,9 @@ import { useTranslationContext } from '../../context/LocalContext';
 import { useLastBackup } from '../../hooks/backups/useLastBackup';
 import useUsage from '../../hooks/useUsage';
 import { Pill } from '../Pill';
+import { useEffect } from 'react';
+import { useBackupProgress } from '../../hooks/backups/useBackupProgress';
+import useBackupStatus from '../../hooks/backups/useBackupsStatus';
 
 interface DetailedDevicePillProps {
   device: Device;
@@ -12,8 +15,18 @@ interface DetailedDevicePillProps {
 export function DetailedDevicePill({ device }: DetailedDevicePillProps) {
   const { translate } = useTranslationContext();
   const { lastBackupTimestamp, fromNow } = useLastBackup();
-
   const { usage } = useUsage();
+  const { backupStatus } = useBackupStatus();
+  const { thereIsProgress, percentualProgress, clearProgress } =
+    useBackupProgress();
+
+  useEffect(() => {
+    if (backupStatus === 'STANDBY') clearProgress();
+  }, [backupStatus]);
+
+  const progressDisplay = thereIsProgress()
+    ? `(${percentualProgress().toFixed(0)}%)`
+    : '';
 
   return (
     <div className=" dark:bg-gray-5flex flex w-full rounded-lg border border-gray-10 bg-surface px-6 py-4 shadow-sm">
@@ -24,6 +37,7 @@ export function DetailedDevicePill({ device }: DetailedDevicePillProps) {
           <>
             {translate('settings.backups.action.last-run')}&nbsp;
             {lastBackupTimestamp && <>{fromNow()}</>}
+            {progressDisplay}
           </>
         )}
       </div>

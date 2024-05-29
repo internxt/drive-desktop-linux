@@ -8,6 +8,7 @@ import {
 export class RemoteFileSystemMock implements RemoteFileSystem {
   public readonly persistMock = jest.fn();
   public readonly trashMock = jest.fn();
+  public readonly deleteMock = jest.fn();
   public readonly moveMock = jest.fn();
   public readonly renameMock = jest.fn();
   public readonly overrideMock = jest.fn();
@@ -18,6 +19,10 @@ export class RemoteFileSystemMock implements RemoteFileSystem {
 
   trash(contentsId: string): Promise<void> {
     return this.trashMock(contentsId);
+  }
+
+  delete(file: File): Promise<void> {
+    return this.deleteMock(file);
   }
 
   move(file: File): Promise<void> {

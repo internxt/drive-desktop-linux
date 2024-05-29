@@ -1,12 +1,8 @@
 import { LocalFile } from '../../../../../src/context/local/localFile/domain/LocalFile';
 import { AbsolutePath } from '../../../../../src/context/local/localFile/infrastructure/AbsolutePath';
-import { RemoteFile } from '../../../../../src/context/local/remoteFile/domain/RemoteFile';
 import { DiffFilesCalculator } from '../../../../../src/apps/backups/diff/DiffFilesCalculator';
 import { AbsolutePathMother } from '../../../shared/infrastructure/AbsolutePathMother';
-import { CurrentLocalFilesProviderTestClass } from '../../localFile/__test-class__/CurrentLocalFilesProviderTestClass';
 import { LocalFileMother } from '../../localFile/domain/LocalFileMother';
-import { CurrentRemoteFilesProviderTestClass } from '../../remoteFile/__test-class__/CurrentRemoteFilesProviderTestClass';
-import { RemoteFileMother } from '../../remoteFile/domain/RemoteFileMother';
 
 describe('DiffFilesCalculator', () => {
   let SUT: DiffFilesCalculator;
