@@ -43,7 +43,7 @@ export class DiffFilesCalculator {
       );
       const localModificationTime = Math.trunc(local.modificationTime / 1000);
 
-      if (!remoteModificationTime < !localModificationTime) {
+      if (remoteModificationTime < localModificationTime) {
         modified.set(local, remoteNode);
       }
     });

@@ -13,7 +13,7 @@ export class AbsolutePathMother {
 
     const folders = Chance.sentence({ words: level });
 
-    return path.posix.join(...folders, name) as AbsolutePath;
+    return `/${path.posix.join(...folders, name)}` as AbsolutePath;
   }
 
   static anyFile(): AbsolutePath {

@@ -26,6 +26,16 @@ export class RemoteTree {
     return files;
   }
 
+  public get root(): Folder {
+    const r = this.get('/');
+
+    if (r.isFile()) {
+      throw new Error('Found a file as root');
+    }
+
+    return r;
+  }
+
   public get filePaths(): Array<string> {
     return this.files.map((f) => f.path);
   }
