@@ -28,7 +28,7 @@ export async function setUpBackups() {
     ipcMain.emit('stop-backups-process');
     scheduler.stop();
     errors.clear();
-    tracker.stop();
+    tracker.reset();
   }
 
   eventBus.on('USER_LOGGED_OUT', stopAndClearBackups);

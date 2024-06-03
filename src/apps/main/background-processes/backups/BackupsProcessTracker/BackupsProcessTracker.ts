@@ -30,13 +30,14 @@ export class BackupsProcessTracker {
 
   backupFinishedWith(finishReason: StopReason) {
     this.lastBackupExistReason = finishReason;
+    this.reset();
   }
 
   get lastExitReason() {
     return this.lastBackupExistReason;
   }
 
-  stop() {
+  reset() {
     this.processed = 0;
     this.total = 0;
     this.lastBackupExistReason = undefined;

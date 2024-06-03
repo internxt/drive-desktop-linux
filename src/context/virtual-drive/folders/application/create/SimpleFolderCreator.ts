@@ -17,13 +17,31 @@ export class SimpleFolderCreator {
 
     const response = await this.rfs.persist(folderPath, folderParentId);
 
-    return Folder.create(
-      new FolderId(response.id),
-      new FolderUuid(response.uuid),
-      folderPath,
-      folderParentId,
-      FolderCreatedAt.fromString(response.createdAt),
-      FolderUpdatedAt.fromString(response.updatedAt)
+    const folder = await response.fold<Promise<Folder | undefined>>(
+      async (error): Promise<Folder | undefined> => {
+        if (error !== 'ALREADY_EXISTS') {
+          return;
+        }
+        return this.rfs.searchWith(folderParentId, folderPath);
+      },
+      (dto): Promise<Folder | undefined> => {
+        return Promise.resolve(
+          Folder.create(
+            new FolderId(dto.id),
+            new FolderUuid(dto.uuid),
+            folderPath,
+            folderParentId,
+            FolderCreatedAt.fromString(dto.createdAt),
+            FolderUpdatedAt.fromString(dto.updatedAt)
+          )
+        );
+      }
     );
+
+    if (!folder) {
+      throw new Error('Could not create folder');
+    }
+
+    return folder;
   }
 }

@@ -1,17 +1,17 @@
 import { ipcMain } from 'electron';
-
+import { logAndTrackError } from '../../drive/trackError';
 import {
   addBackup,
   addUnknownDeviceIssue,
   changeBackupPath,
+  createBackupsFromLocalPaths,
   deleteBackup,
   disableBackup,
   getBackupsFromDevice,
-  getPathFromDialog,
-  getOrCreateDevice,
-  renameDevice,
-  createBackupsFromLocalPaths,
   getDevices,
+  getOrCreateDevice,
+  getPathFromDialog,
+  renameDevice,
 } from './service';
 
 ipcMain.handle('devices.get-all', () => getDevices());
@@ -22,7 +22,11 @@ ipcMain.handle('rename-device', (_, v) => renameDevice(v));
 
 ipcMain.handle('get-backups', getBackupsFromDevice);
 
-ipcMain.handle('add-backup', addBackup);
+ipcMain.handle('add-backup', () =>
+  addBackup().catch((err) => {
+    logAndTrackError(err);
+  })
+);
 ipcMain.handle('add-multiple-backups', (_, folderPaths) =>
   createBackupsFromLocalPaths(folderPaths)
 );
