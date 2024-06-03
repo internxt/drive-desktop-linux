@@ -1,3 +1,5 @@
+import path from 'path';
+import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { LocalFolder } from '../../../context/local/localFolder/domain/LocalFolder';
 import { LocalTree } from '../../../context/local/localTree/domain/LocalTree';
 import { Folder } from '../../../context/virtual-drive/folders/domain/Folder';
@@ -23,6 +25,10 @@ export class FoldersDiffCalculator {
       return !remote.has(remotePath);
     });
 
-    return { added, deleted: [] };
+    const deleted = remote.foldersWithOutRoot.filter(
+      (folder) => !local.has(path.join(rootPath, folder.path) as AbsolutePath)
+    );
+
+    return { added, deleted };
   }
 }

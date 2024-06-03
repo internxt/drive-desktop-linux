@@ -13,7 +13,7 @@ export class BackupWorker {
   )}/index.html`;
 
   private constructor(
-    private readonly id: number,
+    public readonly id: number,
     private readonly worker: BrowserWindow
   ) {}
 

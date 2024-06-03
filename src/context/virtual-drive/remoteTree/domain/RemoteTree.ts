@@ -9,7 +9,7 @@ export class RemoteTree {
   private tree = new Map<string, Node>();
 
   constructor(rootFolder: Folder) {
-    const node = FolderNode.from(rootFolder);
+    const node = FolderNode.createRoot(rootFolder);
 
     this.tree.set('/', node);
   }
@@ -45,6 +45,18 @@ export class RemoteTree {
 
     this.tree.forEach((node) => {
       if (node.isFolder()) {
+        folders.push(node.folder);
+      }
+    });
+
+    return folders;
+  }
+
+  public get foldersWithOutRoot(): Array<Folder> {
+    const folders: Array<Folder> = [];
+
+    this.tree.forEach((node) => {
+      if (node.isFolder() && !node.isRoot) {
         folders.push(node.folder);
       }
     });

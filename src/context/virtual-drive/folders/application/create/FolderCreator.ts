@@ -1,4 +1,5 @@
 import { Service } from 'diod';
+import Logger from 'electron-log';
 import { EventBus } from '../../../shared/domain/EventBus';
 import { Folder } from '../../domain/Folder';
 import { FolderCreatedAt } from '../../domain/FolderCreatedAt';
@@ -46,13 +47,20 @@ export class FolderCreator {
 
     const response = await this.remote.persist(folderPath, parentId);
 
+    if (response.isLeft()) {
+      Logger.error(response.getLeft());
+      return;
+    }
+
+    const dto = response.getRight();
+
     const folder = Folder.create(
-      new FolderId(response.id),
-      new FolderUuid(response.uuid),
+      new FolderId(dto.id),
+      new FolderUuid(dto.uuid),
       folderPath,
       parentId,
-      FolderCreatedAt.fromString(response.createdAt),
-      FolderUpdatedAt.fromString(response.updatedAt)
+      FolderCreatedAt.fromString(dto.createdAt),
+      FolderUpdatedAt.fromString(dto.updatedAt)
     );
 
     await this.repository.add(folder);

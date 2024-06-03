@@ -1,5 +1,8 @@
 import { Service } from 'diod';
-import { getUpdatedRemoteItems } from '../../../../apps/main/remote-sync/service';
+import {
+  getUpdatedRemoteItems,
+  startRemoteSync,
+} from '../../../../apps/main/remote-sync/service';
 import {
   ServerFile,
   ServerFileStatus,
@@ -50,5 +53,9 @@ export class SQLiteRemoteItemsGenerator implements RemoteItemsGenerator {
     });
 
     return { files, folders };
+  }
+
+  async forceRefresh(): Promise<void> {
+    await startRemoteSync();
   }
 }

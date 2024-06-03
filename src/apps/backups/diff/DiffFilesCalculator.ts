@@ -1,11 +1,10 @@
+import path from 'path';
 import { LocalFile } from '../../../context/local/localFile/domain/LocalFile';
 import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
-import { File } from '../../../context/virtual-drive/files/domain/File';
 import { LocalTree } from '../../../context/local/localTree/domain/LocalTree';
+import { File } from '../../../context/virtual-drive/files/domain/File';
 import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/RemoteTree';
 import { relative } from '../utils/relative';
-import path from 'path';
-import Logger from 'electron-log';
 
 export type DiffFiles = {
   added: Array<LocalFile>;
@@ -14,10 +13,7 @@ export type DiffFiles = {
 };
 
 export class DiffFilesCalculator {
-  static async calculate(
-    local: LocalTree,
-    remote: RemoteTree
-  ): Promise<DiffFiles> {
+  static calculate(local: LocalTree, remote: RemoteTree): DiffFiles {
     const added: Array<LocalFile> = [];
     const modified: Map<LocalFile, File> = new Map();
 

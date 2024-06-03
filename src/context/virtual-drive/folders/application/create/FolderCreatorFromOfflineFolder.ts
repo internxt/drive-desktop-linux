@@ -23,19 +23,25 @@ export class FolderCreatorFromOfflineFolder {
   async run(offlineFolder: OfflineFolder): Promise<Folder> {
     this.syncFolderMessenger.creating(offlineFolder.name);
 
-    const attributes = await this.remote.persist(
+    const either = await this.remote.persist(
       new FolderPath(offlineFolder.path),
       new FolderId(offlineFolder.parentId),
       new FolderUuid(offlineFolder.uuid)
     );
 
+    if (either.isLeft()) {
+      return Promise.reject(either.getLeft());
+    }
+
+    const dto = either.getRight();
+
     const folder = Folder.create(
-      new FolderId(attributes.id),
-      new FolderUuid(attributes.uuid),
+      new FolderId(dto.id),
+      new FolderUuid(dto.uuid),
       new FolderPath(offlineFolder.path),
-      new FolderId(attributes.parentId),
-      FolderCreatedAt.fromString(attributes.createdAt),
-      FolderUpdatedAt.fromString(attributes.updatedAt)
+      new FolderId(dto.parentId),
+      FolderCreatedAt.fromString(dto.createdAt),
+      FolderUpdatedAt.fromString(dto.updatedAt)
     );
 
     await this.repository.add(folder);

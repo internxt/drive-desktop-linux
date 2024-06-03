@@ -5,11 +5,16 @@ import { Node } from './Node';
 export class FolderNode {
   private constructor(
     public readonly folder: Folder,
-    private children: Map<string, Node>
+    private children: Map<string, Node>,
+    public readonly isRoot: boolean
   ) {}
 
   static from(folder: Folder): FolderNode {
-    return new FolderNode(folder, new Map());
+    return new FolderNode(folder, new Map(), false);
+  }
+
+  static createRoot(folder: Folder): FolderNode {
+    return new FolderNode(folder, new Map(), true);
   }
 
   public get id(): string {

@@ -46,7 +46,7 @@ describe('File Batch Updater', () => {
       path: (localRoot.path + remoteFiles[i].path) as AbsolutePath,
     }));
 
-    const tree = RemoteTreeMother.any();
+    const tree = RemoteTreeMother.onlyRoot();
 
     remoteFiles.forEach((file) => {
       tree.addFile(tree.root, file);
