@@ -1,3 +1,3 @@
 export type BackgroundProcessBackupsMessages = {
-  placeholder: () => void;
+  'backups.abort': () => void;
 };

@@ -31,11 +31,16 @@ async function backupFolder() {
     window.addEventListener('offline', () => {
       Logger.log('[BACKUPS] Internet connection lost');
       abortController.abort('CONNECTION_LOST');
+
+      BackupsIPCRenderer.send(
+        'backups.backup-failed',
+        data.folderId,
+        'NO_INTERNET'
+      );
     });
 
     BackupsIPCRenderer.on('backups.abort', () => {
       Logger.log('[BACKUPS] User cancelled backups');
-      abortController.abort('USER_CANCELLED');
       abortController.abort();
 
       BackupsIPCRenderer.send('backups.stopped');
