@@ -119,7 +119,6 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
       }
 
       if (status === 409) {
-        Logger.debug('ALREADY EXISTS FROM REPO');
         return left('ALREADY_EXISTS');
       }
 

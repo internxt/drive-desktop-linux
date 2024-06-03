@@ -5,6 +5,7 @@ import { LocalTree } from '../../../context/local/localTree/domain/LocalTree';
 import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/RemoteTree';
 import { relative } from '../utils/relative';
 import path from 'path';
+import Logger from 'electron-log';
 
 export type DiffFiles = {
   added: Array<LocalFile>;

@@ -1,27 +1,29 @@
-import { BackupsStatus } from '../../../../main/background-processes/backups/BackupsProcessStatus/BackupsStatus';
 import Button from '../../../components/Button';
 import { useTranslationContext } from '../../../context/LocalContext';
+import useBackupStatus from '../../../hooks/backups/useBackupsStatus';
 
-interface StartBackupProps extends React.HTMLAttributes<HTMLBaseElement> {
-  status: BackupsStatus;
-}
+type StartBackupProps = React.HTMLAttributes<HTMLBaseElement>;
 
-export function StartBackup({ status, className }: StartBackupProps) {
+export function StartBackup({ className }: StartBackupProps) {
   const { translate } = useTranslationContext();
+
+  const { backupStatus } = useBackupStatus();
 
   return (
     <Button
       className={`${className} hover:cursor-pointer`}
-      variant={status === 'STANDBY' ? 'primary' : 'danger'}
+      variant={backupStatus === 'STANDBY' ? 'primary' : 'danger'}
       size="md"
       onClick={() => {
-        status === 'STANDBY'
+        backupStatus === 'STANDBY'
           ? window.electron.startBackupsProcess()
           : window.electron.stopBackupsProcess();
       }}
     >
       {translate(
-        `settings.backups.action.${status === 'STANDBY' ? 'start' : 'stop'}`
+        `settings.backups.action.${
+          backupStatus === 'STANDBY' ? 'start' : 'stop'
+        }`
       )}
     </Button>
   );

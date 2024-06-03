@@ -1,12 +1,12 @@
-import { powerSaveBlocker, ipcMain } from 'electron';
-import { clearBackupsIssues } from '../../issues/virtual-drive';
-import { BackupsStopController } from './BackupsStopController/BackupsStopController';
-import { BackupsProcessStatus } from './BackupsProcessStatus/BackupsProcessStatus';
-import { BackupFatalErrors } from './BackupFatalErrors/BackupFatalErrors';
-import { BackupsProcessTracker } from './BackupsProcessTracker/BackupsProcessTracker';
-import backupsConfig from './BackupConfiguration/BackupConfiguration';
-import { executeBackupWorker } from './BackukpWorker/executeBackupWorker';
+import { ipcMain, powerSaveBlocker } from 'electron';
 import Logger from 'electron-log';
+import { clearBackupsIssues } from '../../issues/virtual-drive';
+import { executeBackupWorker } from './BackukpWorker/executeBackupWorker';
+import backupsConfig from './BackupConfiguration/BackupConfiguration';
+import { BackupFatalErrors } from './BackupFatalErrors/BackupFatalErrors';
+import { BackupsProcessStatus } from './BackupsProcessStatus/BackupsProcessStatus';
+import { BackupsProcessTracker } from './BackupsProcessTracker/BackupsProcessTracker';
+import { BackupsStopController } from './BackupsStopController/BackupsStopController';
 
 import backupConfiguration from './BackupConfiguration/BackupConfiguration';
 

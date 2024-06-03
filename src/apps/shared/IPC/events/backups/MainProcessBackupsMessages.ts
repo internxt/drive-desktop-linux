@@ -12,4 +12,6 @@ export type MainProcessBackupsMessages = {
   ) => void;
 
   'backups.process-error': (message: string) => void;
+
+  'backups.stopped': () => void;
 };

@@ -94,24 +94,19 @@ export class Backup {
     abortController: AbortController
   ) {
     Logger.info('[BACKUPS] Backing files');
-    Logger.info('[BACKUPS] ', remote.folderPaths);
-
     const { added, modified, deleted } = await DiffFilesCalculator.calculate(
       local,
       remote
     );
 
     Logger.info('[BACKUPS] Files added', added.length);
-
     await this.uploadAndCreate(local.root.path, added, remote, abortController);
 
     Logger.info('[BACKUPS] Files modified', modified.size);
-
     await this.uploadAndUpdate(modified, local, remote, abortController);
 
     Logger.info('[BACKUPS] Files deleted', deleted.length);
-
-    await this.deleteRemoteFiles(deleted);
+    await this.deleteRemoteFiles(deleted, abortController);
   }
 
   private async uploadAndCreate(
@@ -123,6 +118,9 @@ export class Backup {
     const batches = AddedFilesBatchCreator.run(added);
 
     for (const batch of batches) {
+      if (abortController.signal.aborted) {
+        return;
+      }
       // eslint-disable-next-line no-await-in-loop
       await this.fileBatchUploader.run(
         localRootPath,
@@ -142,6 +140,10 @@ export class Backup {
     const batches = ModifiedFilesBatchCreator.run(modified);
 
     for (const batch of batches) {
+      Logger.debug('Signal aborted', abortController.signal.aborted);
+      if (abortController.signal.aborted) {
+        return;
+      }
       // eslint-disable-next-line no-await-in-loop
       await this.fileBatchUpdater.run(
         localTree.root,
@@ -152,9 +154,17 @@ export class Backup {
     }
   }
 
-  private async deleteRemoteFiles(deleted: Array<File>) {
-    const deletion = deleted.map((file) => this.remoteFileDeleter.run(file));
+  private async deleteRemoteFiles(
+    deleted: Array<File>,
+    abortController: AbortController
+  ) {
+    for (const file of deleted) {
+      if (abortController.signal.aborted) {
+        return;
+      }
 
-    await Promise.all(deletion);
+      // eslint-disable-next-line no-await-in-loop
+      await this.remoteFileDeleter.run(file);
+    }
   }
 }

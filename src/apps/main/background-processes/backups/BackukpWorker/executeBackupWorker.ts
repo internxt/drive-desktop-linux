@@ -44,6 +44,10 @@ function configureIpcForBackup(
       resolve('backup-completed');
     });
 
+    BackupsIPCMain.on('backups.stopped', () => {
+      resolve('forced-by-user');
+    });
+
     BackupsIPCMain.on('backups.backup-failed', () => {
       resolve('failed');
     });
@@ -57,7 +61,11 @@ export async function executeBackupWorker(
 ): Promise<StopReason> {
   const finished = configureIpcForBackup(info, errors, stopController);
 
-  const worker = BackupWorker.spawn();
+  const worker = BackupWorker.spawn(info.folderId);
+
+  stopController.on('forced-by-user', () => {
+    worker.send('backups.abort');
+  });
 
   const reason = await finished;
 

@@ -33,6 +33,14 @@ async function backupFolder() {
       abortController.abort('CONNECTION_LOST');
     });
 
+    BackupsIPCRenderer.on('backups.abort', () => {
+      Logger.log('[BACKUPS] User cancelled backups');
+      abortController.abort('USER_CANCELLED');
+      abortController.abort();
+
+      BackupsIPCRenderer.send('backups.stopped');
+    });
+
     const backup = container.get(Backup);
 
     await backup.run(data, abortController);

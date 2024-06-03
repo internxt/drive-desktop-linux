@@ -3,7 +3,7 @@ import { TypedIPC } from '../../../shared/IPC/TypedIPC';
 import { BackgroundProcessBackupsMessages } from '../../../shared/IPC/events/backups/BackgroundProcessBackupsMessages';
 import { MainProcessBackupsMessages } from '../../../shared/IPC/events/backups/MainProcessBackupsMessages';
 
-export type BackupsIPCMain = TypedIPC<
+type BackupsIPCMain = TypedIPC<
   BackgroundProcessBackupsMessages,
   MainProcessBackupsMessages
 >;

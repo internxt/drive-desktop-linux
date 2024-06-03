@@ -12,9 +12,20 @@ export class BackupWorker {
     'backups'
   )}/index.html`;
 
-  private constructor(protected readonly worker: BrowserWindow) {}
+  private constructor(
+    private readonly id: number,
+    private readonly worker: BrowserWindow
+  ) {}
 
-  static spawn(): BackupWorker {
+  send(message: string, ...args: any[]) {
+    if (this.worker.isDestroyed()) {
+      return;
+    }
+
+    this.worker.webContents.send(message, args);
+  }
+
+  static spawn(id: number): BackupWorker {
     const worker = new BrowserWindow({
       webPreferences: {
         nodeIntegration: true,
@@ -31,7 +42,7 @@ export class BackupWorker {
       )
       .catch(Logger.error);
 
-    return new BackupWorker(worker);
+    return new BackupWorker(id, worker);
   }
 
   destroy(): void {

@@ -57,4 +57,8 @@ export class IpcRemoteItemsGenerator implements RemoteItemsGenerator {
 
     return { files, folders };
   }
+
+  async forceRefresh(): Promise<void> {
+    await this.ipc.invoke('remote-sync-manager.refresh');
+  }
 }

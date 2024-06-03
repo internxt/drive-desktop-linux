@@ -6,14 +6,18 @@ type BackupFailed = 'failed';
 
 export type StopReason = ForcedByUser | BackupCompleted | BackupFailed;
 
-export type StopReasonPayload = {
-  'forced-by-user': () => void;
-  'backup-completed': () => void;
+type StopReasonPayload = {
+  'forced-by-user': (payload: undefined) => void;
+  'backup-completed': (payload: undefined) => void;
   failed: ({ errorName }: { errorName: ProcessFatalErrorName }) => void;
 };
 
-const listenerNotSet = (reason: StopReason) => {
-  throw new Error(`Listener for ${reason} on set`);
+type StopReasonPayloadHandlers = {
+  [Property in keyof StopReasonPayload]: Array<StopReasonPayload[Property]>;
+};
+
+const listenerNotSet = () => {
+  // no-op
 };
 
 export class BackupsStopController {
@@ -22,10 +26,10 @@ export class BackupsStopController {
 
   private end: Array<(reason: StopReason) => void> = [];
 
-  private handlers: StopReasonPayload = {
-    'forced-by-user': () => listenerNotSet('forced-by-user'),
-    'backup-completed': () => listenerNotSet('backup-completed'),
-    failed: () => listenerNotSet('failed'),
+  private handlers: StopReasonPayloadHandlers = {
+    'forced-by-user': [() => listenerNotSet()],
+    'backup-completed': [() => listenerNotSet()],
+    failed: [() => listenerNotSet()],
   };
 
   constructor() {
@@ -39,12 +43,14 @@ export class BackupsStopController {
     this.controller.signal.addEventListener('abort', () => {
       const { reason, payload } = this.controller.signal.reason as {
         reason: StopReason;
-        payload: any;
+        payload: { errorName: ProcessFatalErrorName };
       };
 
-      const handler = this.handlers[reason];
+      const handlersForReason = this.handlers[reason];
 
-      handler(payload);
+      handlersForReason.forEach((handler: (a: any) => void) => {
+        handler(payload);
+      });
 
       this.end.forEach((fn) => fn(reason));
     });
@@ -80,7 +86,7 @@ export class BackupsStopController {
     reason: Reason,
     handler: StopReasonPayload[Reason]
   ) {
-    this.handlers[reason] = handler;
+    this.handlers[reason].push(handler);
   }
 
   onFinished(handler: (reason: StopReason) => void) {
