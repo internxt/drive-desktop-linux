@@ -6,13 +6,14 @@ import { Folder } from '../../../context/virtual-drive/folders/domain/Folder';
 import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/RemoteTree';
 import { relative } from '../utils/relative';
 
-export type FolderDiff = {
+export type FoldersDiff = {
   added: Array<LocalFolder>;
   deleted: Array<Folder>;
+  total: number;
 };
 
 export class FoldersDiffCalculator {
-  static calculate(local: LocalTree, remote: RemoteTree): FolderDiff {
+  static calculate(local: LocalTree, remote: RemoteTree): FoldersDiff {
     const rootPath = local.root.path;
 
     const added = local.folders.filter((folder) => {
@@ -29,6 +30,6 @@ export class FoldersDiffCalculator {
       (folder) => !local.has(path.join(rootPath, folder.path) as AbsolutePath)
     );
 
-    return { added, deleted };
+    return { added, deleted, total: added.length };
   }
 }

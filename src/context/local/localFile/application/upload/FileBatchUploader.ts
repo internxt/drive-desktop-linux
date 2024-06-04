@@ -4,7 +4,6 @@ import { LocalFileHandler } from '../../domain/LocalFileUploader';
 import { SimpleFileCreator } from '../../../../virtual-drive/files/application/create/SimpleFileCreator';
 import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/RemoteTree';
 import { relative } from '../../../../../apps/backups/utils/relative';
-import Logger from 'electron-log';
 
 @Service()
 export class FileBatchUploader {

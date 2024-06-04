@@ -14,10 +14,14 @@ import { RemoteTree } from '../../context/virtual-drive/remoteTree/domain/Remote
 import { BackupInfo } from './BackupInfo';
 import { AddedFilesBatchCreator } from './batches/AddedFilesBatchCreator';
 import { ModifiedFilesBatchCreator } from './batches/ModifiedFilesBatchCreator';
-import { DiffFilesCalculator } from './diff/DiffFilesCalculator';
-import { FoldersDiffCalculator } from './diff/FoldersDiffCalculator';
+import { DiffFilesCalculator, FilesDiff } from './diff/DiffFilesCalculator';
+import {
+  FoldersDiff,
+  FoldersDiffCalculator,
+} from './diff/FoldersDiffCalculator';
 import Logger from 'electron-log';
 import { relative } from './utils/relative';
+import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 
 @Service()
 export class Backup {
@@ -30,6 +34,8 @@ export class Backup {
     private readonly simpleFolderCreator: SimpleFolderCreator
   ) {}
 
+  private itemsBacked = 0;
+
   async run(info: BackupInfo, abortController: AbortController): Promise<void> {
     Logger.info('[BACKUPS] Backing:', info.pathname);
 
@@ -41,15 +47,28 @@ export class Backup {
     Logger.info('[BACKUPS] Generating remote tree');
     const remote = await this.remoteTreeBuilder.run(info.folderId);
 
-    await this.backupFolders(local, remote);
+    const foldersDiff = FoldersDiffCalculator.calculate(local, remote);
 
-    await this.backupFiles(local, remote, abortController);
+    const filesDiff = DiffFilesCalculator.calculate(local, remote);
+
+    BackupsIPCRenderer.send(
+      'backups.total-items-calculated',
+      filesDiff.total + foldersDiff.total
+    );
+
+    await this.backupFolders(foldersDiff, local, remote);
+
+    await this.backupFiles(filesDiff, local, remote, abortController);
   }
 
-  private async backupFolders(local: LocalTree, remote: RemoteTree) {
+  private async backupFolders(
+    foldersDiff: FoldersDiff,
+    local: LocalTree,
+    remote: RemoteTree
+  ) {
     Logger.info('[BACKUPS] Backing folders');
 
-    const { added } = FoldersDiffCalculator.calculate(local, remote);
+    const { added } = foldersDiff;
 
     Logger.info('[BACKUPS] Folders added', added.length);
 
@@ -83,21 +102,22 @@ export class Backup {
           parent.id
         );
 
+        this.itemsBacked++;
+
         remote.addFolder(parent, folder);
       }
     } while (queue.length > 0);
   }
 
   private async backupFiles(
+    filesDiff: FilesDiff,
     local: LocalTree,
     remote: RemoteTree,
     abortController: AbortController
   ) {
     Logger.info('[BACKUPS] Backing files');
-    const { added, modified, deleted } = await DiffFilesCalculator.calculate(
-      local,
-      remote
-    );
+
+    const { added, modified, deleted } = filesDiff;
 
     Logger.info('[BACKUPS] Files added', added.length);
     await this.uploadAndCreate(local.root.path, added, remote, abortController);

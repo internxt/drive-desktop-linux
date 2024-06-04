@@ -7,14 +7,15 @@ import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/Rem
 import { relative } from '../utils/relative';
 import Logger from 'electron-log';
 
-export type DiffFiles = {
+export type FilesDiff = {
   added: Array<LocalFile>;
   deleted: Array<File>;
   modified: Map<LocalFile, File>;
+  total: number;
 };
 
 export class DiffFilesCalculator {
-  static calculate(local: LocalTree, remote: RemoteTree): DiffFiles {
+  static calculate(local: LocalTree, remote: RemoteTree): FilesDiff {
     const added: Array<LocalFile> = [];
     const modified: Map<LocalFile, File> = new Map();
 
@@ -51,6 +52,11 @@ export class DiffFilesCalculator {
       (file) => !local.has(path.join(rootPath, file.path) as AbsolutePath)
     );
 
-    return { added, modified, deleted };
+    return {
+      added,
+      modified,
+      deleted,
+      total: added.length + modified.size + deleted.length,
+    };
   }
 }

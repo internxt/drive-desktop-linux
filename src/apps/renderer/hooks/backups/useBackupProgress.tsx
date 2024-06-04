@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { BackupProgress } from '../../../main/background-processes/backups/types/BackupProgress';
+import { BackupsProgress } from '../../../main/background-processes/backups/types/BackupsProgress';
+import { IndividualBackupProgress } from '../../../main/background-processes/backups/types/IndividualBackupProgress';
 
 export function useBackupProgress() {
-  const [backupProgress, setBackupProgress] = useState<null | BackupProgress>(
+  const [backupProgress, setBackupProgress] = useState<null | BackupsProgress>(
     null
   );
 
@@ -16,18 +17,30 @@ export function useBackupProgress() {
     setBackupProgress(null);
   }
 
-  function percentualProgress(): number {
-    if (!backupProgress) {
-      throw new Error('Cannot calculate percentual progress');
+  function calculatePartialProgress(
+    individualProgress: IndividualBackupProgress | undefined
+  ) {
+    if (!individualProgress) {
+      return 0;
     }
 
-    const partialProgress = backupProgress.totalItems
-      ? backupProgress.completedItems! / backupProgress.totalItems
-      : 0;
+    if (individualProgress.total === 0) {
+      return 0;
+    }
 
-    const totalProgress =
-      (backupProgress.currentFolder - 1 + partialProgress) /
-      backupProgress.totalFolders;
+    return individualProgress.processed / individualProgress.total;
+  }
+
+  function percentualProgress(): number {
+    if (!backupProgress) {
+      return 0;
+    }
+
+    const { currentFolder, totalFolders, partial } = backupProgress;
+
+    const partialProgress = calculatePartialProgress(partial);
+
+    const totalProgress = (currentFolder - 1 + partialProgress) / totalFolders;
 
     return totalProgress * 100;
   }

@@ -16,6 +16,7 @@ export const shortMessages: ProcessErrorMessages = {
   ACTION_NOT_PERMITTED: 'issues.short-error-messages.action-not-permitted',
   FILE_ALREADY_EXISTS: 'issues.short-error-messages.file-already-exists',
   COULD_NOT_ENCRYPT_NAME: '',
+  BAD_REQUEST: 'issues.short-error-messages.no-remote-connection',
 };
 
 export const longMessages: ProcessErrorMessages = {
@@ -33,4 +34,5 @@ export const longMessages: ProcessErrorMessages = {
   ACTION_NOT_PERMITTED: '',
   FILE_ALREADY_EXISTS: '',
   COULD_NOT_ENCRYPT_NAME: '',
+  BAD_REQUEST: 'issues.error-messages.no-remote-connection',
 };

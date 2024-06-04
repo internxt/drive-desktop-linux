@@ -59,11 +59,6 @@ export async function launchBackupProcesses(
     stopController.userCancelledBackup();
   });
 
-  ipcMain.emit('BACKUP_PROCESS_STARTED', {
-    scheduled,
-    foldersToBackup: backups,
-  });
-
   for (const backupInfo of backups) {
     tracker.backing(backupInfo);
 
@@ -89,5 +84,4 @@ export async function launchBackupProcesses(
   powerSaveBlocker.stop(suspensionBlockId);
 
   ipcMain.emit('BACKUPS:PROCESS_FINISHED');
-  ipcMain.removeAllListeners('BACKUP_PROGRESS');
 }
