@@ -270,6 +270,7 @@
       "select-folders": "Select folders to back up",
       "last-backup-had-issues": "Last backup had some issues",
       "see-issues": "See issues",
+      "backing-up": "Backing up...",
       "action": {
         "start": "Backup now",
         "stop": "Stop backup",

@@ -269,6 +269,7 @@
       "select-folders": "Seleccionar carpetas",
       "last-backup-had-issues": "La última copia de seguridad tuvo algunos problemas",
       "see-issues": "Ver problemas",
+      "backing-up": "Haciendo la copia",
       "action": {
         "start": "Hacer copia",
         "stop": "Stop backup",

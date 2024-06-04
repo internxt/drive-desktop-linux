@@ -264,6 +264,7 @@
       "select-folders": "Sélectionner des dossiers",
       "last-backup-had-issues": "La dernière sauvegarde a rencontré quelques problèmes",
       "see-issues": "Voir des problèmes",
+      "backing-up": "Sauvegarde...",
       "action": {
         "start": "Faire une copie ",
         "stop": "Arrêter la sauvegarde",
