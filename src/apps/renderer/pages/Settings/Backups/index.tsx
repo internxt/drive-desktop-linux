@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { DeviceContext } from '../../../context/DeviceContext';
 import { DeviceSettings } from './DeviceSettings';
-import { DevicesSideBar } from './DevicesSideBar';
+import { DevicesList } from './DevicesList';
 
 import Spinner from '../../../assets/spinner.svg';
 
@@ -32,8 +32,8 @@ export default function BackupsSection({
       )}
       {deviceState.status === 'SUCCESS' && (
         <section className="flex h-full">
-          <DevicesSideBar className="w-1/3" />
-          <div className="mx-2 border-l border-gray-10"></div>
+          <DevicesList className="w-1/3" />
+          <div className="mx-4 border-l border-gray-10"></div>
           <DeviceSettings className="w-2/3" onGoToList={showBackedFolders} />
         </section>
       )}

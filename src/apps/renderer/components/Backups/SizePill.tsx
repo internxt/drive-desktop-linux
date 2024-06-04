@@ -16,7 +16,7 @@ export function SizePill({ size }: PillProps) {
   const { number, unit } = formatBytes(size);
 
   return (
-    <div className="flex items-baseline rounded-lg bg-gray-5 px-2 py-1 text-gray-40">
+    <div className="flex items-baseline rounded-lg bg-gray-5 px-2 py-1 text-gray-70">
       {number}
       <small className="ml-1">{unit}</small>
     </div>

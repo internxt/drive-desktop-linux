@@ -9,7 +9,7 @@ interface DevicePillProps {
   current: boolean;
 }
 
-export function DevicePill({ device, current }: DevicePillProps) {
+function DevicePill({ device, current }: DevicePillProps) {
   const borderStyle = current
     ? 'rounded-lg border border-gray-10 bg-surface shadow-sm dark:bg-gray-5'
     : '';
@@ -45,7 +45,7 @@ function Help() {
 
 type DevicesSideBarProps = React.HTMLAttributes<HTMLBaseElement>;
 
-export function DevicesSideBar({ className }: DevicesSideBarProps) {
+export function DevicesList({ className }: DevicesSideBarProps) {
   const [state] = useContext(DeviceContext);
   const { devices } = useDevices();
 

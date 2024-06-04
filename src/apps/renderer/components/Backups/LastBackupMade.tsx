@@ -8,7 +8,7 @@ export function LastBackupMade() {
   return (
     <>
       {lastBackupTimestamp !== -1 && (
-        <span>
+        <span className="text-gray-60">
           {translate('settings.backups.action.last-run')}&nbsp;
           {fromNow()}
         </span>
