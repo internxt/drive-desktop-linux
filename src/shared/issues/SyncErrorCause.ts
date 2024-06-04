@@ -29,4 +29,6 @@ export type SyncErrorCause =
   // Duplicated node path
   | 'DUPLICATED_NODE'
   | 'ACTION_NOT_PERMITTED'
-  | 'FILE_ALREADY_EXISTS';
+  | 'FILE_ALREADY_EXISTS'
+  | 'COULD_NOT_ENCRYPT_NAME'
+  | 'BAD_REQUEST';

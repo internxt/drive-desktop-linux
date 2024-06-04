@@ -26,7 +26,7 @@ export class RenameMoveOrTrashFile {
       return undefined;
     } catch (trowed: unknown) {
       const cause: SyncErrorCause =
-        trowed instanceof DriveDesktopError ? trowed.syncErrorCause : 'UNKNOWN';
+        trowed instanceof DriveDesktopError ? trowed.cause : 'UNKNOWN';
 
       await this.container.get(SyncFileMessenger).issues({
         error: 'DELETE_ERROR',
@@ -81,7 +81,7 @@ export class RenameMoveOrTrashFile {
       return right(RenameMoveOrTrashFile.SUCCESS);
     } catch (trowed: unknown) {
       const cause: SyncErrorCause =
-        trowed instanceof DriveDesktopError ? trowed.syncErrorCause : 'UNKNOWN';
+        trowed instanceof DriveDesktopError ? trowed.cause : 'UNKNOWN';
 
       await this.container.get(SyncFileMessenger).issues({
         error: 'RENAME_ERROR',

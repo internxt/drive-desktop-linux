@@ -5,6 +5,7 @@ import { LocalTree } from '../../../context/local/localTree/domain/LocalTree';
 import { File } from '../../../context/virtual-drive/files/domain/File';
 import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/RemoteTree';
 import { relative } from '../utils/relative';
+import Logger from 'electron-log';
 
 export type DiffFiles = {
   added: Array<LocalFile>;
@@ -32,6 +33,7 @@ export class DiffFilesCalculator {
       const remoteNode = remote.get(remotePath);
 
       if (remoteNode.isFolder()) {
+        Logger.debug('Folder should be a file', remoteNode.name);
         return;
       }
 

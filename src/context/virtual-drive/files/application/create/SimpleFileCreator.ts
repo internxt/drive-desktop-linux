@@ -5,6 +5,8 @@ import { FileSize } from '../../domain/FileSize';
 import { FileContentsId } from '../../domain/FileContentsId';
 import { FileFolderId } from '../../domain/FileFolderId';
 import { File } from '../../domain/File';
+import { Either, left, right } from '../../../../shared/domain/Either';
+import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 
 @Service()
 export class SimpleFileCreator {
@@ -15,32 +17,38 @@ export class SimpleFileCreator {
     path: string,
     size: number,
     folderId: number
-  ): Promise<File> {
+  ): Promise<Either<DriveDesktopError, File>> {
     const fileSize = new FileSize(size);
     const fileContentsId = new FileContentsId(contentsId);
     const filePath = new FilePath(path);
 
     const fileFolderId = new FileFolderId(folderId);
 
-    const { modificationTime, id, uuid, createdAt } = await this.remote.persist(
-      {
-        contentsId: fileContentsId,
-        path: filePath,
-        size: fileSize,
-        folderId: fileFolderId,
-      }
-    );
+    const either = await this.remote.persist({
+      contentsId: fileContentsId,
+      path: filePath,
+      size: fileSize,
+      folderId: fileFolderId,
+    });
 
-    return File.create({
-      id,
-      uuid,
+    if (either.isLeft()) {
+      return left(either.getLeft());
+    }
+
+    const dto = either.getRight();
+
+    const file = File.create({
+      id: dto.id,
+      uuid: dto.uuid,
       contentsId: fileContentsId.value,
       folderId: fileFolderId.value,
-      createdAt,
-      modificationTime,
+      createdAt: dto.createdAt,
+      modificationTime: dto.modificationTime,
       path: filePath.value,
       size: fileSize.value,
-      updatedAt: modificationTime,
+      updatedAt: dto.modificationTime,
     });
+
+    return right(file);
   }
 }

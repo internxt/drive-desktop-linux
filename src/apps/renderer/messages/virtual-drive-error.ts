@@ -15,6 +15,7 @@ export const shortMessages: ProcessErrorMessages = {
   DUPLICATED_NODE: 'issues.short-error-messages.duplicated-node',
   ACTION_NOT_PERMITTED: 'issues.short-error-messages.action-not-permitted',
   FILE_ALREADY_EXISTS: 'issues.short-error-messages.file-already-exists',
+  COULD_NOT_ENCRYPT_NAME: '',
 };
 
 export const longMessages: ProcessErrorMessages = {
@@ -31,4 +32,5 @@ export const longMessages: ProcessErrorMessages = {
   DUPLICATED_NODE: 'issues.error-messages.duplicated-node',
   ACTION_NOT_PERMITTED: '',
   FILE_ALREADY_EXISTS: '',
+  COULD_NOT_ENCRYPT_NAME: '',
 };

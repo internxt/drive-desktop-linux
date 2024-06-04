@@ -1,14 +1,15 @@
 import { Service } from 'diod';
 import { LocalFile } from '../../domain/LocalFile';
-import { LocalFileUploader } from '../../domain/LocalFileUploader';
+import { LocalFileHandler } from '../../domain/LocalFileUploader';
 import { SimpleFileCreator } from '../../../../virtual-drive/files/application/create/SimpleFileCreator';
 import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/RemoteTree';
 import { relative } from '../../../../../apps/backups/utils/relative';
+import Logger from 'electron-log';
 
 @Service()
 export class FileBatchUploader {
   constructor(
-    private readonly uploader: LocalFileUploader,
+    private readonly localHandler: LocalFileHandler,
     private readonly creator: SimpleFileCreator
   ) {}
 
@@ -20,7 +21,7 @@ export class FileBatchUploader {
   ): Promise<void> {
     for (const localFile of batch) {
       // eslint-disable-next-line no-await-in-loop
-      const contentsId = await this.uploader.upload(
+      const contentsId = await this.localHandler.upload(
         localFile.path,
         localFile.size,
         signal
@@ -31,12 +32,28 @@ export class FileBatchUploader {
       const parent = remoteTree.getParent(remotePath);
 
       // eslint-disable-next-line no-await-in-loop
-      const file = await this.creator.run(
+      const either = await this.creator.run(
         contentsId,
         localFile.path,
         localFile.size,
         parent.id
       );
+
+      if (either.isLeft()) {
+        // eslint-disable-next-line no-await-in-loop
+        await this.localHandler.delete(contentsId);
+        const error = either.getLeft();
+
+        Logger.debug('ERROR CAUSE', error.cause);
+
+        if (error.cause === 'FILE_ALREADY_EXISTS') {
+          continue;
+        }
+
+        throw error;
+      }
+
+      const file = either.getRight();
 
       remoteTree.addFile(parent, file);
     }

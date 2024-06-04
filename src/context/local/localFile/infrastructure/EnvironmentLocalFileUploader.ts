@@ -3,16 +3,19 @@ import { Service } from 'diod';
 import { createReadStream } from 'fs';
 import { Stopwatch } from '../../../../apps/shared/types/Stopwatch';
 import { AbsolutePath } from './AbsolutePath';
-import { LocalFileUploader } from '../domain/LocalFileUploader';
+import { LocalFileHandler } from '../domain/LocalFileUploader';
 import { Environment } from '@internxt/inxt-js';
+import { Axios } from 'axios';
+import Logger from 'electron-log';
 
 @Service()
-export class EnvironmentLocalFileUploader implements LocalFileUploader {
+export class EnvironmentLocalFileUploader implements LocalFileHandler {
   private static MULTIPART_UPLOAD_SIZE_THRESHOLD = 5 * 1024 * 1024 * 1024;
 
   constructor(
     private readonly environment: Environment,
-    private readonly bucket: string
+    private readonly bucket: string,
+    private readonly httpClient: Axios
   ) {}
 
   upload(
@@ -53,5 +56,16 @@ export class EnvironmentLocalFileUploader implements LocalFileUploader {
         readable.destroy();
       });
     });
+  }
+
+  async delete(contentsId: string): Promise<void> {
+    try {
+      await this.httpClient.delete(
+        `${process.env.API_URL}/api/storage/bucket/${this.bucket}/file/${contentsId}`
+      );
+    } catch (error) {
+      // Not being able to delete from the bucket is not critical
+      Logger.error('Could not delete the file from the bucket');
+    }
   }
 }
