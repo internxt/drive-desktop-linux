@@ -1,7 +1,6 @@
-import bytes from 'bytes';
 import { Device } from '../../../main/device/service';
 import useUsage from '../../hooks/useUsage';
-import { Pill } from '../Pill';
+import { SizePill } from './SizePill';
 import { useEffect } from 'react';
 import { useBackupProgress } from '../../hooks/backups/useBackupProgress';
 import useBackupStatus from '../../hooks/backups/useBackupsStatus';
@@ -36,7 +35,7 @@ export function DetailedDevicePill({ device }: DetailedDevicePillProps) {
 
   return (
     <div className="rounded-lg  border border-gray-10 bg-surface px-6 py-4 shadow-sm dark:bg-gray-5">
-      <div className="flex w-full">
+      <div className="flex w-full items-center">
         <div className="grow">
           {device.name}
           <br />
@@ -45,7 +44,7 @@ export function DetailedDevicePill({ device }: DetailedDevicePillProps) {
         {thereIsProgress() ? (
           <BackupsProgressPercentage progress={percentualProgress()} />
         ) : (
-          <Pill>{usage ? bytes.format(usage.limitInBytes) : ''}</Pill>
+          <SizePill size={usage?.limitInBytes ?? 0}></SizePill>
         )}
       </div>
       {thereIsProgress() && (
