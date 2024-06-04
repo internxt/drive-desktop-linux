@@ -73,19 +73,15 @@ export async function launchBackupProcesses(
     }
 
     // eslint-disable-next-line no-await-in-loop
-    const finishReason = await executeBackupWorker(
-      backupInfo,
-      errors,
-      stopController
-    );
+    const finishReason = await executeBackupWorker(backupInfo, stopController);
 
     tracker.backupFinishedWith(finishReason);
   }
 
   status.set('STANDBY');
 
+  tracker.reset();
   stopController.reset();
-
   backupConfiguration.backupFinished();
 
   ipcMain.removeAllListeners('stop-backups-process');

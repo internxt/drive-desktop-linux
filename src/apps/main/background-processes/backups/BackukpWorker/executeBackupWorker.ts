@@ -2,16 +2,14 @@ import { ipcMain } from 'electron';
 import Logger from 'electron-log';
 import { BackupInfo } from '../../../../backups/BackupInfo';
 import { BackupWorker } from './BackupWorker';
-import { BackupFatalErrors } from '../BackupFatalErrors/BackupFatalErrors';
 import {
   BackupsStopController,
   StopReason,
 } from '../BackupsStopController/BackupsStopController';
 import { BackupsIPCMain } from '../BackupsIpc';
 
-function configureIpcForBackup(
+function addMessagesHandlers(
   info: BackupInfo,
-  errors: BackupFatalErrors,
   stopController: BackupsStopController
 ) {
   BackupsIPCMain.handleOnce('backups.get-backup', () => info);
@@ -24,22 +22,16 @@ function configureIpcForBackup(
     Logger.error(`[Backup] error: ${error}`);
     stopController.failed(error);
   });
+}
 
-  stopController.on('failed', ({ errorName }) => {
-    errors.add([{ errorName, path: info.pathname, ...info }]);
-  });
+function removeMessagesHandlers() {
+  BackupsIPCMain.removeHandler('backups.get-backup');
+  BackupsIPCMain.removeAllListeners('backups.backup-completed');
+  BackupsIPCMain.removeAllListeners('backups.backup-failed');
+}
 
-  stopController.onFinished((reason: StopReason) => {
-    Logger.log(
-      `[Backup] Finished ${info.pathname} (${info.folderId}) reason: ${reason}`
-    );
-
-    BackupsIPCMain.removeHandler('backups.get-backup');
-    BackupsIPCMain.removeAllListeners('backups.backup-completed');
-    BackupsIPCMain.removeAllListeners('backups.backup-failed');
-  });
-
-  return new Promise<StopReason>((resolve) => {
+function listenForBackupFinalization(): Promise<StopReason> {
+  const finished = new Promise<StopReason>((resolve) => {
     BackupsIPCMain.on('backups.backup-completed', () => {
       resolve('backup-completed');
     });
@@ -52,14 +44,17 @@ function configureIpcForBackup(
       resolve('failed');
     });
   });
+
+  return finished;
 }
 
 export async function executeBackupWorker(
   info: BackupInfo,
-  errors: BackupFatalErrors,
   stopController: BackupsStopController
 ): Promise<StopReason> {
-  const finished = configureIpcForBackup(info, errors, stopController);
+  addMessagesHandlers(info, stopController);
+
+  const finished = listenForBackupFinalization();
 
   const worker = BackupWorker.spawn(info.folderId);
 
@@ -68,6 +63,8 @@ export async function executeBackupWorker(
   });
 
   const reason = await finished;
+
+  removeMessagesHandlers();
 
   worker.destroy();
 

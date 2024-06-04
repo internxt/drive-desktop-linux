@@ -44,8 +44,6 @@ export class FileBatchUploader {
         await this.localHandler.delete(contentsId);
         const error = either.getLeft();
 
-        Logger.debug('ERROR CAUSE', error.cause);
-
         if (error.cause === 'FILE_ALREADY_EXISTS') {
           continue;
         }
