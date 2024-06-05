@@ -1,9 +1,9 @@
 import { Service } from 'diod';
+import Logger from 'electron-log';
 import { FileBatchUpdater } from '../../context/local/localFile/application/update/FileBatchUpdater';
 import { FileBatchUploader } from '../../context/local/localFile/application/upload/FileBatchUploader';
 import { LocalFile } from '../../context/local/localFile/domain/LocalFile';
 import { AbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
-import { LocalFolder } from '../../context/local/localFolder/domain/LocalFolder';
 import LocalTreeBuilder from '../../context/local/localTree/application/LocalTreeBuilder';
 import { LocalTree } from '../../context/local/localTree/domain/LocalTree';
 import { FileDeleter } from '../../context/virtual-drive/files/application/delete/FileDeleter';
@@ -12,6 +12,7 @@ import { SimpleFolderCreator } from '../../context/virtual-drive/folders/applica
 import { RemoteTreeBuilder } from '../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
 import { RemoteTree } from '../../context/virtual-drive/remoteTree/domain/RemoteTree';
 import { BackupInfo } from './BackupInfo';
+import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 import { AddedFilesBatchCreator } from './batches/AddedFilesBatchCreator';
 import { ModifiedFilesBatchCreator } from './batches/ModifiedFilesBatchCreator';
 import { DiffFilesCalculator, FilesDiff } from './diff/DiffFilesCalculator';
@@ -19,9 +20,7 @@ import {
   FoldersDiff,
   FoldersDiffCalculator,
 } from './diff/FoldersDiffCalculator';
-import Logger from 'electron-log';
 import { relative } from './utils/relative';
-import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 
 @Service()
 export class Backup {
@@ -34,7 +33,7 @@ export class Backup {
     private readonly simpleFolderCreator: SimpleFolderCreator
   ) {}
 
-  private itemsBacked = 0;
+  private backed = 0;
 
   async run(info: BackupInfo, abortController: AbortController): Promise<void> {
     Logger.info('[BACKUPS] Backing:', info.pathname);
@@ -51,9 +50,15 @@ export class Backup {
 
     const filesDiff = DiffFilesCalculator.calculate(local, remote);
 
+    const alreadyBacked =
+      filesDiff.unmodified.length + foldersDiff.unmodified.length;
+
+    this.backed = alreadyBacked;
+
     BackupsIPCRenderer.send(
       'backups.total-items-calculated',
-      filesDiff.total + foldersDiff.total
+      filesDiff.total + foldersDiff.total,
+      alreadyBacked
     );
 
     await this.backupFolders(foldersDiff, local, remote);
@@ -62,51 +67,38 @@ export class Backup {
   }
 
   private async backupFolders(
-    foldersDiff: FoldersDiff,
+    diff: FoldersDiff,
     local: LocalTree,
     remote: RemoteTree
   ) {
     Logger.info('[BACKUPS] Backing folders');
 
-    const { added } = foldersDiff;
+    Logger.info('[BACKUPS] Folders added', diff.added.length);
 
-    Logger.info('[BACKUPS] Folders added', added.length);
+    for (const localFolder of diff.added) {
+      const remoteParentPath = relative(local.root.path, localFolder.basedir());
 
-    if (added.length === 0) {
-      return;
-    }
+      const parentExists = remote.has(remoteParentPath);
 
-    const queue: Array<LocalFolder> = [];
-
-    do {
-      for (const localFolder of added) {
-        const remoteParentPath = relative(
-          local.root.path,
-          localFolder.basedir()
-        );
-
-        const parentExists = remote.has(remoteParentPath);
-
-        if (!parentExists) {
-          queue.push(localFolder);
-          continue;
-        }
-
-        const parent = remote.getParent(
-          relative(local.root.path, localFolder.path)
-        );
-
-        // eslint-disable-next-line no-await-in-loop
-        const folder = await this.simpleFolderCreator.run(
-          relative(local.root.path, localFolder.path),
-          parent.id
-        );
-
-        this.itemsBacked++;
-
-        remote.addFolder(parent, folder);
+      if (!parentExists) {
+        continue;
       }
-    } while (queue.length > 0);
+
+      const parent = remote.getParent(
+        relative(local.root.path, localFolder.path)
+      );
+
+      // eslint-disable-next-line no-await-in-loop
+      const folder = await this.simpleFolderCreator.run(
+        relative(local.root.path, localFolder.path),
+        parent.id
+      );
+
+      remote.addFolder(parent, folder);
+
+      this.backed++;
+      BackupsIPCRenderer.send('backups.progress-update', this.backed);
+    }
   }
 
   private async backupFiles(
@@ -148,6 +140,9 @@ export class Backup {
         batch,
         abortController.signal
       );
+
+      this.backed += batch.length;
+      BackupsIPCRenderer.send('backups.progress-update', this.backed);
     }
   }
 
@@ -171,6 +166,9 @@ export class Backup {
         Array.from(batch.keys()),
         abortController.signal
       );
+
+      this.backed += batch.size;
+      BackupsIPCRenderer.send('backups.progress-update', this.backed);
     }
   }
 
@@ -186,5 +184,8 @@ export class Backup {
       // eslint-disable-next-line no-await-in-loop
       await this.remoteFileDeleter.run(file);
     }
+
+    this.backed += deleted.length;
+    BackupsIPCRenderer.send('backups.progress-update', this.backed);
   }
 }

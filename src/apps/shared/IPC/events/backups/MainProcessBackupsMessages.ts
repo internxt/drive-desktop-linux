@@ -15,7 +15,7 @@ export type MainProcessBackupsMessages = {
 
   'backups.stopped': () => void;
 
-  'backups.total-items-calculated': (total: number) => void;
+  'backups.total-items-calculated': (total: number, processed: number) => void;
 
   'backups.progress-update': (processed: number) => void;
 };

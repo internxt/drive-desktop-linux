@@ -11,6 +11,7 @@ export type FilesDiff = {
   added: Array<LocalFile>;
   deleted: Array<File>;
   modified: Map<LocalFile, File>;
+  unmodified: Array<LocalFile>;
   total: number;
 };
 
@@ -18,6 +19,7 @@ export class DiffFilesCalculator {
   static calculate(local: LocalTree, remote: RemoteTree): FilesDiff {
     const added: Array<LocalFile> = [];
     const modified: Map<LocalFile, File> = new Map();
+    const unmodified: Array<LocalFile> = [];
 
     const rootPath = local.root.path;
 
@@ -45,18 +47,25 @@ export class DiffFilesCalculator {
 
       if (remoteModificationTime < localModificationTime) {
         modified.set(local, remoteNode);
+        return;
       }
+
+      unmodified.push(local);
     });
 
     const deleted = remote.files.filter(
       (file) => !local.has(path.join(rootPath, file.path) as AbsolutePath)
     );
 
+    const total =
+      added.length + modified.size + deleted.length + unmodified.length;
+
     return {
       added,
       modified,
       deleted,
-      total: added.length + modified.size + deleted.length,
+      unmodified,
+      total,
     };
   }
 }

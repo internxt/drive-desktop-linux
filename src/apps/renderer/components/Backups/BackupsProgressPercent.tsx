@@ -7,7 +7,7 @@ export function BackupsProgressPercentage({
 }: BackupsProgressPercentageProps) {
   return (
     <div className="flex flex-col items-center justify-center text-lg font-medium text-primary">
-      {progress}%
+      {Math.round(progress)}%
     </div>
   );
 }

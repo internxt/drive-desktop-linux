@@ -40,7 +40,9 @@ export class BackupsProcessTracker {
   currentProcessed(processed: number) {
     this.current.processed = processed;
 
-    _.debounce(() => this.notify(this.progress()), TWO_SECONDS);
+    this.notify(this.progress());
+
+    // _.debounce(() => this.notify(this.progress()), TWO_SECONDS);
   }
 
   backing(_: BackupInfo) {
@@ -95,9 +97,14 @@ export function initiateBackupsProcessTracker(): BackupsProcessTracker {
     return tracker.lastExitReason;
   });
 
-  BackupsIPCMain.on('backups.total-items-calculated', (_, total: number) => {
-    tracker.currentProcessed(total);
-  });
+  BackupsIPCMain.on(
+    'backups.total-items-calculated',
+    (_, total: number, processed: number) => {
+      tracker.currentTotal(total);
+      tracker.currentProcessed(processed);
+    }
+  );
+
   BackupsIPCMain.on('backups.progress-update', (_, processed: number) => {
     tracker.currentProcessed(processed);
   });
