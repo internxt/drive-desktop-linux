@@ -1,5 +1,6 @@
 import Button from '../../../components/Button';
 import { useTranslationContext } from '../../../context/LocalContext';
+import { useBackups } from '../../../hooks/backups/useBackups';
 import useBackupStatus from '../../../hooks/backups/useBackupsStatus';
 
 interface BackupFoldersSelectorProps
@@ -13,11 +14,12 @@ export function FoldersSelector({
 }: BackupFoldersSelectorProps) {
   const { translate } = useTranslationContext();
   const { backupStatus } = useBackupStatus();
+  const { backups } = useBackups();
 
   return (
     <div className={`${className}`}>
       <p className="text-neutral-500">
-        {translate('settings.backups.select-folders')}
+        {translate('settings.backups.selected-folders-title')}
       </p>
       <Button
         variant="secondary"
@@ -25,8 +27,13 @@ export function FoldersSelector({
         onClick={onGoToList}
         size="md"
       >
-        Change Folders
+        {translate('settings.backups.select-folders')}
       </Button>
+      <span className="ml-2 text-gray-60">
+        {translate('settings.backups.selected-folder', {
+          count: backups.length,
+        })}
+      </span>
     </div>
   );
 }
