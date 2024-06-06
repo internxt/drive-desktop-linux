@@ -1,4 +1,6 @@
 import Button from '../../../components/Button';
+import { SecondaryText } from '../../../components/SecondaryText';
+import { SectionHeader } from '../../../components/SectionHeader';
 import { useTranslationContext } from '../../../context/LocalContext';
 import { useBackups } from '../../../hooks/backups/useBackups';
 import useBackupStatus from '../../../hooks/backups/useBackupsStatus';
@@ -17,10 +19,10 @@ export function FoldersSelector({
   const { backups } = useBackups();
 
   return (
-    <div className={`${className}`}>
-      <p className="text-neutral-500">
+    <section className={`${className}`}>
+      <SectionHeader>
         {translate('settings.backups.selected-folders-title')}
-      </p>
+      </SectionHeader>
       <Button
         variant="secondary"
         disabled={backupStatus === 'RUNNING'}
@@ -29,11 +31,11 @@ export function FoldersSelector({
       >
         {translate('settings.backups.select-folders')}
       </Button>
-      <span className="ml-2 text-gray-60">
+      <SecondaryText className="ml-2 inline">
         {translate('settings.backups.selected-folder', {
           count: backups.length,
         })}
-      </span>
-    </div>
+      </SecondaryText>
+    </section>
   );
 }

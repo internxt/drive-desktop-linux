@@ -1,6 +1,7 @@
 import Select from '../../../components/Select';
 import { useTranslationContext } from '../../../context/LocalContext';
 import { useBackupsInterval } from '../../../hooks/backups/useBackupsInterval';
+import { SectionHeader } from '../../../components/SectionHeader';
 
 export function Frequency() {
   const { backupsInterval, updateBackupsInterval } = useBackupsInterval();
@@ -31,10 +32,10 @@ export function Frequency() {
   };
 
   return (
-    <>
-      <p className="text-neutral-500">
+    <section>
+      <SectionHeader>
         {translate('settings.backups.frequency.title')}
-      </p>
+      </SectionHeader>
       <Select
         options={intervals}
         value={backupsInterval.toString()}
@@ -46,6 +47,6 @@ export function Frequency() {
           mode is not recommended.
         </p>
       )}
-    </>
+    </section>
   );
 }

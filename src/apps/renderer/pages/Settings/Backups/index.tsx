@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { DeviceContext } from '../../../context/DeviceContext';
 import { DeviceSettings } from './DeviceSettings';
 import { DevicesList } from './DevicesList';
+import { ScrollableContent } from '../../../components/ScrollableContent';
 
 import Spinner from '../../../assets/spinner.svg';
 
@@ -34,7 +35,9 @@ export default function BackupsSection({
         <section className="flex h-full">
           <DevicesList className="w-1/3" />
           <div className="mx-4 border-l border-gray-10"></div>
-          <DeviceSettings className="w-2/3" onGoToList={showBackedFolders} />
+          <ScrollableContent className="w-2/3">
+            <DeviceSettings onGoToList={showBackedFolders} />
+          </ScrollableContent>
         </section>
       )}
     </div>

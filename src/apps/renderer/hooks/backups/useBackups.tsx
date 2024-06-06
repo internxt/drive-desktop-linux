@@ -28,11 +28,6 @@ export function useBackups() {
     loadBackups();
   }, []);
 
-  async function disableBackup(backup: Backup) {
-    await window.electron.disableBackup(backup);
-    loadBackups();
-  }
-
   async function addBackup() {
     try {
       await window.electron.addBackup();
@@ -42,5 +37,21 @@ export function useBackups() {
     }
   }
 
-  return { state, backups, disableBackup, addBackup };
+  async function disableBackup(backup: Backup) {
+    await window.electron.disableBackup(backup);
+    loadBackups();
+  }
+
+  async function deleteBackup(backup: Backup) {
+    setState('LOADING');
+    try {
+      await window.electron.deleteBackup(backup);
+      fetchBackups();
+    } catch (err) {
+      console.log(err);
+      setBackups('ERROR');
+    }
+  }
+
+  return { state, backups, disableBackup, addBackup, deleteBackup };
 }

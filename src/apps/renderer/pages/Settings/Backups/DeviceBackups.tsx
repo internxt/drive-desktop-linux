@@ -1,5 +1,6 @@
 import { Device } from '../../../../main/device/service';
 import { DetailedDevicePill } from '../../../components/Backups/DetailedDevicePill';
+import { DeleteBackups } from '../../../components/Backups/DeleteBackups';
 import { FoldersSelector } from './FoldersSelector';
 import { Frequency } from './Frequency';
 import { StartBackup } from './StartBackup';
@@ -20,9 +21,8 @@ export function DeviceBackups({ device, onGoToList }: DeviceBackupsProps) {
         <ViewBackups className="w-full" />
       </div>
       <FoldersSelector className="mt-2" onGoToList={onGoToList} />
-      <div className="relative">
-        <Frequency />
-      </div>
+      <Frequency />
+      <DeleteBackups />
     </div>
   );
 }
