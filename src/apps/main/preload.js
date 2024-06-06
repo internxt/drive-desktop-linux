@@ -151,6 +151,9 @@ contextBridge.exposeInMainWorld('electron', {
   getBackupsStatus() {
     return ipcRenderer.invoke('get-backups-status');
   },
+  getBackupFatalIssue(id) {
+    return ipcRenderer.invoke('backups.get-backup-issues', id);
+  },
   openVirtualDrive() {
     return ipcRenderer.invoke('open-virtual-drive');
   },

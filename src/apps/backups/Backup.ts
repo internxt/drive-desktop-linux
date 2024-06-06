@@ -21,6 +21,7 @@ import {
   FoldersDiffCalculator,
 } from './diff/FoldersDiffCalculator';
 import { relative } from './utils/relative';
+import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 
 @Service()
 export class Backup {
@@ -35,13 +36,22 @@ export class Backup {
 
   private backed = 0;
 
-  async run(info: BackupInfo, abortController: AbortController): Promise<void> {
+  async run(
+    info: BackupInfo,
+    abortController: AbortController
+  ): Promise<DriveDesktopError | undefined> {
     Logger.info('[BACKUPS] Backing:', info.pathname);
 
     Logger.info('[BACKUPS] Generating local tree');
-    const local = await this.localTreeBuilder.run(
+    const localTreeEither = await this.localTreeBuilder.run(
       info.pathname as AbsolutePath
     );
+
+    if (localTreeEither.isLeft()) {
+      return localTreeEither.getLeft();
+    }
+
+    const local = localTreeEither.getRight();
 
     Logger.info('[BACKUPS] Generating remote tree');
     const remote = await this.remoteTreeBuilder.run(info.folderId);
@@ -64,6 +74,8 @@ export class Backup {
     await this.backupFolders(foldersDiff, local, remote);
 
     await this.backupFiles(filesDiff, local, remote, abortController);
+
+    return undefined;
   }
 
   private async backupFolders(

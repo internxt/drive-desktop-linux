@@ -1,5 +1,5 @@
 import { Backup } from '../../../../../main/device/service';
-import FolderIcon from '../../../../assets/folder.svg';
+import { BackupListItem } from './BackupItem';
 
 interface BackupsListProps {
   backups: Array<Backup>;
@@ -32,13 +32,10 @@ export function BackupsList({
               : 'bg-l-neutral-10 text-neutral-700'
           }`}
         >
-          <FolderIcon className="h-4 w-4 flex-shrink-0" />
-          <p
-            className="relative ml-1 flex-grow select-none truncate leading-none"
-            style={{ top: '1px' }}
-          >
-            {backup.name}
-          </p>
+          <BackupListItem
+            backup={backup}
+            selected={selected?.id === backup.id}
+          />
         </li>
       ))}
     </ul>

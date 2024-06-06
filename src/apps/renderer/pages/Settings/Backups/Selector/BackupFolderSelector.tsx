@@ -28,7 +28,7 @@ export default function BackupFolderSelector({
         </h1>
         <div className="ml-auto text-gray-50">
           {state === 'SUCCESS' &&
-            translate('settings.backups.selected-folders', {
+            translate('settings.backups.selected-folder', {
               count: backups.length,
             })}{' '}
         </div>

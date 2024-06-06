@@ -2,11 +2,9 @@ import { ipcMain } from 'electron';
 import Logger from 'electron-log';
 import { BackupInfo } from '../../../../backups/BackupInfo';
 import { BackupWorker } from './BackupWorker';
-import {
-  BackupsStopController,
-  StopReason,
-} from '../BackupsStopController/BackupsStopController';
+import { BackupsStopController } from '../BackupsStopController/BackupsStopController';
 import { BackupsIPCMain } from '../BackupsIpc';
+import { WorkerExitCause } from '../BackupsProcessTracker/BackupsProcessTracker';
 
 function addMessagesHandlers(
   info: BackupInfo,
@@ -30,8 +28,8 @@ function removeMessagesHandlers() {
   BackupsIPCMain.removeAllListeners('backups.backup-failed');
 }
 
-function listenForBackupFinalization(): Promise<StopReason> {
-  const finished = new Promise<StopReason>((resolve) => {
+function listenForBackupFinalization(): Promise<WorkerExitCause> {
+  const finished = new Promise<WorkerExitCause>((resolve) => {
     BackupsIPCMain.on('backups.backup-completed', () => {
       resolve('backup-completed');
     });
@@ -40,8 +38,8 @@ function listenForBackupFinalization(): Promise<StopReason> {
       resolve('forced-by-user');
     });
 
-    BackupsIPCMain.on('backups.backup-failed', () => {
-      resolve('failed');
+    BackupsIPCMain.on('backups.backup-failed', (_, _folderId, error) => {
+      resolve(error);
     });
   });
 
@@ -51,7 +49,7 @@ function listenForBackupFinalization(): Promise<StopReason> {
 export async function executeBackupWorker(
   info: BackupInfo,
   stopController: BackupsStopController
-): Promise<StopReason> {
+): Promise<WorkerExitCause> {
   addMessagesHandlers(info, stopController);
 
   const finished = listenForBackupFinalization();

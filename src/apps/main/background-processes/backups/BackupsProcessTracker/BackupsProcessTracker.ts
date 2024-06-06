@@ -1,25 +1,36 @@
 import { ipcMain } from 'electron';
+import Logger from 'electron-log';
 import { BackupInfo } from '../../../../backups/BackupInfo';
 import { broadcastToWindows } from '../../../windows';
-import { StopReason } from '../BackupsStopController/BackupsStopController';
 import { BackupsIPCMain } from '../BackupsIpc';
-import { IndividualBackupProgress } from '../types/IndividualBackupProgress';
+import {
+  BackupCompleted,
+  ForcedByUser,
+} from '../BackupsStopController/BackupsStopController';
 import { BackupsProgress } from '../types/BackupsProgress';
-import _ from 'lodash';
-import Logger from 'electron-log';
+import { IndividualBackupProgress } from '../types/IndividualBackupProgress';
+import { ProcessFatalErrorName } from '../BackupFatalErrors/BackupFatalErrors';
 
-const TWO_SECONDS = 2_000;
+export type WorkerExitCause =
+  | ForcedByUser
+  | BackupCompleted
+  | ProcessFatalErrorName;
 
 export class BackupsProcessTracker {
   private processed = 0;
   private total = 0;
-  private lastBackupExistReason: StopReason | undefined = undefined;
+
   private current: IndividualBackupProgress = {
     total: 0,
     processed: 0,
   };
 
-  constructor(private readonly notify: (progress: BackupsProgress) => void) {}
+  private lastExistReason: WorkerExitCause | undefined;
+  public exitReasons: Map<number, WorkerExitCause> = new Map();
+
+  constructor(private readonly notify: (progress: BackupsProgress) => void) {
+    this.lastExistReason = 'forced-by-user';
+  }
 
   progress(): BackupsProgress {
     return {
@@ -41,8 +52,10 @@ export class BackupsProcessTracker {
     this.current.processed = processed;
 
     this.notify(this.progress());
+  }
 
-    // _.debounce(() => this.notify(this.progress()), TWO_SECONDS);
+  getLastExistReason() {
+    return this.lastExistReason;
   }
 
   backing(_: BackupInfo) {
@@ -64,19 +77,18 @@ export class BackupsProcessTracker {
     return this.total;
   }
 
-  backupFinishedWith(finishReason: StopReason) {
-    this.lastBackupExistReason = finishReason;
+  backupFinished(id: number, reason: WorkerExitCause) {
+    this.exitReasons.set(id, reason);
+    this.lastExistReason = reason;
   }
 
-  get lastExitReason() {
-    return this.lastBackupExistReason;
+  getExistReason(id: number): WorkerExitCause | undefined {
+    return this.exitReasons.get(id);
   }
 
   reset() {
     this.processed = 0;
     this.total = 0;
-
-    this.lastBackupExistReason = undefined;
 
     this.current = {
       total: 0,
@@ -94,7 +106,11 @@ export function initiateBackupsProcessTracker(): BackupsProcessTracker {
   const tracker = new BackupsProcessTracker(notifyUI);
 
   ipcMain.handle('get-last-backup-exit-reason', () => {
-    return tracker.lastExitReason;
+    return tracker.getLastExistReason();
+  });
+
+  BackupsIPCMain.handle('backups.get-backup-issues', (_, id: number) => {
+    return tracker.getExistReason(id);
   });
 
   BackupsIPCMain.on(

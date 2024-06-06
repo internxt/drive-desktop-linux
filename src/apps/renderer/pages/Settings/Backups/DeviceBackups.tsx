@@ -15,7 +15,7 @@ export function DeviceBackups({ device, onGoToList }: DeviceBackupsProps) {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-neutral-500">Backup</p>
-      <DetailedDevicePill device={device} />
+      <DetailedDevicePill device={device} showIssues={onGoToList} />
       <div className="grid grid-cols-2 gap-2">
         <StartBackup className="w-full " />
         <ViewBackups className="w-full" />

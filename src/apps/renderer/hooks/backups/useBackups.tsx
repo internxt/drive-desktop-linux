@@ -49,7 +49,7 @@ export function useBackups() {
       fetchBackups();
     } catch (err) {
       console.log(err);
-      setBackups('ERROR');
+      setState('ERROR');
     }
   }
 

@@ -1,7 +1,7 @@
 import { ProcessFatalErrorName } from '../BackupFatalErrors/BackupFatalErrors';
 
-type ForcedByUser = 'forced-by-user';
-type BackupCompleted = 'backup-completed';
+export type ForcedByUser = 'forced-by-user';
+export type BackupCompleted = 'backup-completed';
 type BackupFailed = 'failed';
 
 export type StopReason = ForcedByUser | BackupCompleted | BackupFailed;

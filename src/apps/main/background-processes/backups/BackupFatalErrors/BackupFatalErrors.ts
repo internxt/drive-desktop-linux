@@ -1,12 +1,6 @@
-export type ProcessFatalErrorName =
-  | 'NO_INTERNET'
-  | 'NO_REMOTE_CONNECTION'
-  | 'CANNOT_ACCESS_BASE_DIRECTORY'
-  | 'BASE_DIRECTORY_DOES_NOT_EXIST'
-  | 'INSUFFICIENT_PERMISSION_ACCESSING_BASE_DIRECTORY'
-  | 'CANNOT_ACCESS_TMP_DIRECTORY'
-  | 'CANNOT_GET_CURRENT_LISTINGS'
-  | 'UNKNOWN';
+import { SyncErrorCause } from '../../../../../shared/issues/SyncErrorCause';
+
+export type ProcessFatalErrorName = SyncErrorCause;
 
 export type BackupFatalError = {
   path: string;

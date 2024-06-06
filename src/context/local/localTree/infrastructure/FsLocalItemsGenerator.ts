@@ -1,24 +1,54 @@
 import { Service } from 'diod';
+import fs from 'fs/promises';
+import path from 'path';
+import { Either, left, right } from '../../../shared/domain/Either';
+import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
+import { AbsolutePath } from '../../localFile/infrastructure/AbsolutePath';
 import { LocalItemsGenerator } from '../domain/LocalItemsGenerator';
 import { LocalFileDTO } from './LocalFileDTO';
 import { LocalFolderDTO } from './LocalFolderDTO';
-import fs from 'fs/promises';
-import path from 'path';
-import { AbsolutePath } from '../../localFile/infrastructure/AbsolutePath';
 
 @Service()
 export class FsLocalItemsGenerator implements LocalItemsGenerator {
-  async root(dir: string): Promise<LocalFolderDTO> {
-    const stat = await fs.stat(dir);
+  async root(dir: string): Promise<Either<DriveDesktopError, LocalFolderDTO>> {
+    try {
+      const stat = await fs.stat(dir);
 
-    if (stat.isFile()) {
-      throw new Error('A file cannot be the root of a tree');
+      if (stat.isFile()) {
+        throw new Error('A file cannot be the root of a tree');
+      }
+
+      return right({
+        path: dir as AbsolutePath,
+        modificationTime: stat.mtime.getTime(),
+      });
+    } catch (err) {
+      const { code } = err as { code?: string };
+
+      if (code === 'ENOENT') {
+        return left(
+          new DriveDesktopError(
+            'BASE_DIRECTORY_DOES_NOT_EXIST',
+            `${dir} does not exist`
+          )
+        );
+      }
+      if (code === 'EACCES') {
+        return left(
+          new DriveDesktopError(
+            'INSUFFICIENT_PERMISSION',
+            `Cannot read stats of ${dir}`
+          )
+        );
+      }
+
+      return left(
+        new DriveDesktopError(
+          'UNKNOWN',
+          `An unknown error with code ${code} happened when reading ${dir}`
+        )
+      );
     }
-
-    return {
-      path: dir as AbsolutePath,
-      modificationTime: stat.mtime.getTime(),
-    };
   }
 
   async getAll(

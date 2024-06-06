@@ -107,6 +107,10 @@ declare interface Window {
       import('./background-processes/backups/BackupsProcessStatus/BackupsStatus').BackupsStatus
     >;
 
+    getBackupFatalIssue(
+      id: number
+    ): Promise<import('../../shared/issues/SyncErrorCause').SyncErrorCause>;
+
     onBackupsStatusChanged(
       func: (
         value: import('./background-processes/backups/BackupsProcessStatus/BackupsStatus').BackupsStatus
@@ -148,6 +152,10 @@ declare interface Window {
     toggleBackupsEnabled: () => Promise<void>;
 
     getLastBackupTimestamp: () => Promise<number>;
+
+    getLastBackupExitReason: () => Promise<
+      import('../main/background-processes/backups/types/BackupExitReason').BackupExitReason
+    >;
 
     deleteBackupError(folderId: number): Promise<void>;
 

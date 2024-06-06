@@ -17,6 +17,9 @@ export const shortMessages: ProcessErrorMessages = {
   FILE_ALREADY_EXISTS: 'issues.short-error-messages.file-already-exists',
   COULD_NOT_ENCRYPT_NAME: '',
   BAD_REQUEST: 'issues.short-error-messages.no-remote-connection',
+  BASE_DIRECTORY_DOES_NOT_EXIST:
+    'issues.short-error-messages.file-does-not-exist',
+  INSUFFICIENT_PERMISSION: 'issues.short-error-messages.no-permission',
 };
 
 export const longMessages: ProcessErrorMessages = {
@@ -35,4 +38,7 @@ export const longMessages: ProcessErrorMessages = {
   FILE_ALREADY_EXISTS: '',
   COULD_NOT_ENCRYPT_NAME: '',
   BAD_REQUEST: 'issues.error-messages.no-remote-connection',
+  BASE_DIRECTORY_DOES_NOT_EXIST: 'issues.error-messages.file-does-not-exist',
+  INSUFFICIENT_PERMISSION:
+    'issues.error-messages.insufficient-permission-accessing-base-directory',
 };

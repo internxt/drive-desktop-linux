@@ -4,6 +4,8 @@ import { AbsolutePath } from '../../localFile/infrastructure/AbsolutePath';
 import { LocalItemsGenerator } from '../domain/LocalItemsGenerator';
 import { LocalTree } from '../domain/LocalTree';
 import { LocalFolder } from '../../localFolder/domain/LocalFolder';
+import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
+import { Either, left, right } from '../../../shared/domain/Either';
 
 @Service()
 export default class LocalTreeBuilder {
@@ -32,13 +34,23 @@ export default class LocalTreeBuilder {
     return tree;
   }
 
-  async run(folder: AbsolutePath): Promise<LocalTree> {
-    const root = await this.generator.root(folder);
+  async run(
+    folder: AbsolutePath
+  ): Promise<Either<DriveDesktopError, LocalTree>> {
+    const rootEither = await this.generator.root(folder);
+
+    if (rootEither.isLeft()) {
+      return left(rootEither.getLeft());
+    }
+
+    const root = rootEither.getRight();
 
     const rootFolder = LocalFolder.from(root);
 
     const tree = new LocalTree(rootFolder);
 
-    return this.traverse(tree, rootFolder);
+    await this.traverse(tree, rootFolder);
+
+    return right(tree);
   }
 }

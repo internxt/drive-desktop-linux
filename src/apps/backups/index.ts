@@ -48,7 +48,16 @@ async function backupFolder() {
 
     const backup = container.get(Backup);
 
-    await backup.run(data, abortController);
+    const error = await backup.run(data, abortController);
+
+    if (error) {
+      BackupsIPCRenderer.send(
+        'backups.backup-failed',
+        data.folderId,
+        error.cause
+      );
+    }
+
     Logger.info('[BACKUPS] done');
 
     BackupsIPCRenderer.send('backups.backup-completed', data.folderId);
