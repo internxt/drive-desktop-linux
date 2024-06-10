@@ -1,13 +1,17 @@
 import Button from '../../../components/Button';
 import { useTranslationContext } from '../../../context/LocalContext';
+import { useBackups } from '../../../hooks/backups/useBackups';
 import useBackupStatus from '../../../hooks/backups/useBackupsStatus';
 
-type StartBackupProps = React.HTMLAttributes<HTMLBaseElement>;
+type StartBackupProps = {
+  className: string;
+};
 
 export function StartBackup({ className }: StartBackupProps) {
-  const { translate } = useTranslationContext();
-
   const { backupStatus } = useBackupStatus();
+  const { backups } = useBackups();
+
+  const { translate } = useTranslationContext();
 
   return (
     <Button
@@ -19,6 +23,7 @@ export function StartBackup({ className }: StartBackupProps) {
           ? window.electron.startBackupsProcess()
           : window.electron.stopBackupsProcess();
       }}
+      disabled={backups.length === 0}
     >
       {translate(
         `settings.backups.action.${

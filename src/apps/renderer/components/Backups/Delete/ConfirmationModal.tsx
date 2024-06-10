@@ -2,33 +2,26 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react/jsx-runtime';
 import { useTranslationContext } from '../../../context/LocalContext';
 import Button from '../../Button';
-import { useBackups } from '../../../hooks/backups/useBackups';
 
 interface ConfirmationModalProps {
   show: boolean;
-  handled: () => void;
+  onCanceled: () => void;
+  onConfirmed: () => void;
 }
 
-export function ConfirmationModal({ show, handled }: ConfirmationModalProps) {
-  const { backups, deleteBackup } = useBackups();
-
+export function ConfirmationModal({
+  show,
+  onConfirmed,
+  onCanceled,
+}: ConfirmationModalProps) {
   const { translate } = useTranslationContext();
-
-  async function deleteBackups() {
-    const deletionPromises = backups.map((backup) => deleteBackup(backup));
-
-    await Promise.all(deletionPromises);
-    handled();
-  }
 
   return (
     <Transition appear show={show} as={Fragment}>
       <Dialog
         as="div"
         className="fixed inset-0 z-10 overflow-y-auto"
-        onClose={() => {
-          handled();
-        }}
+        onClose={onCanceled}
       >
         <div className="min-h-screen px-4 text-center">
           <Transition.Child
@@ -86,7 +79,7 @@ export function ConfirmationModal({ show, handled }: ConfirmationModalProps) {
                 <Button
                   className="bold basis-1/2 p-2 text-xl font-medium"
                   size="lg"
-                  onClick={handled}
+                  onClick={onCanceled}
                   variant="secondary"
                 >
                   {translate('settings.backups.delete.deletion-modal.cancel')}
@@ -95,7 +88,7 @@ export function ConfirmationModal({ show, handled }: ConfirmationModalProps) {
                   className="bold basis-1/2 p-2 text-xl font-medium"
                   size="lg"
                   variant="danger"
-                  onClick={() => deleteBackups()}
+                  onClick={() => onConfirmed()}
                 >
                   {translate('settings.backups.delete.deletion-modal.confirm')}
                 </Button>

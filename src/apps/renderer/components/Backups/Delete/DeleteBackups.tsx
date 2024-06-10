@@ -4,14 +4,23 @@ import Button from '../../Button';
 import { ConfirmationModal } from './ConfirmationModal';
 import { useState } from 'react';
 import { useTranslationContext } from '../../../context/LocalContext';
+import { useBackups } from '../../../hooks/backups/useBackups';
 
 export function DeleteBackups() {
-  const [confirm, setConfirm] = useState(false);
+  const { backups, deleteBackup } = useBackups();
+  const [askConfirmation, setAskConfirmation] = useState(false);
 
   const { translate } = useTranslationContext();
 
   function toggleConfirmation() {
-    setConfirm(!confirm);
+    setAskConfirmation(!askConfirmation);
+  }
+
+  async function deleteBackups() {
+    const deletionPromises = backups.map((backup) => deleteBackup(backup));
+
+    await Promise.all(deletionPromises);
+    toggleConfirmation();
   }
 
   return (
@@ -19,13 +28,21 @@ export function DeleteBackups() {
       <SectionHeader>
         {translate('settings.backups.delete.title')}
       </SectionHeader>
-      <SecondaryText>
+      <SecondaryText className="mb-2">
         {translate('settings.backups.delete.explanation')}
       </SecondaryText>
-      <Button variant="secondary" onClick={toggleConfirmation}>
+      <Button
+        variant="secondary"
+        onClick={toggleConfirmation}
+        disabled={backups.length === 0}
+      >
         {translate('settings.backups.delete.action')}
       </Button>
-      <ConfirmationModal show={confirm} handled={toggleConfirmation} />
+      <ConfirmationModal
+        show={askConfirmation}
+        onCanceled={toggleConfirmation}
+        onConfirmed={deleteBackups}
+      />
     </section>
   );
 }
