@@ -289,13 +289,18 @@
       "folders": {
         "no-folders": "No hay carpetas seleccionadas",
         "save": "Guardar",
-        "cancel": "Cancelar",
-        "stop-baking-up": {
-          "title": "¿Detener la copia de seguridad de ",
-          "explanation": "Los archivos nuevos que se añadan a esta carpeta ya no se copiarán en Internxt Drive. Los archivos originales permanecerán en tu ordenador",
-          "confirm": "Detener copia de seguridad",
-          "cancel": "Continuar copia de seguridad",
-          "dont-ask-again": "No volver a preguntar"
+        "cancel": "Cancelar"
+      },
+      "delete": {
+        "title": "Eliminar copia de seguridad",
+        "explanation": "Esta copia de seguridad se eliminará de la nube, todas las carpetas y archivos permanecerán en este ordenador",
+        "action": "Eliminar copia de seguridad",
+        "deletion-modal": {
+          "title": "Borrar copia de seguridad?",
+          "explanation": "Esta copia de seguridad se eliminará permanentemente de la nube, todas las carpetas y archivos permanecerán en este ordenador.",
+          "explanation-2": "Esta acción no se puede deshacer.",
+          "confirm": "Sí, eliminar",
+          "cancel": "Cancelar"
         }
       }
     }

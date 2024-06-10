@@ -284,13 +284,18 @@
       "folders": {
         "no-folders": "Pas encore de sauvegardes",
         "save": "Sauvegarder",
-        "cancel": "Annuler",
-        "stop-baking-up": {
+        "cancel": "Annuler"
+      },
+      "delete": {
+        "title": "Supprimer la sauvegarde",
+        "explanation": "Cette sauvegarde sera supprimée du cloud, tous les dossiers et fichiers resteront sur cet ordinateur",
+        "action": "Supprimer la sauvegarde",
+        "deletion-modal": {
           "title": "Arrêter la sauvegarde de ",
-          "explanation": "Les nouveaux fichiers ajoutés à ce dossier ne seront plus copiés sur Internxt Drive. Les fichiers originaux resteront sur votre ordinateur",
-          "confirm": "Arrêter la sauvegarde",
-          "cancel": "Continuer la sauvegarde",
-          "dont-ask-again": "Ne demandez plus"
+          "explanation": "Cette sauvegarde sera supprimée définitivement du cloud, tous les dossiers et fichiers resteront sur cet ordinateur.",
+          "explanation-2": "Cette action est irréversible.",
+          "confirm": "Oui, supprimer",
+          "cancel": "Annuler"
         }
       }
     }

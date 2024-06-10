@@ -1,6 +1,6 @@
 import { Device } from '../../../../main/device/service';
 import { DetailedDevicePill } from '../../../components/Backups/DetailedDevicePill';
-import { DeleteBackups } from '../../../components/Backups/DeleteBackups';
+import { DeleteBackups } from '../../../components/Backups/Delete/DeleteBackups';
 import { FoldersSelector } from './FoldersSelector';
 import { Frequency } from './Frequency';
 import { StartBackup } from './StartBackup';

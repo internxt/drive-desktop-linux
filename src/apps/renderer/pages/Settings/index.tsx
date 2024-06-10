@@ -33,18 +33,18 @@ export default function Settings() {
   }, []);
 
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} style={{ minWidth: 600, minHeight: 600 }}>
       {subsection === 'list' && (
         <BackupFolderSelector onClose={() => setSubsection('panel')} />
       )}
       {subsection === 'panel' && (
-        <>
+        <div className="flex flex-grow flex-col">
           <WindowTopBar
             title="Internxt Drive"
             className="bg-surface dark:bg-gray-5"
           />
           <Header active={activeSection} onClick={setActiveSection} />
-          <div className="bg-gray-1 p-5">
+          <div className="bg-gray-1 p-5" style={{ minHeight: 497 }}>
             <GeneralSection active={activeSection === 'GENERAL'} />
             <AccountSection active={activeSection === 'ACCOUNT'} />
             <BackupsSection
@@ -52,7 +52,7 @@ export default function Settings() {
               showBackedFolders={() => setSubsection('list')}
             />
           </div>
-        </>
+        </div>
       )}
     </div>
   );
