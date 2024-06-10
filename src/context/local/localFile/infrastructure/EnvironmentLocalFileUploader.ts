@@ -65,7 +65,7 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
       );
     } catch (error) {
       // Not being able to delete from the bucket is not critical
-      Logger.error('Could not delete the file from the bucket');
+      Logger.error(`Could not delete the file ${contentsId} from the bucket`);
     }
   }
 }

@@ -8,12 +8,18 @@ export type BackupFatalError = {
   errorName: ProcessFatalErrorName;
 };
 
+type BackupError = {
+  name: string;
+  error: SyncErrorCause;
+};
+export type BackupErrorsCollection = Array<BackupError>;
+
 export class BackupFatalErrors {
-  private errors: Array<BackupFatalError> = [];
+  private errors: BackupErrorsCollection = [];
 
   constructor(
     private readonly onBackupFatalErrorsChanged: (
-      errors: Array<BackupFatalError>
+      errors: BackupErrorsCollection
     ) => void
   ) {}
 
@@ -22,12 +28,12 @@ export class BackupFatalErrors {
     this.onBackupFatalErrorsChanged(this.errors);
   }
 
-  add(errors: Array<BackupFatalError>) {
-    this.errors = this.errors.concat(errors);
+  add(error: BackupError) {
+    this.errors.push(error);
     this.onBackupFatalErrorsChanged(this.errors);
   }
 
-  get(): Array<BackupFatalError> {
+  get(): BackupErrorsCollection {
     return this.errors;
   }
 }

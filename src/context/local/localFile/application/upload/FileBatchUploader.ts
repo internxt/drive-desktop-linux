@@ -4,12 +4,14 @@ import { LocalFileHandler } from '../../domain/LocalFileUploader';
 import { SimpleFileCreator } from '../../../../virtual-drive/files/application/create/SimpleFileCreator';
 import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/RemoteTree';
 import { relative } from '../../../../../apps/backups/utils/relative';
+import { LocalFileMessenger } from '../../domain/LocalFileMessenger';
 
 @Service()
 export class FileBatchUploader {
   constructor(
     private readonly localHandler: LocalFileHandler,
-    private readonly creator: SimpleFileCreator
+    private readonly creator: SimpleFileCreator,
+    protected readonly messenger: LocalFileMessenger
   ) {}
 
   async run(
@@ -44,6 +46,12 @@ export class FileBatchUploader {
         const error = either.getLeft();
 
         if (error.cause === 'FILE_ALREADY_EXISTS') {
+          continue;
+        }
+
+        if (error.cause === 'BAD_RESPONSE') {
+          // eslint-disable-next-line no-await-in-loop
+          await this.messenger.creationFailed(localFile, error.cause);
           continue;
         }
 

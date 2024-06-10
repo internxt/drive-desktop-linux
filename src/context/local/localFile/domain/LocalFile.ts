@@ -55,6 +55,12 @@ export class LocalFile extends AggregateRoot {
     return dirname;
   }
 
+  nameWithExtension() {
+    const basename = path.posix.basename(this._path);
+    const { base } = path.posix.parse(basename);
+    return base;
+  }
+
   static from(attributes: LocalFileAttributes): LocalFile {
     return new LocalFile(
       attributes.path,

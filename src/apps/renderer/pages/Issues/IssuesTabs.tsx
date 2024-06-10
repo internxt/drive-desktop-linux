@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useTranslationContext } from '../../context/LocalContext';
 import { Section } from './Section';
+import { unset } from 'lodash';
 
 function TabPill({
   value,
@@ -53,6 +54,10 @@ export function IssuesTabs({
       value: 'app',
       name: translate('issues.tabs.general'),
     },
+    {
+      value: 'backups',
+      name: translate('issues.tabs.backups'),
+    },
   ];
 
   return (
@@ -61,9 +66,10 @@ export function IssuesTabs({
         <motion.div
           variants={{
             virtualDrive: { left: 0, right: 'unset', width: tabsWidth[0] },
-            app: {
-              left: tabsWidth[0],
-              right: 'unset',
+            app: { left: tabsWidth[0], right: 'unset', width: tabsWidth[1] },
+            backups: {
+              left: 'unset',
+              right: 0,
               width: tabsWidth[1],
             },
           }}

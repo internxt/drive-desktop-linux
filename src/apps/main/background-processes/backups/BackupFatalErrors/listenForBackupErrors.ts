@@ -1,22 +1,20 @@
 import { ipcMain } from 'electron';
-import { BackupFatalErrors, BackupFatalError } from './BackupFatalErrors';
+import { BackupFatalErrors, BackupErrorsCollection } from './BackupFatalErrors';
 import { broadcastToWindows } from '../../../windows';
+import { BackupsIPCMain } from '../BackupsIpc';
 
 export function listenForBackupsErrors() {
   const backupErrors = new BackupFatalErrors(
-    (errors: Array<BackupFatalError>) => {
+    (errors: BackupErrorsCollection) => {
       broadcastToWindows('backup-fatal-errors-changed', errors);
     }
   );
 
   ipcMain.handle('get-backup-fatal-errors', () => backupErrors.get());
 
-  ipcMain.on(
-    'add-backup-fatal-errors',
-    (_, errors: Array<BackupFatalError>) => {
-      backupErrors.add(errors);
-    }
-  );
+  BackupsIPCMain.on('backups.file-issue', (_, name, error) => {
+    backupErrors.add({ name, error });
+  });
 
   return backupErrors;
 }

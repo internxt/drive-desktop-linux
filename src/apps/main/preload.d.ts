@@ -159,6 +159,12 @@ declare interface Window {
 
     deleteBackupError(folderId: number): Promise<void>;
 
+    onBackupFatalErrorsChanged(
+      fn: (
+        value: import('../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors').BackupErrorsCollection
+      ) => void
+    ): () => void;
+
     changeBackupPath: typeof import('../main/device/service').changeBackupPath;
 
     getFolderPath: typeof import('../main/device/service').getPathFromDialog;

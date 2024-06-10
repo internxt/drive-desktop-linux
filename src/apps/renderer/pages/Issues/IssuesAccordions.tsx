@@ -5,12 +5,14 @@ import { VirtualDriveIssue } from '../../../../shared/issues/VirtualDriveIssue';
 import { GeneralIssuesByErrorAccordion } from './GeneralIssuesByErrorAccordion';
 
 import { AppIssue } from '../../../../shared/issues/AppIssue';
+import { BackupErrorsCollection } from '../../../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
 
 type IssuesAccordionsProps = {
   selectedTab: Section;
   issues: {
     app: AppIssue[];
     virtualDrive: VirtualDriveIssue[];
+    backups: BackupErrorsCollection;
   };
 };
 
@@ -26,6 +28,13 @@ export default function IssuesAccordions({
       )}
       {selectedTab === 'app' && (
         <GeneralIssuesByErrorAccordion issues={issues.app} />
+      )}
+      {selectedTab === 'backups' && (
+        <>
+          {issues.backups.map((issue) => (
+            <>{issue}</>
+          ))}
+        </>
       )}
     </ul>
   );

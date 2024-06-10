@@ -7,6 +7,8 @@ import { DependencyInjectionUserProvider } from '../../../shared/dependency-inje
 import { Environment } from '@internxt/inxt-js';
 import { DependencyInjectionMnemonicProvider } from '../../../shared/dependency-injection/DependencyInjectionMnemonicProvider';
 import { AuthorizedClients } from '../../../shared/HttpClient/Clients';
+import { LocalFileMessenger } from '../../../../context/local/localFile/domain/LocalFileMessenger';
+import { RendererIpcLocalFileMessenger } from '../../../../context/local/localFile/infrastructure/RendererIpcLocalFileMessenger';
 
 export function registerLocalFileServices(builder: ContainerBuilder) {
   //Infra
@@ -35,6 +37,12 @@ export function registerLocalFileServices(builder: ContainerBuilder) {
         )
     )
     .private();
+
+  builder
+    .register(LocalFileMessenger)
+    .useClass(RendererIpcLocalFileMessenger)
+    .private()
+    .asSingleton();
 
   // Services
   builder.registerAndUse(FileBatchUpdater);
