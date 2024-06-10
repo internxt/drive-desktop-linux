@@ -1,11 +1,11 @@
 import { UilMinus, UilPlus } from '@iconscout/react-unicons';
 import { useState } from 'react';
-import { Backup } from '../../../../../main/device/service';
 import Button from '../../../../components/Button';
 import { useTranslationContext } from '../../../../context/LocalContext';
 import { useBackups } from '../../../../hooks/backups/useBackups';
 import { LoadingFolders } from './LoadingFolders';
 import { BackupsList } from './BackupsList';
+import { BackupInfo } from '../../../../../backups/BackupInfo';
 
 interface BackupFolderSelectorProps {
   onClose: () => void;
@@ -18,7 +18,7 @@ export default function BackupFolderSelector({
 
   const { backups, state, addBackup, disableBackup } = useBackups();
 
-  const [selectedBackup, setSelectedBackup] = useState<Backup | null>(null);
+  const [selectedBackup, setSelectedBackup] = useState<BackupInfo | null>(null);
 
   return (
     <div className="flex flex-col gap-3 p-4">
@@ -60,7 +60,7 @@ export default function BackupFolderSelector({
           <Button
             className="ml-1"
             disabled={selectedBackup === null}
-            onClick={() => disableBackup(selectedBackup as Backup)}
+            onClick={() => disableBackup(selectedBackup as BackupInfo)}
             variant="secondary"
           >
             <UilMinus size="17" />

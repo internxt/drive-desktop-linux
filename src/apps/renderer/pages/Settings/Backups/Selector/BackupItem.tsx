@@ -1,16 +1,16 @@
 import { WarningCircle } from '@phosphor-icons/react';
-import { Backup } from '../../../../../main/device/service';
 import FolderIcon from '../../../../assets/folder.svg';
 import { useBackupFatalIssue } from '../../../../hooks/backups/useBackupFatalIssue';
 import Button from '../../../../components/Button';
+import { BackupInfo } from '../../../../../backups/BackupInfo';
 
 interface BackupListItemProps {
-  backup: Backup;
+  backup: BackupInfo;
   selected: boolean;
 }
 
 export function BackupListItem({ backup, selected }: BackupListItemProps) {
-  const { issue, message } = useBackupFatalIssue(backup.id);
+  const { issue, message, action } = useBackupFatalIssue(backup);
 
   return (
     <div className="flex w-full justify-between">
@@ -26,10 +26,12 @@ export function BackupListItem({ backup, selected }: BackupListItemProps) {
       {issue && (
         <span className={`${selected ? 'text-white' : 'text-red'}`}>
           <WarningCircle size={18} weight="fill" className="mr-1 inline" />
-          {message()}
-          <Button variant="secondary" className="ml-2">
-            Locate folder
-          </Button>
+          {message}
+          {action !== undefined && (
+            <Button variant="secondary" className="ml-2" onClick={action.fn}>
+              {action.name}
+            </Button>
+          )}
         </span>
       )}
     </div>

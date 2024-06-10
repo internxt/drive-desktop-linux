@@ -56,7 +56,7 @@ export function DetailedDevicePill({
       {thereIsProgress() && (
         <BackupsProgressBar progress={percentualProgress()} />
       )}
-      {lastBackupHadIssues() && <ShowBackupsIssues show={showIssues} />}
+      {lastBackupHadIssues && <ShowBackupsIssues show={showIssues} />}
     </div>
   );
 }

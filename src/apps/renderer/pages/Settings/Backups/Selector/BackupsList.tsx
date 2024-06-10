@@ -1,10 +1,10 @@
-import { Backup } from '../../../../../main/device/service';
+import { BackupInfo } from '../../../../../backups/BackupInfo';
 import { BackupListItem } from './BackupItem';
 
 interface BackupsListProps {
-  backups: Array<Backup>;
-  selected: Backup | null;
-  setSelected: (backup: Backup) => void;
+  backups: Array<BackupInfo>;
+  selected: BackupInfo | null;
+  setSelected: (backup: BackupInfo) => void;
 }
 
 export function BackupsList({
@@ -23,9 +23,9 @@ export function BackupsList({
           role="row"
           onKeyDown={() => setSelected(backup)}
           tabIndex={0}
-          key={backup.id}
+          key={backup.folderId}
           className={`flex w-full items-center overflow-hidden p-2 transition-colors duration-75 ${
-            selected?.id === backup.id
+            selected?.folderId === backup.folderId
               ? 'bg-primary text-white'
               : index % 2 !== 0
               ? 'text-neutral-700 bg-white'
@@ -34,7 +34,7 @@ export function BackupsList({
         >
           <BackupListItem
             backup={backup}
-            selected={selected?.id === backup.id}
+            selected={selected?.folderId === backup.folderId}
           />
         </li>
       ))}

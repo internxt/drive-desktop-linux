@@ -3,4 +3,5 @@ export type BackupInfo = {
   tmpPath: string;
   backupsBucket: string;
   pathname: string;
+  name: string;
 };

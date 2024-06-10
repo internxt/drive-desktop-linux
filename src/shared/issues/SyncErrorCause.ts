@@ -1,36 +1,33 @@
-export type SyncErrorCause =
-  // File or folder does not exist
-  | 'NOT_EXISTS'
+const SyncErrorCauses = [
+  'NOT_EXISTS',
 
-  // No permission to read or write file or folder
-  | 'NO_PERMISSION'
+  'NO_PERMISSION',
 
-  // No internet connection
-  | 'NO_INTERNET'
+  'NO_INTERNET',
 
-  // Could not connect to Internxt servers
-  | 'NO_REMOTE_CONNECTION'
+  'NO_REMOTE_CONNECTION',
 
-  // Had a bad response (not in the 200 status range) from the server
-  | 'BAD_RESPONSE'
+  'BAD_RESPONSE',
 
-  // The file has a size of 0 bytes
-  | 'EMPTY_FILE'
+  'EMPTY_FILE',
 
-  // The file is bigger than the current upload limit
-  | 'FILE_TOO_BIG'
+  'FILE_TOO_BIG',
 
-  // The file don't have an extension
-  | 'FILE_NON_EXTENSION'
+  'FILE_NON_EXTENSION',
 
-  // Unknown error
-  | 'UNKNOWN'
+  'UNKNOWN',
 
-  // Duplicated node path
-  | 'DUPLICATED_NODE'
-  | 'ACTION_NOT_PERMITTED'
-  | 'FILE_ALREADY_EXISTS'
-  | 'COULD_NOT_ENCRYPT_NAME'
-  | 'BAD_REQUEST'
-  | 'BASE_DIRECTORY_DOES_NOT_EXIST'
-  | 'INSUFFICIENT_PERMISSION';
+  'DUPLICATED_NODE',
+  'ACTION_NOT_PERMITTED',
+  'FILE_ALREADY_EXISTS',
+  'COULD_NOT_ENCRYPT_NAME',
+  'BAD_REQUEST',
+  'BASE_DIRECTORY_DOES_NOT_EXIST',
+  'INSUFFICIENT_PERMISSION',
+] as const;
+
+export type SyncErrorCause = (typeof SyncErrorCauses)[number];
+
+export function isSyncErrorCause(maybe: unknown): maybe is SyncErrorCause {
+  return SyncErrorCauses.includes(maybe as SyncErrorCause);
+}

@@ -1,5 +1,5 @@
 import { aes } from '@internxt/lib';
-import { dialog } from 'electron';
+import { app, dialog } from 'electron';
 import fetch from 'electron-fetch';
 import logger from 'electron-log';
 import os from 'os';
@@ -8,6 +8,7 @@ import path from 'path';
 import { getHeaders } from '../auth/service';
 import configStore from '../config';
 import { addAppIssue } from '../issues/app';
+import { BackupInfo } from '../../backups/BackupInfo';
 
 export type Device = { name: string; id: number; bucket: string };
 
@@ -135,10 +136,9 @@ function decryptDeviceName({ name, ...rest }: Device): Device {
 
 export type Backup = { id: number; name: string };
 
-export async function getBackupsFromDevice(): Promise<
-  (Backup & { pathname: string })[]
-> {
+export async function getBackupsFromDevice(): Promise<Array<BackupInfo>> {
   const deviceId = getDeviceId();
+  const device = await getOrCreateDevice();
 
   const folder = await fetchFolder(deviceId);
 
@@ -153,6 +153,9 @@ export async function getBackupsFromDevice(): Promise<
     .map((backup: Backup) => ({
       ...backup,
       pathname: findBackupPathnameFromId(backup.id),
+      folderId: backup.id,
+      tmpPath: app.getPath('temp'),
+      backupsBucket: device.bucket,
     }));
 }
 
@@ -237,9 +240,9 @@ async function fetchFolder(folderId: number) {
   throw new Error('Unsuccesful request to fetch folder');
 }
 
-export async function deleteBackup(backup: Backup): Promise<void> {
+export async function deleteBackup(backup: BackupInfo): Promise<void> {
   const res = await fetch(
-    `${process.env.API_URL}/api/storage/folder/${backup.id}`,
+    `${process.env.API_URL}/api/storage/folder/${backup.folderId}`,
     {
       method: 'DELETE',
       headers: getHeaders(true),
@@ -252,7 +255,7 @@ export async function deleteBackup(backup: Backup): Promise<void> {
   const backupsList = configStore.get('backupList');
 
   const entriesFiltered = Object.entries(backupsList).filter(
-    ([, b]) => b.folderId !== backup.id
+    ([, b]) => b.folderId !== backup.folderId
   );
 
   const backupListFiltered = Object.fromEntries(entriesFiltered);
@@ -260,9 +263,9 @@ export async function deleteBackup(backup: Backup): Promise<void> {
   configStore.set('backupList', backupListFiltered);
 }
 
-export async function disableBackup(backup: Backup): Promise<void> {
+export async function disableBackup(backup: BackupInfo): Promise<void> {
   const backupsList = configStore.get('backupList');
-  const pathname = findBackupPathnameFromId(backup.id)!;
+  const pathname = findBackupPathnameFromId(backup.folderId)!;
 
   backupsList[pathname].enabled = false;
 

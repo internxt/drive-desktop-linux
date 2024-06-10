@@ -10,6 +10,7 @@ import {
 import { BackupsProgress } from '../types/BackupsProgress';
 import { IndividualBackupProgress } from '../types/IndividualBackupProgress';
 import { ProcessFatalErrorName } from '../BackupFatalErrors/BackupFatalErrors';
+import { isSyncErrorCause } from '../../../../../shared/issues/SyncErrorCause';
 
 export type WorkerExitCause =
   | ForcedByUser
@@ -28,9 +29,7 @@ export class BackupsProcessTracker {
   private lastExistReason: WorkerExitCause | undefined;
   public exitReasons: Map<number, WorkerExitCause> = new Map();
 
-  constructor(private readonly notify: (progress: BackupsProgress) => void) {
-    this.lastExistReason = 'forced-by-user';
-  }
+  constructor(private readonly notify: (progress: BackupsProgress) => void) {}
 
   progress(): BackupsProgress {
     return {
@@ -83,6 +82,7 @@ export class BackupsProcessTracker {
   }
 
   getExistReason(id: number): WorkerExitCause | undefined {
+    Logger.debug(this.exitReasons.keys(), id);
     return this.exitReasons.get(id);
   }
 
@@ -110,7 +110,13 @@ export function initiateBackupsProcessTracker(): BackupsProcessTracker {
   });
 
   BackupsIPCMain.handle('backups.get-backup-issues', (_, id: number) => {
-    return tracker.getExistReason(id);
+    const reason = tracker.getExistReason(id);
+
+    if (isSyncErrorCause(reason)) {
+      return reason;
+    }
+
+    return undefined;
   });
 
   BackupsIPCMain.on(

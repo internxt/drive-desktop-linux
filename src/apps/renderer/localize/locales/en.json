@@ -311,7 +311,7 @@
     "no-issues": "No issues found",
     "actions": {
       "select-folder": "Select folder",
-      "find-folder": "Find folder",
+      "find-folder": "Locate folder",
       "try-again": "Try again"
     },
     "short-error-messages": {
