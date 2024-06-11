@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SyncErrorCause } from '../../../../shared/issues/SyncErrorCause';
+import { SyncError } from '../../../../shared/issues/SyncErrorCause';
 import { BackupInfo } from '../../../backups/BackupInfo';
 import { useTranslationContext } from '../../context/LocalContext';
 import { shortMessages } from '../../messages/virtual-drive-error';
@@ -10,7 +10,7 @@ type FixAction = {
 };
 
 export function useBackupFatalIssue(backup: BackupInfo) {
-  const [issue, setIssue] = useState<SyncErrorCause | undefined>(undefined);
+  const [issue, setIssue] = useState<SyncError | undefined>(undefined);
   const [message, setMessage] = useState<string>('');
   const [action, setAction] = useState<FixAction | undefined>(undefined);
 
@@ -57,7 +57,7 @@ type Action = {
   fn: undefined | ((backup: BackupInfo) => Promise<void>);
 };
 
-type BackupErrorActionMap = Record<SyncErrorCause, Action | undefined>;
+type BackupErrorActionMap = Record<SyncError, Action | undefined>;
 
 export const backupsErrorActions: BackupErrorActionMap = {
   BASE_DIRECTORY_DOES_NOT_EXIST: {
@@ -65,7 +65,6 @@ export const backupsErrorActions: BackupErrorActionMap = {
     fn: findBackupFolder,
   },
   NOT_EXISTS: undefined,
-  NO_PERMISSION: undefined,
   NO_INTERNET: undefined,
   NO_REMOTE_CONNECTION: undefined,
   BAD_RESPONSE: undefined,
@@ -79,4 +78,5 @@ export const backupsErrorActions: BackupErrorActionMap = {
   COULD_NOT_ENCRYPT_NAME: undefined,
   BAD_REQUEST: undefined,
   INSUFFICIENT_PERMISSION: undefined,
+  NOT_ENOUGH_SPACE: undefined,
 };

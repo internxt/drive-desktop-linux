@@ -5,11 +5,13 @@ export default function useBackupErrors() {
   const [errors, setErrors] = useState<BackupErrorsCollection>([]);
 
   useEffect(() => {
+    window.electron.getBackupFatalErrors().then(setErrors);
+
     const removeListener =
       window.electron.onBackupFatalErrorsChanged(setErrors);
 
     return removeListener;
-  });
+  }, []);
 
   return { backupErrors: errors };
 }

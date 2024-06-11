@@ -109,7 +109,7 @@ declare interface Window {
 
     getBackupFatalIssue(
       id: number
-    ): Promise<import('../../shared/issues/SyncErrorCause').SyncErrorCause>;
+    ): Promise<import('../../shared/issues/SyncErrorCause').SyncError>;
 
     onBackupsStatusChanged(
       func: (
@@ -122,6 +122,10 @@ declare interface Window {
         value: import('./background-processes/backups/types/BackupsProgress').BackupsProgress
       ) => void
     ): () => void;
+
+    getBackupFatalErrors(): Promise<
+      import('../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors').BackupErrorsCollection
+    >;
 
     getVirtualDriveRoot(): Promise<string>;
 

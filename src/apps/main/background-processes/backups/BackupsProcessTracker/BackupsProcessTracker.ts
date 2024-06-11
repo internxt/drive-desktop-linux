@@ -10,7 +10,7 @@ import {
 import { BackupsProgress } from '../types/BackupsProgress';
 import { IndividualBackupProgress } from '../types/IndividualBackupProgress';
 import { ProcessFatalErrorName } from '../BackupFatalErrors/BackupFatalErrors';
-import { isSyncErrorCause } from '../../../../../shared/issues/SyncErrorCause';
+import { isSyncError } from '../../../../../shared/issues/SyncErrorCause';
 
 export type WorkerExitCause =
   | ForcedByUser
@@ -112,7 +112,7 @@ export function initiateBackupsProcessTracker(): BackupsProcessTracker {
   BackupsIPCMain.handle('backups.get-backup-issues', (_, id: number) => {
     const reason = tracker.getExistReason(id);
 
-    if (isSyncErrorCause(reason)) {
+    if (isSyncError(reason)) {
       return reason;
     }
 

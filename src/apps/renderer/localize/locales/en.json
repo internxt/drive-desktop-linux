@@ -331,7 +331,8 @@
       "file-non-extension": "Files without extensions are not supported.",
       "duplicated-node": "It appears that there are duplicate file or folder names in this directory. Please rename one of them to ensure synchronization",
       "action-not-permitted": "Unable to complete the operation.",
-      "file-already-exists": "Unable to complete the operation. The file already exists on Internxt servers"
+      "file-already-exists": "Unable to complete the operation. The file already exists on Internxt servers",
+      "not-enough-space": "You have not enough space to complete the operation"
     },
     "error-messages": {
       "no-internet": "Looks like you are not connected to the internet, we'll try again later",
@@ -349,7 +350,8 @@
       "file-non-extension": "Files without extensions are not supported. Not synchronized.",
       "duplicated-node": "There are two elements (file or folder) with the same name on a folder. Rename one of them to sync them both",
       "action-not-permitted": "The operation could not be completed, possibly due to a conflict with another file.",
-      "file-already-exists": "Unable to complete the operation. The file already exists on Internxt servers"
+      "file-already-exists": "Unable to complete the operation. The file already exists on Internxt servers",
+      "not-enough-space": "You have not enough space to complete the operation"
     },
     "report-modal": {
       "actions": {

@@ -330,7 +330,8 @@
       "file-non-extension": "Archivos sin extensión no son soportados",
       "duplicated-node": "Hay un conflicto con el elemento",
       "action-not-permitted": "La operación no pudo completarse.",
-      "file-already-exists": "No se puede completar la operación. El archivo ya existe en los servidores de Internxt."
+      "file-already-exists": "No se puede completar la operación. El archivo ya existe en los servidores de Internxt.",
+      "not-enough-space": "No tienes suficiente espacio para completar la operación."
     },
     "error-messages": {
       "no-internet": "No estás conectado a Internet, lo intentaremos más tarde",
@@ -348,7 +349,8 @@
       "file-non-extension": "Los archivos sin extensiones no son soportados. No sincronizado",
       "duplicated-node": "Hay dos elementos (archivo o carpeta) con el mismo nombre en una carpeta. Cambia el nombre de uno de ellos para sincronizar ambos.",
       "action-not-permitted": "La operación no pudo completarse, posiblemente debido a un conflicto con otro archivo.",
-      "file-already-exists": "No se puede completar la operación. El archivo ya existe en los servidores de Internxt."
+      "file-already-exists": "No se puede completar la operación. El archivo ya existe en los servidores de Internxt.",
+      "not-enough-space": "No tienes suficiente espacio para completar la operación."
     },
     "report-modal": {
       "actions": {

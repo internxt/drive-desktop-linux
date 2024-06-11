@@ -9,7 +9,7 @@ import { File } from '../../../../context/virtual-drive/files/domain/File';
 import { FilePath } from '../../../../context/virtual-drive/files/domain/FilePath';
 import { FileStatuses } from '../../../../context/virtual-drive/files/domain/FileStatus';
 import { SyncFileMessenger } from '../../../../context/virtual-drive/files/domain/SyncFileMessenger';
-import { SyncErrorCause } from '../../../../shared/issues/SyncErrorCause';
+import { SyncError } from '../../../../shared/issues/SyncErrorCause';
 import { FuseError, FuseUnknownError } from './FuseErrors';
 
 type RenameOrMoveRight = 'no-op' | 'success';
@@ -25,7 +25,7 @@ export class RenameMoveOrTrashFile {
       await this.container.get(FileTrasher).run(file.contentsId);
       return undefined;
     } catch (trowed: unknown) {
-      const cause: SyncErrorCause =
+      const cause: SyncError =
         trowed instanceof DriveDesktopError ? trowed.cause : 'UNKNOWN';
 
       await this.container.get(SyncFileMessenger).issues({
@@ -80,7 +80,7 @@ export class RenameMoveOrTrashFile {
 
       return right(RenameMoveOrTrashFile.SUCCESS);
     } catch (trowed: unknown) {
-      const cause: SyncErrorCause =
+      const cause: SyncError =
         trowed instanceof DriveDesktopError ? trowed.cause : 'UNKNOWN';
 
       await this.container.get(SyncFileMessenger).issues({

@@ -24,10 +24,10 @@ const NonFatalErrors = [
 
 const Errors = [...FatalErrors, ...NonFatalErrors] as const;
 
-export type SyncErrorCause = (typeof Errors)[number];
+export type SyncError = (typeof Errors)[number];
 
-export function isSyncErrorCause(maybe: string): maybe is SyncErrorCause {
-  return Errors.includes(maybe as SyncErrorCause);
+export function isSyncError(maybe: string): maybe is SyncError {
+  return Errors.includes(maybe as SyncError);
 }
 
 export function isFatalError(maybe: string): maybe is FatalError {

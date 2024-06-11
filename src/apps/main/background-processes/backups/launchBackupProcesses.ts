@@ -9,6 +9,7 @@ import { BackupsProcessTracker } from './BackupsProcessTracker/BackupsProcessTra
 import { BackupsStopController } from './BackupsStopController/BackupsStopController';
 
 import backupConfiguration from './BackupConfiguration/BackupConfiguration';
+import { isSyncError } from '../../../../shared/issues/SyncErrorCause';
 
 function backupsCanRun(status: BackupsProcessStatus) {
   return status.isIn('STANDBY') && backupsConfig.enabled;
@@ -69,6 +70,10 @@ export async function launchBackupProcesses(
 
     // eslint-disable-next-line no-await-in-loop
     const endReason = await executeBackupWorker(backupInfo, stopController);
+
+    if (isSyncError(endReason)) {
+      errors.add({ name: backupInfo.name, error: endReason });
+    }
 
     Logger.info(
       `Backup process for ${backupInfo.folderId} ended with ${endReason}`

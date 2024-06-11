@@ -324,7 +324,8 @@
       "file-too-big": "La taille maximale de téléchargement est de 20 GB. Veuillez essayer des fichiers plus petits.",
       "duplicated-node": "Il y a un conflit avec l'élément.",
       "action-not-permitted": "L'opération n'a pas pu être complétée.",
-      "file-already-exists": "Impossible de terminer l'opération. Le fichier existe déjà sur les serveurs Internxt."
+      "file-already-exists": "Impossible de terminer l'opération. Le fichier existe déjà sur les serveurs Internxt.",
+      "not-enough-space": "Vous n'avez pas assez d'espace pour compléter l'opération."
     },
     "error-messages": {
       "no-internet": "Il semble que vous ne soyez pas connecté à l'internet, nous réessayerons plus tard",
@@ -342,7 +343,8 @@
       "file-non-extension": "Les archives sans extensions ne sont pas supportées. Non synchronisées",
       "duplicated-node": "Il y a deux éléments (fichier ou dossier) avec le même nom dans un dossier. Renommez l'un d'eux pour les synchroniser tous les deux.",
       "action-not-permitted": "L'opération n'a pas pu être complétée, probablement en raison d'un conflit avec un autre fichier.",
-      "file-already-exists": "Impossible de terminer l'opération. Le fichier existe déjà sur les serveurs Internxt."
+      "file-already-exists": "Impossible de terminer l'opération. Le fichier existe déjà sur les serveurs Internxt.",
+      "not-enough-space": "Vous n'avez pas assez d'espace pour compléter l'opération."
     },
     "report-modal": {
       "actions": {

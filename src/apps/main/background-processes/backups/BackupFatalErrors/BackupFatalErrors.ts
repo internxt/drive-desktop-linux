@@ -1,6 +1,6 @@
-import { SyncErrorCause } from '../../../../../shared/issues/SyncErrorCause';
+import { SyncError } from '../../../../../shared/issues/SyncErrorCause';
 
-export type ProcessFatalErrorName = SyncErrorCause;
+export type ProcessFatalErrorName = SyncError;
 
 export type BackupFatalError = {
   path: string;
@@ -8,9 +8,9 @@ export type BackupFatalError = {
   errorName: ProcessFatalErrorName;
 };
 
-type BackupError = {
+export type BackupError = {
   name: string;
-  error: SyncErrorCause;
+  error: SyncError;
 };
 export type BackupErrorsCollection = Array<BackupError>;
 
