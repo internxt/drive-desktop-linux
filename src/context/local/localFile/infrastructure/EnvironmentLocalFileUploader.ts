@@ -7,6 +7,8 @@ import { LocalFileHandler } from '../domain/LocalFileUploader';
 import { Environment } from '@internxt/inxt-js';
 import { Axios } from 'axios';
 import Logger from 'electron-log';
+import { Either, left, right } from '../../../shared/domain/Either';
+import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 
 @Service()
 export class EnvironmentLocalFileUploader implements LocalFileHandler {
@@ -22,7 +24,7 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
     path: AbsolutePath,
     size: number,
     abortSignal: AbortSignal
-  ): Promise<string> {
+  ): Promise<Either<DriveDesktopError, string>> {
     const fn: UploadStrategyFunction =
       size > EnvironmentLocalFileUploader.MULTIPART_UPLOAD_SIZE_THRESHOLD
         ? this.environment.uploadMultipartFile
@@ -34,7 +36,7 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
 
     stopwatch.start();
 
-    return new Promise((resolve, reject) => {
+    return new Promise<Either<DriveDesktopError, string>>((resolve) => {
       const state = fn(this.bucket, {
         source: readable,
         fileSize: size,
@@ -42,12 +44,16 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
           stopwatch.finish();
 
           if (err) {
-            return reject(err);
+            if (err.message === 'Max space used') {
+              return resolve(left(new DriveDesktopError('NOT_ENOUGH_SPACE')));
+            }
+            return resolve(left(new DriveDesktopError('UNKNOWN')));
           }
-          resolve(contentsId);
+
+          resolve(right(contentsId));
         },
-        progressCallback: (_progress: number) => {
-          //
+        progressCallback: (progress: number) => {
+          Logger.debug(progress);
         },
       });
 

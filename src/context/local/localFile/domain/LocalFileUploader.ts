@@ -1,3 +1,5 @@
+import { Either } from '../../../shared/domain/Either';
+import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 import { AbsolutePath } from '../infrastructure/AbsolutePath';
 
 export abstract class LocalFileHandler {
@@ -5,7 +7,7 @@ export abstract class LocalFileHandler {
     path: AbsolutePath,
     size: number,
     abortSignal: AbortSignal
-  ): Promise<string>;
+  ): Promise<Either<DriveDesktopError, string>>;
 
   abstract delete(contentsId: string): Promise<void>;
 }

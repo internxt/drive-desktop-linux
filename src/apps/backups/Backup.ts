@@ -22,6 +22,7 @@ import {
 } from './diff/FoldersDiffCalculator';
 import { relative } from './utils/relative';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
+import { UserAvaliableSpaceValidator } from '../../context/user/usage/application/UserAvaliableSpaceValidator';
 
 @Service()
 export class Backup {
@@ -31,7 +32,8 @@ export class Backup {
     private readonly fileBatchUploader: FileBatchUploader,
     private readonly fileBatchUpdater: FileBatchUpdater,
     private readonly remoteFileDeleter: FileDeleter,
-    private readonly simpleFolderCreator: SimpleFolderCreator
+    private readonly simpleFolderCreator: SimpleFolderCreator,
+    private readonly userAvaliableSpaceValidator: UserAvaliableSpaceValidator
   ) {}
 
   private backed = 0;
@@ -60,6 +62,8 @@ export class Backup {
 
     const filesDiff = DiffFilesCalculator.calculate(local, remote);
 
+    await this.isThereEnoughSpace(filesDiff);
+
     const alreadyBacked =
       filesDiff.unmodified.length + foldersDiff.unmodified.length;
 
@@ -76,6 +80,36 @@ export class Backup {
     await this.backupFiles(filesDiff, local, remote, abortController);
 
     return undefined;
+  }
+
+  private async isThereEnoughSpace(filesDiff: FilesDiff): Promise<void> {
+    const bytesToUpload = filesDiff.added.reduce((acc, file) => {
+      acc += file.size;
+
+      return acc;
+    }, 0);
+
+    const bytesToUpdate = Array.from(filesDiff.modified.entries()).reduce(
+      (acc, [local, remote]) => {
+        acc += local.size - remote.size;
+
+        return acc;
+      },
+      0
+    );
+
+    const total = bytesToUpdate + bytesToUpload;
+
+    const thereIsEnoughSpace = await this.userAvaliableSpaceValidator.run(
+      total
+    );
+
+    if (!thereIsEnoughSpace) {
+      throw new DriveDesktopError(
+        'NOT_ENOUGH_SPACE',
+        'The size of the files to upload is greater than the avaliable space'
+      );
+    }
   }
 
   private async backupFolders(

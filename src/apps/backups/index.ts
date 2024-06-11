@@ -3,6 +3,7 @@ import { Backup } from './Backup';
 import { BackupInfo } from './BackupInfo';
 import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 import { BackupsDependencyContainerFactory } from './dependency-injection/BackupsDependencyContainerFactory';
+import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 
 async function obtainBackup(): Promise<BackupInfo> {
   try {
@@ -62,10 +63,17 @@ async function backupFolder() {
 
     BackupsIPCRenderer.send('backups.backup-completed', data.folderId);
   } catch (error) {
-    Logger.error(error);
+    Logger.error('[BACKUPS] ', error);
+    if (error instanceof DriveDesktopError) {
+      BackupsIPCRenderer.send(
+        'backups.backup-failed',
+        data.folderId,
+        error.cause
+      );
+      return;
+    }
 
     BackupsIPCRenderer.send('backups.backup-failed', data.folderId, 'UNKNOWN');
-    Logger.error('[BACKUPS] ', error);
   }
 }
 

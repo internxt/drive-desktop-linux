@@ -1,33 +1,35 @@
-const SyncErrorCauses = [
-  'NOT_EXISTS',
-
-  'NO_PERMISSION',
-
+const FatalErrors = [
+  'NOT_ENOUGH_SPACE',
   'NO_INTERNET',
-
   'NO_REMOTE_CONNECTION',
+  'INSUFFICIENT_PERMISSION',
+  'BASE_DIRECTORY_DOES_NOT_EXIST',
+] as const;
 
+export type FatalError = (typeof FatalErrors)[number];
+
+const NonFatalErrors = [
+  'NOT_EXISTS',
   'BAD_RESPONSE',
-
   'EMPTY_FILE',
-
   'FILE_TOO_BIG',
-
   'FILE_NON_EXTENSION',
-
-  'UNKNOWN',
-
   'DUPLICATED_NODE',
   'ACTION_NOT_PERMITTED',
   'FILE_ALREADY_EXISTS',
   'COULD_NOT_ENCRYPT_NAME',
   'BAD_REQUEST',
-  'BASE_DIRECTORY_DOES_NOT_EXIST',
-  'INSUFFICIENT_PERMISSION',
+  'UNKNOWN',
 ] as const;
 
-export type SyncErrorCause = (typeof SyncErrorCauses)[number];
+const Errors = [...FatalErrors, ...NonFatalErrors] as const;
 
-export function isSyncErrorCause(maybe: unknown): maybe is SyncErrorCause {
-  return SyncErrorCauses.includes(maybe as SyncErrorCause);
+export type SyncErrorCause = (typeof Errors)[number];
+
+export function isSyncErrorCause(maybe: string): maybe is SyncErrorCause {
+  return Errors.includes(maybe as SyncErrorCause);
+}
+
+export function isFatalError(maybe: string): maybe is FatalError {
+  return FatalErrors.includes(maybe as FatalError);
 }

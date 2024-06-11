@@ -21,11 +21,17 @@ export class FileBatchUpdater {
   ): Promise<void> {
     for (const localFile of batch) {
       // eslint-disable-next-line no-await-in-loop
-      const contentsId = await this.uploader.upload(
+      const upload = await this.uploader.upload(
         localFile.path,
         localFile.size,
         signal
       );
+
+      if (upload.isLeft()) {
+        throw upload.getLeft();
+      }
+
+      const contentsId = upload.getRight();
 
       const remotePath = relative(localRoot.path, localFile.path);
 

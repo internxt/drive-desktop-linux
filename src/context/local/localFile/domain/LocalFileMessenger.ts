@@ -1,9 +1,9 @@
-import { SyncErrorCause } from '../../../../shared/issues/SyncErrorCause';
+import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 import { LocalFile } from './LocalFile';
 
 export abstract class LocalFileMessenger {
   abstract creationFailed(
     file: LocalFile,
-    issue: SyncErrorCause
+    error: DriveDesktopError
   ): Promise<void>;
 }

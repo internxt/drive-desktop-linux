@@ -5,6 +5,7 @@ import { SimpleFileCreator } from '../../../../virtual-drive/files/application/c
 import { RemoteTree } from '../../../../virtual-drive/remoteTree/domain/RemoteTree';
 import { relative } from '../../../../../apps/backups/utils/relative';
 import { LocalFileMessenger } from '../../domain/LocalFileMessenger';
+import { isFatalError } from '../../../../../shared/issues/SyncErrorCause';
 
 @Service()
 export class FileBatchUploader {
@@ -22,11 +23,25 @@ export class FileBatchUploader {
   ): Promise<void> {
     for (const localFile of batch) {
       // eslint-disable-next-line no-await-in-loop
-      const contentsId = await this.localHandler.upload(
+      const uploadEither = await this.localHandler.upload(
         localFile.path,
         localFile.size,
         signal
       );
+
+      if (uploadEither.isLeft()) {
+        const error = uploadEither.getLeft();
+
+        if (isFatalError(error.cause)) {
+          throw error;
+        }
+
+        // eslint-disable-next-line no-await-in-loop
+        await this.messenger.creationFailed(localFile, error);
+        continue;
+      }
+
+      const contentsId = uploadEither.getRight();
 
       const remotePath = relative(localRootPath, localFile.path);
 
@@ -51,7 +66,7 @@ export class FileBatchUploader {
 
         if (error.cause === 'BAD_RESPONSE') {
           // eslint-disable-next-line no-await-in-loop
-          await this.messenger.creationFailed(localFile, error.cause);
+          await this.messenger.creationFailed(localFile, error);
           continue;
         }
 

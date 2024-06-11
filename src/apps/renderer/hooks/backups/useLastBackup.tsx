@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { WorkerExitCause } from '../../../main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
-import { isSyncErrorCause } from '../../../../shared/issues/SyncErrorCause';
+import { isFatalError } from '../../../../shared/issues/SyncErrorCause';
 
 dayjs.extend(relativeTime);
 
@@ -22,7 +22,7 @@ export function useLastBackup() {
   function refreshLastExitReason() {
     window.electron.getLastBackupExitReason().then((reason) => {
       setLastExistReason(reason);
-      setLastBackupHadIssues(isSyncErrorCause(reason));
+      setLastBackupHadIssues(isFatalError(reason));
     });
   }
 
