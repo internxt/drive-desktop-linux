@@ -67,7 +67,7 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
   async delete(contentsId: string): Promise<void> {
     try {
       await this.httpClient.delete(
-        `${process.env.API_URL}/api/storage/bucket/${this.bucket}/file/${contentsId}`
+        `${process.env.API_URL}/storage/bucket/${this.bucket}/file/${contentsId}`
       );
     } catch (error) {
       // Not being able to delete from the bucket is not critical

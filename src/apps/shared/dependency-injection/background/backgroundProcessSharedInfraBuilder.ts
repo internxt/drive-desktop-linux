@@ -22,7 +22,7 @@ export async function backgroundProcessSharedInfraBuilder(): Promise<ContainerBu
     .useFactory(() => {
       const { name: clientName, version: clientVersion } = packageJson;
       const storage = Storage.client(
-        `${process.env.API_URL}/api`,
+        `${process.env.API_URL}`,
         {
           clientName,
           clientVersion,

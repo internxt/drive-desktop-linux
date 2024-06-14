@@ -81,7 +81,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
 
     try {
       const response = await this.driveClient.post(
-        `${process.env.API_URL}/api/storage/folder`,
+        `${process.env.API_URL}/storage/folder`,
         body
       );
 
@@ -146,7 +146,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
   }
 
   async rename(folder: Folder): Promise<void> {
-    const url = `${process.env.API_URL}/api/storage/folder/${folder.id}/meta`;
+    const url = `${process.env.API_URL}/storage/folder/${folder.id}/meta`;
 
     const body: UpdateFolderNameDTO = {
       metadata: { itemName: folder.name },
@@ -163,7 +163,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
   }
 
   async move(folder: Folder): Promise<void> {
-    const url = `${process.env.API_URL}/api/storage/move/folder`;
+    const url = `${process.env.API_URL}/storage/move/folder`;
 
     const body = { destination: folder.parentId, folderId: folder.id };
 

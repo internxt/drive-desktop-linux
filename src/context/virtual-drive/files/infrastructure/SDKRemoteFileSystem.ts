@@ -60,7 +60,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
 
     try {
       const { data } = await this.clients.drive.post(
-        `${process.env.API_URL}/api/storage/file`,
+        `${process.env.API_URL}/storage/file`,
         body
       );
 
