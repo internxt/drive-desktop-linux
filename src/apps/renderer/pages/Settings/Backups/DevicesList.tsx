@@ -1,12 +1,13 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { DeviceContext } from '../../../context/DeviceContext';
 import { Question } from '@phosphor-icons/react';
 import { useDevices } from '../../../hooks/devices/useDevices';
 import { Device } from '../../../../main/device/service';
+import { ScrollableContent } from '../../../components/ScrollableContent';
 
 interface DevicePillProps {
   device: Device;
-  current: boolean;
+  current?: boolean;
 }
 
 function DevicePill({ device, current }: DevicePillProps) {
@@ -49,21 +50,39 @@ export function DevicesList({ className }: DevicesSideBarProps) {
   const [state] = useContext(DeviceContext);
   const { devices } = useDevices();
 
-  function isCurrent(id: number) {
-    return state.status === 'SUCCESS' && state.device.id === id;
-  }
+  const [current, setCurrent] = useState<Device | undefined>();
+
+  useEffect(() => {
+    if (state.status !== 'SUCCESS') {
+      setCurrent(undefined);
+      return;
+    }
+
+    setCurrent(state.device);
+  }, [state]);
+
+  const devicesWithoutCurrent = devices.filter(
+    (device) => state.status === 'SUCCESS' && device.id !== state.device.id
+  );
 
   return (
     <aside className={className}>
-      <div className="flex h-full flex-col">
-        <h1>Devices</h1>
-        <ul>
-          {devices.map((device) => (
-            <li className="my-1" key={device.id}>
-              {<DevicePill device={device} current={isCurrent(device.id)} />}
-            </li>
-          ))}
-        </ul>
+      <div className="flex grow-0 flex-col">
+        <h1 className="bg-gray-1">Devices</h1>
+        <ScrollableContent maxHeight={409} className="-mr-3">
+          <ul>
+            {current && (
+              <li>
+                <DevicePill device={current} current />
+              </li>
+            )}
+            {devicesWithoutCurrent.map((device) => (
+              <li className="my-1" key={device.id}>
+                {<DevicePill device={device} />}
+              </li>
+            ))}
+          </ul>
+        </ScrollableContent>
         <Help />
       </div>
     </aside>

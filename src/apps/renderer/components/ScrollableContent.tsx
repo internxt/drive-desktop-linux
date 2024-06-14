@@ -1,8 +1,23 @@
-type ScrollableContent = React.HTMLAttributes<HTMLBaseElement>;
+import { ReactNode } from 'react';
 
-export function ScrollableContent({ children, className }: ScrollableContent) {
+interface ScrollableContent {
+  children: ReactNode;
+  className?: string;
+  maxHeight?: number;
+}
+
+export function ScrollableContent({
+  children,
+  className,
+  maxHeight,
+}: ScrollableContent) {
+  const styles = className ?? '';
+
   return (
-    <div className={`${className} -m-5 ml-0 overflow-auto p-5 pl-0`}>
+    <div
+      className={`${styles} -mr-5 overflow-auto py-3 pr-5`}
+      style={{ maxHeight }}
+    >
       {children}
     </div>
   );

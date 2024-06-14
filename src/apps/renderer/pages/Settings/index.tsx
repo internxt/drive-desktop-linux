@@ -44,7 +44,7 @@ export default function Settings() {
             className="bg-surface dark:bg-gray-5"
           />
           <Header active={activeSection} onClick={setActiveSection} />
-          <div className="flex bg-gray-1 p-5" style={{ minHeight: 497 }}>
+          <div className="flex bg-gray-1 p-5" style={{ minHeight: 420 }}>
             <GeneralSection active={activeSection === 'GENERAL'} />
             <AccountSection active={activeSection === 'ACCOUNT'} />
             <BackupsSection
