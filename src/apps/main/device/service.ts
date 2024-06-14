@@ -12,6 +12,13 @@ import { BackupInfo } from '../../backups/BackupInfo';
 
 export type Device = { name: string; id: number; bucket: string };
 
+type DeviceDTO = {
+  bucket: string;
+  removed: boolean;
+  name: string;
+  id: number;
+};
+
 export const addUnknownDeviceIssue = (error: Error) => {
   addAppIssue({
     errorName: 'UNKNOWN_DEVICE_NAME',
@@ -38,9 +45,11 @@ export async function getDevices(): Promise<Array<Device>> {
     headers: getHeaders(true),
   });
 
-  const devices = (await response.json()) as Array<Device>;
+  const devices = (await response.json()) as Array<DeviceDTO>;
 
-  return devices.map((device) => decryptDeviceName(device));
+  return devices
+    .filter(({ removed }) => !removed)
+    .map((device) => decryptDeviceName(device));
 }
 
 async function tryToCreateDeviceWithDifferentNames(): Promise<Device> {
