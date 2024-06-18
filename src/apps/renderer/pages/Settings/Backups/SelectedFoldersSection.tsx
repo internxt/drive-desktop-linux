@@ -6,15 +6,15 @@ import { useBackups } from '../../../hooks/backups/useBackups';
 
 import useBackupStatus from '../../../hooks/backups/useBackupsStatus';
 
-interface BackupFoldersSelectorProps
+interface SelectedFoldersSectionProps
   extends React.HTMLAttributes<HTMLBaseElement> {
   onGoToList: () => void;
 }
 
-export function FoldersSelector({
+export function SelectedFoldersSection({
   className,
   onGoToList,
-}: BackupFoldersSelectorProps) {
+}: SelectedFoldersSectionProps) {
   const { translate } = useTranslationContext();
   const { backupStatus } = useBackupStatus();
   const { backups } = useBackups();

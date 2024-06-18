@@ -33,7 +33,10 @@ export default function Settings() {
   }, []);
 
   return (
-    <div ref={rootRef} style={{ minWidth: 600, minHeight: 420 }}>
+    <div
+      ref={rootRef}
+      style={{ minWidth: 600, minHeight: subsection === 'list' ? 0 : 420 }}
+    >
       {subsection === 'list' && (
         <BackupFolderSelector onClose={() => setSubsection('panel')} />
       )}
