@@ -2,13 +2,12 @@ import { ipcMain, powerSaveBlocker } from 'electron';
 import Logger from 'electron-log';
 import { clearBackupsIssues } from '../../issues/virtual-drive';
 import { executeBackupWorker } from './BackukpWorker/executeBackupWorker';
-import backupsConfig from './BackupConfiguration/BackupConfiguration';
+import { backupsConfig } from './BackupConfiguration/BackupConfiguration';
 import { BackupFatalErrors } from './BackupFatalErrors/BackupFatalErrors';
 import { BackupsProcessStatus } from './BackupsProcessStatus/BackupsProcessStatus';
 import { BackupsProcessTracker } from './BackupsProcessTracker/BackupsProcessTracker';
 import { BackupsStopController } from './BackupsStopController/BackupsStopController';
 
-import backupConfiguration from './BackupConfiguration/BackupConfiguration';
 import { isSyncError } from '../../../../shared/issues/SyncErrorCause';
 
 function backupsCanRun(status: BackupsProcessStatus) {
@@ -86,7 +85,7 @@ export async function launchBackupProcesses(
 
   tracker.reset();
   stopController.reset();
-  backupConfiguration.backupFinished();
+  backupsConfig.backupFinished();
 
   ipcMain.removeAllListeners('stop-backups-process');
 

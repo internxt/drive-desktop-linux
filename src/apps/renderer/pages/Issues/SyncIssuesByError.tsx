@@ -6,10 +6,7 @@ import { useTranslationContext } from '../../context/LocalContext';
 import { getBaseName } from '../../utils/path';
 import { shortMessages } from '../../messages/virtual-drive-error';
 import { VirtualDriveIssue } from '../../../../shared/issues/VirtualDriveIssue';
-import {
-  SyncError,
-  isFatalError,
-} from '../../../../shared/issues/SyncErrorCause';
+import { SyncError } from '../../../../shared/issues/SyncErrorCause';
 import { useState } from 'react';
 import { Accordion } from './Accordion';
 

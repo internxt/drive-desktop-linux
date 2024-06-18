@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import eventBus from '../../event-bus';
-import backupConfiguration from './BackupConfiguration/BackupConfiguration';
+import { setupBackupConfig } from './BackupConfiguration/BackupConfiguration';
 import { listenForBackupsErrors } from './BackupFatalErrors/listenForBackupErrors';
 import { BackupScheduler } from './BackupScheduler/BackupScheduler';
 import { handleBackupsStatusMessages } from './BackupsProcessStatus/handlers';
@@ -9,11 +9,10 @@ import { BackupsStopController } from './BackupsStopController/BackupsStopContro
 import { launchBackupProcesses } from './launchBackupProcesses';
 import Logger from 'electron-log';
 
-import './BackupConfiguration/BackupConfiguration';
-
 export async function setUpBackups() {
   Logger.debug('[BACKUPS] Setting up backups');
 
+  const backupConfiguration = setupBackupConfig();
   const tracker = initiateBackupsProcessTracker();
   const errors = listenForBackupsErrors();
   const status = handleBackupsStatusMessages();
@@ -23,6 +22,17 @@ export async function setUpBackups() {
     () => backupConfiguration.backupInterval,
     () => launchBackupProcesses(true, tracker, status, errors, stopController)
   );
+
+  backupConfiguration.onBackupIntervalChanged = (interval: number) => {
+    if (interval === -1) {
+      scheduler.stop();
+      Logger.info('[BACKUPS] The backups schedule stopped');
+      return;
+    }
+
+    scheduler.reschedule();
+    Logger.debug('[BACKUPS] The backups has been rescheduled');
+  };
 
   function stopAndClearBackups() {
     ipcMain.emit('stop-backups-process');

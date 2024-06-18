@@ -6,7 +6,6 @@ import WarnIcon from '../../assets/warn.svg';
 import { AppError } from '../../../../shared/issues/AppError';
 import { AppIssue as GeneralIssue } from '../../../../shared/issues/AppIssue';
 import { useState } from 'react';
-import { BackupErrorsCollection } from '../../../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
 
 function groupAppIssuesByErrorName(issues: GeneralIssue[]) {
   const appIssuesGroupedByErrorName = issues.reduce((acc, current) => {

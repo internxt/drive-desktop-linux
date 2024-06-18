@@ -6,13 +6,22 @@ import {
   getBackupsFromDevice,
 } from '../../../device/service';
 
+type OnIntervalChangedListener = (interval: number) => void;
+
 class BackupConfiguration {
+  public onBackupIntervalChanged: OnIntervalChangedListener | undefined =
+    undefined;
+
   get backupInterval(): number {
     return configStore.get('backupInterval');
   }
 
   set backupInterval(interval: number) {
     configStore.set('backupInterval', interval);
+
+    if (this.onBackupIntervalChanged !== undefined) {
+      this.onBackupIntervalChanged(interval);
+    }
   }
 
   get lastBackup(): number {
@@ -53,26 +62,28 @@ class BackupConfiguration {
   }
 }
 
-const config = new BackupConfiguration();
+export const backupsConfig = new BackupConfiguration();
 
-ipcMain.handle('get-backups-interval', () => {
-  return config.backupInterval;
-});
+export function setupBackupConfig(): BackupConfiguration {
+  ipcMain.handle('get-backups-interval', () => {
+    return backupsConfig.backupInterval;
+  });
 
-ipcMain.handle('set-backups-interval', (_, interval: number) => {
-  config.backupInterval = interval;
-});
+  ipcMain.handle('set-backups-interval', (_, interval: number) => {
+    backupsConfig.backupInterval = interval;
+  });
 
-ipcMain.handle('get-last-backup-timestamp', () => {
-  return config.lastBackup;
-});
+  ipcMain.handle('get-last-backup-timestamp', () => {
+    return backupsConfig.lastBackup;
+  });
 
-ipcMain.handle('get-backups-enabled', () => {
-  return config.enabled;
-});
+  ipcMain.handle('get-backups-enabled', () => {
+    return backupsConfig.enabled;
+  });
 
-ipcMain.handle('toggle-backups-enabled', () => {
-  config.toggleEnabled();
-});
+  ipcMain.handle('toggle-backups-enabled', () => {
+    backupsConfig.toggleEnabled();
+  });
 
-export default config;
+  return backupsConfig;
+}

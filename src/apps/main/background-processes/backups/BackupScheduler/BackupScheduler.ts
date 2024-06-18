@@ -15,7 +15,7 @@ export class BackupScheduler {
       return;
     }
 
-    if (!this.internalIsSet()) {
+    if (!this.intervalIsSet()) {
       return;
     }
 
@@ -46,7 +46,7 @@ export class BackupScheduler {
       return;
     }
 
-    if (!this.internalIsSet()) {
+    if (!this.intervalIsSet()) {
       return;
     }
 
@@ -61,7 +61,7 @@ export class BackupScheduler {
     return this.lastBackup() !== -1;
   }
 
-  private internalIsSet(): boolean {
+  private intervalIsSet(): boolean {
     return this.interval() !== -1;
   }
 
@@ -79,5 +79,10 @@ export class BackupScheduler {
 
   isScheduled(): boolean {
     return BackupScheduler.schedule !== null;
+  }
+
+  reschedule(): void {
+    this.stop();
+    this.start();
   }
 }

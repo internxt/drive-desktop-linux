@@ -112,7 +112,7 @@ export function initiateBackupsProcessTracker(): BackupsProcessTracker {
   BackupsIPCMain.handle('backups.get-backup-issues', (_, id: number) => {
     const reason = tracker.getExistReason(id);
 
-    if (isSyncError(reason)) {
+    if (reason !== undefined && isSyncError(reason)) {
       return reason;
     }
 

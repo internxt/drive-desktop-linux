@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useTranslationContext } from '../../context/LocalContext';
 import { Section } from './Section';
-import { unset } from 'lodash';
 
 function TabPill({
   value,

@@ -1,5 +1,7 @@
 import { LocalFileHandler } from '../../../../../../src/context/local/localFile/domain/LocalFileUploader';
 import { AbsolutePath } from '../../../../../../src/context/local/localFile/infrastructure/AbsolutePath';
+import { Either } from '../../../../../../src/context/shared/domain/Either';
+import { DriveDesktopError } from '../../../../../../src/context/shared/domain/errors/DriveDesktopError';
 
 export class LocalFileUploaderMock implements LocalFileHandler {
   private readonly uploadMock = jest.fn();
@@ -9,7 +11,7 @@ export class LocalFileUploaderMock implements LocalFileHandler {
     path: AbsolutePath,
     size: number,
     abortSignal: AbortSignal
-  ): Promise<string> {
+  ): Promise<Either<DriveDesktopError, string>> {
     return this.uploadMock(path, size, abortSignal);
   }
 
