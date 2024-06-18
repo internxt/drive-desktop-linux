@@ -21,11 +21,12 @@ import { WriteCallback } from './callbacks/WriteCallback';
 import { mountPromise, unmountPromise } from './helpers';
 import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import { ThumbnailSynchronizer } from '../../../context/storage/thumbnails/application/sync/ThumbnailSynchronizer';
+import { EventEmitter } from 'stream';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
 
-export class FuseApp {
+export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';
   private static readonly MAX_INT_32 = 2147483647;
   private _fuse: any;
@@ -35,7 +36,9 @@ export class FuseApp {
     private readonly container: Container,
     private readonly localRoot: string,
     private readonly remoteRoot: number
-  ) {}
+  ) {
+    super();
+  }
 
   private getOpt() {
     const readdir = new ReaddirCallback(this.container);
@@ -82,6 +85,7 @@ export class FuseApp {
       await mountPromise(this._fuse);
       this.status = 'MOUNTED';
       Logger.info('[FUSE] mounted');
+      this.emit('mounted');
     } catch (firstMountError) {
       Logger.error(`[FUSE] mount error: ${firstMountError}`);
       try {
@@ -89,9 +93,11 @@ export class FuseApp {
         await mountPromise(this._fuse);
         this.status = 'MOUNTED';
         Logger.info('[FUSE] mounted');
+        this.emit('mounted');
       } catch (err) {
         this.status = 'ERROR';
         Logger.error(`[FUSE] mount error: ${err}`);
+        this.emit('mount-error');
       }
     }
   }
@@ -136,6 +142,8 @@ export class FuseApp {
       this.status = 'ERROR';
       Logger.error(`[FUSE] mount error: ${err}`);
     }
+
+    this.emit('mounted');
 
     return this.status;
   }

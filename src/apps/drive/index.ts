@@ -1,4 +1,5 @@
 import { getRootVirtualDrive } from '../main/virtual-root-folder/service';
+import { broadcastToWindows } from '../main/windows';
 import { DependencyInjectionUserProvider } from '../shared/dependency-injection/DependencyInjectionUserProvider';
 import { VirtualDrive } from './VirtualDrive';
 import { DriveDependencyContainerFactory } from './dependency-injection/DriveDependencyContainerFactory';
@@ -25,6 +26,14 @@ export async function startVirtualDrive() {
     container,
     localRoot,
     user.root_folder_id
+  );
+
+  fuseApp.on('mounted', () =>
+    broadcastToWindows('virtual-drive-status-change', 'MOUNTED')
+  );
+
+  fuseApp.on('mount-error', () =>
+    broadcastToWindows('virtual-drive-status-change', 'ERROR')
   );
 
   await hydrationApi.start({ debug: false, timeElapsed: false });
