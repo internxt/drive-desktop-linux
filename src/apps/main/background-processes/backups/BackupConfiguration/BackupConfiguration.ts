@@ -60,6 +60,18 @@ class BackupConfiguration {
 
     return backups;
   }
+
+  hasDiscoveredBackups(): boolean {
+    const when = configStore.get('discoveredBackup');
+
+    if (when <= 0) return false;
+
+    return this.enabled;
+  }
+
+  backupsDiscovered(): void {
+    configStore.set('discoveredBackup', Date.now());
+  }
 }
 
 export const backupsConfig = new BackupConfiguration();
@@ -83,6 +95,14 @@ export function setupBackupConfig(): BackupConfiguration {
 
   ipcMain.handle('toggle-backups-enabled', () => {
     backupsConfig.toggleEnabled();
+  });
+
+  ipcMain.handle('user.get-has-discovered-backups', () => {
+    return backupsConfig.hasDiscoveredBackups();
+  });
+
+  ipcMain.on('user.set-has-discovered-backups', () => {
+    return backupsConfig.backupsDiscovered();
   });
 
   return backupsConfig;

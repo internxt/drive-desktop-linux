@@ -191,6 +191,13 @@
       "message": "Estamos teniendo problemas al montar tu unidad Internxt. Intenta desmontarla manualmente y luego reiniciar la aplicación.",
       "mounting": "Montando..",
       "button": "Montar"
+    },
+    "banners": {
+      "discover-backups": {
+        "title": " COPIAS DE SEGURIDAD DE INTERNXT",
+        "body": "Mantén una copia de seguridad de tus carpetas y archivos más importantes.",
+        "action": "Hacer copia"
+      }
     }
   },
   "settings": {

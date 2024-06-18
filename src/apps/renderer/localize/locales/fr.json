@@ -187,6 +187,13 @@
       "title": "Impossible de créer le lecteur",
       "message": "Nous rencontrons des problèmes pour monter votre disque Internxt. Essayez de le démonter manuellement et de relancer l'application. ",
       "button": "Monter"
+    },
+    "banners": {
+      "discover-backups": {
+        "title": "INTERNXT SAUVEGARDES",
+        "body": "Gardez une copie de secours de vos dossiers et fichiers les plus importants.",
+        "action": "Sauvegarder"
+      }
     }
   },
   "settings": {

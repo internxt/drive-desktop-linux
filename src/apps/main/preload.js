@@ -305,4 +305,12 @@ contextBridge.exposeInMainWorld('electron', {
     return ipcRenderer.invoke('APP:PREFERRED_LANGUAGE');
   },
   path,
+  user: {
+    hasDiscoveredBackups() {
+      return ipcRenderer.invoke('user.get-has-discovered-backups');
+    },
+    discoveredBackups() {
+      ipcRenderer.send('user.set-has-discovered-backups');
+    },
+  },
 });

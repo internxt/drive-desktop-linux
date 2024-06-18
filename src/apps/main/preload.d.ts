@@ -207,5 +207,9 @@ declare interface Window {
     startRemoteSync: () => Promise<void>;
     openUrl: (url: string) => Promise<void>;
     getPreferredAppLanguage: () => Promise<Array<string>>;
+    user: {
+      hasDiscoveredBackups: () => Promise<boolean>;
+      discoveredBackups: () => Promise<void>;
+    };
   };
 }

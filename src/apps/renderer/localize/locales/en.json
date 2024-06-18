@@ -191,6 +191,13 @@
       "message": "We are having issues mounting your Internxt Drive, try unmounting it manually and starting the app again",
       "mounting": "Mounting...",
       "button": "Mount"
+    },
+    "banners": {
+      "discover-backups": {
+        "title": "INTERNXT BACKUPS",
+        "body": "Keep a lifesaver copy of your most important folders and files.",
+        "action": "Backup this device"
+      }
     }
   },
   "settings": {
