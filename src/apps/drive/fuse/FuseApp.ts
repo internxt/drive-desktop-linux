@@ -22,6 +22,7 @@ import { mountPromise, unmountPromise } from './helpers';
 import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import { ThumbnailSynchronizer } from '../../../context/storage/thumbnails/application/sync/ThumbnailSynchronizer';
 import { EventEmitter } from 'stream';
+import { exec } from 'child_process';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
@@ -30,6 +31,8 @@ export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';
   private static readonly MAX_INT_32 = 2147483647;
   private _fuse: any;
+  private isUnmounting = false;
+  private isLocked = false;
 
   constructor(
     private readonly virtualDrive: VirtualDrive,
@@ -38,6 +41,37 @@ export class FuseApp extends EventEmitter {
     private readonly remoteRoot: number
   ) {
     super();
+
+    process.on('SIGINT', this.handleShutdown.bind(this));
+    process.on('SIGTERM', this.handleShutdown.bind(this));
+    process.on('exit', async () => {
+      Logger.info('[FUSE] Process exit detected');
+      await this.stop();
+    });
+  }
+
+  private async handleShutdown() {
+    Logger.info('[FUSE] Shutdown signal received');
+    try {
+      await this.stop();
+      Logger.info('[FUSE] Shutdown completed successfully');
+      process.exit(0);
+    } catch (error) {
+      Logger.error('Error during shutdown:', error);
+      process.exit(1);
+    }
+  }
+
+  async verifyUnmount(mountPoint: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      exec(`mount | grep ${mountPoint}`, (error, stdout) => {
+        if (error) {
+          resolve(false); // Not mounted
+          return;
+        }
+        resolve(stdout.trim().length === 0);
+      });
+    });
   }
 
   private getOpt() {
@@ -70,7 +104,25 @@ export class FuseApp extends EventEmitter {
     };
   }
 
+  lock() {
+    this.isLocked = true;
+    Logger.info('[FUSE] Operations locked');
+  }
+
+  unlock() {
+    this.isLocked = false;
+    Logger.info('[FUSE] Operations unlocked');
+  }
+
   async start(): Promise<void> {
+    if (this.isUnmounting || this.isLocked) {
+      Logger.warn(
+        '[FUSE] Cannot start while unmounting or another operation is in progress'
+      );
+      return;
+    }
+
+    this.isLocked = true;
     const ops = this.getOpt();
 
     await this.update();
@@ -84,10 +136,10 @@ export class FuseApp extends EventEmitter {
     try {
       await mountPromise(this._fuse);
       this.status = 'MOUNTED';
-      Logger.info('[FUSE] mounted');
+      Logger.info('[FUSE] Mounted');
       this.emit('mounted');
-    } catch (firstMountError) {
-      Logger.error(`[FUSE] mount error: ${firstMountError}`);
+    } catch (error) {
+      Logger.error(`[FUSE] mount error: ${error}`);
       try {
         await unmountPromise(this._fuse);
         await mountPromise(this._fuse);
@@ -99,11 +151,35 @@ export class FuseApp extends EventEmitter {
         Logger.error(`[FUSE] mount error: ${err}`);
         this.emit('mount-error');
       }
+    } finally {
+      this.unlock();
     }
   }
 
   async stop(): Promise<void> {
-    //no-op
+    if (this._fuse && !this.isUnmounting) {
+      this.isUnmounting = true;
+      Logger.info('[FUSE] Attempting to unmount');
+      try {
+        await unmountPromise(this._fuse);
+        const isUnmounted = await this.verifyUnmount(this.localRoot);
+        if (isUnmounted) {
+          this.status = 'UNMOUNTED';
+          Logger.info('[FUSE] Unmounted successfully and verified');
+          this.emit('unmounted');
+        } else {
+          throw new Error('Failed to verify unmount');
+        }
+      } catch (error) {
+        this.status = 'ERROR';
+        Logger.error(`[FUSE] Unmount error: ${error}`);
+        this.emit('unmount-error');
+      } finally {
+        this.isUnmounting = false;
+      }
+    } else {
+      Logger.warn('[FUSE] _fuse is undefined or already unmounted');
+    }
   }
 
   async clearCache(): Promise<void> {

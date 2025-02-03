@@ -36,6 +36,14 @@ export async function startVirtualDrive() {
     broadcastToWindows('virtual-drive-status-change', 'ERROR')
   );
 
+  fuseApp.on('unmounted', () =>
+    broadcastToWindows('virtual-drive-status-change', 'UNMOUNTED')
+  );
+
+  fuseApp.on('unmount-error', () =>
+    broadcastToWindows('virtual-drive-status-change', 'ERROR')
+  );
+
   await hydrationApi.start({ debug: false, timeElapsed: false });
 
   await fuseApp.start();

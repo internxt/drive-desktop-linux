@@ -1,5 +1,5 @@
 import os
-
+import logging
 
 from gi.repository import Nautilus, GObject, Gtk, Gdk
 import requests
@@ -11,7 +11,7 @@ SYNC_STATUS_ATTRIBUTE ="SYNC_STATUS"
 SYNC_STATUS_ATTRIBUTE_NAME ="Sync Status"
 SYNC_STATUS_ONLY_ONLINE="Only online"
 
-VIRTUAL_DRIVE_ROOT_FOLDER_NAME = "Internxt"
+VIRTUAL_DRIVE_ROOT_FOLDER_NAME = "Internxt%20Drive"
 
 status_to_column_status_map = {
   "on_local": "Offline Available",
@@ -29,6 +29,8 @@ status_to_emblem_map = {
 
 base_url = "http://localhost:4567/hydration/"
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.ColumnProvider,
                       Nautilus.InfoProvider):
@@ -92,26 +94,27 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
 
     def _get_availability(self, file):
-      base64_encoded = self._encode_file_path(file)
+        try:
+            base64_encoded = self._encode_file_path(file)
 
-      if file.is_directory() :
-        url = base_url + 'folders/' + base64_encoded
-      else :
-        url = base_url + 'files/' + base64_encoded
+            if file.is_directory():
+                url = base_url + 'folders/' + base64_encoded
+            else:
+                url = base_url + 'files/' + base64_encoded
 
+            response = requests.get(url)
+            response.raise_for_status()  # Raise an error for bad responses
 
-      response = requests.get(url)
+            data = response.json()
 
-      if (response.status_code == 200):
-        data = response.json()
+            if data['locallyAvaliable']:
+                return 'on_local'
+            else:
+                return 'on_remote'
 
-        if data['locallyAvaliable']:
-          return 'on_local'
-        else:
-          return 'on_remote'
-
-      else:
-         return None
+        except requests.RequestException as e:
+            logging.error(f"Failed to get availability for {file.get_uri()}: {e}")
+            return None
 
 
     def _update_file_status(self, file):
@@ -180,42 +183,43 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
     def _make_locally_available(self, menu, files):
         for file in files:
-            self._setItemStatus(file, 'downloading')
+            try:
+                self._setItemStatus(file, 'downloading')
 
-            base64_encoded = self._encode_file_path(file)
+                base64_encoded = self._encode_file_path(file)
 
-            if file.is_directory():
-              url = base_url + 'folders/' + base64_encoded
-            else:
-              url = base_url + 'files/' + base64_encoded
+                if file.is_directory():
+                    url = base_url + 'folders/' + base64_encoded
+                else:
+                    url = base_url + 'files/' + base64_encoded
 
-            response = requests.post(url)
+                response = requests.post(url)
+                response.raise_for_status()
 
-            print(response.status_code)
+                logging.info(f"Successfully made {file.get_uri()} available offline.")
 
-            # if (response.status_code == 202):
-            #   self._setItemStatus(file, 'on_local')
+            except requests.RequestException as e:
+                logging.error(f"Failed to make {file.get_uri()} available offline: {e}")
 
     def _make_remote_only(self, menu, files):
         for file in files:
-            self._setItemStatus(file, 'removing')
+            try:
+                self._setItemStatus(file, 'removing')
 
-            base64_encoded = self._encode_file_path(file)
+                base64_encoded = self._encode_file_path(file)
 
-            if file.is_directory() :
-              url = base_url + 'folders/' + base64_encoded
-            else:
-              url = base_url + 'files/' + base64_encoded
+                if file.is_directory():
+                    url = base_url + 'folders/' + base64_encoded
+                else:
+                    url = base_url + 'files/' + base64_encoded
 
-            print(url)
+                response = requests.delete(url)
+                response.raise_for_status()
 
-            response = requests.delete(url)
+                logging.info(f"Successfully made {file.get_uri()} available online only.")
 
-            print(response.status_code)
-
-            if (response.status_code == 201):
-              self._setItemStatus(file, 'on_remote')
-
+            except requests.RequestException as e:
+                logging.error(f"Failed to make {file.get_uri()} available online only: {e}")
 
     def get_columns(self):
       return (Nautilus.Column(name='InternxtVirtualDrive::sync',
