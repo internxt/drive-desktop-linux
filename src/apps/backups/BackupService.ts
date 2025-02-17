@@ -23,6 +23,7 @@ import {
 import { relative } from './utils/relative';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 import { UserAvaliableSpaceValidator } from '../../context/user/usage/application/UserAvaliableSpaceValidator';
+import { Either, left, right } from '../../context/shared/domain/Either';
 
 @Service()
 export class BackupService {
@@ -102,6 +103,16 @@ export class BackupService {
         return error;
       }
       return new DriveDesktopError('UNKNOWN', 'An unknown error occurred');
+    }
+  }
+
+  async getBackupInfo(): Promise<Either<Error, BackupInfo>>{
+    try {
+      const backupInfo = await BackupsIPCRenderer.invoke('backups.get-backup');
+      return right(backupInfo);
+    } catch (error: unknown) {
+      this.logAndReportError(error);
+      return left(error instanceof Error ? error : new Error('Uncontrolled error while getting backup info'));
     }
   }
 
@@ -256,5 +267,11 @@ export class BackupService {
 
     this.backed += deleted.length;
     BackupsIPCRenderer.send('backups.progress-update', this.backed);
+  }
+
+  private logAndReportError(error: unknown) {
+    Logger.error(error);
+    const message = error instanceof Error ? error.message : 'unknown';
+    BackupsIPCRenderer.send('backups.process-error', message);
   }
 }

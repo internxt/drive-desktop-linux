@@ -3,8 +3,9 @@ import { BackupService } from '../../../src/apps/backups/BackupService';
 import { BackupsIPCRenderer } from '../../../src/apps/backups/BackupsIPCRenderer';
 import { BackupsDependencyContainerFactory } from '../../../src/apps/backups/dependency-injection/BackupsDependencyContainerFactory';
 import { DriveDesktopError } from '../../../src/context/shared/domain/errors/DriveDesktopError';
-import { backupFolder } from '../../../src/apps/backups/index'; // Ensure this is imported
+import { backupFolder } from '../../../src/apps/backups';
 import { BackUpErrorCauseEnum } from '../../../src/apps/backups/BackupError';
+import { Either, right, left } from '../../../src/context/shared/domain/Either';
 
 interface BackupInfo {
   folderId: number;
@@ -22,12 +23,6 @@ jest.mock('electron', () => ({
 
 jest.mock('../../../src/apps/backups/BackupsIPCRenderer', () => ({
   BackupsIPCRenderer: {
-    invoke: jest.fn<Promise<BackupInfo>, []>().mockResolvedValue({
-      folderId: 123,
-      path: 'test/path',
-      parentId: 456,
-      name: 'test',
-    }),
     send: jest.fn(),
     on: jest.fn(),
   },
@@ -37,12 +32,21 @@ jest.mock('../../../src/apps/backups/BackupsIPCRenderer', () => ({
   addEventListener: jest.fn(),
 };
 
-function createMockBackup(): jest.Mocked<BackupService> {
+const backupInfo = {
+  folderId: 123,
+  path: 'test/path',
+  parentId: 456,
+  name: 'test',
+  folderUuid: 'uuid',
+  tmpPath: 'tmpPath',
+  backupsBucket: 'backupsBucket',
+  pathname: 'pathname'
+};
+
+function createMockBackupService(): jest.Mocked<BackupService> {
   return {
-    run: jest.fn<
-      Promise<DriveDesktopError | undefined>,
-      [BackupInfo, AbortController]
-    >(),
+    run: jest.fn<Promise<DriveDesktopError | undefined>, [BackupInfo, AbortController]>(),
+    getBackupInfo: jest.fn<Promise<Either<Error, BackupInfo>>, unknown[]>(),
   } as unknown as jest.Mocked<BackupService>;
 }
 
@@ -53,7 +57,7 @@ jest.mock(
       build: jest.fn<Promise<unknown>, []>().mockResolvedValue({
         get: jest.fn().mockImplementation((service) => {
           if (service === BackupService) {
-            return createMockBackup();
+            return createMockBackupService();
           }
           return undefined;
         }),
@@ -64,23 +68,19 @@ jest.mock(
 );
 
 describe('Backup Functionality', () => {
-  let backup: jest.Mocked<BackupService>;
+  let backupService: jest.Mocked<BackupService>;
 
   beforeEach(() => {
-    backup = {
-      run: jest.fn(),
-    } as unknown as jest.Mocked<BackupService>;
+    backupService = createMockBackupService();
 
     (BackupsDependencyContainerFactory.build as jest.Mock).mockResolvedValue({
-      get: jest.fn().mockReturnValue(backup),
+      get: jest.fn().mockReturnValue(backupService),
     });
 
-    (BackupsIPCRenderer.invoke as jest.Mock).mockResolvedValue({
-      folderId: 123,
-      path: 'test/path',
-      parentId: 456,
-      name: 'test',
-    });
+    backupService.getBackupInfo.mockResolvedValue(
+      Promise.resolve(right(backupInfo))
+    );
+
 
     global.window = Object.create(window);
     Object.defineProperty(window, 'dispatchEvent', {
@@ -93,8 +93,12 @@ describe('Backup Functionality', () => {
     });
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should complete the backup process successfully', async () => {
-    backup.run.mockResolvedValueOnce(undefined);
+    backupService.run.mockResolvedValueOnce(undefined);
 
     await backupFolder();
 
@@ -104,26 +108,24 @@ describe('Backup Functionality', () => {
     );
   });
 
+  it('should handle failure when fetching backup info', async () => {
+    backupService.getBackupInfo.mockResolvedValueOnce(Promise.resolve(left(new Error('Failed to obtain backup info'))));
+    await backupFolder();
+
+    expect(BackupsIPCRenderer.send).not.toHaveBeenCalledWith(
+      'backups.backup-completed',
+      expect.anything()
+    );
+  });
+
   it('should handle offline event', async () => {
-    const abortController = {
-      signal: {
-        aborted: false,
-        addEventListener: jest.fn(),
-      },
-      abort: jest.fn(() => {
-        abortController.signal.aborted = true;
-      }),
-    };
+    jest.spyOn(window, 'addEventListener').mockImplementation((event, callback) => {
+      if (event === 'offline' && typeof callback === 'function') {
+        callback(new Event('offline'));
+      }
+    });
 
-    jest
-      .spyOn(window, 'addEventListener')
-      .mockImplementation((event, callback) => {
-        if (event === 'offline' && typeof callback === 'function') {
-          callback(new Event('offline'));
-        }
-      });
-
-    backup.run.mockResolvedValueOnce(undefined);
+    backupService.run.mockResolvedValueOnce(undefined);
 
     await backupFolder();
 
@@ -140,7 +142,7 @@ describe('Backup Functionality', () => {
     jest.useFakeTimers();
 
     const abortController = new AbortController();
-    backup.run.mockResolvedValueOnce(undefined);
+    backupService.run.mockResolvedValueOnce(undefined);
 
     await backupFolder();
 
@@ -150,7 +152,6 @@ describe('Backup Functionality', () => {
 
     jest.advanceTimersByTime(500);
 
-    // @ts-ignore as the event is only defined in the renderer
     BackupsIPCRenderer.send('backups.abort');
 
     expect(BackupsIPCRenderer.send).toHaveBeenCalledWith('backups.abort');
