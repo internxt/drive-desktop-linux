@@ -1,6 +1,6 @@
 import Logger from 'electron-log';
 import { ipcRenderer } from 'electron';
-import { Backup } from './Backup';
+import { BackupService } from './BackupService';
 import { BackupInfo } from './BackupInfo';
 import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 import { BackupsDependencyContainerFactory } from './dependency-injection/BackupsDependencyContainerFactory';
@@ -22,6 +22,10 @@ async function obtainBackup(): Promise<BackupInfo> {
   }
 }
 
+/**
+ * This function is going to be executed by the BackupWorker when it spawns and loads the index.html file.
+ * See {@link BackupWorker.spawn}
+ */
 export async function backupFolder() {
   const data = await obtainBackup();
 
@@ -48,9 +52,9 @@ export async function backupFolder() {
       BackupsIPCRenderer.send('backups.stopped');
     });
 
-    const backup = container.get(Backup);
+    const backupService = container.get(BackupService);
 
-    const error = await backup.run(data, abortController);
+    const error = await backupService.run(data, abortController);
 
     if (error) {
       Logger.info('[BACKUPS] failed');

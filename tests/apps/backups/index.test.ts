@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { Backup } from '../../../src/apps/backups/Backup';
+import { BackupService } from '../../../src/apps/backups/BackupService';
 import { BackupsIPCRenderer } from '../../../src/apps/backups/BackupsIPCRenderer';
 import { BackupsDependencyContainerFactory } from '../../../src/apps/backups/dependency-injection/BackupsDependencyContainerFactory';
 import { DriveDesktopError } from '../../../src/context/shared/domain/errors/DriveDesktopError';
@@ -37,13 +37,13 @@ jest.mock('../../../src/apps/backups/BackupsIPCRenderer', () => ({
   addEventListener: jest.fn(),
 };
 
-function createMockBackup(): jest.Mocked<Backup> {
+function createMockBackup(): jest.Mocked<BackupService> {
   return {
     run: jest.fn<
       Promise<DriveDesktopError | undefined>,
       [BackupInfo, AbortController]
     >(),
-  } as unknown as jest.Mocked<Backup>;
+  } as unknown as jest.Mocked<BackupService>;
 }
 
 jest.mock(
@@ -52,7 +52,7 @@ jest.mock(
     BackupsDependencyContainerFactory: {
       build: jest.fn<Promise<unknown>, []>().mockResolvedValue({
         get: jest.fn().mockImplementation((service) => {
-          if (service === Backup) {
+          if (service === BackupService) {
             return createMockBackup();
           }
           return undefined;
@@ -64,12 +64,12 @@ jest.mock(
 );
 
 describe('Backup Functionality', () => {
-  let backup: jest.Mocked<Backup>;
+  let backup: jest.Mocked<BackupService>;
 
   beforeEach(() => {
     backup = {
       run: jest.fn(),
-    } as unknown as jest.Mocked<Backup>;
+    } as unknown as jest.Mocked<BackupService>;
 
     (BackupsDependencyContainerFactory.build as jest.Mock).mockResolvedValue({
       get: jest.fn().mockReturnValue(backup),

@@ -25,7 +25,7 @@ import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDeskt
 import { UserAvaliableSpaceValidator } from '../../context/user/usage/application/UserAvaliableSpaceValidator';
 
 @Service()
-export class Backup {
+export class BackupService {
   constructor(
     private readonly localTreeBuilder: LocalTreeBuilder,
     private readonly remoteTreeBuilder: RemoteTreeBuilder,
