@@ -24,6 +24,8 @@ import { relative } from './utils/relative';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 import { UserAvaliableSpaceValidator } from '../../context/user/usage/application/UserAvaliableSpaceValidator';
 import { Either, left, right } from '../../context/shared/domain/Either';
+import { RetryOptions } from '../shared/retry/types';
+import { RetryHandler } from '../shared/retry/RetryHandler';
 
 @Service()
 export class BackupService {
@@ -39,6 +41,7 @@ export class BackupService {
 
   private backed = 0;
 
+  // TODO: PB-3897 - Change Signature of this method for a better error handling
   async run(
     info: BackupInfo,
     abortController: AbortController
@@ -104,6 +107,21 @@ export class BackupService {
       }
       return new DriveDesktopError('UNKNOWN', 'An unknown error occurred');
     }
+  }
+
+  /**
+   * Executes the backup process with retry logic.
+   */
+  async runWithRetry(info: BackupInfo, abortController: AbortController) {
+    const options: RetryOptions = {
+      maxRetries: 3,
+      initialDelay: 5000,
+      backoffFactor: 2,
+      jitter: true,
+      signal: abortController.signal
+    };
+    const run = () => this.run(info, abortController);
+    return await RetryHandler.execute(run,options);
   }
 
   async getBackupInfo(): Promise<Either<Error, BackupInfo>>{

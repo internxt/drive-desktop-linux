@@ -6,23 +6,6 @@ import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 import { BackupsDependencyContainerFactory } from './dependency-injection/BackupsDependencyContainerFactory';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 
-async function executeBackup(backupInfo: BackupInfo, backupService: BackupService, abortController: AbortController) {
-  try {
-    const error = await backupService.run(backupInfo, abortController);
-
-    if (error) {
-      Logger.info('[BACKUPS] failed');
-      BackupsIPCRenderer.send('backups.backup-failed', backupInfo.folderId, error.cause);
-    } else {
-      Logger.info('[BACKUPS] done');
-      BackupsIPCRenderer.send('backups.backup-completed', backupInfo.folderId);
-    }
-  } catch (error) {
-    Logger.error('[BACKUPS] ', error);
-    const cause = error instanceof DriveDesktopError ? error.cause : 'UNKNOWN';
-    BackupsIPCRenderer.send('backups.backup-failed', backupInfo.folderId, cause);
-  }
-}
 
 function handleAbortAndOfflineEvents(abortController: AbortController, backupInfo: BackupInfo) {
   window.addEventListener('offline', () => {
@@ -38,6 +21,13 @@ function handleAbortAndOfflineEvents(abortController: AbortController, backupInf
   });
 }
 
+function handleBackupFailed(folderId: number, cause: DriveDesktopError['cause']) {
+  BackupsIPCRenderer.send(
+    'backups.backup-failed',
+    folderId,
+    cause
+  );
+}
 
 /**
  * This function is going to be executed by the BackupWorker when it spawns and loads the index.html file.
@@ -49,19 +39,33 @@ export async function backupFolder(): Promise<void> {
   const backupInfoResult = await backupService.getBackupInfo();
 
   if (backupInfoResult.isLeft()) {
-    Logger.error('[BACKUPS] Error getting backup info:', backupInfoResult.getLeft());
+    Logger.error('[BACKUPS] Error getting backup info:', backupInfoResult.getLeft().cause);
+    const error = backupInfoResult.getLeft();
+    handleBackupFailed(
+      0,
+      error instanceof DriveDesktopError ? error.cause : 'UNKNOWN'
+    );
+    return;
   }
 
-  if (backupInfoResult.isRight()) {
-    const backupInfo = backupInfoResult.getRight();
-    Logger.info('[BACKUPS] Backup info obtained:', backupInfo);
-    const abortController = new AbortController();
-    handleAbortAndOfflineEvents(abortController, backupInfo);
-    await executeBackup(backupInfo, backupService, abortController);
+  const backupInfo = backupInfoResult.getRight();
+  const abortController = new AbortController();
+  Logger.info('[BACKUPS] Backup info obtained:', backupInfo);
+  handleAbortAndOfflineEvents(abortController, backupInfo);
+  const result = await backupService.runWithRetry(backupInfo, abortController);
+
+  if (result.isLeft()) {
+    Logger.info('[BACKUPS] failed', result.getLeft().cause);
+    const error = result.getLeft();
+    handleBackupFailed(
+      backupInfo.folderId,
+      error instanceof DriveDesktopError ? error.cause : 'UNKNOWN'
+    );
+  } else {
+    Logger.info('[BACKUPS] Backup completed successfully');
+    BackupsIPCRenderer.send('backups.backup-completed', backupInfo.folderId);
   }
 }
-
-
 async function reinitializeBackups() {
   await BackupsDependencyContainerFactory.reinitialize();
   Logger.info('[BACKUPS] Reinitialized');

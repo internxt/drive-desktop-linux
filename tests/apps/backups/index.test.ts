@@ -6,6 +6,7 @@ import { DriveDesktopError } from '../../../src/context/shared/domain/errors/Dri
 import { backupFolder } from '../../../src/apps/backups';
 import { BackUpErrorCauseEnum } from '../../../src/apps/backups/BackupError';
 import { Either, right, left } from '../../../src/context/shared/domain/Either';
+import { RetryError } from '../../../src/apps/shared/retry/RetryError';
 
 interface BackupInfo {
   folderId: number;
@@ -46,6 +47,7 @@ const backupInfo = {
 function createMockBackupService(): jest.Mocked<BackupService> {
   return {
     run: jest.fn<Promise<DriveDesktopError | undefined>, [BackupInfo, AbortController]>(),
+    runWithRetry: jest.fn<Promise<Either<RetryError, DriveDesktopError | undefined>>, [BackupInfo, AbortController]>(),
     getBackupInfo: jest.fn<Promise<Either<Error, BackupInfo>>, unknown[]>(),
   } as unknown as jest.Mocked<BackupService>;
 }
@@ -98,7 +100,7 @@ describe('Backup Functionality', () => {
   });
 
   it('should complete the backup process successfully', async () => {
-    backupService.run.mockResolvedValueOnce(undefined);
+    backupService.runWithRetry.mockResolvedValueOnce(right(undefined));
 
     await backupFolder();
 
@@ -109,7 +111,7 @@ describe('Backup Functionality', () => {
   });
 
   it('should handle failure when fetching backup info', async () => {
-    backupService.getBackupInfo.mockResolvedValueOnce(Promise.resolve(left(new Error('Failed to obtain backup info'))));
+    backupService.getBackupInfo.mockResolvedValueOnce(Promise.resolve(left(new Error('Uncontrolled error while getting backup info'))));
     await backupFolder();
 
     expect(BackupsIPCRenderer.send).not.toHaveBeenCalledWith(
@@ -125,7 +127,7 @@ describe('Backup Functionality', () => {
       }
     });
 
-    backupService.run.mockResolvedValueOnce(undefined);
+    backupService.runWithRetry.mockResolvedValueOnce(right(undefined));
 
     await backupFolder();
 
@@ -142,7 +144,7 @@ describe('Backup Functionality', () => {
     jest.useFakeTimers();
 
     const abortController = new AbortController();
-    backupService.run.mockResolvedValueOnce(undefined);
+    backupService.runWithRetry.mockResolvedValueOnce(right(undefined));
 
     await backupFolder();
 

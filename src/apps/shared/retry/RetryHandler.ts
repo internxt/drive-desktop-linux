@@ -43,6 +43,9 @@ export class RetryHandler {
         // * In this case, we need to wait for the promise to resolve in order to return the value
         // eslint-disable-next-line no-await-in-loop
         const result = await fn();
+        if (result instanceof Error) {
+          throw result;
+        }
         return right(result);
       } catch (error) {
         if (!this.shouldKeepTrying(attempt, maxRetries, shouldRetry, error)) {
