@@ -37,7 +37,7 @@ export class RemoteSyncInvalidResponseError extends RemoteSyncError {
 export class RemoteSyncNetworkError extends RemoteSyncError {
   constructor(originalError: any) {
     super(
-      `Network error occurred during file sync: ${originalError.message}`,
+      `Network error occurred during sync: ${originalError.message}`,
       'NETWORK_ERROR',
       { originalError }
     );
@@ -51,7 +51,7 @@ export class RemoteSyncNetworkError extends RemoteSyncError {
 export class RemoteSyncServerError extends RemoteSyncError {
   constructor(status: number, data: any) {
     super(
-      `Server error: request failed with status code ${status}`,
+      `Server error: request failed with status code ${status} while sync`,
       'SERVER_ERROR',
       { status, data }
     );

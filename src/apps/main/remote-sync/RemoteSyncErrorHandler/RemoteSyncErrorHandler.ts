@@ -61,13 +61,13 @@ export class RemoteSyncErrorHandler {
   ): void {
     const issues: VirtualDriveIssueByType = {
       files: {
-        error: 'DOWNLOAD_ERROR', // Alternatively, use 'NETWORK_SYNC_ERROR'
-        cause: 'NO_REMOTE_CONNECTION', // Alternatively, use 'NETWORK_ERROR'
+        error: 'DOWNLOAD_ERROR',
+        cause: 'NO_INTERNET',
         name: itemName,
       },
       folders: {
-        error: 'FOLDER_CREATE_ERROR', // Alternatively, use 'NETWORK_SYNC_ERROR'
-        cause: 'NO_REMOTE_CONNECTION', // Alternatively, use 'NETWORK_ERROR'
+        error: 'FOLDER_CREATE_ERROR',
+        cause: 'NO_INTERNET',
         name: itemName,
       },
     };
@@ -84,13 +84,13 @@ export class RemoteSyncErrorHandler {
   ): void {
     const issues: VirtualDriveIssueByType = {
       files: {
-        error: 'DOWNLOAD_ERROR', // Alternatively, use 'SERVER_SYNC_ERROR'
-        cause: 'NO_REMOTE_CONNECTION', // Alternatively, use 'SERVER_ERROR'
+        error: 'DOWNLOAD_ERROR',
+        cause: 'NO_REMOTE_CONNECTION',
         name: itemName,
       },
       folders: {
-        error: 'FOLDER_CREATE_ERROR', // Alternatively, use 'SERVER_SYNC_ERROR'
-        cause: 'NO_REMOTE_CONNECTION', // Alternatively, use 'SERVER_ERROR'
+        error: 'FOLDER_CREATE_ERROR',
+        cause: 'NO_REMOTE_CONNECTION',
         name: itemName,
       },
     };
@@ -107,13 +107,13 @@ export class RemoteSyncErrorHandler {
   ): void {
     const issues: VirtualDriveIssueByType = {
       files: {
-        error: 'DOWNLOAD_ERROR', // Alternatively, use 'REMOTE_SYNC_ERROR'
-        cause: 'NO_REMOTE_CONNECTION', // Alternatively, use 'REMOTE_SYNC_ERROR'
+        error: 'DOWNLOAD_ERROR',
+        cause: 'NO_REMOTE_CONNECTION',
         name: itemName,
       },
       folders: {
-        error: 'FOLDER_CREATE_ERROR', // Alternatively, use 'REMOTE_SYNC_ERROR'
-        cause: 'NO_REMOTE_CONNECTION', // Alternatively, use 'REMOTE_SYNC_ERROR'
+        error: 'FOLDER_CREATE_ERROR',
+        cause: 'NO_REMOTE_CONNECTION',
         name: itemName,
       },
     };
