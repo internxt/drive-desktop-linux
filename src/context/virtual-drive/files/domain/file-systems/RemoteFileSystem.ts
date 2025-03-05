@@ -36,4 +36,6 @@ export abstract class RemoteFileSystem {
   abstract delete(file: File): Promise<void>;
 
   abstract permanentlyDelete(file: File): Promise<void>;
+
+  abstract hardDelete(contentsId: string): Promise<void>;
 }

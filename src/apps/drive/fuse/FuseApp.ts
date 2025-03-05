@@ -127,6 +127,8 @@ export class FuseApp extends EventEmitter {
 
       await this.container.get(StorageRemoteChangesSyncher).run();
 
+      // Get All files from local db
+      // ? Why is returning more files than the ones in internxt drive?
       const existingFiles = await getExistingFiles();
 
       const affectedFilesIds = existingFiles.filter(

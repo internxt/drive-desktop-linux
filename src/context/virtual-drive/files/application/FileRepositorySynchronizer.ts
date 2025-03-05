@@ -11,6 +11,7 @@ export class FileRepositorySynchronizer {
 
   // this method is temporal only used to override corrupted files
   async overrideCorruptedFiles(contentsIds: File['contentsId'][]) {
+    // DriveFilesCollection
     const files = await this.repository.searchByContentsIds(contentsIds);
 
     for (const file of files) {
