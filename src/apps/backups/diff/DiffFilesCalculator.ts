@@ -15,6 +15,9 @@ export type FilesDiff = {
   total: number;
 };
 
+const STORAGE_MIGRATION_DATE = new Date('2025-02-19T12:00:00Z');
+const FIX_DEPLOYMENT_DATE = new Date('2025-03-04T20:00:00Z'); // modify this date
+
 export class DiffFilesCalculator {
   static calculate(local: LocalTree, remote: RemoteTree): FilesDiff {
     const added: Array<LocalFile> = [];
@@ -37,6 +40,15 @@ export class DiffFilesCalculator {
 
       if (remoteNode.isFolder()) {
         Logger.debug('Folder should be a file', remoteNode.name);
+        return;
+      }
+
+      const isInDateRangeOfMigration =
+        remoteNode.createdAt >= STORAGE_MIGRATION_DATE &&
+        remoteNode.createdAt < FIX_DEPLOYMENT_DATE;
+
+      if (isInDateRangeOfMigration) {
+        modified.set(local, remoteNode);
         return;
       }
 
