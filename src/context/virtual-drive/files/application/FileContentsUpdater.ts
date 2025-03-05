@@ -20,32 +20,36 @@ export class FileContentsUpdater {
     Logger.info(
       `[DANGLING FILE] attempting to reupload ${attributes.contentsId}`
     );
-    const file = File.from(attributes);
-    await this.remote.permanentlyDelete(file);
-    Logger.info(`[DANGLING FILE] deleted ${attributes.contentsId}`);
+    try {
 
-    const signal = AbortSignal.timeout(10000);
+      const signal = AbortSignal.timeout(42949672);
+      const newFilPath = new FilePath(attributes.path);
+      // Create new file, upload it to the bucket and persist it with the new content id
+      const contentEither = await this.fileUploader.upload(
+        newFilPath.name() as unknown as AbsolutePath,
+        attributes.size,
+        signal
+      );
+      if (contentEither.isLeft()) {
+        const error = contentEither.getLeft();
+        Logger.error(`[DANGLING FILE] error uploading file ${attributes.contentsId} with error: ${error}`);
+      }
 
-    // Create new file, upload it to the bucket and persist it with the new content id
-    const contentEither = await this.fileUploader.upload(
-      attributes.path as AbsolutePath,
-      attributes.size,
-      signal
-    );
-    if (contentEither.isRight()) {
-      const contentsId = contentEither.getRight();
-      const file = File.from(attributes);
-
-      Logger.info(`[DANGLING FILE] uploaded ${attributes.contentsId}`);
-
-      await this.remote.persist({
-        contentsId: new FileContentsId(contentsId),
-        path: new FilePath(file.path),
-        size: new FileSize(file.size),
-        folderId: new FileFolderId(file.folderId),
-      });
-
-      Logger.info(`[DANGLING FILE] persisted ${attributes.contentsId}`);
+      if (contentEither.isRight()) {
+        Logger.info(`[DANGLING FILE] uploaded ${attributes.contentsId}`);
+        await this.remote.hardDelete(attributes.contentsId);
+        const contentsId = contentEither.getRight();
+        const file = File.from({...attributes, contentsId});
+        await this.remote.persist({
+          contentsId: new FileContentsId(file.contentsId),
+          path: new FilePath(file.path),
+          size: new FileSize(file.size),
+          folderId: new FileFolderId(file.folderId),
+        });
+        Logger.info(`[DANGLING FILE] persisted ${attributes.contentsId}`);
+      }
+    } catch (error) {
+      Logger.error(`[DANGLING FILE] error updating file ${attributes.contentsId} with error: ${error}`);
     }
   }
 }
