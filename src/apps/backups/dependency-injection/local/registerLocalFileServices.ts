@@ -24,18 +24,15 @@ export function registerLocalFileServices(builder: ContainerBuilder) {
 
   builder.register(Environment).useInstance(environment).private();
 
-  builder
-    .register(LocalFileHandler)
-    .useFactory((c) => {
-      const env = c.get(Environment);
-      return new EnvironmentLocalFileUploader(
-        env,
-        user.backupsBucket,
-        //@ts-ignore
-        c.get(AuthorizedClients).drive
-      );
-    })
-    .private();
+  builder.register(LocalFileHandler).useFactory((c) => {
+    const env = c.get(Environment);
+    return new EnvironmentLocalFileUploader(
+      env,
+      user.backupsBucket,
+      //@ts-ignore
+      c.get(AuthorizedClients).drive
+    );
+  });
 
   builder
     .register(LocalFileMessenger)

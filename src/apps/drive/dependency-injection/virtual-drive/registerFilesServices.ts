@@ -24,6 +24,10 @@ import { StorageFileDownloader } from '../../../../context/storage/StorageFiles/
 import { SingleFileMatchingFinder } from '../../../../context/virtual-drive/files/application/SingleFileMatchingFinder';
 import { FilesByPartialSearcher } from '../../../../context/virtual-drive/files/application/search/FilesByPartialSearcher';
 import { FileContentsUpdater } from '../../../../context/virtual-drive/files/application/FileContentsUpdater';
+import { LocalFileHandler } from '../../../../context/local/localFile/domain/LocalFileUploader';
+import { EnvironmentLocalFileUploader } from '../../../../context/local/localFile/infrastructure/EnvironmentLocalFileUploader';
+import { Environment } from '@internxt/inxt-js';
+import { DependencyInjectionMnemonicProvider } from '../../../shared/dependency-injection/DependencyInjectionMnemonicProvider';
 // import {
 //   EnvironmentLocalFileUploader
 // } from '../../../../context/local/localFile/infrastructure/EnvironmentLocalFileUploader';
@@ -41,6 +45,7 @@ export async function registerFilesServices(
 
   const user = DependencyInjectionUserProvider.get();
   const sdk = await DependencyInjectionMainProcessStorageSdk.get();
+  const mnemonic = DependencyInjectionMnemonicProvider.get();
 
   builder.register(SyncFileMessenger).use(MainProcessSyncFileMessenger);
 
@@ -56,10 +61,25 @@ export async function registerFilesServices(
         )
     );
 
+  builder.register(LocalFileHandler).useFactory((c) => {
+    const environment = new Environment({
+      bridgeUrl: process.env.BRIDGE_URL,
+      bridgeUser: user.bridgeUser,
+      bridgePass: user.userId,
+      encryptionKey: mnemonic,
+    });
+
+    return new EnvironmentLocalFileUploader(
+      environment,
+      user.bucket,
+      c.get(AuthorizedClients).drive as any
+    );
+  });
+
   // Services
   builder.registerAndUse(StorageFileDownloader).private();
 
-//  builder.registerAndUse(EnvironmentLocalFileUploader);
+  //  builder.registerAndUse(EnvironmentLocalFileUploader);
 
   builder.registerAndUse(FileContentsUpdater);
 
