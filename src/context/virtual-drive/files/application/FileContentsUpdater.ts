@@ -17,8 +17,12 @@ export class FileContentsUpdater {
   ) {}
 
   async hardUpdateRun(attributes: FileAttributes): Promise<void> {
-    Logger.info(`[REUPLOADING FILE] ${attributes.contentsId}`);
-    await this.remote.trash(attributes.contentsId); //TODO: Change to delete
+    Logger.info(
+      `[DANGLING FILE] attempting to reupload ${attributes.contentsId}`
+    );
+    const file = File.from(attributes);
+    await this.remote.permanentlyDelete(file);
+    Logger.info(`[DANGLING FILE] deleted ${attributes.contentsId}`);
 
     const signal = AbortSignal.timeout(10000);
 
@@ -31,12 +35,17 @@ export class FileContentsUpdater {
     if (contentEither.isRight()) {
       const contentsId = contentEither.getRight();
       const file = File.from(attributes);
+
+      Logger.info(`[DANGLING FILE] uploaded ${attributes.contentsId}`);
+
       await this.remote.persist({
         contentsId: new FileContentsId(contentsId),
         path: new FilePath(file.path),
         size: new FileSize(file.size),
         folderId: new FileFolderId(file.folderId),
       });
+
+      Logger.info(`[DANGLING FILE] persisted ${attributes.contentsId}`);
     }
   }
 }

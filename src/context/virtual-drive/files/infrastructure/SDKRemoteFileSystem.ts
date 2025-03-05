@@ -1,4 +1,5 @@
 import { Storage } from '@internxt/sdk/dist/drive/storage';
+import { Trash } from '@internxt/sdk/dist/drive';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { isAxiosError } from 'axios';
 import { Service } from 'diod';
@@ -20,6 +21,7 @@ import { CreateFileDTO } from './dtos/CreateFileDTO';
 export class SDKRemoteFileSystem implements RemoteFileSystem {
   constructor(
     private readonly sdk: Storage,
+    private readonly sdkTrash: Trash,
     private readonly clients: AuthorizedClients,
     private readonly crypt: Crypt,
     private readonly bucket: string
@@ -170,5 +172,14 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     );
 
     Logger.info(`File ${file.path} overridden`);
+  }
+
+  async permanentlyDelete(file: File): Promise<void> {
+    Logger.info(
+      `[Permanently deleting file] ${file.path} with uuid ${file.uuid}, to endpoint ${this.sdkTrash.deleteItemsPermanentlyByUUID}`
+    );
+    await this.sdkTrash.deleteItemsPermanentlyByUUID({
+      items: [{ type: 'file', uuid: file.uuid }],
+    });
   }
 }

@@ -13,7 +13,7 @@ import { SyncFileMessenger } from '../../../../context/virtual-drive/files/domai
 import { RemoteFileSystem } from '../../../../context/virtual-drive/files/domain/file-systems/RemoteFileSystem';
 import { SDKRemoteFileSystem } from '../../../../context/virtual-drive/files/infrastructure/SDKRemoteFileSystem';
 import { MainProcessSyncFileMessenger } from '../../../../context/virtual-drive/files/infrastructure/SyncFileMessengers/MainProcessSyncFileMessenger';
-import { DependencyInjectionMainProcessStorageSdk } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessStorageSdk';
+import { DependencyInjectionMainProcessSdk } from '../../../shared/dependency-injection/main/DependencyInjectionMainProcessSdk';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { AuthorizedClients } from '../../../shared/HttpClient/Clients';
 import { FileRepository } from '../../../../context/virtual-drive/files/domain/FileRepository';
@@ -44,7 +44,9 @@ export async function registerFilesServices(
     .private();
 
   const user = DependencyInjectionUserProvider.get();
-  const sdk = await DependencyInjectionMainProcessStorageSdk.get();
+  const sdk = await DependencyInjectionMainProcessSdk.getStorage();
+  const trashSdk = await DependencyInjectionMainProcessSdk.getTrash();
+
   const mnemonic = DependencyInjectionMnemonicProvider.get();
 
   builder.register(SyncFileMessenger).use(MainProcessSyncFileMessenger);
@@ -55,6 +57,7 @@ export async function registerFilesServices(
       (c) =>
         new SDKRemoteFileSystem(
           sdk,
+          trashSdk,
           c.get(AuthorizedClients),
           crypt,
           user.bucket
