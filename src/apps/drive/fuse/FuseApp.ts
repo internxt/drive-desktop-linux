@@ -22,9 +22,13 @@ import { mountPromise, unmountPromise } from './helpers';
 import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import { ThumbnailSynchronizer } from '../../../context/storage/thumbnails/application/sync/ThumbnailSynchronizer';
 import { EventEmitter } from 'stream';
+import { getExistingFiles } from '../../main/remote-sync/service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
+
+const STORAGE_MIGRATION_DATE = new Date('2025-02-19T12:00:00Z');
+const FIX_DEPLOYMENT_DATE = new Date('2025-03-06T20:00:00Z'); // modify this date
 
 export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';
@@ -122,6 +126,18 @@ export class FuseApp extends EventEmitter {
       await this.container.get(FolderRepositorySynchronizer).run(tree.folders);
 
       await this.container.get(StorageRemoteChangesSyncher).run();
+
+      const existingFiles = await getExistingFiles();
+
+      const affectedFiles = existingFiles.filter(
+        (file) =>
+          new Date(file.createdAt) >= STORAGE_MIGRATION_DATE &&
+          new Date(file.createdAt) < FIX_DEPLOYMENT_DATE
+      );
+
+      await this.container
+        .get(FileRepositorySynchronizer)
+        .overrideCorruptedFiles(affectedFiles.map((file) => file.fileId));
 
       Logger.info('[FUSE] Tree updated successfully');
     } catch (err) {

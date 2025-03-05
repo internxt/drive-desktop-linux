@@ -23,6 +23,7 @@ import { RetrieveAllFiles } from '../../../../context/virtual-drive/files/applic
 import { StorageFileDownloader } from '../../../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
 import { SingleFileMatchingFinder } from '../../../../context/virtual-drive/files/application/SingleFileMatchingFinder';
 import { FilesByPartialSearcher } from '../../../../context/virtual-drive/files/application/search/FilesByPartialSearcher';
+import { FileContentsUpdater } from '../../../../context/virtual-drive/files/application/FileContentsUpdater';
 
 export async function registerFilesServices(
   builder: ContainerBuilder
@@ -54,6 +55,8 @@ export async function registerFilesServices(
 
   // Services
   builder.registerAndUse(StorageFileDownloader).private();
+
+  builder.registerAndUse(FileContentsUpdater);
 
   builder.registerAndUse(FileRepositorySynchronizer);
 

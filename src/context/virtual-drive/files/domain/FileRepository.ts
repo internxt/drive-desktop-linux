@@ -16,4 +16,8 @@ export abstract class FileRepository {
   abstract update(file: File): Promise<void>;
 
   abstract clear(): Promise<void>;
+
+  abstract searchByContentsIds(
+    contentsIds: File['contentsId'][]
+  ): Promise<Array<File>>;
 }

@@ -98,4 +98,22 @@ export class InMemoryFileRepository implements FileRepository {
     this.filesByUuid.clear();
     this.filesByContentsId.clear();
   }
+
+  async searchByContentsIds(
+    contentsIds: File['contentsId'][]
+  ): Promise<Array<File>> {
+    const files = contentsIds
+      .map((contentsId) => {
+        const file = this.filesByContentsId.get(contentsId);
+
+        if (file) {
+          return File.from(file);
+        }
+
+        return undefined;
+      })
+      .filter((file) => file !== undefined);
+
+    return files;
+  }
 }
