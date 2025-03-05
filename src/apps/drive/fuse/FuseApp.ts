@@ -119,8 +119,8 @@ export class FuseApp extends EventEmitter {
       const tree = await this.container
         .get(RemoteTreeBuilder)
         .run(this.remoteRoot);
-
-      await this.container.get(FileRepositorySynchronizer).run(tree.files);
+      const fileRepository = this.container.get(FileRepositorySynchronizer);
+      await fileRepository.run(tree.files);
       await this.container.get(ThumbnailSynchronizer).run(tree.files);
 
       await this.container.get(FolderRepositorySynchronizer).run(tree.folders);
@@ -129,15 +129,14 @@ export class FuseApp extends EventEmitter {
 
       const existingFiles = await getExistingFiles();
 
-      const affectedFiles = existingFiles.filter(
+      const affectedFilesIds = existingFiles.filter(
         (file) =>
           new Date(file.createdAt) >= STORAGE_MIGRATION_DATE &&
           new Date(file.createdAt) < FIX_DEPLOYMENT_DATE
-      );
+      ).map((file) => file.fileId);
 
-      await this.container
-        .get(FileRepositorySynchronizer)
-        .overrideCorruptedFiles(affectedFiles.map((file) => file.fileId));
+      await fileRepository
+        .overrideCorruptedFiles(affectedFilesIds);
 
       Logger.info('[FUSE] Tree updated successfully');
     } catch (err) {

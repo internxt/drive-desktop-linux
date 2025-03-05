@@ -24,6 +24,9 @@ import { StorageFileDownloader } from '../../../../context/storage/StorageFiles/
 import { SingleFileMatchingFinder } from '../../../../context/virtual-drive/files/application/SingleFileMatchingFinder';
 import { FilesByPartialSearcher } from '../../../../context/virtual-drive/files/application/search/FilesByPartialSearcher';
 import { FileContentsUpdater } from '../../../../context/virtual-drive/files/application/FileContentsUpdater';
+// import {
+//   EnvironmentLocalFileUploader
+// } from '../../../../context/local/localFile/infrastructure/EnvironmentLocalFileUploader';
 
 export async function registerFilesServices(
   builder: ContainerBuilder
@@ -55,6 +58,8 @@ export async function registerFilesServices(
 
   // Services
   builder.registerAndUse(StorageFileDownloader).private();
+
+//  builder.registerAndUse(EnvironmentLocalFileUploader);
 
   builder.registerAndUse(FileContentsUpdater);
 

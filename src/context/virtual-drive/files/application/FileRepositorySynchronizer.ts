@@ -9,6 +9,7 @@ export class FileRepositorySynchronizer {
     private readonly fileContentsUpdater: FileContentsUpdater
   ) {}
 
+  // this method is temporal only used to override corrupted files
   async overrideCorruptedFiles(contentsIds: File['contentsId'][]) {
     const files = await this.repository.searchByContentsIds(contentsIds);
 

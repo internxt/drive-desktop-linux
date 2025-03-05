@@ -23,7 +23,7 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
   upload(
     path: AbsolutePath,
     size: number,
-    abortSignal: AbortSignal
+    abortSignal?: AbortSignal
   ): Promise<Either<DriveDesktopError, string>> {
     const fn: UploadStrategyFunction =
       size > EnvironmentLocalFileUploader.MULTIPART_UPLOAD_SIZE_THRESHOLD
@@ -58,10 +58,12 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
         },
       });
 
-      abortSignal.addEventListener('abort', () => {
-        state.stop();
-        readable.destroy();
-      });
+      if (abortSignal) {
+        abortSignal.addEventListener('abort', () => {
+          state.stop();
+          readable.destroy();
+        });
+      }
     });
   }
 
