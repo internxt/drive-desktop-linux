@@ -185,7 +185,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
 
   async hardDelete(contentsId: string): Promise<void> {
     const result = await this.clients.newDrive.delete(
-      `${process.env.NEW_DRIVE_URL}/drive/storage/trash/file/${contentsId}`
+      `${process.env.NEW_DRIVE_URL}/storage/trash/file/${contentsId}`
     );
     if (result.status > 204) {
       Logger.error('[FILE FILE SYSTEM] Hard delete failed with status:', result.status);

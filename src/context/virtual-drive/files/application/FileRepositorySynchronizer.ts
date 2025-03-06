@@ -34,7 +34,7 @@ export class FileRepositorySynchronizer {
 
       for (const storageFile of storageFiles) {
         // eslint-disable-next-line no-await-in-loop
-        await this.fileContentsUpdater.hardUpdateRun({
+        const resultEither = await this.fileContentsUpdater.hardUpdateRun({
           attributes: storageFile.attributes(),
           file: {
             // eslint-disable-next-line
@@ -43,6 +43,12 @@ export class FileRepositorySynchronizer {
             folderId: files.find((file) => file.contentsId === storageFile.id.value)?.folderId!!,
           }
         });
+        if (resultEither.isRight()) {
+          const result = resultEither.getRight();
+          // Delete old entries.
+          // eslint-disable-next-line
+          await this.StorageFileRepository.delete(result.oldId);
+        }
       }
     } catch (error) {
       Logger.error(

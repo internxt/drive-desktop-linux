@@ -3,12 +3,14 @@ Se han subido archivos corruptos al bucket de internxt. Causando que realmente n
 hayan subido.
 
 ## Solucion
-En el momento del sync, cuando se esta cargando el remote tree,
-hay que buscar aquellos archivos que pudieron ser subidos corruptos en esa ventana
-de tiempo y volver a subirlos. La ventana de tiempo es entre el 2025-02-19T12:00:00Z y 2025-03-06T20:00:00Z
+- Buscar en la db local, aquellos archivos que podemos encontrar y que han sido marcados como "make Available offline"
+- volverlos a subir al bucket de internxt.
+  - Si la subida se ha completado, borramos el archivo anterior, del drive remoto y persistimos el nuevo archivo.
+  - Si la subida no se ha completado, logeamos un error.
 
-Para subirlos:
-- primero hay que mover el archivo remoto a la papelera (Thrash) ✅
-- luego, tenemos que buscar si esta en el hard drive
-  - si esta en el hard drive, lo subimos de nuevo
-  - si no esta en el hard drive, lo borramos de la papelera(Thrash) definitivamente
+## Cosas a tener en cuenta:
+- Es posible que el archivo que existe en local, siga estando corrupto, ya que, al hacer el archivo "make available offline"
+  Se descarga de nuevo del bucket de internxt.
+- Cuando un usuario sube un archivo al drive desktop, por defecto no se guarda en local, se queda la represantion logica del archivo.
+- Cuando se resube, previamente estaba marcado como "make available offline", con la nueva resubida, se queda como "online"
+- como podemos evitar que este proceso este haciendose de nuevo continuamente

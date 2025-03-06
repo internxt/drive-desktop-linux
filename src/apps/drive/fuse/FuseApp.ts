@@ -57,8 +57,11 @@ export class FuseApp extends EventEmitter {
         )
         .map((file) => file.fileId);
 
-      Logger.info(`[FUSE] Fixing ${affectedFilesIds.length} dangling files`);
-      await fileRepository.reUploadDanglingFiles(affectedFilesIds);
+      if (affectedFilesIds.length > 0) {
+        Logger.info(`[FUSE] Fixing ${affectedFilesIds.length} dangling files`);
+        await fileRepository.reUploadDanglingFiles(affectedFilesIds);
+      }
+
       Logger.info('[FUSE] Dangling files done');
     } catch (err) {
       Logger.error('[FUSE] Error fixing dangling files', err);
