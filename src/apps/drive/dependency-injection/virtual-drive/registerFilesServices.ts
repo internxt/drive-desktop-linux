@@ -28,6 +28,8 @@ import { LocalFileHandler } from '../../../../context/local/localFile/domain/Loc
 import { EnvironmentLocalFileUploader } from '../../../../context/local/localFile/infrastructure/EnvironmentLocalFileUploader';
 import { Environment } from '@internxt/inxt-js';
 import { DependencyInjectionMnemonicProvider } from '../../../shared/dependency-injection/DependencyInjectionMnemonicProvider';
+// import { StorageFilesRepository } from '../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
+// import { TypeOrmAndNodeFsStorageFilesRepository } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmAndNodeFsStorageFilesRepository';
 // import {
 //   EnvironmentLocalFileUploader
 // } from '../../../../context/local/localFile/infrastructure/EnvironmentLocalFileUploader';
@@ -42,6 +44,8 @@ export async function registerFilesServices(
     .use(InMemoryFileRepository)
     .asSingleton()
     .private();
+
+  // builder.register(StorageFilesRepository).use(TypeOrmAndNodeFsStorageFilesRepository).asSingleton();
 
   const user = DependencyInjectionUserProvider.get();
   const sdk = await DependencyInjectionMainProcessSdk.getStorage();
@@ -83,6 +87,8 @@ export async function registerFilesServices(
   builder.registerAndUse(StorageFileDownloader).private();
 
   //  builder.registerAndUse(EnvironmentLocalFileUploader);
+
+  // builder.registerAndUse(StorageFilesRepository);
 
   builder.registerAndUse(FileContentsUpdater);
 

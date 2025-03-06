@@ -7,6 +7,8 @@ export abstract class StorageFilesRepository {
 
   abstract retrieve(id: StorageFileId): Promise<StorageFile>;
 
+  abstract retrieveFromMultipleIds(ids: Array<StorageFileId>): Promise<Array<StorageFile>>;
+
   abstract store(file: StorageFile, readable: Readable): Promise<void>;
 
   abstract read(id: StorageFileId): Promise<Buffer>;

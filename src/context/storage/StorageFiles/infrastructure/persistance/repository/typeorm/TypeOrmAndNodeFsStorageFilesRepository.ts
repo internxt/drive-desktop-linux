@@ -67,6 +67,17 @@ export class TypeOrmAndNodeFsStorageFilesRepository
     return StorageFile.from(attributes);
   }
 
+  async retrieveFromMultipleIds(ids: Array<StorageFileId>): Promise<Array<StorageFile>> {
+    const files = await Promise.all(ids.map(async (id) => {
+      try {
+        return await this.retrieve(id);
+      } catch (error) {
+        return undefined;
+      }
+    }));
+    return files.filter(file => file !== undefined) as StorageFile[];
+  }
+
   async delete(id: StorageFileId): Promise<void> {
     const pathToUnlink = path.join(this.baseFolder, id.value);
 
