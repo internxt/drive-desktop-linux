@@ -22,9 +22,13 @@ import { mountPromise, unmountPromise } from './helpers';
 import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import { ThumbnailSynchronizer } from '../../../context/storage/thumbnails/application/sync/ThumbnailSynchronizer';
 import { EventEmitter } from 'stream';
+import { getExistingFiles } from '../../main/remote-sync/service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
+const STORAGE_MIGRATION_DATE = new Date('2025-02-19T12:00:00Z');
+const FIX_DEPLOYMENT_DATE = new Date('2025-03-06T20:00:00Z'); // modify this date
+
 
 export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';
@@ -39,6 +43,34 @@ export class FuseApp extends EventEmitter {
   ) {
     super();
   }
+
+
+  private async fixDanglingFiles(): Promise<void> {
+    // This code should be run if the value of the store "shouldFixDanglingFiles" is true
+    // If the value is true, set it to false after running the code
+    try {
+      const fileRepository = this.container.get(FileRepositorySynchronizer);
+      const existingFiles = await getExistingFiles();
+
+      const affectedFilesIds = existingFiles
+        .filter(
+          (file) =>
+            new Date(file.createdAt) >= STORAGE_MIGRATION_DATE &&
+            new Date(file.createdAt) < FIX_DEPLOYMENT_DATE
+        )
+        .map((file) => file.fileId);
+
+      if (affectedFilesIds.length > 0) {
+        Logger.info(`[FUSE] Fixing ${affectedFilesIds.length} dangling files`);
+        await fileRepository.fixDanglingFiles(affectedFilesIds);
+      }
+
+      Logger.info('[FUSE] Dangling files done');
+    } catch (err) {
+      Logger.error('[FUSE] Error fixing dangling files', err);
+    }
+  }
+
 
   private getOpt() {
     const readdir = new ReaddirCallback(this.container);
@@ -86,6 +118,9 @@ export class FuseApp extends EventEmitter {
       this.status = 'MOUNTED';
       Logger.info('[FUSE] mounted');
       this.emit('mounted');
+
+      // Run after mount is complete
+      await this.fixDanglingFiles();
     } catch (firstMountError) {
       Logger.error(`[FUSE] mount error: ${firstMountError}`);
       try {
@@ -94,6 +129,9 @@ export class FuseApp extends EventEmitter {
         this.status = 'MOUNTED';
         Logger.info('[FUSE] mounted');
         this.emit('mounted');
+
+        // Run after mount is complete (retry)
+        await this.fixDanglingFiles();
       } catch (err) {
         this.status = 'ERROR';
         Logger.error(`[FUSE] mount error: ${err}`);
