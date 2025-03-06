@@ -44,6 +44,27 @@ export class FuseApp extends EventEmitter {
     super();
   }
 
+  private async fixDanglingFiles(): Promise<void> {
+    try {
+      const fileRepository = this.container.get(FileRepositorySynchronizer);
+      const existingFiles = await getExistingFiles();
+
+      const affectedFilesIds = existingFiles
+        .filter(
+          (file) =>
+            new Date(file.createdAt) >= STORAGE_MIGRATION_DATE &&
+            new Date(file.createdAt) < FIX_DEPLOYMENT_DATE
+        )
+        .map((file) => file.fileId);
+
+      Logger.info(`[FUSE] Fixing ${affectedFilesIds.length} dangling files`);
+      await fileRepository.overrideCorruptedFiles(affectedFilesIds);
+      Logger.info('[FUSE] Dangling files done');
+    } catch (err) {
+      Logger.error('[FUSE] Error fixing dangling files', err);
+    }
+  }
+
   private getOpt() {
     const readdir = new ReaddirCallback(this.container);
     const getattr = new GetAttributesCallback(this.container);
@@ -90,6 +111,9 @@ export class FuseApp extends EventEmitter {
       this.status = 'MOUNTED';
       Logger.info('[FUSE] mounted');
       this.emit('mounted');
+
+      // Run after mount is complete
+      await this.fixDanglingFiles();
     } catch (firstMountError) {
       Logger.error(`[FUSE] mount error: ${firstMountError}`);
       try {
@@ -98,6 +122,9 @@ export class FuseApp extends EventEmitter {
         this.status = 'MOUNTED';
         Logger.info('[FUSE] mounted');
         this.emit('mounted');
+
+        // Run after mount is complete (retry)
+        await this.fixDanglingFiles();
       } catch (err) {
         this.status = 'ERROR';
         Logger.error(`[FUSE] mount error: ${err}`);
@@ -127,18 +154,7 @@ export class FuseApp extends EventEmitter {
 
       await this.container.get(StorageRemoteChangesSyncher).run();
 
-      // Get All files from local db
-      // ? Why is returning more files than the ones in internxt drive?
-      const existingFiles = await getExistingFiles();
-
-      const affectedFilesIds = existingFiles.filter(
-        (file) =>
-          new Date(file.createdAt) >= STORAGE_MIGRATION_DATE &&
-          new Date(file.createdAt) < FIX_DEPLOYMENT_DATE
-      ).map((file) => file.fileId);
-
-      await fileRepository
-        .overrideCorruptedFiles(affectedFilesIds);
+      // Removed corruption fixing logic from here - it's now in the start() method after mount
 
       Logger.info('[FUSE] Tree updated successfully');
     } catch (err) {

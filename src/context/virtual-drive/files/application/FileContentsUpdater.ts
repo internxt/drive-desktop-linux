@@ -8,7 +8,8 @@ import Logger from 'electron-log';
 import { Service } from 'diod';
 import { LocalFileHandler } from '../../../local/localFile/domain/LocalFileUploader';
 import { AbsolutePath } from '../../../local/localFile/infrastructure/AbsolutePath';
-
+import { getRootVirtualDrive } from '../../../../apps/main/virtual-root-folder/service';
+import path from 'path';
 @Service()
 export class FileContentsUpdater {
   constructor(
@@ -22,10 +23,14 @@ export class FileContentsUpdater {
     );
     try {
       const signal = AbortSignal.timeout(42949672);
-      const newFilPath = new FilePath(attributes.path);
+
+      const rootPath = getRootVirtualDrive();
+
+      const absolutePath = path.join(rootPath, attributes.path);
+
       // Create new file, upload it to the bucket and persist it with the new content id
       const contentEither = await this.fileUploader.upload(
-        newFilPath.name() as unknown as AbsolutePath,
+        absolutePath as unknown as AbsolutePath,
         attributes.size,
         signal
       );
