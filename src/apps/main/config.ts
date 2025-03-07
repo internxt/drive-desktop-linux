@@ -16,6 +16,7 @@ export const fieldsToSave = [
   'backupList',
   'nautilusExtensionVersion',
   'discoveredBackup',
+  'shouldFixDanglingFiles'
 ] as const;
 
 export interface AppStore {
@@ -42,6 +43,7 @@ export interface AppStore {
   virtualdriveWindowsLetter: string;
   nautilusExtensionVersion: number;
   discoveredBackup: number;
+  'shouldFixDanglingFiles': boolean;
 }
 
 const schema: Schema<AppStore> = {
@@ -110,6 +112,7 @@ const schema: Schema<AppStore> = {
   },
   nautilusExtensionVersion: { type: 'number' },
   discoveredBackup: { type: 'number' },
+  shouldFixDanglingFiles: { type: 'boolean' },
 } as const;
 
 export const defaults: AppStore = {
@@ -136,6 +139,7 @@ export const defaults: AppStore = {
   virtualdriveWindowsLetter: 'I',
   nautilusExtensionVersion: 0,
   discoveredBackup: 0,
+  shouldFixDanglingFiles: true,
 };
 
 const configStore = new Store({ schema, defaults });

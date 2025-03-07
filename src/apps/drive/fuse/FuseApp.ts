@@ -23,6 +23,7 @@ import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFil
 import { ThumbnailSynchronizer } from '../../../context/storage/thumbnails/application/sync/ThumbnailSynchronizer';
 import { EventEmitter } from 'stream';
 import { getExistingFiles } from '../../main/remote-sync/service';
+import configStore from '../../main/config';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
@@ -46,8 +47,10 @@ export class FuseApp extends EventEmitter {
 
 
   private async fixDanglingFiles(): Promise<void> {
-    // This code should be run if the value of the store "shouldFixDanglingFiles" is true
-    // If the value is true, set it to false after running the code
+   const shouldFixDanglingFiles = configStore.get('shouldFixDanglingFiles');
+    if (!shouldFixDanglingFiles) {
+      return;
+    }
     try {
       const fileRepository = this.container.get(FileRepositorySynchronizer);
       const existingFiles = await getExistingFiles();
@@ -61,8 +64,11 @@ export class FuseApp extends EventEmitter {
         .map((file) => file.fileId);
 
       if (affectedFilesIds.length > 0) {
-        Logger.info(`[FUSE] Fixing ${affectedFilesIds.length} dangling files`);
-        await fileRepository.fixDanglingFiles(affectedFilesIds);
+        Logger.info('[FUSE] Dangling files found:');
+        const allDanglingFilesFixed = await fileRepository.fixDanglingFiles(affectedFilesIds);
+        if (allDanglingFilesFixed) {
+          configStore.set('shouldFixDanglingFiles', false);
+        }
       }
 
       Logger.info('[FUSE] Dangling files done');

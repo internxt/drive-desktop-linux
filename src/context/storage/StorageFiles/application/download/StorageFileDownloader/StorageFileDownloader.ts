@@ -5,6 +5,7 @@ import { DownloadProgressTracker } from '../../../../../shared/domain/DownloadPr
 import { DownloaderHandlerFactory } from '../../../domain/download/DownloaderHandlerFactory';
 import { DownloaderHandler } from '../../../domain/download/DownloaderHandler';
 import { StorageFile } from '../../../domain/StorageFile';
+import { Either, left, right } from '../../../../../shared/domain/Either';
 
 @Service()
 export class StorageFileDownloader {
@@ -58,5 +59,52 @@ export class StorageFileDownloader {
     );
 
     return stream;
+  }
+
+  async isFileDownloadable(fileContentsId: string): Promise<Either<Error, boolean>> {
+    const downloader = this.managerFactory.downloader();
+
+    return new Promise<Either<Error, boolean>>(async (resolve) => {
+      try {
+        this.registerEventsforIsFileDownloadable(downloader, fileContentsId, resolve);
+        await downloader.downloadById(fileContentsId);
+      } catch (error) {
+        Logger.error(`[DOWNLOAD] Error downloading file ${fileContentsId}: ${error}`);
+        resolve(left(error instanceof Error ? error : new Error(String(error))));
+      }
+    });
+  }
+
+  private async registerEventsforIsFileDownloadable(
+    handler: DownloaderHandler,
+    fileId: string,
+    resolve: (result: Either<Error, boolean>) => void
+  ) {
+    handler.on('start', () => {
+      Logger.info(`Starting download for file ${fileId}`);
+    });
+
+    handler.on('progress', async () => {
+      Logger.info(`File ${fileId} is downloadable, stopping download...`);
+      handler.forceStop();
+      resolve(right(true));
+    });
+
+    handler.on('error', (error: Error) => {
+      if (error.message.includes('Object not found') || error.message.includes('404')) {
+        Logger.error(`[DOWNLOAD CHECK] file not found ${fileId}: ${error.message}`);
+        resolve(right(false));
+      } else {
+        Logger.error(`[DOWNLOAD CHECK] Uncontrolled Error downloading file ${fileId}: ${error.message}`);
+        resolve(left(error));
+      }
+      handler.forceStop();
+    });
+
+    handler.on('finish', () => {
+      Logger.info(`File ${fileId} finish downloading`);
+      resolve(right(true));
+      handler.forceStop();
+    });
   }
 }
