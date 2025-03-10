@@ -27,8 +27,8 @@ import configStore from '../../main/config';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
-const STORAGE_MIGRATION_DATE = new Date('2025-02-19T12:00:00Z');
-const FIX_DEPLOYMENT_DATE = new Date('2025-03-04T15:30:00Z'); // modify this date
+const STORAGE_MIGRATION_DATE = new Date(configStore.get('storageMigrationDate'));
+const FIX_DEPLOYMENT_DATE = new Date(configStore.get('fixDeploymentDate'));
 
 export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';

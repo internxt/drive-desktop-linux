@@ -43,7 +43,9 @@ export interface AppStore {
   virtualdriveWindowsLetter: string;
   nautilusExtensionVersion: number;
   discoveredBackup: number;
-  'shouldFixDanglingFiles': boolean;
+  shouldFixDanglingFiles: boolean;
+  storageMigrationDate: string
+  fixDeploymentDate: string
 }
 
 const schema: Schema<AppStore> = {
@@ -113,6 +115,8 @@ const schema: Schema<AppStore> = {
   nautilusExtensionVersion: { type: 'number' },
   discoveredBackup: { type: 'number' },
   shouldFixDanglingFiles: { type: 'boolean' },
+  storageMigrationDate: { type: 'string' },
+  fixDeploymentDate: { type: 'string' },
 } as const;
 
 export const defaults: AppStore = {
@@ -140,6 +144,8 @@ export const defaults: AppStore = {
   nautilusExtensionVersion: 0,
   discoveredBackup: 0,
   shouldFixDanglingFiles: true,
+  storageMigrationDate: '2025-02-19T12:00:00Z',
+  fixDeploymentDate: '2025-03-04T15:30:00Z',
 };
 
 const configStore = new Store({ schema, defaults });
