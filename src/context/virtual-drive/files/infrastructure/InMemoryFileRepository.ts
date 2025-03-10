@@ -53,7 +53,6 @@ export class InMemoryFileRepository implements FileRepository {
         return undefined;
       })
       .filter((file) => file !== undefined) as Array<File>;
-    // TODO: Ensure that at least we are returning an empty array
     return files;
   }
 
