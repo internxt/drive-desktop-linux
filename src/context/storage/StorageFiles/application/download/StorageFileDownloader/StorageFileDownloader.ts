@@ -75,7 +75,7 @@ export class StorageFileDownloader {
     });
   }
 
-  private async registerEventsforIsFileDownloadable(
+  registerEventsforIsFileDownloadable(
     handler: DownloaderHandler,
     fileId: string,
     resolve: (result: Either<Error, boolean>) => void
@@ -84,7 +84,7 @@ export class StorageFileDownloader {
       Logger.info(`Starting download for file ${fileId}`);
     });
 
-    handler.on('progress', async () => {
+    handler.on('progress', () => {
       Logger.info(`File ${fileId} is downloadable, stopping download...`);
       handler.forceStop();
       resolve(right(true));

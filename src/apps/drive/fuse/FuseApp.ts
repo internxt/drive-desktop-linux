@@ -28,8 +28,7 @@ import configStore from '../../main/config';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fuse = require('@gcas/fuse');
 const STORAGE_MIGRATION_DATE = new Date('2025-02-19T12:00:00Z');
-const FIX_DEPLOYMENT_DATE = new Date('2025-03-06T20:00:00Z'); // modify this date
-
+const FIX_DEPLOYMENT_DATE = new Date('2025-03-04T15:30:00Z'); // modify this date
 
 export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';
@@ -46,7 +45,7 @@ export class FuseApp extends EventEmitter {
   }
 
 
-  private async fixDanglingFiles(): Promise<void> {
+  async fixDanglingFiles(startDate: Date, endDate: Date): Promise<void> {
    const shouldFixDanglingFiles = configStore.get('shouldFixDanglingFiles');
     if (!shouldFixDanglingFiles) {
       return;
@@ -58,8 +57,8 @@ export class FuseApp extends EventEmitter {
       const affectedFilesIds = existingFiles
         .filter(
           (file) =>
-            new Date(file.createdAt) >= STORAGE_MIGRATION_DATE &&
-            new Date(file.createdAt) < FIX_DEPLOYMENT_DATE
+            new Date(file.createdAt) >= startDate &&
+            new Date(file.createdAt) < endDate
         )
         .map((file) => file.fileId);
 
@@ -126,7 +125,7 @@ export class FuseApp extends EventEmitter {
       this.emit('mounted');
 
       // Run after mount is complete
-      await this.fixDanglingFiles();
+      await this.fixDanglingFiles(STORAGE_MIGRATION_DATE, FIX_DEPLOYMENT_DATE);
     } catch (firstMountError) {
       Logger.error(`[FUSE] mount error: ${firstMountError}`);
       try {
@@ -137,7 +136,7 @@ export class FuseApp extends EventEmitter {
         this.emit('mounted');
 
         // Run after mount is complete (retry)
-        await this.fixDanglingFiles();
+        await this.fixDanglingFiles(STORAGE_MIGRATION_DATE, FIX_DEPLOYMENT_DATE);
       } catch (err) {
         this.status = 'ERROR';
         Logger.error(`[FUSE] mount error: ${err}`);
