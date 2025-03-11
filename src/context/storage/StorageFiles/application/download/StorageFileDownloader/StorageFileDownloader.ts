@@ -62,17 +62,53 @@ export class StorageFileDownloader {
   }
 
   async isFileDownloadable(fileContentsId: string): Promise<Either<Error, boolean>> {
-    const downloader = this.managerFactory.downloader();
+    try {
+      const downloader = this.managerFactory.downloader();
+      let isDownloadable = false;
 
-    return new Promise<Either<Error, boolean>>(async (resolve) => {
-      try {
-        this.registerEventsforIsFileDownloadable(downloader, fileContentsId, resolve);
-        await downloader.downloadById(fileContentsId);
-      } catch (error) {
-        Logger.error(`[DOWNLOAD] Error downloading file ${fileContentsId}: ${error}`);
-        resolve(left(error instanceof Error ? error : new Error(String(error))));
-      }
-    });
+      const stream = await downloader.downloadById(fileContentsId);
+
+      return await new Promise<Either<Error, boolean>>((resolve) => {
+        stream.on('data', () => {
+          isDownloadable = true;
+          Logger.info(`[DOWNLOAD] File ${fileContentsId} is downloadable, stopping download...`);
+          stream.destroy();
+          resolve(right(true));
+        });
+
+        stream.on('end', () => {
+          if (!isDownloadable) {
+            Logger.warn('[DOWNLOAD] Stream ended but no data received, file may not exist.');
+            resolve(right(false));
+          }
+          stream.destroy();
+        });
+
+        stream.on('error', (err) => {
+          if (err.message.includes('Object not found') || err.message.includes('404')) {
+            Logger.error(`[DOWNLOAD CHECK] File not found ${fileContentsId}: ${err.message}`);
+            resolve(right(false));
+          } else {
+            Logger.error(`[DOWNLOAD CHECK] Uncontrolled Error downloading file ${fileContentsId}: ${err.message}`);
+            resolve(left(err));
+          }
+          stream.destroy();
+        });
+
+
+        setTimeout(() => {
+          if (!isDownloadable) {
+            Logger.warn(`[DOWNLOAD] Timeout reached for file ${fileContentsId}, stopping download.`);
+            stream.destroy();
+            resolve(right(false));
+          }
+        }, 10000);
+      });
+
+    } catch (error) {
+      Logger.error(`[DOWNLOAD] Error downloading file ${fileContentsId}: ${error}`);
+      return left(error instanceof Error ? error : new Error(String(error)));
+    }
   }
 
   registerEventsforIsFileDownloadable(
@@ -91,12 +127,16 @@ export class StorageFileDownloader {
     });
 
     handler.on('error', (error: Error) => {
-      if (error.message.includes('Object not found') || error.message.includes('404')) {
-        Logger.error(`[DOWNLOAD CHECK] file not found ${fileId}: ${error.message}`);
-        resolve(right(false));
-      } else {
-        Logger.error(`[DOWNLOAD CHECK] Uncontrolled Error downloading file ${fileId}: ${error.message}`);
-        resolve(left(error));
+      try {
+        if (error.message.includes('Object not found') || error.message.includes('404')) {
+          Logger.info(`[DOWNLOAD CHECK] file not found ${fileId}: ${error.message}`);
+          resolve(right(false));
+        } else {
+          Logger.info(`[DOWNLOAD CHECK] Uncontrolled Error downloading file ${fileId}: ${error.message}`);
+          resolve(left(error));
+        }
+      } catch (err) {
+        Logger.info(`[ERROR HANDLING] Failed to process error event: ${err}`);
       }
       handler.forceStop();
     });
