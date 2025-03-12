@@ -79,7 +79,7 @@ export class StorageFileDownloader {
         stream.on('end', () => {
           if (!isDownloadable) {
             Logger.warn('[DOWNLOAD] Stream ended but no data received, file may not exist.');
-            resolve(right(false));
+            resolve(left(new Error('Stream ended but no data received')));
           }
           stream.destroy();
         });
@@ -100,7 +100,7 @@ export class StorageFileDownloader {
           if (!isDownloadable) {
             Logger.warn(`[DOWNLOAD] Timeout reached for file ${fileContentsId}, stopping download.`);
             stream.destroy();
-            resolve(right(false));
+            resolve(left(new Error('Timeout reached')));
           }
         }, 10000);
       });
