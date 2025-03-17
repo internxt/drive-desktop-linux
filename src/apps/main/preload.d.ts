@@ -235,6 +235,10 @@ declare interface Window {
       callback: (error: { message: string; cause: string }) => void
     ) => () => void;
 
+    backups: {
+      isAvailable: () => Promise<boolean>;
+    };
+
     antivirus: {
       isAvailable: () => Promise<boolean>;
       isDefenderActive: () => Promise<boolean>;

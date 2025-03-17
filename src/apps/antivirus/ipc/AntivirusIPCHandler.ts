@@ -330,6 +330,25 @@ export class AntivirusIPCHandler {
         throw error;
       }
     });
+
+    AntivirusIPCMain.handle('backups:is-available', async () => {
+      if (!this.paymentService) {
+        this.paymentService = buildPaymentsService();
+      }
+
+      Logger.info('[Antivirus] Handler called: backups:is-available');
+
+      try {
+        const availableProducts =
+          await this.paymentService.getAvailableProducts();
+
+        Logger.info('[Antivirus] Available products: ', availableProducts);
+        return availableProducts.backups;
+      } catch (error) {
+        Logger.error('[Antivirus] Error getting products: ', error);
+        throw error;
+      }
+    });
   }
 
   /**

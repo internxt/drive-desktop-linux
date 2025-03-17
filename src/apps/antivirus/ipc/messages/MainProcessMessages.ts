@@ -13,6 +13,12 @@ export type MainProcessAntivirusMessages = {
   'antivirus:is-available': () => Promise<boolean>;
 
   /**
+   * Check if backup feature   is available
+   * @returns Promise<boolean> Whether backup feature is available
+   */
+  'backups:is-available': () => Promise<boolean>;
+
+  /**
    * Cancel an ongoing antivirus scan
    * @returns Promise<void>
    */

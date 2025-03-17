@@ -15,7 +15,8 @@ export function SelectedFoldersSection({
   onGoToList,
 }: SelectedFoldersSectionProps) {
   const { translate } = useTranslationContext();
-  const { backups, backupStatus } = useContext(BackupContext);
+  const { backups, backupStatus, isBackupAvailable } =
+    useContext(BackupContext);
 
   return (
     <section className={`${className}`}>
@@ -24,7 +25,7 @@ export function SelectedFoldersSection({
       </SectionHeader>
       <Button
         variant="secondary"
-        disabled={backupStatus === 'RUNNING'}
+        disabled={backupStatus === 'RUNNING' || !isBackupAvailable}
         onClick={onGoToList}
         size="md"
       >

@@ -343,6 +343,15 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.on('backup-failed', (_, error) => callback(error));
     return () => ipcRenderer.removeListener('backup-failed', callback);
   },
+  backups: {
+    /**
+     * Check if backups feature is available for the current user
+     * @returns {Promise<boolean>} Whether backups is available
+     */
+    isAvailable: () => {
+      return ipcRenderer.invoke('backups:is-available');
+    },
+  },
   antivirus: {
     /**
      * Check if antivirus feature is available for the current user
