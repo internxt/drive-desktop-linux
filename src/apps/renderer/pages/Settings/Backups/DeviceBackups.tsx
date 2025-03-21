@@ -1,7 +1,7 @@
 import { DetailedDevicePill } from '../../../components/Backups/DetailedDevicePill';
 import { DeleteBackups } from '../../../components/Backups/Delete/DeleteBackups';
 import { SelectedFoldersSection } from './SelectedFoldersSection';
-import { Frequency } from './Frequency';
+import { Frequency } from './Frequency/Frequency';
 import { StartBackup } from './StartBackup';
 import { ViewBackups } from './ViewBackups';
 import { useContext } from 'react';
