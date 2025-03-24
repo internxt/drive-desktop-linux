@@ -306,7 +306,8 @@
           "12h": "Cada 12 horas",
           "24h": "Cada día",
           "manually": "Manual"
-        }
+        },
+        "manual-warning": "Las carpetas no haran copia de seguridad automáticamente hasta que hagas clic en «Hacer copia». Este modo no es recomendable."
       },
       "folders": {
         "no-folders": "No hay carpetas seleccionadas",

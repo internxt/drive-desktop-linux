@@ -301,7 +301,8 @@
           "12h": "Toutes les 12 heures",
           "24h": "Tous les jours",
           "manually": "Manuellement"
-        }
+        },
+        "manual-warning": "Les dossiers ne seront pas sauvegardés automatiquement tant que vous n'aurez pas cliqué sur «Faire une copie». Ce mode n'est pas recommandé."
       },
       "folders": {
         "no-folders": "Pas encore de sauvegardes",
