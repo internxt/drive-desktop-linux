@@ -278,6 +278,7 @@
       }
     },
     "backups": {
+      "backup-name": "Copia de seguridad",
       "featureLocked": {
         "title": "Función bloqueada",
         "subtitle": "Por favor, actualiza tu plan para usar esta función.",
@@ -293,6 +294,9 @@
       "last-backup-had-issues": "La última copia de seguridad tuvo algunos problemas",
       "see-issues": "Ver problemas",
       "backing-up": "Haciendo la copia",
+      "backups-help": "Ayuda sobre copias de seguridad",
+      "this-device": "Este dispositivo",
+      "devices": "Dispositivos",
       "action": {
         "start": "Hacer copia",
         "stop": "Stop backup",
@@ -325,7 +329,8 @@
           "confirm": "Sí, eliminar",
           "cancel": "Cancelar"
         }
-      }
+      },
+      "error-loading-backups": "Ha habido un error al cargar tus copias de seguridad"
     },
     "antivirus": {
       "featureLocked": {

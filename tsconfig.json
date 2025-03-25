@@ -42,5 +42,6 @@
     "src/workers/backups/process.ts",
     "src/workers/backups",
     "src/workers/filesystems",
-  ]
+  ],
+  "include": ["src"]
 }

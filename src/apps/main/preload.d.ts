@@ -273,7 +273,7 @@ declare interface Window {
     };
 
     userAvailableProducts: {
-      get: () => AvailableProducts['featuresPerService'] | undefined;
+      get: () => Promise<AvailableProducts['featuresPerService'] | undefined>;
       subscribe: () => void;
       onUpdated: (
         callback: (products: AvailableProducts['featuresPerService']) => void
