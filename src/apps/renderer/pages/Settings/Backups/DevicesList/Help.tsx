@@ -15,7 +15,11 @@ const Help: FC = () => {
   };
 
   return (
-    <div className="mt-auto hover:cursor-pointer" onClick={handleOpenURL}>
+    <div
+      className="mt-auto hover:cursor-pointer"
+      onClick={handleOpenURL}
+      data-testid="help-component"
+    >
       <Question className="mr-1 inline" />
       <span className="text-gray-100">
         {translate('settings.backups.backups-help')}

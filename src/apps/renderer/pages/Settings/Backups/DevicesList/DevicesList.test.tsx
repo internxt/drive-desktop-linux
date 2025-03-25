@@ -1,10 +1,10 @@
 import { Device } from '../../../../../main/device/service';
-import { useDevices } from '../../../../hooks/devices/useDevices';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { DeviceContext, DeviceState } from '../../../../context/DeviceContext';
 import { DevicesList } from './DevicesList';
 import { jest } from '@jest/globals';
 import '@testing-library/jest-dom';
+import { mockElectron } from '../../../../../__mocks__/mockElectron';
 
 
 jest.mock('../../../../hooks/devices/useDevices');
@@ -73,6 +73,10 @@ const renderComponent = (contextOverrides = {}) => {
 };
 
 describe('DevicesList', () => {
+
+  beforeAll(() => {
+    window.electron = mockElectron;
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
