@@ -18,6 +18,7 @@ export const fieldsToSave = [
   'nautilusExtensionVersion',
   'discoveredBackup',
   'shouldFixDanglingFiles',
+  'shouldFixBackupDanglingFiles'
 ] as const;
 
 export interface AppStore {
@@ -46,6 +47,7 @@ export interface AppStore {
   discoveredBackup: number;
   availableUserProducts?: AvailableProducts['featuresPerService'];
   shouldFixDanglingFiles: boolean;
+  shouldFixBackupDanglingFiles: boolean;
   storageMigrationDate: string;
   fixDeploymentDate: string;
 }
@@ -118,6 +120,7 @@ const schema: Schema<AppStore> = {
   discoveredBackup: { type: 'number' },
   availableUserProducts: { type: 'object' },
   shouldFixDanglingFiles: { type: 'boolean' },
+  shouldFixBackupDanglingFiles: { type: 'boolean' },
   storageMigrationDate: { type: 'string' },
   fixDeploymentDate: { type: 'string' },
 } as const;
@@ -148,6 +151,7 @@ export const defaults: AppStore = {
   discoveredBackup: 0,
   availableUserProducts: undefined,
   shouldFixDanglingFiles: true,
+  shouldFixBackupDanglingFiles: true,
   storageMigrationDate: '2025-02-19T12:00:00Z',
   fixDeploymentDate: '2025-03-04T15:30:00Z',
 };

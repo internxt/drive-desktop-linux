@@ -110,41 +110,4 @@ export class StorageFileDownloader {
       return left(error instanceof Error ? error : new Error(String(error)));
     }
   }
-
-  registerEventsforIsFileDownloadable(
-    handler: DownloaderHandler,
-    fileId: string,
-    resolve: (result: Either<Error, boolean>) => void
-  ) {
-    handler.on('start', () => {
-      Logger.info(`Starting download for file ${fileId}`);
-    });
-
-    handler.on('progress', () => {
-      Logger.info(`File ${fileId} is downloadable, stopping download...`);
-      handler.forceStop();
-      resolve(right(true));
-    });
-
-    handler.on('error', (error: Error) => {
-      try {
-        if (error.message.includes('Object not found') || error.message.includes('404')) {
-          Logger.info(`[DOWNLOAD CHECK] file not found ${fileId}: ${error.message}`);
-          resolve(right(false));
-        } else {
-          Logger.info(`[DOWNLOAD CHECK] Uncontrolled Error downloading file ${fileId}: ${error.message}`);
-          resolve(left(error));
-        }
-      } catch (err) {
-        Logger.info(`[ERROR HANDLING] Failed to process error event: ${err}`);
-      }
-      handler.forceStop();
-    });
-
-    handler.on('finish', () => {
-      Logger.info(`File ${fileId} finish downloading`);
-      resolve(right(true));
-      handler.forceStop();
-    });
-  }
 }

@@ -13,7 +13,7 @@ export class BackupWorker {
   )}/index.html`;
 
   private constructor(
-    public readonly id: number,
+    public readonly id: number, // <- This id is never used
     private readonly worker: BrowserWindow
   ) {}
 
@@ -46,10 +46,8 @@ export class BackupWorker {
   }
 
   destroy(): void {
-    if (!this.worker) {
-      return;
+    if (this.worker) {
+      this.worker.destroy();
     }
-
-    this.worker.destroy();
   }
 }
