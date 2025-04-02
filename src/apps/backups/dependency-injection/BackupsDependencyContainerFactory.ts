@@ -7,6 +7,10 @@ import { BackupService } from '../BackupService';
 import { registerLocalTreeServices } from './local/registerLocalTreeServices';
 import { registerRemoteTreeServices } from './virtual-drive/registerRemoteTreeServices';
 import { registerUserUsageServices } from './user/registerUsageServices';
+import { BackupsDanglingFilesService } from '../BackupsDanglingFilesService';
+import {
+  StorageFileDownloader
+} from '../../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
 
 export class BackupsDependencyContainerFactory {
   private static container: Container | null = null;
@@ -26,6 +30,9 @@ export class BackupsDependencyContainerFactory {
     registerLocalTreeServices(builder);
 
     registerUserUsageServices(builder);
+
+    builder.registerAndUse(StorageFileDownloader);
+    builder.registerAndUse(BackupsDanglingFilesService);
 
     builder.registerAndUse(BackupService);
 

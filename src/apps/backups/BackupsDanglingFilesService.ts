@@ -1,41 +1,55 @@
 import { Service } from 'diod';
-import {
-  StorageFileDownloader
-} from '../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
+import { StorageFileDownloader } from '../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
 import { LocalFile } from '../../context/local/localFile/domain/LocalFile';
 import { File } from '../../context/virtual-drive/files/domain/File';
 import Logger from 'electron-log';
 
+export interface handleDanglingFilesOnBackupResponse {
+  filesToResync: Map<LocalFile, File>;
+  allFilesHandled: boolean;
+}
+
 @Service()
 export class BackupsDanglingFilesService {
-  constructor(
-    private readonly storageFileDownloader: StorageFileDownloader
-  ) {}
+  constructor(private readonly storageFileDownloader: StorageFileDownloader) {}
 
   async handleDanglingFilesOnBackup(
     danglingFiles: Map<LocalFile, File>
-  ): Promise<Map<LocalFile, File>> {
-    const result = new Map<LocalFile, File>();
+  ): Promise<handleDanglingFilesOnBackupResponse> {
+    const filesToResync = new Map<LocalFile, File>();
+    let allFilesHandled = true;
+
     for (const [localFile, remoteFile] of danglingFiles) {
       try {
-        const resultEither = await this.storageFileDownloader.isFileDownloadable(remoteFile.contentsId);
+        const resultEither =
+          await this.storageFileDownloader.isFileDownloadable(
+            remoteFile.contentsId
+          );
         if (resultEither.isRight()) {
           const isFileDownloadable = resultEither.getRight();
           if (!isFileDownloadable) {
-            Logger.warn(`[BACKUP DANGLING FILE] File ${remoteFile.contentsId} is not downloadable, backing up again...`);
-            result.set(localFile, remoteFile);
+            Logger.warn(
+              `[BACKUP DANGLING FILE] File ${remoteFile.contentsId} is not downloadable, backing up again...`
+            );
+            filesToResync.set(localFile, remoteFile);
+
+            // * Even though are handling it, we want to retry later to confirm successful resync
+            allFilesHandled = false;
           }
         } else {
           const error = resultEither.getLeft();
-          Logger.error(`[BACKUP DANGLING FILE] Error checking file ${remoteFile.contentsId}: ${error.message}`);
-          // result.set(localFile, remoteFile);
+          Logger.error(
+            `[BACKUP DANGLING FILE] Error checking file ${remoteFile.contentsId}: ${error.message}`
+          );
+          allFilesHandled = false;
         }
       } catch (error) {
         Logger.error(
           `[BACKUP DANGLING FILE] Error while handling dangling file ${remoteFile.contentsId}: ${error}`
         );
+        allFilesHandled = false;
       }
     }
-    return result;
+    return { filesToResync, allFilesHandled };
   }
 }

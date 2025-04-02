@@ -27,6 +27,7 @@ import { Either, left, right } from '../../context/shared/domain/Either';
 import { RetryOptions } from '../shared/retry/types';
 import { RetryHandler } from '../shared/retry/RetryHandler';
 import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
+import configStore from '../main/config';
 
 @Service()
 export class BackupService {
@@ -78,13 +79,17 @@ export class BackupService {
 
       if (filesDiff.dangling.size > 0) {
         Logger.info('[BACKUPS] Dangling files found, handling them');
-        const result = await this.backupsDanglingFilesService.handleDanglingFilesOnBackup(
-          filesDiff.dangling
-        );
-        for (const [localFile, remoteFile] of result) {
+        const { filesToResync, allFilesHandled } =
+          await this.backupsDanglingFilesService.handleDanglingFilesOnBackup(
+            filesDiff.dangling
+          );
+        for (const [localFile, remoteFile] of filesToResync) {
           filesDiff.modified.set(localFile, remoteFile);
         }
         filesDiff.total += filesDiff.dangling.size;
+        if (allFilesHandled) {
+          configStore.set('shouldFixBackupDanglingFiles', false);
+        }
       }
       Logger.info('[BACKUPS] File differences calculated');
 
