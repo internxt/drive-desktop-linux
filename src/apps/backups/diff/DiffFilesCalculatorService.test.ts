@@ -133,12 +133,11 @@ describe('DiffFilesCalculatorService', () => {
     expect(unmodified.length).toBe(10);
   });
 
-  it('should add the dangling files to the result only if the files are properly dangled files and shouldFixBackupDanglingFiles is set to true', () => {
+  it('should add the dangling files to the result only if the files are properly dangled files', () => {
     // @ts-ignore
     (configStore.get as jest.Mock).mockImplementation((key: string) => {
       if (key === 'storageMigrationDate') return '2025-02-19T00:00:00Z';
       if (key === 'fixDeploymentDate') return '2025-03-01T00:00:00Z';
-      if (key === 'shouldFixBackupDanglingFiles') return true;
     });
     const tree = RemoteTreeMother.onlyRoot();
     // We will create 2 files: One dangled and one not dangled

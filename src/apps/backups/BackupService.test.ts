@@ -18,17 +18,12 @@ import { FolderMother } from '../../../tests/context/virtual-drive/folders/domai
 import { Folder } from '../../context/virtual-drive/folders/domain/Folder';
 import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
 import { DiffFilesCalculatorService } from './diff/DiffFilesCalculatorService';
-import configStore from '../main/config';
 
 // Mock the BackupsIPCRenderer module
 jest.mock('./BackupsIPCRenderer', () => ({
   BackupsIPCRenderer: {
     send: jest.fn(), // Mock the send method
   },
-}));
-
-jest.mock('../main/config', () => ({
-  set: jest.fn(),
 }));
 
 describe('BackupService', () => {
@@ -251,12 +246,8 @@ describe('BackupService', () => {
     localTreeBuilder.run.mockResolvedValueOnce(right(localTree));
     remoteTreeBuilder.run.mockResolvedValueOnce(remoteTree);
     userAvaliableSpaceValidator.run.mockResolvedValueOnce(true);
-    const response = {
-      filesToResync: new Map([[danglingFile, remoteFile]]),
-      allFilesHandled: true,
-    };
     backupsDanglingFilesService.handleDanglingFilesOnBackup.mockResolvedValueOnce(
-      response
+      new Map([[danglingFile, remoteFile]]),
     );
 
     const originalCalculate = DiffFilesCalculatorService.calculate;
@@ -270,10 +261,6 @@ describe('BackupService', () => {
     expect(
       backupsDanglingFilesService.handleDanglingFilesOnBackup
     ).toHaveBeenCalledWith(fakeDiff.dangling);
-    expect(configStore.set).toHaveBeenCalledWith(
-      'shouldFixBackupDanglingFiles',
-      false
-    );
     expect(fileBatchUpdater.run).toHaveBeenCalledWith(
       localTree.root,
       remoteTree,

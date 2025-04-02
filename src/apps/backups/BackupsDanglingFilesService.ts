@@ -4,20 +4,14 @@ import { LocalFile } from '../../context/local/localFile/domain/LocalFile';
 import { File } from '../../context/virtual-drive/files/domain/File';
 import Logger from 'electron-log';
 
-export interface handleDanglingFilesOnBackupResponse {
-  filesToResync: Map<LocalFile, File>;
-  allFilesHandled: boolean;
-}
-
 @Service()
 export class BackupsDanglingFilesService {
   constructor(private readonly storageFileDownloader: StorageFileDownloader) {}
 
   async handleDanglingFilesOnBackup(
     danglingFiles: Map<LocalFile, File>
-  ): Promise<handleDanglingFilesOnBackupResponse> {
+  ): Promise<Map<LocalFile, File>> {
     const filesToResync = new Map<LocalFile, File>();
-    let allFilesHandled = true;
 
     for (const [localFile, remoteFile] of danglingFiles) {
       try {
@@ -33,23 +27,19 @@ export class BackupsDanglingFilesService {
             );
             filesToResync.set(localFile, remoteFile);
 
-            // * Even though are handling it, we want to retry later to confirm successful resync
-            allFilesHandled = false;
           }
         } else {
           const error = resultEither.getLeft();
           Logger.error(
             `[BACKUP DANGLING FILE] Error checking file ${remoteFile.contentsId}: ${error.message}`
           );
-          allFilesHandled = false;
         }
       } catch (error) {
         Logger.error(
           `[BACKUP DANGLING FILE] Error while handling dangling file ${remoteFile.contentsId}: ${error}`
         );
-        allFilesHandled = false;
       }
     }
-    return { filesToResync, allFilesHandled };
+    return filesToResync;
   }
 }

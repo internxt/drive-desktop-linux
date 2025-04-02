@@ -23,7 +23,6 @@ export class DiffFilesCalculatorService {
     const modified: Map<LocalFile, File> = new Map();
     const dangling: Map<LocalFile, File> = new Map();
     const unmodified: Array<LocalFile> = [];
-    const shouldFixBackupDanglingFiles = configStore.get('shouldFixBackupDanglingFiles');
 
     const rootPath = local.root.path;
 
@@ -49,7 +48,7 @@ export class DiffFilesCalculatorService {
       );
       const localModificationTime = Math.trunc(local.modificationTime / 1000);
 
-      if (shouldFixBackupDanglingFiles && this.isDangledFile(remoteNode.createdAt)) {
+      if (this.isDangledFile(remoteNode.createdAt)) {
         Logger.debug(
           `Possible Dangled File Found with name ${remoteNode.name} while backing up`
         );
