@@ -19,7 +19,7 @@ beforeAll(() => {
     setBackupsInterval: mockSetBackupsInterval,
   };
 });
-MANUAL_BACKUP_INTERVAL
+
 describe('useBackupsInterval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
