@@ -40,7 +40,7 @@ export class BackupsDependencyContainerFactory {
         (c) =>
           new EnvironmentFileDownloaderHandlerFactory(
             c.get(Environment),
-            user.bucket
+            user.backupsBucket
           )
       );
 
@@ -48,8 +48,7 @@ export class BackupsDependencyContainerFactory {
       const env = c.get(Environment);
       return new StorageFileService(
         env,
-        user.bucket
-        // c.get(DownloaderHandlerFactory)
+        user.backupsBucket
       );
     });
 
