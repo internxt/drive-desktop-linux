@@ -25,6 +25,7 @@ export async function launchBackupProcesses(
     return;
   }
 
+  Logger.debug('[BACKUPS] Launching backups process');
   status.set('RUNNING');
 
   const suspensionBlockId = powerSaveBlocker.start('prevent-display-sleep');

@@ -15,7 +15,10 @@ import { BackupInfo } from './BackupInfo';
 import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 import { AddedFilesBatchCreator } from './batches/AddedFilesBatchCreator';
 import { ModifiedFilesBatchCreator } from './batches/ModifiedFilesBatchCreator';
-import { DiffFilesCalculatorService, FilesDiff } from './diff/DiffFilesCalculatorService';
+import {
+  DiffFilesCalculatorService,
+  FilesDiff,
+} from './diff/DiffFilesCalculatorService';
 import {
   FoldersDiff,
   FoldersDiffCalculator,
@@ -85,6 +88,7 @@ export class BackupService {
         for (const [localFile, remoteFile] of filesToResync) {
           filesDiff.modified.set(localFile, remoteFile);
         }
+        Logger.info(`[BACKUPS] ${filesToResync.size} dangling files to resync`);
         filesDiff.total += filesDiff.dangling.size;
       }
       Logger.info('[BACKUPS] File differences calculated');

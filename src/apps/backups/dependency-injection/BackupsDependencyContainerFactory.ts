@@ -7,10 +7,12 @@ import { BackupService } from '../BackupService';
 import { registerLocalTreeServices } from './local/registerLocalTreeServices';
 import { registerRemoteTreeServices } from './virtual-drive/registerRemoteTreeServices';
 import { registerUserUsageServices } from './user/registerUsageServices';
+import { DependencyInjectionUserProvider } from '../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { DownloaderHandlerFactory } from '../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
+import { EnvironmentFileDownloaderHandlerFactory } from '../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
+import { Environment } from '@internxt/inxt-js';
+import { StorageFileService } from '../../../context/storage/StorageFiles/StorageFileService';
 import { BackupsDanglingFilesService } from '../BackupsDanglingFilesService';
-import {
-  StorageFileDownloader
-} from '../../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
 
 export class BackupsDependencyContainerFactory {
   private static container: Container | null = null;
@@ -21,6 +23,7 @@ export class BackupsDependencyContainerFactory {
     }
 
     const builder = await backgroundProcessSharedInfraBuilder();
+    const user = DependencyInjectionUserProvider.get();
 
     await registerFilesServices(builder);
     registerFolderServices(builder);
@@ -31,7 +34,25 @@ export class BackupsDependencyContainerFactory {
 
     registerUserUsageServices(builder);
 
-    builder.registerAndUse(StorageFileDownloader);
+    builder
+      .register(DownloaderHandlerFactory)
+      .useFactory(
+        (c) =>
+          new EnvironmentFileDownloaderHandlerFactory(
+            c.get(Environment),
+            user.bucket
+          )
+      );
+
+    builder.register(StorageFileService).useFactory((c) => {
+      const env = c.get(Environment);
+      return new StorageFileService(
+        env,
+        user.bucket
+        // c.get(DownloaderHandlerFactory)
+      );
+    });
+
     builder.registerAndUse(BackupsDanglingFilesService);
 
     builder.registerAndUse(BackupService);

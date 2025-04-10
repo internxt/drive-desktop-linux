@@ -1,24 +1,29 @@
 import { Service } from 'diod';
-import { StorageFileDownloader } from '../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
 import { LocalFile } from '../../context/local/localFile/domain/LocalFile';
 import { File } from '../../context/virtual-drive/files/domain/File';
 import Logger from 'electron-log';
+import { StorageFileService } from '../../context/storage/StorageFiles/StorageFileService';
 
 @Service()
 export class BackupsDanglingFilesService {
-  constructor(private readonly storageFileDownloader: StorageFileDownloader) {}
+  constructor(private readonly storageFileService: StorageFileService) {}
 
   async handleDanglingFilesOnBackup(
     danglingFiles: Map<LocalFile, File>
   ): Promise<Map<LocalFile, File>> {
+    Logger.info(
+      `BackupsDanglingFilesService started for: ${danglingFiles.size} dangling files`
+    );
     const filesToResync = new Map<LocalFile, File>();
 
     for (const [localFile, remoteFile] of danglingFiles) {
       try {
-        const resultEither =
-          await this.storageFileDownloader.isFileDownloadable(
-            remoteFile.contentsId
-          );
+        Logger.info(
+          `[BACKUP DANGLING FILE] Checking file ${remoteFile.contentsId}...`
+        );
+        const resultEither = await this.storageFileService.isFileDownloadable(
+          remoteFile.contentsId
+        );
         if (resultEither.isRight()) {
           const isFileDownloadable = resultEither.getRight();
           if (!isFileDownloadable) {
@@ -26,7 +31,6 @@ export class BackupsDanglingFilesService {
               `[BACKUP DANGLING FILE] File ${remoteFile.contentsId} is not downloadable, backing up again...`
             );
             filesToResync.set(localFile, remoteFile);
-
           }
         } else {
           const error = resultEither.getLeft();

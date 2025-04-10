@@ -53,6 +53,8 @@ export async function setUpBackups() {
     scheduler.stop();
     errors.clear();
     tracker.reset();
+    stopController.reset();
+    status.set('STANDBY');
   }
 
   eventBus.on('USER_LOGGED_OUT', stopAndClearBackups);
@@ -83,6 +85,16 @@ export async function setUpBackups() {
         stopController
       );
     }
+  });
+
+  ipcMain.on('BACKUP_PROCESS_FINISHED', (event) => {
+
+    if (event?.lastExitReason === 'FORCED_BY_USER') {
+      Logger.debug('[BACKUPS] Backups process finished by user');
+    } else {
+      Logger.debug('[BACKUPS] Backups process finished');
+    }
+    stopAndClearBackups();
   });
 
   if (userHasBackupFeatureAvailable) {

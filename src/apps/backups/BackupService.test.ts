@@ -26,6 +26,13 @@ jest.mock('./BackupsIPCRenderer', () => ({
   },
 }));
 
+// Mock the Environment module
+jest.mock('@internxt/inxt-js', () => ({
+  Environment: {
+    get: jest.fn(),
+  },
+}));
+
 describe('BackupService', () => {
   let backupService: BackupService;
   let localTreeBuilder: jest.Mocked<LocalTreeBuilder>;
@@ -247,7 +254,7 @@ describe('BackupService', () => {
     remoteTreeBuilder.run.mockResolvedValueOnce(remoteTree);
     userAvaliableSpaceValidator.run.mockResolvedValueOnce(true);
     backupsDanglingFilesService.handleDanglingFilesOnBackup.mockResolvedValueOnce(
-      new Map([[danglingFile, remoteFile]]),
+      new Map([[danglingFile, remoteFile]])
     );
 
     const originalCalculate = DiffFilesCalculatorService.calculate;
