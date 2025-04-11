@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron';
 import Logger from 'electron-log';
 import path from 'path';
+import isDev from '../../../../utils/isDev/isDev';
 
 export class BackupWorker {
   private static readonly DEV_PATH =
@@ -30,16 +31,13 @@ export class BackupWorker {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        devTools: isDev(),
       },
       show: false,
     });
 
     worker
-      .loadFile(
-        process.env.NODE_ENV === 'development'
-          ? BackupWorker.DEV_PATH
-          : BackupWorker.PROD_PATH
-      )
+      .loadFile(isDev() ? BackupWorker.DEV_PATH : BackupWorker.PROD_PATH)
       .catch(Logger.error);
 
     return new BackupWorker(id, worker);
