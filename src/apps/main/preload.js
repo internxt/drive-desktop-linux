@@ -1,6 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
-const { AvailableProducts } = require('@internxt/sdk/dist/drive/payments/types');
 
 contextBridge.exposeInMainWorld('electron', {
   getConfigKey(key) {

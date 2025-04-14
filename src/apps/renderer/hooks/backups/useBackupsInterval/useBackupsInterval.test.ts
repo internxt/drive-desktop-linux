@@ -1,28 +1,21 @@
 import { useBackupsInterval } from './useBackupsInterval';
 import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react';
-const mockGetBackupsInterval = jest.fn();
-const mockSetBackupsInterval = jest.fn();
+import { mockElectron, mockGetBackupsInterval, mockSetBackupsInterval } from '../../../../__mocks__/mockElectron';
 
-declare global {
-  interface Window {
-    electron: {
-      getBackupsInterval: () => Promise<number>;
-      setBackupsInterval: (value: number) => Promise<void>;
-    };
-  }
-}
-
-beforeAll(() => {
-  window.electron = {
-    getBackupsInterval: mockGetBackupsInterval,
-    setBackupsInterval: mockSetBackupsInterval,
-  };
-});
 
 describe('useBackupsInterval', () => {
+  beforeAll(() => {
+    window.electron = mockElectron;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    // @ts-ignore
+    delete window.electron;
   });
 
   it('should have the default state of backupsInterval as BACKUP_MANUAL_INTERVAL value', () => {
