@@ -54,6 +54,7 @@ export async function accessRequest(
         'content-type': 'application/json',
         'internxt-client': 'drive-desktop',
         'internxt-version': packageConfig.version,
+        'x-internxt-desktop-header': process.env.INTERNXT_DESKTOP_HEADER_KEY || '',
       },
     });
   } catch {
@@ -91,6 +92,7 @@ export async function loginRequest(email: string): Promise<{
         'content-type': 'application/json',
         'internxt-client': 'drive-desktop',
         'internxt-version': packageConfig.version,
+        'x-internxt-desktop-header': process.env.INTERNXT_DESKTOP_HEADER_KEY || '',
       },
     });
   } catch {
