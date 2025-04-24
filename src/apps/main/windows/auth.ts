@@ -3,7 +3,7 @@ import { BrowserWindow } from 'electron';
 import { preloadPath, resolveHtmlPath } from '../util';
 import { setUpCommonWindowHandlers } from '.';
 import { getIsLoggedIn } from '../auth/handlers';
-import isDev from '../../utils/isDev/isDev';
+import isDev from '../../../core/isDev/isDev';
 
 let authWindow: BrowserWindow | null = null;
 export const getAuthWindow = () => {

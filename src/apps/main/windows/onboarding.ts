@@ -3,7 +3,7 @@ import { BrowserWindow, ipcMain } from 'electron';
 import configStore from '../config';
 import { preloadPath, resolveHtmlPath } from '../util';
 import { setUpCommonWindowHandlers } from '.';
-import isDev from '../../utils/isDev/isDev';
+import isDev from '../../../core/isDev/isDev';
 
 let onboardingWindow: BrowserWindow | null = null;
 export const getOnboardingWindow = () =>
