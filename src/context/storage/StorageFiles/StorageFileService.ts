@@ -4,13 +4,11 @@ import { Either, left, right } from '../../shared/domain/Either';
 import { customSafeDownloader } from './infrastructure/download/customSafeDownloader';
 import Logger from 'electron-log';
 
-// import { DownloaderHandlerFactory } from './domain/download/DownloaderHandlerFactory';
-
 @Service()
 export class StorageFileService {
   constructor(
     private readonly environment: Environment,
-    private readonly bucket: string // private readonly managerFactory: DownloaderHandlerFactory
+    private readonly bucket: string
   ) {}
 
   async isFileDownloadable(
@@ -79,69 +77,4 @@ export class StorageFileService {
       }
     });
   }
-
-  // async isFileDownloadableOld(
-  //   fileContentsId: string
-  // ): Promise<Either<Error, boolean>> {
-  //   try {
-  //     const downloader = this.managerFactory.downloader();
-  //     let isDownloadable = false;
-  //
-  //     const stream = await downloader.downloadById(fileContentsId);
-  //
-  //     return await new Promise<Either<Error, boolean>>((resolve) => {
-  //       stream.on('data', () => {
-  //         isDownloadable = true;
-  //         Logger.info(
-  //           `[DOWNLOAD] File ${fileContentsId} is downloadable, stopping download...`
-  //         );
-  //         stream.destroy();
-  //         resolve(right(true));
-  //       });
-  //
-  //       stream.on('end', () => {
-  //         if (!isDownloadable) {
-  //           Logger.warn(
-  //             '[DOWNLOAD] Stream ended but no data received, file may not exist.'
-  //           );
-  //           resolve(left(new Error('Stream ended but no data received')));
-  //         }
-  //         stream.destroy();
-  //       });
-  //
-  //       stream.on('error', (err) => {
-  //         if (
-  //           err.message.includes('Object not found') ||
-  //           err.message.includes('404')
-  //         ) {
-  //           Logger.error(
-  //             `[DOWNLOAD CHECK] File not found ${fileContentsId}: ${err.message}`
-  //           );
-  //           resolve(right(false));
-  //         } else {
-  //           Logger.error(
-  //             `[DOWNLOAD CHECK] Uncontrolled Error downloading file ${fileContentsId}: ${err.message}`
-  //           );
-  //           resolve(left(err));
-  //         }
-  //         stream.destroy();
-  //       });
-  //
-  //       setTimeout(() => {
-  //         if (!isDownloadable) {
-  //           Logger.warn(
-  //             `[DOWNLOAD] Timeout reached for file ${fileContentsId}, stopping download.`
-  //           );
-  //           stream.destroy();
-  //           resolve(left(new Error('Timeout reached')));
-  //         }
-  //       }, 10000);
-  //     });
-  //   } catch (error) {
-  //     Logger.error(
-  //       `[DOWNLOAD] Error downloading file ${fileContentsId}: ${error}`
-  //     );
-  //     return left(error instanceof Error ? error : new Error(String(error)));
-  //   }
-  // }
 }

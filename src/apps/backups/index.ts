@@ -6,8 +6,6 @@ import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 import { BackupsDependencyContainerFactory } from './dependency-injection/BackupsDependencyContainerFactory';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 
-console.log('[BACKUPS] index.ts loaded and running');
-
 function handleAbortAndOfflineEvents(
   abortController: AbortController,
   backupInfo: BackupInfo
