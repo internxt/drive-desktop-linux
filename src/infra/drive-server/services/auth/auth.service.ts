@@ -5,7 +5,8 @@ import { Either, left, right } from '../../../../context/shared/domain/Either';
 import { RefreshTokenResponse } from './auth.types';
 
 export class AuthService {
-  constructor() {}
+  constructor() {
+  }
 
   async refresh(): Promise<Either<Error, RefreshTokenResponse>> {
     try {
