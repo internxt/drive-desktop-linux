@@ -10,7 +10,6 @@ export class FileRepositorySynchronizer {
   constructor(
     private readonly repository: FileRepository,
     private readonly storageFileService: StorageFileService,
-    // private readonly storageFileDownloader: StorageFileDownloader,
     private readonly remoteFileSystem: RemoteFileSystem
   ) {}
 
