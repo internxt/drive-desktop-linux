@@ -68,5 +68,26 @@ describe('AuthService', () => {
         })
       );
     });
+
+    it('should return error when request throws an exception', async () => {
+      const error = new Error('Request failed');
+      (authClient.GET as jest.Mock).mockRejectedValue(error);
+
+      const result = await sut.refresh();
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getLeft()).toEqual(error);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Login request threw an exception',
+          tag: 'AUTH',
+          error: error,
+          attributes: expect.objectContaining({
+            endpoint: '/auth/login'
+          })
+        })
+      );
+    });
   });
 });
