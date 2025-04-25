@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron';
 import Logger from 'electron-log';
 import path from 'path';
+import isDev from '../../../../utils/isDev/isDev';
 
 export class BackupWorker {
   private constructor(
@@ -21,6 +22,7 @@ export class BackupWorker {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        devTools: isDev(),
       },
       show: false,
     });
@@ -37,7 +39,7 @@ export class BackupWorker {
   }
 
   private static getPath(): string {
-    return process.env.NODE_ENV === 'development'
+    return isDev()
       ? path.resolve(
           process.cwd(),
           'release',

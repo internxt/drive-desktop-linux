@@ -104,6 +104,7 @@ export function getHeaders(includeMnemonic = false): Record<string, string> {
     'content-type': 'application/json; charset=utf-8',
     'internxt-client': 'drive-desktop',
     'internxt-version': packageConfig.version,
+    'x-internxt-desktop-header': process.env.INTERNXT_DESKTOP_HEADER_KEY || '',
     ...(includeMnemonic
       ? {
           'internxt-mnemonic': ConfigStore.get('mnemonic'),
@@ -122,7 +123,7 @@ export function getNewApiHeaders(): Record<string, string> {
     'content-type': 'application/json; charset=utf-8',
     'internxt-client': 'drive-desktop',
     'internxt-version': packageConfig.version,
-    'x-internxt-desktop-header': '3b68706a367fd567b929396290b1de40768bb768',
+    'x-internxt-desktop-header': process.env.INTERNXT_DESKTOP_HEADER_KEY || '',
   };
 }
 
