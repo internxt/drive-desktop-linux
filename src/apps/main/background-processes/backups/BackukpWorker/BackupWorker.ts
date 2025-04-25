@@ -1,7 +1,7 @@
 import { BrowserWindow } from 'electron';
 import Logger from 'electron-log';
 import path from 'path';
-import isDev from '../../../../utils/isDev/isDev';
+import isDev from '../../../../../core/isDev/isDev';
 
 export class BackupWorker {
   private constructor(

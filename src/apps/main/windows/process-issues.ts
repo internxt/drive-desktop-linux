@@ -2,7 +2,7 @@ import { BrowserWindow, ipcMain } from 'electron';
 
 import { preloadPath, resolveHtmlPath } from '../util';
 import { setUpCommonWindowHandlers } from '.';
-import isDev from '../../utils/isDev/isDev';
+import isDev from '../../../core/isDev/isDev';
 
 let processIssuesWindow: BrowserWindow | null = null;
 export const getProcessIssuesWindow = () =>

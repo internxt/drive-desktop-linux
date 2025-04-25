@@ -4,7 +4,7 @@ import { preloadPath, resolveHtmlPath } from '../util';
 import { setUpCommonWindowHandlers } from '.';
 import eventBus from '../event-bus';
 import { ProgressData } from '../antivirus/ManualSystemScan';
-import isDev from '../../utils/isDev/isDev';
+import isDev from '../../../core/isDev/isDev';
 
 let settingsWindow: BrowserWindow | null = null;
 export const getSettingsWindow = () =>

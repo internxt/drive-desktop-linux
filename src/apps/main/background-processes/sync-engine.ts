@@ -3,7 +3,7 @@ import path from 'path';
 import Logger from 'electron-log';
 import eventBus from '../event-bus';
 import nodeSchedule from 'node-schedule';
-import isDev from '../../utils/isDev/isDev';
+import isDev from '../../../core/isDev/isDev';
 
 let worker: BrowserWindow | null = null;
 let workerIsRunning = false;
