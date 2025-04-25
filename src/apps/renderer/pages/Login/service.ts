@@ -75,36 +75,3 @@ export async function accessRequest(
 
   return res;
 }
-
-export async function loginRequest(email: string): Promise<{
-  sKey: string;
-  tfa: boolean;
-}> {
-  const fallbackErrorMessage = 'Error while logging in';
-
-  let loginRes;
-
-  try {
-    loginRes = await fetch(`${process.env.API_URL}/login`, {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-      headers: {
-        'content-type': 'application/json',
-        'internxt-client': 'drive-desktop',
-        'internxt-version': packageConfig.version,
-        'x-internxt-desktop-header': process.env.INTERNXT_DESKTOP_HEADER_KEY || '',
-      },
-    });
-  } catch {
-    throw new Error(fallbackErrorMessage);
-  }
-
-  const body = await loginRes.json();
-
-  if (!loginRes.ok) {
-    const errorMessage = body.error ?? 'Error while logging in';
-    throw new Error(errorMessage);
-  }
-
-  return body;
-}
