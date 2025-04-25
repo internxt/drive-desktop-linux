@@ -1,22 +1,28 @@
 import { AuthService } from './auth.service';
 import { authClient } from './auth.client';
-import { getNewApiHeaders } from '../../../../apps/main/auth/service';
+import {
+  getBaseApiHeaders,
+  getNewApiHeaders,
+} from '../../../../apps/main/auth/service';
 import { logger } from '../../../../core/LoggerService/LoggerService';
+import { LoginResponse } from './auth.types';
 
 jest.mock('../../../../apps/main/auth/service', () => ({
-  getNewApiHeaders: jest.fn()
+  getNewApiHeaders: jest.fn(),
+  getBaseApiHeaders: jest.fn(),
 }));
 
 jest.mock('./auth.client', () => ({
   authClient: {
-    GET: jest.fn()
-  }
+    GET: jest.fn(),
+    POST: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../core/LoggerService/LoggerService', () => ({
   logger: {
-    error: jest.fn()
-  }
+    error: jest.fn(),
+  },
 }));
 
 describe('AuthService', () => {
@@ -43,7 +49,9 @@ describe('AuthService', () => {
 
       expect(result.isRight()).toEqual(true);
       expect(result.getRight()).toEqual(data);
-      expect(authClient.GET).toHaveBeenCalledWith('/users/refresh', { headers: mockedHeaders });
+      expect(authClient.GET).toHaveBeenCalledWith('/users/refresh', {
+        headers: mockedHeaders,
+      });
     });
 
     it('should return error when response is not successful', async () => {
@@ -52,7 +60,6 @@ describe('AuthService', () => {
       const result = await sut.refresh();
 
       expect(result.isLeft()).toBe(true);
-
 
       const error = result.getLeft();
       expect(error).toBeInstanceOf(Error);
@@ -63,8 +70,8 @@ describe('AuthService', () => {
           msg: 'Refresh request was not successful',
           tag: 'AUTH',
           attributes: expect.objectContaining({
-            endpoint: '/users/refresh'
-          })
+            endpoint: '/users/refresh',
+          }),
         })
       );
     });
@@ -84,8 +91,85 @@ describe('AuthService', () => {
           tag: 'AUTH',
           error: error,
           attributes: expect.objectContaining({
-            endpoint: '/auth/login'
-          })
+            endpoint: '/auth/login',
+          }),
+        })
+      );
+    });
+  });
+
+  describe.only('login', () => {
+    it('should return the proper LoginResponse when request is successful', async () => {
+      const email = 'test@example.com';
+      const data: LoginResponse = {
+        hasKeys: true,
+        sKey: 'sKey',
+        tfa: false,
+        hasKyberKeys: false,
+        hasEccKeys: false,
+      };
+      (authClient.POST as jest.Mock).mockResolvedValue({ data });
+      const mockedHeaders: Record<string, string> = {
+        Authorization: 'Bearer token',
+        'content-type': 'application/json; charset=utf-8',
+        'internxt-client': 'drive-desktop',
+        'internxt-version': '2.4.8',
+        'x-internxt-desktop-header': 'test-header',
+      };
+      (getBaseApiHeaders as jest.Mock).mockReturnValue(mockedHeaders);
+
+      const result = await sut.login(email);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toEqual(data);
+      expect(authClient.POST).toHaveBeenCalledWith('/auth/login', {
+        body: { email },
+        headers: mockedHeaders,
+      });
+    });
+
+    it('should return error when request is not successful', async () => {
+      const email = 'test@example.com';
+      (authClient.POST as jest.Mock).mockResolvedValue({ data: undefined });
+      (getBaseApiHeaders as jest.Mock).mockReturnValue({});
+
+      const result = await sut.login(email);
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('Login request was not successful');
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Login request was not successful',
+          tag: 'AUTH',
+          attributes: {
+            endpoint: '/auth/login',
+          },
+        })
+      );
+    });
+
+    it('should return error when request throws an exception', async () => {
+      const email = 'test@example.com';
+      const error = new Error('Network error');
+      (authClient.POST as jest.Mock).mockRejectedValue(error);
+      (getBaseApiHeaders as jest.Mock).mockReturnValue({});
+
+      const result = await sut.login(email);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getLeft()).toEqual(error);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Login request threw an exception',
+          tag: 'AUTH',
+          error: error,
+          attributes: {
+            endpoint: '/auth/login',
+          },
         })
       );
     });
