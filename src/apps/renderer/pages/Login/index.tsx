@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import packageJson from '../../../../../package.json';
 import { useTranslationContext } from '../../context/LocalContext';
 import ErrorBanner from './ErrorBanner';
-import { accessRequest, hashPassword, loginRequest } from './service';
+import { accessRequest, hashPassword } from './service';
 import TwoFA from './TwoFA';
 import { LoginState } from './types';
 import WarningBanner from './WarningBanner';
@@ -10,6 +10,7 @@ import Button from '../../components/Button';
 import PasswordInput from '../../components/PasswordInput';
 import TextInput from '../../components/TextInput';
 import WindowTopBar from '../../components/WindowTopBar';
+import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 
 const TOWFA_ERROR_MESSAGE = 'Wrong 2-factor auth code';
 
@@ -71,13 +72,20 @@ export default function Login() {
     }
 
     try {
-      const body = await loginRequest(email);
-      sKey.current = body.sKey;
-      if (body.tfa) {
-        setState('ready');
-        setPhase('2fa');
-      } else {
-        access();
+      const response = await driveServerModule.auth.login(email);
+      if (response.isRight()) {
+        const body = response.getRight();
+        sKey.current = body.sKey;
+        if (body.tfa) {
+          setState('ready');
+          setPhase('2fa');
+        } else {
+          access();
+        }
+      }
+      if (response.isLeft()) {
+        setState('error');
+        setErrorDetails(response.getLeft().message);
       }
     } catch (err) {
       setState('error');
