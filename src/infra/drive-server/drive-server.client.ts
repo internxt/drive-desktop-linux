@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Bottleneck from 'bottleneck';
 
 type HTTPMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
@@ -58,20 +59,45 @@ type OperationResponse<
   ? Res
   : never;
 
+export interface ClientOptions {
+  baseUrl: string;
+  limiter?: Bottleneck;
+  onUnauthorized?: () => void;
+}
+
 /**
  * Creates a client bound to a specific OpenAPI `paths` record.
  *
  * @template T The generated `paths` type (from openapi‑typescript).
- * @param baseUrl The base URL of the API (e.g. 'https://api.internxt.com/drive').
+ * @param opts The client options, including the base URL.
  * @returns an object with GET/POST/… methods, each one fully typed.
  */
-export function createClient<T>(opts: { baseUrl: string }) {
+export function createClient<T>(opts: ClientOptions) {
   // Strip trailing slash to avoid double // when concatenating.
   const http = axios.create({
     baseURL: opts.baseUrl.replace(/\/$/, ''),
     timeout: 15_000,
     headers: { 'content-type': 'application/json' },
   });
+
+  if (opts.limiter) {
+    http.interceptors.request.use(
+      opts.limiter.wrap(async (config: any) => config)
+    );
+  }
+
+  if (opts.onUnauthorized) {
+    http.interceptors.response.use(
+      response => response,
+      error => {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          opts.onUnauthorized!();
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
 
   /**
    * Low‑level helper that performs the actual Axios call.
