@@ -16,6 +16,8 @@ import { ipcMain } from 'electron';
 import { DependencyInjectionUserProvider } from '../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { BackupError } from '../../backups/BackupError';
 import { PathTypeChecker } from '../../shared/fs/PathTypeChecker ';
+import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
+import Logger from 'electron-log';
 
 export type Device = {
   id: number;
@@ -47,16 +49,16 @@ function createDevice(deviceName: string) {
 }
 
 export async function getDevices(): Promise<Array<Device>> {
-  const response = await fetch(`${process.env.API_URL}/backup/deviceAsFolder`, {
-    method: 'GET',
-    headers: getHeaders(true),
-  });
-
-  const devices = (await response.json()) as Array<Device>;
-
-  return devices
-    .filter(({ removed, hasBackups }) => !removed && hasBackups)
-    .map((device) => decryptDeviceName(device));
+  const response = await driveServerModule.backup.getDevices();
+  Logger.log('the response', response);
+  if (response.isLeft()) {
+    return [];
+  } else {
+    const devices = response.getRight();
+    return devices
+      .filter(({ removed, hasBackups }) => !removed && hasBackups)
+      .map((device) => decryptDeviceName(device));
+  }
 }
 
 async function tryToCreateDeviceWithDifferentNames(): Promise<Device> {
