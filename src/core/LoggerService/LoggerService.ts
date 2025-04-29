@@ -4,7 +4,7 @@ import { paths } from '../../infra/schemas';
 import isDev from '../isDev/isDev';
 
 
-type FeatureTag = 'AUTH'
+type FeatureTag = 'AUTH' | 'BACKUP'
 type HttpMethods = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface LoggerBody {
