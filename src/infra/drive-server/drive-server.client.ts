@@ -107,15 +107,31 @@ export function createClient<T>(opts: ClientOptions) {
     method: M,
     path: P,
     o?: {
+      path?: Record<string, string>;
       headers?: Record<string, string>;
       query?: Record<string, any>;
       body?: OperationRequestBody<T, P, M>;
     }
   ): Promise<{ data: OperationResponse<T, P, M> }> {
+    let url = path as string;
+
+    if (o?.path) {
+      url = url.replace(
+        /{([\w-]+)}/g, // matches {uuid}, {id} …
+        (_, key: string) => {
+          const value = o.path![key];
+          if (value === undefined) {
+            throw new Error(`Missing path param “${key}” for ${path}`);
+          }
+          return encodeURIComponent(value);
+        },
+      );
+    }
+
     try {
       const { data } = await http.request({
         method,
-        url: path,
+        url,
         headers: o?.headers,
         params: o?.query,
         data: o?.body,

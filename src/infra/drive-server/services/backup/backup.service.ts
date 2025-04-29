@@ -34,4 +34,104 @@ export class BackupService {
       return left(error);
     }
   }
+
+  async getDevice(
+    deviceUUID: string
+  ): Promise<Either<Error, components['schemas']['DeviceDto']>> {
+    try {
+      const response = await driveServerClient.GET(
+        '/backup/deviceAsFolder/{uuid}',
+        {
+          path: { uuid: deviceUUID },
+          headers: getNewApiHeaders(),
+        }
+      );
+
+      if (!response.data) {
+        logger.error({
+          msg: 'Get device as folder request was not successful',
+          tag: 'BACKUP',
+          attributes: { endpoint: '/backup/deviceAsFolder/{uuid}' },
+        });
+        return left(new Error('Access request was not successful'));
+      }
+      return right(response.data);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error({
+        msg: 'Get device as folder request threw an exception',
+        tag: 'BACKUP',
+        error: error,
+        attributes: {
+          endpoint: '/backup/deviceAsFolder/{uuid}',
+        },
+      });
+      return left(error);
+    }
+  }
+
+  async createDevice(deviceName: string): Promise<Either<Error, components['schemas']['DeviceDto']>> {
+    try {
+      const response = await driveServerClient.POST('/backup/deviceAsFolder', {
+        headers: getNewApiHeaders(),
+        body: { name: deviceName },
+      });
+      if (!response.data) {
+        logger.error({
+          msg: 'Create device as folder request was not successful',
+          tag: 'BACKUP',
+          context: { deviceName },
+          attributes: { endpoint: '/backup/deviceAsFolder' },
+        });
+        return left(new Error('Access request was not successful'));
+      }
+      return right(response.data);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error({
+        msg: 'Create device as folder request threw an exception',
+        tag: 'BACKUP',
+        error: error,
+        attributes: {
+          endpoint: '/backup/deviceAsFolder',
+        },
+      });
+      return left(error);
+    }
+  }
+
+  async updateDevice(deviceUUID: string, deviceName: string): Promise<Either<Error, components['schemas']['DeviceDto']>> {
+    try {
+      const response = await driveServerClient.PATCH(
+        '/backup/deviceAsFolder/{uuid}',
+        {
+          path: { uuid: deviceUUID },
+          headers: getNewApiHeaders(),
+          body: { deviceName }
+        }
+      );
+
+      if (!response.data) {
+        logger.error({
+          msg: 'Update device as folder request was not successful',
+          tag: 'BACKUP',
+          context: { deviceUUID, deviceName },
+          attributes: { endpoint: '/backup/deviceAsFolder/{uuid}' },
+        });
+        return left(new Error('Access request was not successful'));
+      }
+      return right(response.data);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error({
+        msg: 'Update device as folder request threw an exception',
+        tag: 'BACKUP',
+        error: error,
+        attributes: {
+          endpoint: '/backup/deviceAsFolder/{uuid}',
+        },
+      });
+      return left(error);
+    }
+  }
 }
