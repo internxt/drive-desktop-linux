@@ -420,4 +420,6 @@ contextBridge.exposeInMainWorld('electron', {
       };
     }
   },
+  login: (email) => ipcRenderer.invoke('auth:login', email),
+  access: (credentials) => ipcRenderer.invoke('auth:access', credentials),
 });

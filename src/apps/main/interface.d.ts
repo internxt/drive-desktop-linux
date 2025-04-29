@@ -1,5 +1,10 @@
 import { AvailableProducts } from '@internxt/sdk/dist/drive/payments/types';
 import { Device } from './device/service';
+import {
+  AuthAccessResponseViewModel,
+  AuthLoginResponseViewModel,
+  LoginAccessRequest
+} from '../../infra/drive-server/services/auth/auth.types';
 /** This interface and declare global will replace the preload.d.ts.
 * The thing is that instead of that, we will gradually will be declaring the interface here as we generate tests
 * And we need to mock the electron API.
@@ -30,6 +35,8 @@ export interface IElectronAPI {
       callback: (products: AvailableProducts['featuresPerService']) => void
     ) => void;
   };
+  login(email: string): Promise<AuthLoginResponseViewModel>;
+  access(credentials: LoginAccessRequest): Promise<AuthAccessResponseViewModel>;
 }
 
 declare global {
