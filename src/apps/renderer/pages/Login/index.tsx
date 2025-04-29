@@ -10,7 +10,6 @@ import Button from '../../components/Button';
 import PasswordInput from '../../components/PasswordInput';
 import TextInput from '../../components/TextInput';
 import WindowTopBar from '../../components/WindowTopBar';
-import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 
 const TOWFA_ERROR_MESSAGE = 'Wrong 2-factor auth code';
 
@@ -72,9 +71,9 @@ export default function Login() {
     }
 
     try {
-      const response = await driveServerModule.auth.login(email);
-      if (response.isRight()) {
-        const body = response.getRight();
+      const response = await window.electron.login(email);
+      if (response.success) {
+        const body = response.data;
         sKey.current = body.sKey;
         if (body.tfa) {
           setState('ready');
@@ -82,10 +81,9 @@ export default function Login() {
         } else {
           access();
         }
-      }
-      if (response.isLeft()) {
+      } else {
         setState('error');
-        setErrorDetails(response.getLeft().message);
+        setErrorDetails(response.error);
       }
     } catch (err) {
       setState('error');
