@@ -10,3 +10,7 @@ export interface LoginResponse {
   hasKyberKeys: boolean;
   hasEccKeys: boolean;
 }
+
+export type AuthLoginResponseViewModel =
+  | { success: true; data: LoginResponse }
+  | { success: false; error: string };
