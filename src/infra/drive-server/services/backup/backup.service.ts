@@ -3,6 +3,7 @@ import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import { Either, left, right } from '../../../../context/shared/domain/Either';
 import { logger } from '../../../../core/LoggerService/LoggerService';
 import { components } from '../../../schemas';
+import { mapError } from '../utils/mapError';
 
 export class BackupService {
   async getDevices(): Promise<
@@ -22,7 +23,7 @@ export class BackupService {
       }
       return right(response.data);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+      const error = mapError(err);
       logger.error({
         msg: 'Get devices as folder request request threw an exception',
         tag: 'BACKUP',
@@ -57,7 +58,7 @@ export class BackupService {
       }
       return right(response.data);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+      const error = mapError(err);
       logger.error({
         msg: 'Get device as folder request threw an exception',
         tag: 'BACKUP',
@@ -87,7 +88,7 @@ export class BackupService {
       }
       return right(response.data);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+      const error = mapError(err);
       logger.error({
         msg: 'Create device as folder request threw an exception',
         tag: 'BACKUP',
@@ -122,7 +123,7 @@ export class BackupService {
       }
       return right(response.data);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+      const error = mapError(err);
       logger.error({
         msg: 'Update device as folder request threw an exception',
         tag: 'BACKUP',

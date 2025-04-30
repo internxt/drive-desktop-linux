@@ -11,6 +11,7 @@ import {
   LoginResponse,
   RefreshTokenResponse,
 } from './auth.types';
+import { mapError } from '../utils/mapError';
 
 export class AuthService {
   async access(
@@ -33,7 +34,7 @@ export class AuthService {
       }
       return right(response.data);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+      const error = mapError(err);
       logger.error({
         msg: 'Access request threw an exception',
         tag: 'AUTH',
@@ -63,7 +64,7 @@ export class AuthService {
       }
       return right(response.data);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+      const error = mapError(err);
       logger.error({
         msg: 'Login request threw an exception',
         tag: 'AUTH',
@@ -94,7 +95,7 @@ export class AuthService {
       }
       return right(response.data);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+      const error = mapError(err);
       logger.error({
         msg: 'Login request threw an exception',
         tag: 'AUTH',
