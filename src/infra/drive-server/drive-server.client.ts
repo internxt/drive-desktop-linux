@@ -128,23 +128,14 @@ export function createClient<T>(opts: ClientOptions) {
       );
     }
 
-    try {
-      const { data } = await http.request({
-        method,
-        url,
-        headers: o?.headers,
-        params: o?.query,
-        data: o?.body,
-      });
-      return { data };
-    } catch (err) {
-      // If the server responded with 4xx/5xx we still return the body so callers
-      // can decide what to do. Network errors are re‑thrown.
-      if (axios.isAxiosError(err) && err.response) {
-        return { data: err.response.data as OperationResponse<T, P, M> };
-      }
-      throw err;
-    }
+    const { data } = await http.request({
+      method,
+      url,
+      headers: o?.headers,
+      params: o?.query,
+      data: o?.body,
+    });
+    return { data };
   }
 
   return {
