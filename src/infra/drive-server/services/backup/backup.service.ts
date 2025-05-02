@@ -19,7 +19,9 @@ export class BackupService {
           tag: 'BACKUP',
           attributes: { endpoint: '/backup/deviceAsFolder' },
         });
-        return left(new Error('Access request was not successful'));
+        return left(
+          new Error('Get devices as folder request was not successful')
+        );
       }
       return right(response.data);
     } catch (err) {
@@ -54,7 +56,9 @@ export class BackupService {
           tag: 'BACKUP',
           attributes: { endpoint: '/backup/deviceAsFolder/{uuid}' },
         });
-        return left(new Error('Access request was not successful'));
+        return left(
+          new Error('Get device as folder request was not successful')
+        );
       }
       return right(response.data);
     } catch (err) {
@@ -71,7 +75,49 @@ export class BackupService {
     }
   }
 
-  async createDevice(deviceName: string): Promise<Either<Error, components['schemas']['DeviceDto']>> {
+  /*
+   * @Deprecated
+   * Please use the method getDevice instead
+   * */
+  async getDeviceById(
+    deviceId: string
+  ): Promise<Either<Error, components['schemas']['DeviceDto']>> {
+    try {
+      const response = await driveServerClient.GET(
+        '/backup/deviceAsFolderById/{id}',
+        {
+          path: { id: deviceId },
+          headers: getNewApiHeaders(),
+        }
+      );
+      if (!response.data) {
+        logger.error({
+          msg: 'Get device as folder by id request was not successful',
+          tag: 'BACKUP',
+          attributes: { endpoint: '/backup/deviceAsFolderById/{id}' },
+        });
+        return left(
+          new Error('Get device as folder by id request was not successful')
+        );
+      }
+      return right(response.data);
+    } catch (err) {
+      const error = mapError(err);
+      logger.error({
+        msg: 'Get device as folder by id request threw an exception',
+        tag: 'BACKUP',
+        error: error,
+        attributes: {
+          endpoint: '/backup/deviceAsFolderById/{id}',
+        },
+      });
+      return left(error);
+    }
+  }
+
+  async createDevice(
+    deviceName: string
+  ): Promise<Either<Error, components['schemas']['DeviceDto']>> {
     try {
       const response = await driveServerClient.POST('/backup/deviceAsFolder', {
         headers: getNewApiHeaders(),
@@ -84,7 +130,9 @@ export class BackupService {
           context: { deviceName },
           attributes: { endpoint: '/backup/deviceAsFolder' },
         });
-        return left(new Error('Access request was not successful'));
+        return left(
+          new Error('Create device as folder request was not successful')
+        );
       }
       return right(response.data);
     } catch (err) {
@@ -101,14 +149,17 @@ export class BackupService {
     }
   }
 
-  async updateDevice(deviceUUID: string, deviceName: string): Promise<Either<Error, components['schemas']['DeviceDto']>> {
+  async updateDevice(
+    deviceUUID: string,
+    deviceName: string
+  ): Promise<Either<Error, components['schemas']['DeviceDto']>> {
     try {
       const response = await driveServerClient.PATCH(
         '/backup/deviceAsFolder/{uuid}',
         {
           path: { uuid: deviceUUID },
           headers: getNewApiHeaders(),
-          body: { deviceName }
+          body: { deviceName },
         }
       );
 
@@ -119,7 +170,7 @@ export class BackupService {
           context: { deviceUUID, deviceName },
           attributes: { endpoint: '/backup/deviceAsFolder/{uuid}' },
         });
-        return left(new Error('Access request was not successful'));
+        return left(new Error('Update device as folder request was not successful'));
       }
       return right(response.data);
     } catch (err) {
