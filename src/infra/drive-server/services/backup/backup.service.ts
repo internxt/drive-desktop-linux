@@ -75,7 +75,7 @@ export class BackupService {
     try {
       const response = await driveServerClient.POST('/backup/deviceAsFolder', {
         headers: getNewApiHeaders(),
-        body: { name: deviceName },
+        body: { deviceName },
       });
       if (!response.data) {
         logger.error({
