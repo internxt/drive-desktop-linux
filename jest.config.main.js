@@ -11,7 +11,7 @@ module.exports = {
     '^.+\\.(ts|tsx|js)$': ['ts-jest', { tsconfig: 'tsconfig.test.json', useESM: true }],
   },
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
-  transformIgnorePatterns: ['node_modules/(?!openapi-fetch)'],
+  transformIgnorePatterns: ['node_modules/(?!axios|openapi-fetch)'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   modulePathIgnorePatterns: ['<rootDir>/release/'],
   moduleDirectories: ['node_modules', 'src'],
