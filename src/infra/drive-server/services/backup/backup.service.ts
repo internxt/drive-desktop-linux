@@ -1,4 +1,4 @@
-import { driveServerClient } from '../../client/drive-server.client';
+import { driveServerClient } from '../../client/drive-server.client.instance';
 import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import { Either, left, right } from '../../../../context/shared/domain/Either';
 import { logger } from '../../../../core/LoggerService/LoggerService';
