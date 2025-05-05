@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api-json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OpenApiController_getDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/files": {
         parameters: {
             query?: never;
@@ -2283,6 +2299,26 @@ export interface paths {
         patch: operations["BackupController_updateDeviceAsFolder"];
         trace?: never;
     };
+    "/backup/deviceAsFolderById/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get device as folder by id (deprecated in favor of uuid)
+         * @deprecated
+         */
+        get: operations["BackupController_getDeviceAsFolderById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/backup/devices": {
         parameters: {
             query?: never;
@@ -3625,6 +3661,27 @@ export interface components {
              */
             email: Record<string, never>;
         };
+        RefreshTokenUserResponseDto: {
+            email: string;
+            userId: string;
+            mnemonic: string;
+            root_folder_id: number;
+            rootFolderId: string;
+            name: string;
+            lastname: string;
+            uuid: string;
+            credit: number;
+            /** Format: date-time */
+            createdAt: string;
+            registerCompleted: boolean;
+            username: string;
+            bridgeUser: string;
+            backupsBucket: string;
+            avatar: string;
+            emailVerified: boolean;
+            /** Format: date-time */
+            lastPasswordChangedAt: string;
+        };
         RefreshTokenResponseDto: {
             /**
              * @description The old token that has been replaced
@@ -3636,6 +3693,8 @@ export interface components {
              * @example oldToken1234567890
              */
             newToken: string;
+            /** @description User information */
+            user: components["schemas"]["RefreshTokenUserResponseDto"];
         };
         UpdatePasswordDto: {
             /**
@@ -7665,6 +7724,27 @@ export interface operations {
                 "application/json": components["schemas"]["CreateDeviceAsFolderDto"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceDto"];
+                };
+            };
+        };
+    };
+    BackupController_getDeviceAsFolderById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {

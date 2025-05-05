@@ -102,16 +102,12 @@ export async function getOrCreateDevice() {
   const onlyUuid = !hasLegacyId && hasUuid;
 
   if (onlyLegacy) {
-    const res = await fetch(
-      `${process.env.API_URL}/backup/deviceAsFolder/${legacyId}`,
-      {
-        method: 'GET',
-        headers: getHeaders(),
-      }
-    );
+    /* eventually, this whole if section is going to be replaced
+    when all the users naturaly migrated to the new uuid */
+    const response = await driveServerModule.backup.getDeviceById(legacyId.toString());
 
-    if (res.ok) {
-      const device = (await res.json()) as Device;
+    if (response.isRight()) {
+      const device = response.getRight();
       if (!device.removed) {
         configStore.set('deviceUUID', device.uuid);
         configStore.set('deviceId', -1);
