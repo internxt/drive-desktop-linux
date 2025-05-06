@@ -1,0 +1,111 @@
+import { FilesService } from './files.service';
+import { GetFilesQuery } from './files.types';
+import { components } from '../../../schemas';
+import { getNewApiHeaders } from '../../../../apps/main/auth/service';
+import { driveServerClient } from '../../client/drive-server.client.instance';
+import { logger } from '../../../../core/LoggerService/LoggerService';
+
+jest.mock('../../../../apps/main/auth/service', () => ({
+  getNewApiHeaders: jest.fn(),
+}));
+
+jest.mock('../../client/drive-server.client.instance', () => ({
+  driveServerClient: {
+    GET: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../core/LoggerService/LoggerService', () => ({
+  logger: {
+    error: jest.fn(),
+  },
+}));
+
+describe('FilesService', () => {
+  let sut: FilesService;
+  let mockedHeaders: Record<string, string>;
+
+  beforeEach(() => {
+    sut = new FilesService();
+    mockedHeaders = {
+      Authorization: 'Bearer token',
+      'content-type': 'application/json; charset=utf-8',
+      'internxt-client': 'drive-desktop',
+      'internxt-version': '2.4.8',
+      'x-internxt-desktop-header': 'test-header',
+    };
+    (getNewApiHeaders as jest.Mock).mockReturnValue(mockedHeaders);
+    jest.clearAllMocks();
+  });
+
+  describe('getFiles', () => {
+    const mockedParams: GetFilesQuery = {
+      limit: 10,
+      offset: 0,
+      status: 'EXISTS',
+      bucket: 'bucket-id',
+      sort: 'name',
+      order: 'asc',
+      updatedAt: '2023-01-01',
+    };
+
+    it('should return the files when response is successful', async () => {
+      const files: components['schemas']['FileDto'][] = [
+        { id: 'file-1', name: 'test.txt' } as any,
+        { id: 'file-2', name: 'image.png' } as any,
+      ];
+      (driveServerClient.GET as jest.Mock).mockResolvedValue({ data: files });
+
+      const result = await sut.getFiles(mockedParams);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toEqual(files);
+      expect(driveServerClient.GET).toHaveBeenCalledWith('/files', {
+        headers: mockedHeaders,
+        query: mockedParams,
+      });
+    });
+
+    it('should return an error when response is not successful', async () => {
+      (driveServerClient.GET as jest.Mock).mockResolvedValue({
+        data: undefined,
+      });
+
+      const result = await sut.getFiles(mockedParams);
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('Get files request was not successful');
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Get files request was not successful',
+          tag: 'FILES',
+          attributes: {
+            endpoint: '/files',
+          },
+        })
+      );
+    });
+
+    it('should return an error when request throws an exception', async () => {
+      const error = new Error('Network error');
+      (driveServerClient.GET as jest.Mock).mockRejectedValue(error);
+
+      const result = await sut.getFiles(mockedParams);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getLeft()).toEqual(error);
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Get files request threw an exception',
+          tag: 'FILES',
+          error,
+          attributes: {
+            endpoint: '/files',
+          },
+        })
+      );
+    });
+  });
+});
