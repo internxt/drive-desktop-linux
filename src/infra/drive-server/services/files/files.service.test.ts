@@ -12,6 +12,7 @@ jest.mock('../../../../apps/main/auth/service', () => ({
 jest.mock('../../client/drive-server.client.instance', () => ({
   driveServerClient: {
     GET: jest.fn(),
+    PATCH: jest.fn(),
   },
 }));
 
@@ -103,6 +104,86 @@ describe('FilesService', () => {
           error,
           attributes: {
             endpoint: '/files',
+          },
+        })
+      );
+    });
+  });
+
+  describe('moveFile', () => {
+    it('should return the moved file when response is successful', async () => {
+      const uuid = 'file-123';
+      const parentUuid = 'folder-456';
+      const headers = { Authorization: 'Bearer token' };
+
+      (driveServerClient.PATCH as jest.Mock).mockResolvedValue({
+        data: undefined,
+      });
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+
+      const sut = new FilesService();
+      const result = await sut.moveFile({ uuid, parentUuid });
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toBe(true);
+
+      expect(driveServerClient.PATCH).toHaveBeenCalledWith('/files/{uuid}', {
+        path: { uuid },
+        body: { parentUuid },
+        headers,
+      });
+    });
+    it('should return an error when response is not successful (unexpected data)', async () => {
+      const uuid = 'file-123';
+      const parentUuid = 'folder-456';
+      const headers = { Authorization: 'Bearer token' };
+
+      (driveServerClient.PATCH as jest.Mock).mockResolvedValue({
+        data: { unexpected: true },
+      });
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+
+      const sut = new FilesService();
+      const result = await sut.moveFile({ uuid, parentUuid });
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe(
+        'Move file response contained unexpected data'
+      );
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Move file response contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/files/{uuid}' },
+        })
+      );
+    });
+    it('should return an error when request throws an exception', async () => {
+      const uuid = 'file-123';
+      const parentUuid = 'folder-456';
+      const headers = { Authorization: 'Bearer token' };
+      const thrownError = new Error('Request failed');
+
+      (driveServerClient.PATCH as jest.Mock).mockRejectedValue(thrownError);
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+
+      const sut = new FilesService();
+      const result = await sut.moveFile({ uuid, parentUuid });
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Move file request threw an exception',
+          tag: 'FILES',
+          error: thrownError,
+          attributes: {
+            endpoint: '/files/{uuid}',
           },
         })
       );
