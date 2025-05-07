@@ -269,4 +269,74 @@ describe('FilesService', () => {
       );
     });
   });
+
+  describe('replaceFile', () => {
+    it('should return true when response is successful', async () => {
+      const uuid = 'file-uuid';
+      const fileId = 'new-file-id';
+      const size = 123456;
+      const headers = { Authorization: 'Bearer token' };
+      (driveServerClient.PUT as jest.Mock).mockResolvedValue({
+        data: undefined,
+      });
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+      const result = await sut.replaceFile({ uuid, fileId, size });
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toBe(true);
+
+      expect(driveServerClient.PUT).toHaveBeenCalledWith('/files/{uuid}', {
+        path: { uuid },
+        body: { fileId, size },
+        headers,
+      });
+    });
+    it('should return an error when response is not successful (unexpected data)', async () => {
+      const uuid = 'file-uuid';
+      const fileId = 'new-file-id';
+      const size = 123456;
+      const headers = { Authorization: 'Bearer token' };
+      (driveServerClient.PUT as jest.Mock).mockResolvedValue({ data: { something: 'unexpected' } });
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+
+      const result = await sut.replaceFile({ uuid, fileId, size });
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('Replace file response contained unexpected data');
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Replace file response contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/files/{uuid}' },
+        })
+      );
+    });
+    it('should return an error when request throws an exception', async () => {
+      const uuid = 'file-uuid';
+      const fileId = 'new-file-id';
+      const size = 123456;
+      const thrownError = new Error('Network failure');
+      const headers = { Authorization: 'Bearer token' };
+
+      (driveServerClient.PUT as jest.Mock).mockRejectedValue(thrownError);
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+
+      const result = await sut.replaceFile({ uuid, fileId, size });
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Replace file request threw an exception',
+          tag: 'FILES',
+          error: thrownError,
+          attributes: { endpoint: '/files/{uuid}' },
+        })
+      );
+    });
+  });
 });
