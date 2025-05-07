@@ -4,7 +4,12 @@ import { Either, left, right } from '../../../../context/shared/domain/Either';
 import { driveServerClient } from '../../client/drive-server.client.instance';
 import { components } from '../../../schemas';
 import { getNewApiHeaders } from '../../../../apps/main/auth/service';
-import { GetFilesQuery, MoveFileParams, RenameFileParams } from './files.types';
+import {
+  GetFilesQuery,
+  MoveFileParams,
+  RenameFileParams,
+  ReplaceFileParams,
+} from './files.types';
 
 export class FilesService {
   async getFiles(
@@ -96,6 +101,41 @@ export class FilesService {
         error: error,
         attributes: {
           endpoint: '/files/{uuid}/meta',
+        },
+      });
+      return left(error);
+    }
+  }
+
+  async replaceFile(
+    params: ReplaceFileParams
+  ): Promise<Either<Error, boolean>> {
+    try {
+      const response = await driveServerClient.PUT('/files/{uuid}', {
+        path: { uuid: params.uuid },
+        body: { fileId: params.fileId, size: params.size },
+        headers: getNewApiHeaders(),
+      });
+
+      if (typeof response.data !== 'undefined') {
+        logger.error({
+          msg: 'Replace file response contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/files/{uuid}' },
+        });
+        return left(
+          new Error('Replace file response contained unexpected data')
+        );
+      }
+      return right(true);
+    } catch (err) {
+      const error = mapError(err);
+      logger.error({
+        msg: 'Replace file request threw an exception',
+        tag: 'FILES',
+        error: error,
+        attributes: {
+          endpoint: '/files/{uuid}',
         },
       });
       return left(error);

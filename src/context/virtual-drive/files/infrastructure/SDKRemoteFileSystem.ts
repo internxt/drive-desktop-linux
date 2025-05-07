@@ -137,26 +137,19 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     await this.trash(file.contentsId);
   }
 
-  /* @Deprecated, use driveServerModule.files.renameFile instead */
+  /* @Deprecated use driveServerModule.files.renameFile instead */
   async rename(): Promise<void> {
     /* no-op */
   }
 
-  /* @Deprecated, use driveServerModule.files.moveFile instead */
+  /* @Deprecated use driveServerModule.files.moveFile instead */
   async move(): Promise<void> {
     /* no-op */
   }
 
-  async override(file: File): Promise<void> {
-    await this.clients.newDrive.put(
-      `${process.env.NEW_DRIVE_URL}/files/${file.uuid}`,
-      {
-        fileId: file.contentsId,
-        size: file.size,
-      }
-    );
-
-    Logger.info(`File ${file.path} overridden`);
+  /* @Deprecated use driveServerModule.files.replaceFile instead */
+  async override(): Promise<void> {
+    /* no-op */
   }
 
   async hardDelete(contentsId: string): Promise<void> {
