@@ -7,7 +7,6 @@ import crypt from '../../../../context/shared/infrastructure/crypt';
 import { SDKRemoteFileSystem } from '../../../../context/virtual-drive/files/infrastructure/SDKRemoteFileSystem';
 import { AuthorizedClients } from '../../../shared/HttpClient/Clients';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
-import { Storage } from '@internxt/sdk/dist/drive/storage';
 
 export async function registerFilesServices(builder: ContainerBuilder) {
   // Infra
@@ -18,7 +17,6 @@ export async function registerFilesServices(builder: ContainerBuilder) {
     .useFactory(
       (c) =>
         new SDKRemoteFileSystem(
-          c.get(Storage),
           c.get(AuthorizedClients),
           crypt,
           user.backupsBucket

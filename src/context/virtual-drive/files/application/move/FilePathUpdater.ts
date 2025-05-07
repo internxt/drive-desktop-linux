@@ -11,14 +11,12 @@ import { FileAlreadyExistsError } from '../../domain/errors/FileAlreadyExistsErr
 import { FileNotFoundError } from '../../domain/errors/FileNotFoundError';
 import { FileRenameFailedDomainEvent } from '../../domain/events/FileRenameFailedDomainEvent';
 import { FileRenameStartedDomainEvent } from '../../domain/events/FileRenameStartedDomainEvent';
-import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { SingleFileMatchingSearcher } from '../search/SingleFileMatchingSearcher';
 import { driveServerModule } from '../../../../../infra/drive-server/drive-server.module';
 
 @Service()
 export class FilePathUpdater {
   constructor(
-    private readonly remote: RemoteFileSystem,
     private readonly repository: FileRepository,
     private readonly singleFileMatching: SingleFileMatchingSearcher,
     private readonly parentFolderFinder: ParentFolderFinder,
@@ -36,7 +34,11 @@ export class FilePathUpdater {
 
     file.rename(path);
 
-    await this.remote.rename(file);
+    await driveServerModule.files.renameFile({
+      plainName: file.name,
+      type: file.type,
+      uuid: file.uuid,
+    });
     await this.repository.update(file);
 
     const events = file.pullDomainEvents();

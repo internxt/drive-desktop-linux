@@ -12,6 +12,7 @@ jest.mock('../../../../apps/main/auth/service', () => ({
 jest.mock('../../client/drive-server.client.instance', () => ({
   driveServerClient: {
     GET: jest.fn(),
+    PUT: jest.fn(),
     PATCH: jest.fn(),
   },
 }));
@@ -111,7 +112,7 @@ describe('FilesService', () => {
   });
 
   describe('moveFile', () => {
-    it('should return the moved file when response is successful', async () => {
+    it('should return true when response is successful', async () => {
       const uuid = 'file-123';
       const parentUuid = 'folder-456';
       const headers = { Authorization: 'Bearer token' };
@@ -184,6 +185,85 @@ describe('FilesService', () => {
           error: thrownError,
           attributes: {
             endpoint: '/files/{uuid}',
+          },
+        })
+      );
+    });
+  });
+
+  describe('renameFile', () => {
+    it('should return true when response is successful', async () => {
+      const uuid = 'file-uuid';
+      const plainName = 'new-name.txt';
+      const type = 'text/plain';
+      const headers = { Authorization: 'Bearer token' };
+
+      (driveServerClient.PUT as jest.Mock).mockResolvedValue({
+        data: undefined,
+      });
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+
+      const result = await sut.renameFile({ uuid, plainName, type });
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toBe(true);
+
+      expect(driveServerClient.PUT).toHaveBeenCalledWith('/files/{uuid}/meta', {
+        path: { uuid },
+        body: { plainName, type },
+        headers,
+      });
+    });
+    it('should return an error when response is not successful (unexpected data)', async () => {
+      const uuid = 'file-uuid';
+      const plainName = 'new-name.txt';
+      const type = 'text/plain';
+      const headers = { Authorization: 'Bearer token' };
+
+      (driveServerClient.PUT as jest.Mock).mockResolvedValue({
+        data: { unexpected: true },
+      });
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+
+      const result = await sut.renameFile({ uuid, plainName, type });
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe(
+        'Rename file response contained unexpected data'
+      );
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Rename file response contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/files/{uuid}/meta' },
+        })
+      );
+    });
+    it('should return an error when request throws an exception', async () => {
+      const uuid = 'file-uuid';
+      const plainName = 'new-name.txt';
+      const type = 'text/plain';
+      const headers = { Authorization: 'Bearer token' };
+      const thrownError = new Error('Network error');
+
+      (driveServerClient.PUT as jest.Mock).mockRejectedValue(thrownError);
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+
+      const result = await sut.renameFile({ uuid, plainName, type });
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getLeft()).toBeInstanceOf(Error);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Rename file request threw an exception',
+          tag: 'FILES',
+          error: thrownError,
+          attributes: {
+            endpoint: '/files/{uuid}/meta',
           },
         })
       );

@@ -5,16 +5,25 @@ import { ParentFolderFinderTestClass } from '../../folders/__test-class__/Parent
 import { FolderMother } from '../../folders/domain/FolderMother';
 import { EventBusMock } from '../../shared/__mock__/EventBusMock';
 import { FileRepositoryMock } from '../__mocks__/FileRepositoryMock';
-import { RemoteFileSystemMock } from '../__mocks__/RemoteFileSystemMock';
 import { SingleFileMatchingTestClass } from '../__test-class__/SingleFileMatchingTestClass';
 import { FileMother } from '../domain/FileMother';
+import { driveServerModule } from '../../../../../src/infra/drive-server/drive-server.module';
+import { FileRepository } from '../../../../../src/context/virtual-drive/files/domain/FileRepository';
+
+jest.mock('../../../../../src/infra/drive-server/drive-server.module', () => ({
+  driveServerModule: {
+    files: {
+      renameFile: jest.fn(),
+      moveFile: jest.fn(),
+    },
+  },
+}));
 
 describe('File path updater', () => {
   let repository: FileRepositoryMock;
   let folderFinder: ParentFolderFinderTestClass;
   let singleFileMatchingTestClass: SingleFileMatchingTestClass;
   let eventBus: EventBusMock;
-  let remoteFileSystemMock: RemoteFileSystemMock;
   let SUT: FilePathUpdater;
 
   beforeEach(() => {
@@ -22,11 +31,9 @@ describe('File path updater', () => {
     folderFinder = new ParentFolderFinderTestClass();
     singleFileMatchingTestClass = new SingleFileMatchingTestClass();
     eventBus = new EventBusMock();
-    remoteFileSystemMock = new RemoteFileSystemMock();
 
     SUT = new FilePathUpdater(
-      remoteFileSystemMock,
-      repository,
+      repository as unknown as FileRepository,
       singleFileMatchingTestClass,
       folderFinder as unknown as ParentFolderFinder,
       eventBus
@@ -48,8 +55,13 @@ describe('File path updater', () => {
     expect(repository.updateMock).toBeCalledWith(
       expect.objectContaining({ path: destination.value })
     );
-    expect(remoteFileSystemMock.renameMock).toBeCalledWith(
-      expect.objectContaining({ path: destination.value })
+
+    expect(driveServerModule.files.renameFile).toBeCalledWith(
+      expect.objectContaining({
+        plainName: fileToRename.name,
+        type: fileToRename.type,
+        uuid: fileToRename.uuid,
+      })
     );
   });
 
@@ -97,10 +109,10 @@ describe('File path updater', () => {
         path: destination.value,
       })
     );
-    expect(remoteFileSystemMock.moveMock).toBeCalledWith(
+    expect(driveServerModule.files.moveFile).toBeCalledWith(
       expect.objectContaining({
-        folderId: destinationFolder.id,
-        path: destination.value,
+        parentUuid: destinationFolder.uuid,
+        uuid: fileToMove.uuid,
       })
     );
   });

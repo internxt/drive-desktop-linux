@@ -1,9 +1,7 @@
-import { Storage } from '@internxt/sdk/dist/drive/storage';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { isAxiosError } from 'axios';
 import { Service } from 'diod';
 import Logger from 'electron-log';
-import * as uuid from 'uuid';
 import { AuthorizedClients } from '../../../../apps/shared/HttpClient/Clients';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
@@ -19,7 +17,6 @@ import { CreateFileDTO } from './dtos/CreateFileDTO';
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
   constructor(
-    private readonly sdk: Storage,
     private readonly clients: AuthorizedClients,
     private readonly crypt: Crypt,
     private readonly bucket: string
@@ -140,15 +137,9 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     await this.trash(file.contentsId);
   }
 
-  async rename(file: File): Promise<void> {
-    await this.sdk.updateFile({
-      fileId: file.contentsId,
-      bucketId: this.bucket,
-      destinationPath: uuid.v4(),
-      metadata: {
-        itemName: file.name,
-      },
-    });
+  /* @Deprecated, use driveServerModule.files.renameFile instead */
+  async rename(): Promise<void> {
+    /* no-op */
   }
 
   /* @Deprecated, use driveServerModule.files.moveFile instead */

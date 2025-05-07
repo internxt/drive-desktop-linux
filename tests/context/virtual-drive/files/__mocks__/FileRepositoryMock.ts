@@ -45,4 +45,7 @@ export class FileRepositoryMock implements FileRepository {
   clear(): Promise<void> {
     return this.clearMock();
   }
+  searchByArrayOfContentsId(): Promise<Array<File>> {
+    return Promise.resolve([]); // no-op
+  }
 }
