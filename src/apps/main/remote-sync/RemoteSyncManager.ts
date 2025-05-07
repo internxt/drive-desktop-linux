@@ -20,6 +20,8 @@ import {
   RemoteSyncServerError,
 } from './errors';
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
+import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
+import { GetFilesQuery } from '../../../infra/drive-server/services/files/files.types';
 
 export class RemoteSyncManager {
   private foldersSyncStatus: RemoteSyncStatus = 'IDLE';
@@ -347,7 +349,7 @@ export class RemoteSyncManager {
     hasMore: boolean;
     result: RemoteSyncedFile[];
   }> {
-    const params = {
+    const params: GetFilesQuery = {
       limit: this.config.fetchFilesLimitPerRequest,
       offset: 0,
       status: 'ALL',
@@ -357,36 +359,37 @@ export class RemoteSyncManager {
     };
 
     try {
-      const response = await this.config.httpClient.get(
-        `${process.env.NEW_DRIVE_URL}/files`,
-        {
-          params,
-        }
-      );
+      const response = await driveServerModule.files.getFiles(params);
 
-      if (response.status > 299) {
-        throw new RemoteSyncServerError(response.status, response.data);
+      if (response.isLeft()) {
+        const error = response.getLeft();
+        if (axios.isAxiosError(error.cause)) {
+          const status = error.cause.response?.status;
+          if (status && status > 299) {
+            throw new RemoteSyncServerError(status, error);
+          } else {
+            throw new RemoteSyncNetworkError(error);
+          }
+        }
       }
 
-      if (!Array.isArray(response.data)) {
+      const data = response.getRight();
+      if (!Array.isArray(data)) {
         Logger.info(
           `[SYNC MANAGER] Expected to receive an array of files, but received: ${JSON.stringify(
-            response,
+            data,
             null,
             2
           )}`
         );
-        throw new RemoteSyncInvalidResponseError(response);
+        throw new RemoteSyncInvalidResponseError(data);
       }
-
-      const hasMore =
-        response.data.length === this.config.fetchFilesLimitPerRequest;
-
+      const hasMore = data.length === this.config.fetchFilesLimitPerRequest;
       return {
         hasMore,
         result:
-          response.data && Array.isArray(response.data)
-            ? response.data.map(this.patchDriveFileResponseItem)
+          data && Array.isArray(data)
+            ? data.map(this.patchDriveFileResponseItem)
             : [],
       };
     } catch (error) {
