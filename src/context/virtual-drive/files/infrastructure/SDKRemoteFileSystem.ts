@@ -151,13 +151,9 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     });
   }
 
-  async move(file: File): Promise<void> {
-    await this.sdk.moveFile({
-      fileId: file.contentsId,
-      destination: file.folderId,
-      destinationPath: uuid.v4(),
-      bucketId: this.bucket,
-    });
+  /* @Deprecated, use driveServerModule.files.moveFile instead */
+  async move(): Promise<void> {
+    /* no-op */
   }
 
   async override(file: File): Promise<void> {
