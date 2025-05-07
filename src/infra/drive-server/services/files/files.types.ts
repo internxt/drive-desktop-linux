@@ -10,3 +10,7 @@ export interface MoveFileParams {
 export type RenameFileParams = components['schemas']['UpdateFileMetaDto'] & {
   uuid: string;
 }
+
+export type ReplaceFileParams = components['schemas']['ReplaceFileDto'] & {
+  uuid: string;
+}
