@@ -15,6 +15,7 @@ jest.mock('../../client/drive-server.client.instance', () => ({
     PUT: jest.fn(),
     PATCH: jest.fn(),
     POST: jest.fn(),
+    DELETE: jest.fn(),
   },
 }));
 
@@ -432,6 +433,71 @@ describe('FilesService', () => {
           })
         );
       });
+    });
+  });
+
+  describe('deleteContentFromBucket', () => {
+    const params = {
+      bucketId: 'bucket-123',
+      fileId: 'file-abc.png',
+    };
+
+    it('should return true when response is successful', async () => {
+      (driveServerClient.DELETE as jest.Mock).mockResolvedValue({ data: undefined });
+
+      const result = await sut.deleteContentFromBucket(params);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toBe(true);
+      expect(driveServerClient.DELETE).toHaveBeenCalledWith(
+        '/files/{bucketId}/{fileId}',
+        {
+          path: { bucketId: params.bucketId, fileId: params.fileId },
+          headers: mockedHeaders,
+        }
+      );
+    });
+
+    it('should return an error when response is not successful (unexpected data)', async () => {
+      (driveServerClient.DELETE as jest.Mock).mockResolvedValue({ data: { unexpected: true } });
+
+      const result = await sut.deleteContentFromBucket(params);
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe(
+        'Response delete file content from bucket contained unexpected data'
+      );
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Response delete file content from bucket contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/files/{bucketId}/{fileId}' },
+        })
+      );
+    });
+
+    it('should return an error when request throws an exception', async () => {
+      const thrownError = new Error('Network error');
+      (driveServerClient.DELETE as jest.Mock).mockRejectedValue(thrownError);
+
+      const result = await sut.deleteContentFromBucket(params);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getLeft()).toEqual(thrownError);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Request delete file content from bucket threw an exception',
+          tag: 'FILES',
+          error: thrownError,
+          attributes: {
+            endpoint: '/files/{bucketId}/{fileId}',
+          },
+        })
+      );
     });
   });
 });
