@@ -6,10 +6,11 @@ import { components } from '../../../schemas';
 import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import {
   CreateThumbnailBodyRequest,
+  DeleteFileContentFromBucketRequest,
   GetFilesQuery,
   MoveFileParams,
   RenameFileParams,
-  ReplaceFileParams
+  ReplaceFileParams,
 } from './files.types';
 
 export class FilesService {
@@ -143,7 +144,9 @@ export class FilesService {
     }
   }
 
-  async createThumbnail(body: CreateThumbnailBodyRequest): Promise<Either<Error, components['schemas']['ThumbnailDto']>> {
+  async createThumbnail(
+    body: CreateThumbnailBodyRequest
+  ): Promise<Either<Error, components['schemas']['ThumbnailDto']>> {
     try {
       const response = await driveServerClient.POST('/files/thumbnail', {
         body,
@@ -166,6 +169,44 @@ export class FilesService {
         error: error,
         attributes: {
           endpoint: '/files/thumbnail',
+        },
+      });
+      return left(error);
+    }
+  }
+
+  async deleteContentFromBucket(
+    params: DeleteFileContentFromBucketRequest
+  ): Promise<Either<Error, boolean>> {
+    try {
+      const response = await driveServerClient.DELETE(
+        '/files/{bucketId}/{fileId}',
+        {
+          path: { bucketId: params.bucketId, fileId: params.fileId },
+          headers: getNewApiHeaders(),
+        }
+      );
+      if (typeof response.data !== 'undefined') {
+        logger.error({
+          msg: 'Response delete file content from bucket contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/files/{bucketId}/{fileId}' },
+        });
+        return left(
+          new Error(
+            'Response delete file content from bucket contained unexpected data'
+          )
+        );
+      }
+      return right(true);
+    } catch (e) {
+      const error = mapError(e);
+      logger.error({
+        msg: 'Request delete file content from bucket threw an exception',
+        tag: 'FILES',
+        error: error,
+        attributes: {
+          endpoint: '/files/{bucketId}/{fileId}',
         },
       });
       return left(error);

@@ -16,3 +16,5 @@ export type ReplaceFileParams = components['schemas']['ReplaceFileDto'] & {
 }
 
 export type CreateThumbnailBodyRequest = components['schemas']['CreateThumbnailDto'];
+
+export type DeleteFileContentFromBucketRequest = operations['FileController_deleteFileByFileId']['parameters']['path']
