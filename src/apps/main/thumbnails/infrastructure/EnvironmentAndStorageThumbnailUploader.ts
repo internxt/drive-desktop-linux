@@ -1,16 +1,16 @@
 import { Environment } from '@internxt/inxt-js';
-import { Storage, StorageTypes } from '@internxt/sdk/dist/drive';
+import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { Readable } from 'stream';
 
 import { ThumbnailProperties } from '../domain/ThumbnailProperties';
 import { ThumbnailUploader } from '../domain/ThumbnailUploader';
+import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 
 export class EnvironmentAndStorageThumbnailUploader
   implements ThumbnailUploader
 {
   constructor(
     private readonly environment: Environment,
-    private readonly storage: Storage,
     private readonly bucket: string
   ) {}
 
@@ -43,17 +43,15 @@ export class EnvironmentAndStorageThumbnailUploader
   async upload(fileId: number, thumbnailFile: Buffer): Promise<void> {
     const fileIdOnEnvironment = await this.uploadThumbnail(thumbnailFile);
 
-    const thumbnail: StorageTypes.ThumbnailEntry = {
-      file_id: fileId,
-      max_width: ThumbnailProperties.dimensions as number,
-      max_height: ThumbnailProperties.dimensions as number,
+    await driveServerModule.files.createThumbnail({
+      fileId,
       type: ThumbnailProperties.type as string,
       size: thumbnailFile.byteLength,
-      bucket_id: this.bucket,
-      bucket_file: fileIdOnEnvironment,
-      encrypt_version: StorageTypes.EncryptionVersion.Aes03,
-    };
-
-    await this.storage.createThumbnailEntry(thumbnail);
+      maxWidth: ThumbnailProperties.dimensions as number,
+      maxHeight: ThumbnailProperties.dimensions as number,
+      bucketId: this.bucket,
+      bucketFile: fileIdOnEnvironment,
+      encryptVersion: StorageTypes.EncryptionVersion.Aes03,
+    });
   }
 }

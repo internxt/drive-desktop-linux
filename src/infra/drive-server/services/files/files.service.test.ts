@@ -14,6 +14,7 @@ jest.mock('../../client/drive-server.client.instance', () => ({
     GET: jest.fn(),
     PUT: jest.fn(),
     PATCH: jest.fn(),
+    POST: jest.fn(),
   },
 }));
 
@@ -296,14 +297,18 @@ describe('FilesService', () => {
       const fileId = 'new-file-id';
       const size = 123456;
       const headers = { Authorization: 'Bearer token' };
-      (driveServerClient.PUT as jest.Mock).mockResolvedValue({ data: { something: 'unexpected' } });
+      (driveServerClient.PUT as jest.Mock).mockResolvedValue({
+        data: { something: 'unexpected' },
+      });
       (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
 
       const result = await sut.replaceFile({ uuid, fileId, size });
       expect(result.isLeft()).toBe(true);
       const error = result.getLeft();
       expect(error).toBeInstanceOf(Error);
-      expect(error.message).toBe('Replace file response contained unexpected data');
+      expect(error.message).toBe(
+        'Replace file response contained unexpected data'
+      );
 
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -337,6 +342,96 @@ describe('FilesService', () => {
           attributes: { endpoint: '/files/{uuid}' },
         })
       );
+    });
+
+    describe('createThumbnail', () => {
+      const requestBody: components['schemas']['CreateThumbnailDto'] = {
+        fileId: 1,
+        type: 'text',
+        size: 12345,
+        maxWidth: 123456789,
+        maxHeight: 123456789,
+        bucketId: 'bucket-id',
+        bucketFile: 'my-bucket',
+        encryptVersion: '03-aes',
+      };
+
+      const thumbnail: components['schemas']['ThumbnailDto'] = {
+        id: 2,
+        fileId: 12345,
+        maxWidth: 123456789,
+        maxHeight: 123456789,
+        type: 'text',
+        size: 12345,
+        bucketId: 'bucket-id',
+        bucketFile: 'my-bucket',
+        encryptVersion: '03-aes',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      it('should return the thumbnail when response is successful', async () => {
+        (driveServerClient.POST as jest.Mock).mockResolvedValue({
+          data: thumbnail,
+        });
+
+        const result = await sut.createThumbnail(requestBody);
+
+        expect(result.isRight()).toBe(true);
+        expect(result.getRight()).toEqual(thumbnail);
+
+        expect(driveServerClient.POST).toHaveBeenCalledWith(
+          '/files/thumbnail',
+          {
+            body: requestBody,
+            headers: mockedHeaders,
+          }
+        );
+      });
+      it('should return an error when response is not successful', async () => {
+        (driveServerClient.POST as jest.Mock).mockResolvedValue({
+          data: undefined,
+        });
+
+        const result = await sut.createThumbnail(requestBody);
+
+        expect(result.isLeft()).toBe(true);
+        const error = result.getLeft();
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toBe(
+          'Create thumbnail request was not successful'
+        );
+
+        expect(logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({
+            msg: 'Create thumbnail request was not successful',
+            tag: 'FILES',
+            attributes: {
+              endpoint: '/files/thumbnail',
+            },
+          })
+        );
+      });
+      it('should return an error when request throws an exception', async () => {
+        const thrownError = new Error('Request failed');
+        (driveServerClient.POST as jest.Mock).mockRejectedValue(thrownError);
+
+        const result = await sut.createThumbnail(requestBody);
+
+        expect(result.isLeft()).toBe(true);
+        expect(result.getLeft()).toBe(thrownError);
+
+        expect(logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({
+            msg: 'Create thumbnail request threw an exception',
+            tag: 'FILES',
+            error: thrownError,
+            attributes: {
+              endpoint: '/files/thumbnail',
+            },
+          })
+        );
+      });
     });
   });
 });

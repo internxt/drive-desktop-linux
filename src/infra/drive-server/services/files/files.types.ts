@@ -14,3 +14,5 @@ export type RenameFileParams = components['schemas']['UpdateFileMetaDto'] & {
 export type ReplaceFileParams = components['schemas']['ReplaceFileDto'] & {
   uuid: string;
 }
+
+export type CreateThumbnailBodyRequest = components['schemas']['CreateThumbnailDto'];
