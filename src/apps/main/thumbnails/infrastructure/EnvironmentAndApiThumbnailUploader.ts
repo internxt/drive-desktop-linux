@@ -6,7 +6,7 @@ import { ThumbnailProperties } from '../domain/ThumbnailProperties';
 import { ThumbnailUploader } from '../domain/ThumbnailUploader';
 import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 
-export class EnvironmentAndStorageThumbnailUploader
+export class EnvironmentAndApiThumbnailUploader
   implements ThumbnailUploader
 {
   constructor(
