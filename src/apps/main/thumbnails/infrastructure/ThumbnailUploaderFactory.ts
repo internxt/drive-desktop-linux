@@ -1,7 +1,7 @@
 import { Environment } from '@internxt/inxt-js';
 import { getUser } from '../../auth/service';
 import { ThumbnailUploader } from '../domain/ThumbnailUploader';
-import { EnvironmentAndStorageThumbnailUploader } from './EnvironmentAndStorageThumbnailUploader';
+import { EnvironmentAndApiThumbnailUploader } from './EnvironmentAndApiThumbnailUploader';
 
 export class ThumbnailUploaderFactory {
   private static instance: ThumbnailUploader | null;
@@ -28,7 +28,7 @@ export class ThumbnailUploaderFactory {
 
 
     ThumbnailUploaderFactory.instance =
-      new EnvironmentAndStorageThumbnailUploader(
+      new EnvironmentAndApiThumbnailUploader(
         environment,
         user.bucket
       );
