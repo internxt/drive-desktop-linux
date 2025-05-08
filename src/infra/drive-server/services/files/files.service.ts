@@ -5,10 +5,11 @@ import { driveServerClient } from '../../client/drive-server.client.instance';
 import { components } from '../../../schemas';
 import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import {
+  CreateThumbnailBodyRequest,
   GetFilesQuery,
   MoveFileParams,
   RenameFileParams,
-  ReplaceFileParams,
+  ReplaceFileParams
 } from './files.types';
 
 export class FilesService {
@@ -136,6 +137,35 @@ export class FilesService {
         error: error,
         attributes: {
           endpoint: '/files/{uuid}',
+        },
+      });
+      return left(error);
+    }
+  }
+
+  async createThumbnail(body: CreateThumbnailBodyRequest): Promise<Either<Error, components['schemas']['ThumbnailDto']>> {
+    try {
+      const response = await driveServerClient.POST('/files/thumbnail', {
+        body,
+        headers: getNewApiHeaders(),
+      });
+      if (!response.data) {
+        logger.error({
+          msg: 'Create thumbnail request was not successful',
+          tag: 'FILES',
+          attributes: { endpoint: '/files/thumbnail' },
+        });
+        return left(new Error('Create thumbnail request was not successful'));
+      }
+      return right(response.data);
+    } catch (err) {
+      const error = mapError(err);
+      logger.error({
+        msg: 'Create thumbnail request threw an exception',
+        tag: 'FILES',
+        error: error,
+        attributes: {
+          endpoint: '/files/thumbnail',
         },
       });
       return left(error);
