@@ -6,12 +6,11 @@ import { File } from '../../domain/File';
 import { FileRepository } from '../../domain/FileRepository';
 import { FileStatuses } from '../../domain/FileStatus';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
-import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
+import { driveServerModule } from '../../../../../infra/drive-server/drive-server.module';
 
 @Service()
 export class FileTrasher {
   constructor(
-    private readonly remote: RemoteFileSystem,
     private readonly repository: FileRepository,
     private readonly allParentFoldersStatusIsExists: AllParentFoldersStatusIsExists,
     private readonly notifier: SyncFileMessenger
@@ -49,7 +48,11 @@ export class FileTrasher {
     try {
       file.trash();
 
-      await this.remote.trash(file.contentsId);
+      await driveServerModule.files.addFileToTrash(({
+        id: file.contentsId,
+        uuid: file.uuid,
+        type: 'file',
+      }));
       await this.repository.update(file);
       await this.notifier.trashed(file.name, file.type, file.size);
     } catch (error: unknown) {
