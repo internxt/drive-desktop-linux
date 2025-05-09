@@ -1,6 +1,5 @@
 import { ContainerBuilder } from 'diod';
 import { SimpleFileCreator } from '../../../../context/virtual-drive/files/application/create/SimpleFileCreator';
-import { FileDeleter } from '../../../../context/virtual-drive/files/application/delete/FileDeleter';
 import { SimpleFileOverrider } from '../../../../context/virtual-drive/files/application/override/SimpleFileOverrider';
 import { RemoteFileSystem } from '../../../../context/virtual-drive/files/domain/file-systems/RemoteFileSystem';
 import crypt from '../../../../context/shared/infrastructure/crypt';
@@ -26,6 +25,5 @@ export async function registerFilesServices(builder: ContainerBuilder) {
 
   // Services
   builder.registerAndUse(SimpleFileCreator);
-  builder.registerAndUse(FileDeleter);
   builder.registerAndUse(SimpleFileOverrider);
 }
