@@ -11,6 +11,7 @@ export type FileDataToPersist = {
   path: FilePath;
   size: FileSize;
   folderId: FileFolderId;
+  folderUuid: string;
 };
 
 export type PersistedFileData = {
