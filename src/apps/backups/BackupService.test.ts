@@ -3,7 +3,6 @@ import LocalTreeBuilder from '../../context/local/localTree/application/LocalTre
 import { RemoteTreeBuilder } from '../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
 import { FileBatchUploader } from '../../context/local/localFile/application/upload/FileBatchUploader';
 import { FileBatchUpdater } from '../../context/local/localFile/application/update/FileBatchUpdater';
-import { FileDeleter } from '../../context/virtual-drive/files/application/delete/FileDeleter';
 import { SimpleFolderCreator } from '../../context/virtual-drive/folders/application/create/SimpleFolderCreator';
 import { UserAvaliableSpaceValidator } from '../../context/user/usage/application/UserAvaliableSpaceValidator';
 import { BackupInfo } from './BackupInfo';
@@ -33,13 +32,21 @@ jest.mock('@internxt/inxt-js', () => ({
   },
 }));
 
+jest.mock('../../infra/drive-server/drive-server.module', () => ({
+  driveServerModule: {
+    files: {
+      addFileToTrash: jest.fn(),
+    },
+  },
+}));
+
+
 describe('BackupService', () => {
   let backupService: BackupService;
   let localTreeBuilder: jest.Mocked<LocalTreeBuilder>;
   let remoteTreeBuilder: jest.Mocked<RemoteTreeBuilder>;
   let fileBatchUploader: jest.Mocked<FileBatchUploader>;
   let fileBatchUpdater: jest.Mocked<FileBatchUpdater>;
-  let remoteFileDeleter: jest.Mocked<FileDeleter>;
   let simpleFolderCreator: jest.Mocked<SimpleFolderCreator>;
   let userAvaliableSpaceValidator: jest.Mocked<UserAvaliableSpaceValidator>;
   let backupsDanglingFilesService: jest.Mocked<BackupsDanglingFilesService>;
@@ -66,9 +73,6 @@ describe('BackupService', () => {
       uploader: jest.fn(),
       simpleFileOverrider: jest.fn(),
     } as unknown as jest.Mocked<FileBatchUpdater>;
-    remoteFileDeleter = {
-      run: jest.fn(),
-    } as unknown as jest.Mocked<FileDeleter>;
 
     userAvaliableSpaceValidator = {
       run: jest.fn(),
@@ -92,7 +96,6 @@ describe('BackupService', () => {
       remoteTreeBuilder,
       fileBatchUploader,
       fileBatchUpdater,
-      remoteFileDeleter,
       simpleFolderCreator,
       userAvaliableSpaceValidator,
       backupsDanglingFilesService

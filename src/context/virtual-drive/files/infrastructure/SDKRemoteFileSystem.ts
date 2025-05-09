@@ -1,12 +1,11 @@
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { isAxiosError } from 'axios';
 import { Service } from 'diod';
-import Logger from 'electron-log';
 import { AuthorizedClients } from '../../../../apps/shared/HttpClient/Clients';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 import { Crypt } from '../../shared/domain/Crypt';
-import { File } from '../domain/File';
+
 import {
   FileDataToPersist,
   PersistedFileData,
@@ -114,27 +113,13 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     }
   }
 
-  async trash(contentsId: string): Promise<void> {
-    const result = await this.clients.newDrive.post(
-      `${process.env.NEW_DRIVE_URL}/storage/trash/add`,
-      {
-        items: [{ type: 'file', id: contentsId }],
-      }
-    );
-
-    if (result.status !== 200) {
-      Logger.error(
-        '[FILE FILE SYSTEM] File deletion failed with status: ',
-        result.status,
-        result.statusText
-      );
-
-      throw new Error('Error when deleting file');
-    }
+  /* @Deprecated use driveServerModule.files.addFileToTrash instead */
+  async trash(): Promise<void> {
+    /* no-op */
   }
-
-  async delete(file: File): Promise<void> {
-    await this.trash(file.contentsId);
+  /* @Deprecated use driveServerModule.files.addFileToTrash instead */
+  async delete(): Promise<void> {
+    /* no-op */
   }
 
   /* @Deprecated use driveServerModule.files.renameFile instead */
