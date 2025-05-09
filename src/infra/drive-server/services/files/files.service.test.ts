@@ -1,5 +1,5 @@
 import { FilesService } from './files.service';
-import { GetFilesQuery } from './files.types';
+import { AddFileToTrashRequest, CreateFileBodyRequest, GetFilesQuery } from './files.types';
 import { components } from '../../../schemas';
 import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import { driveServerClient } from '../../client/drive-server.client.instance';
@@ -40,6 +40,81 @@ describe('FilesService', () => {
     };
     (getNewApiHeaders as jest.Mock).mockReturnValue(mockedHeaders);
     jest.clearAllMocks();
+  });
+
+  describe('createFile', () => {
+    const fileRequestBody: CreateFileBodyRequest = {
+      bucket: 'bucket-name',
+      fileId: 'file12345',
+      encryptVersion: '03-aes',
+      folderUuid: 'folder-uuid',
+      size: 123456789,
+      plainName: 'example.txt',
+      type: 'text',
+      modificationTime: '2023-05-30T12:34:56.789Z',
+      date: '2023-05-30T12:34:56.789Z',
+      creationTime: '2023-05-30T12:34:56.789Z'
+    };
+
+    const createdFile: components['schemas']['FileDto'] = {
+      id: 122334444,
+      uuid: 'file-uuid',
+      fileId: 'file12345',
+      name: 'example.txt',
+      type: 'text',
+    } as components['schemas']['FileDto'];
+
+    it('should return the created file when the response is successful', async () => {
+      (driveServerClient.POST as jest.Mock).mockResolvedValue({ data: createdFile });
+
+      const result = await sut.createFile(fileRequestBody);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toEqual(createdFile);
+
+      expect(driveServerClient.POST).toHaveBeenCalledWith('/files', {
+        body: fileRequestBody,
+        headers: mockedHeaders,
+      });
+    });
+
+    it('should return an error when response is not successful', async () => {
+      (driveServerClient.POST as jest.Mock).mockResolvedValue({ data: undefined });
+
+      const result = await sut.createFile(fileRequestBody);
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('Create file request was not successful');
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Create file request was not successful',
+          tag: 'FILES',
+          attributes: { endpoint: '/files' },
+        })
+      );
+    });
+
+    it('should return an error when request throws an exception', async () => {
+      const thrownError = new Error('Request failed');
+      (driveServerClient.POST as jest.Mock).mockRejectedValue(thrownError);
+
+      const result = await sut.createFile(fileRequestBody);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getLeft()).toEqual(thrownError);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Create file request threw an exception',
+          tag: 'FILES',
+          error: thrownError,
+          attributes: { endpoint: '/files' },
+        })
+      );
+    });
   });
 
   describe('getFiles', () => {
@@ -443,7 +518,9 @@ describe('FilesService', () => {
     };
 
     it('should return true when response is successful', async () => {
-      (driveServerClient.DELETE as jest.Mock).mockResolvedValue({ data: undefined });
+      (driveServerClient.DELETE as jest.Mock).mockResolvedValue({
+        data: undefined,
+      });
 
       const result = await sut.deleteContentFromBucket(params);
 
@@ -459,7 +536,9 @@ describe('FilesService', () => {
     });
 
     it('should return an error when response is not successful (unexpected data)', async () => {
-      (driveServerClient.DELETE as jest.Mock).mockResolvedValue({ data: { unexpected: true } });
+      (driveServerClient.DELETE as jest.Mock).mockResolvedValue({
+        data: { unexpected: true },
+      });
 
       const result = await sut.deleteContentFromBucket(params);
 
@@ -496,6 +575,137 @@ describe('FilesService', () => {
           attributes: {
             endpoint: '/files/{bucketId}/{fileId}',
           },
+        })
+      );
+    });
+  });
+
+  describe('addFileToTrash', () => {
+    const request: AddFileToTrashRequest = {
+      id: '1',
+      uuid: 'file-123',
+      type: 'file',
+    };
+
+    it('should return true when response is successful', async () => {
+      (driveServerClient.POST as jest.Mock).mockResolvedValue({
+        data: undefined,
+      });
+      const result = await sut.addFileToTrash(request);
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toBe(true);
+
+      expect(driveServerClient.POST).toHaveBeenCalledWith(
+        '/storage/trash/add',
+        {
+          body: { items: [request] },
+        }
+      );
+    });
+
+    it('should return an error when response is not successful (unexpected data)', async () => {
+      (driveServerClient.POST as jest.Mock).mockResolvedValue({
+        data: { unexpected: 'value' },
+      });
+
+      const result = await sut.addFileToTrash(request);
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe(
+        'Response add file to trash contained unexpected data'
+      );
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Response add file to trash contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/storage/trash/add' },
+        })
+      );
+    });
+
+    it('should return an error when request throws an exception', async () => {
+      const thrownError = new Error('Network failure');
+      (driveServerClient.POST as jest.Mock).mockRejectedValue(thrownError);
+
+      const result = await sut.addFileToTrash(request);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getLeft()).toEqual(thrownError);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Request add file to trash threw an exception',
+          tag: 'FILES',
+          error: thrownError,
+          attributes: {
+            endpoint: '/storage/trash/add',
+          },
+        })
+      );
+    });
+  });
+
+  describe('deleteFileFromTrash', () => {
+    const contentsId = 'file-123';
+
+    it('should return true when response is successful', async () => {
+      (driveServerClient.DELETE as jest.Mock).mockResolvedValue({
+        data: undefined,
+      });
+
+      const result = await sut.deleteFileFromTrash(contentsId);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toBe(true);
+
+      expect(driveServerClient.DELETE).toHaveBeenCalledWith(
+        '/storage/trash/file/{fileId}',
+        {
+          path: { fileId: contentsId },
+        }
+      );
+    });
+
+    it('should return an error when response is not successful (unexpected data)', async () => {
+      (driveServerClient.DELETE as jest.Mock).mockResolvedValue({
+        data: { unexpected: true },
+      });
+
+      const result = await sut.deleteFileFromTrash(contentsId);
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe(
+        'Response delete file from trash contained unexpected data'
+      );
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Response delete file from trash contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/storage/trash/file/{fileId}' },
+        })
+      );
+    });
+    it('should return an error when request throws an exception', async () => {
+      const thrownError = new Error('Request failed');
+      (driveServerClient.DELETE as jest.Mock).mockRejectedValue(thrownError);
+
+      const result = await sut.deleteFileFromTrash(contentsId);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getLeft()).toEqual(thrownError);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Request delete file from trash threw an exception',
+          tag: 'FILES',
+          error: thrownError,
+          attributes: { endpoint: '/storage/trash/file/{fileId}' },
         })
       );
     });
