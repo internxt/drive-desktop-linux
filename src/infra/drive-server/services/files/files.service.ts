@@ -5,28 +5,59 @@ import { driveServerClient } from '../../client/drive-server.client.instance';
 import { components } from '../../../schemas';
 import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import {
+  AddFileToTrashRequest, CreateFileBodyRequest,
   CreateThumbnailBodyRequest,
   DeleteFileContentFromBucketRequest,
   GetFilesQuery,
   MoveFileParams,
   RenameFileParams,
-  ReplaceFileParams,
+  ReplaceFileParams
 } from './files.types';
 
 export class FilesService {
+
+  async createFile(body: CreateFileBodyRequest): Promise<Either<Error, components['schemas']['FileDto']>> {
+    try {
+      const response = await driveServerClient.POST('/files', {
+        body,
+        headers: getNewApiHeaders()
+      });
+      if (!response.data) {
+        logger.error({
+          msg: 'Create file request was not successful',
+          tag: 'FILES',
+          attributes: { endpoint: '/files' }
+        });
+        return left(new Error('Create file request was not successful'));
+      }
+      return right(response.data);
+    } catch (err) {
+      const error = mapError(err);
+      logger.error({
+        msg: 'Create file request threw an exception',
+        tag: 'FILES',
+        error: error,
+        attributes: {
+          endpoint: '/files'
+        }
+      });
+      return left(error);
+    }
+  }
+
   async getFiles(
     params: GetFilesQuery
   ): Promise<Either<Error, Array<components['schemas']['FileDto']>>> {
     try {
       const response = await driveServerClient.GET('/files', {
         headers: getNewApiHeaders(),
-        query: { ...params },
+        query: { ...params }
       });
       if (!response.data) {
         logger.error({
           msg: 'Get files request was not successful',
           tag: 'FILES',
-          attributes: { endpoint: '/files' },
+          attributes: { endpoint: '/files' }
         });
         return left(new Error('Get files request was not successful'));
       }
@@ -38,8 +69,8 @@ export class FilesService {
         tag: 'FILES',
         error: error,
         attributes: {
-          endpoint: '/files',
-        },
+          endpoint: '/files'
+        }
       });
       return left(error);
     }
@@ -50,14 +81,14 @@ export class FilesService {
       const response = await driveServerClient.PATCH('/files/{uuid}', {
         path: { uuid: params.uuid },
         body: { parentUuid: params.parentUuid },
-        headers: getNewApiHeaders(),
+        headers: getNewApiHeaders()
       });
 
       if (typeof response.data !== 'undefined') {
         logger.error({
           msg: 'Move file response contained unexpected data',
           tag: 'FILES',
-          attributes: { endpoint: '/files/{uuid}' },
+          attributes: { endpoint: '/files/{uuid}' }
         });
         return left(new Error('Move file response contained unexpected data'));
       }
@@ -69,8 +100,8 @@ export class FilesService {
         tag: 'FILES',
         error: error,
         attributes: {
-          endpoint: '/files/{uuid}',
-        },
+          endpoint: '/files/{uuid}'
+        }
       });
       return left(error);
     }
@@ -81,14 +112,14 @@ export class FilesService {
       const response = await driveServerClient.PUT('/files/{uuid}/meta', {
         path: { uuid: params.uuid },
         body: { plainName: params.plainName, type: params.type },
-        headers: getNewApiHeaders(),
+        headers: getNewApiHeaders()
       });
 
       if (typeof response.data !== 'undefined') {
         logger.error({
           msg: 'Rename file response contained unexpected data',
           tag: 'FILES',
-          attributes: { endpoint: '/files/{uuid}/meta' },
+          attributes: { endpoint: '/files/{uuid}/meta' }
         });
         return left(
           new Error('Rename file response contained unexpected data')
@@ -102,8 +133,8 @@ export class FilesService {
         tag: 'FILES',
         error: error,
         attributes: {
-          endpoint: '/files/{uuid}/meta',
-        },
+          endpoint: '/files/{uuid}/meta'
+        }
       });
       return left(error);
     }
@@ -116,14 +147,14 @@ export class FilesService {
       const response = await driveServerClient.PUT('/files/{uuid}', {
         path: { uuid: params.uuid },
         body: { fileId: params.fileId, size: params.size },
-        headers: getNewApiHeaders(),
+        headers: getNewApiHeaders()
       });
 
       if (typeof response.data !== 'undefined') {
         logger.error({
           msg: 'Replace file response contained unexpected data',
           tag: 'FILES',
-          attributes: { endpoint: '/files/{uuid}' },
+          attributes: { endpoint: '/files/{uuid}' }
         });
         return left(
           new Error('Replace file response contained unexpected data')
@@ -137,8 +168,8 @@ export class FilesService {
         tag: 'FILES',
         error: error,
         attributes: {
-          endpoint: '/files/{uuid}',
-        },
+          endpoint: '/files/{uuid}'
+        }
       });
       return left(error);
     }
@@ -150,13 +181,13 @@ export class FilesService {
     try {
       const response = await driveServerClient.POST('/files/thumbnail', {
         body,
-        headers: getNewApiHeaders(),
+        headers: getNewApiHeaders()
       });
       if (!response.data) {
         logger.error({
           msg: 'Create thumbnail request was not successful',
           tag: 'FILES',
-          attributes: { endpoint: '/files/thumbnail' },
+          attributes: { endpoint: '/files/thumbnail' }
         });
         return left(new Error('Create thumbnail request was not successful'));
       }
@@ -168,8 +199,8 @@ export class FilesService {
         tag: 'FILES',
         error: error,
         attributes: {
-          endpoint: '/files/thumbnail',
-        },
+          endpoint: '/files/thumbnail'
+        }
       });
       return left(error);
     }
@@ -183,14 +214,14 @@ export class FilesService {
         '/files/{bucketId}/{fileId}',
         {
           path: { bucketId: params.bucketId, fileId: params.fileId },
-          headers: getNewApiHeaders(),
+          headers: getNewApiHeaders()
         }
       );
       if (typeof response.data !== 'undefined') {
         logger.error({
           msg: 'Response delete file content from bucket contained unexpected data',
           tag: 'FILES',
-          attributes: { endpoint: '/files/{bucketId}/{fileId}' },
+          attributes: { endpoint: '/files/{bucketId}/{fileId}' }
         });
         return left(
           new Error(
@@ -206,8 +237,73 @@ export class FilesService {
         tag: 'FILES',
         error: error,
         attributes: {
-          endpoint: '/files/{bucketId}/{fileId}',
-        },
+          endpoint: '/files/{bucketId}/{fileId}'
+        }
+      });
+      return left(error);
+    }
+  }
+
+  async addFileToTrash(item: AddFileToTrashRequest): Promise<Either<Error, boolean>> {
+    try {
+      const response = await driveServerClient.POST('/storage/trash/add', {
+        body: {
+          items: [item]
+        }
+      });
+      if (typeof response.data !== 'undefined') {
+        logger.error({
+          msg: 'Response add file to trash contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/storage/trash/add' }
+        });
+        return left(new Error('Response add file to trash contained unexpected data'));
+      }
+      return right(true);
+    } catch (err) {
+      const error = mapError(err);
+      logger.error({
+        msg: 'Request add file to trash threw an exception',
+        tag: 'FILES',
+        error: error,
+        attributes: {
+          endpoint: '/storage/trash/add'
+        }
+      });
+      return left(error);
+    }
+  }
+
+  async deleteFileFromTrash(
+    contentsId: string
+  ): Promise<Either<Error, boolean>> {
+    try {
+      const response = await driveServerClient.DELETE(
+        '/storage/trash/file/{fileId}',
+        {
+          path: { fileId: contentsId }
+        }
+      );
+      if (typeof response.data !== 'undefined') {
+        logger.error({
+          msg: 'Response delete file from trash contained unexpected data',
+          tag: 'FILES',
+          attributes: { endpoint: '/storage/trash/file/{fileId}' }
+        });
+        return left(
+          new Error('Response delete file from trash contained unexpected data')
+        );
+      }
+      return right(true);
+    } catch (err) {
+      const error = mapError(err);
+      logger.error({
+        msg: 'Request delete file from trash threw an exception',
+        tag: 'FILES',
+        error: error,
+        attributes: {
+          endpoint: '/storage/trash/file/{fileId}'
+        }
       });
       return left(error);
     }
