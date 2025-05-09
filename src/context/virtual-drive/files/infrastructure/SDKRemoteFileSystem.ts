@@ -1,7 +1,6 @@
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-import { isAxiosError } from 'axios';
+import axios from 'axios';
 import { Service } from 'diod';
-import { AuthorizedClients } from '../../../../apps/shared/HttpClient/Clients';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 import { Crypt } from '../../shared/domain/Crypt';
@@ -11,12 +10,12 @@ import {
   PersistedFileData,
   RemoteFileSystem,
 } from '../domain/file-systems/RemoteFileSystem';
-import { CreateFileDTO } from './dtos/CreateFileDTO';
+import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
+import { CreateFileBodyRequest } from '../../../../infra/drive-server/services/files/files.types';
 
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
   constructor(
-    private readonly clients: AuthorizedClients,
     private readonly crypt: Crypt,
     private readonly bucket: string
   ) {}
@@ -40,76 +39,78 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       );
     }
 
-    const body: CreateFileDTO = {
-      file: {
-        fileId: dataToPersists.contentsId.value,
-        file_id: dataToPersists.contentsId.value,
-        type: dataToPersists.path.extension(),
-        size: dataToPersists.size.value,
-        name: encryptedName,
-        plain_name: plainName,
-        bucket: this.bucket,
-        folder_id: dataToPersists.folderId.value,
-        encrypt_version: EncryptionVersion.Aes03,
-      },
+    const body: CreateFileBodyRequest = {
+      bucket: this.bucket,
+      fileId: dataToPersists.contentsId.value,
+      encryptVersion: EncryptionVersion.Aes03,
+      folderUuid: dataToPersists.folderUuid,
+      size: dataToPersists.size.value,
+      plainName: plainName,
+      type: dataToPersists.path.extension(),
     };
 
-    try {
-      const { data } = await this.clients.drive.post(
-        `${process.env.API_URL}/storage/file`,
-        body
-      );
-
+    const response = await driveServerModule.files.createFile(body);
+    if (response.isRight()) {
+      const data = response.getRight();
       const result: PersistedFileData = {
         modificationTime: data.updatedAt,
         id: data.id,
         uuid: data.uuid,
         createdAt: data.createdAt,
       };
-
       return right(result);
-    } catch (err: unknown) {
-      if (!isAxiosError(err) || !err.response) {
-        return left(
-          new DriveDesktopError('UNKNOWN', `Creating file ${plainName}: ${err}`)
-        );
-      }
+    } else {
+      const error = response.getLeft();
+      if (axios.isAxiosError(error.cause)) {
+        const status = error.cause.response?.status;
+        switch (true) {
+          case status === undefined:
+            return left(
+              new DriveDesktopError(
+                'UNKNOWN',
+                `Response with status ${status} not expected`
+              )
+            );
 
-      const { status } = err.response;
-
-      if (status === 400) {
+          case status === 400:
+            return left(
+              new DriveDesktopError(
+                'BAD_REQUEST',
+                `Some data was not valid for ${plainName}: ${body}`
+              )
+            );
+          case status === 409:
+            return left(
+              new DriveDesktopError(
+                'FILE_ALREADY_EXISTS',
+                `File with name ${plainName} on ${dataToPersists.folderId.value} already exists`
+              )
+            );
+          default:
+            if (status >= 500) {
+              return left(
+                new DriveDesktopError(
+                  'BAD_RESPONSE',
+                  `The server could not handle the creation of ${plainName}: ${body}`
+                )
+              );
+            } else {
+              return left(
+                new DriveDesktopError(
+                  'UNKNOWN',
+                  `Response with status ${status} not expected`
+                )
+              );
+            }
+        }
+      } else {
         return left(
           new DriveDesktopError(
-            'BAD_REQUEST',
-            `Some data was not valid for ${plainName}: ${body.file}`
+            'UNKNOWN',
+            `Creating file ${plainName}: ${error}`
           )
         );
       }
-
-      if (status === 409) {
-        return left(
-          new DriveDesktopError(
-            'FILE_ALREADY_EXISTS',
-            `File with name ${plainName} on ${dataToPersists.folderId.value} already exists`
-          )
-        );
-      }
-
-      if (status >= 500) {
-        return left(
-          new DriveDesktopError(
-            'BAD_RESPONSE',
-            `The server could not handle the creation of ${plainName}: ${body.file}`
-          )
-        );
-      }
-
-      return left(
-        new DriveDesktopError(
-          'UNKNOWN',
-          `Response with status ${status} not expected`
-        )
-      );
     }
   }
 
@@ -117,6 +118,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
   async trash(): Promise<void> {
     /* no-op */
   }
+
   /* @Deprecated use driveServerModule.files.addFileToTrash instead */
   async delete(): Promise<void> {
     /* no-op */
