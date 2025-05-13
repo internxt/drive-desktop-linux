@@ -78,19 +78,20 @@ export class FilesService {
 
   async moveFile(params: MoveFileParams): Promise<Either<Error, boolean>> {
     try {
+      /* even though in path says that /files/{uuid} does not return anything, it does */
       const response = await driveServerClient.PATCH('/files/{uuid}', {
         path: { uuid: params.uuid },
-        body: { parentUuid: params.parentUuid },
+        body: { destinationFolder: params.parentUuid },
         headers: getNewApiHeaders()
       });
 
-      if (typeof response.data !== 'undefined') {
+      if (!response.data) {
         logger.error({
-          msg: 'Move file response contained unexpected data',
+          msg: 'Move file response was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/files/{uuid}' }
         });
-        return left(new Error('Move file response contained unexpected data'));
+        return left(new Error('Move file response was not successful'));
       }
       return right(true);
     } catch (err) {
@@ -261,11 +262,11 @@ export class FilesService {
       });
       if (response.data !== undefined && response.data !== '') {
         logger.error({
-          msg: 'Response add file to trash contained unexpected data',
+          msg: 'Response add file to trash was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/storage/trash/add' }
         });
-        return left(new Error('Response add file to trash contained unexpected data'));
+        return left(new Error('Response add file to trash was not successful'));
       }
       return right(true);
     } catch (err) {
