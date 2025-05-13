@@ -288,6 +288,7 @@ export class FilesService {
     contentsId: string
   ): Promise<Either<Error, boolean>> {
     try {
+      /* even though in path says that /storage/trash/file/{fileId} does not return anything, it does */
       const response = await driveServerClient.DELETE(
         '/storage/trash/file/{fileId}',
         {
@@ -295,14 +296,14 @@ export class FilesService {
           headers: getNewApiHeaders()
         },
       );
-      if (typeof response.data !== 'undefined') {
+      if (response.data !== undefined && response.data !== '') {
         logger.error({
-          msg: 'Response delete file from trash contained unexpected data',
+          msg: 'Response delete file from trash was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/storage/trash/file/{fileId}' }
         });
         return left(
-          new Error('Response delete file from trash contained unexpected data')
+          new Error('Response delete file from trash was not successful')
         );
       }
       return right(true);
