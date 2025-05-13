@@ -11,7 +11,7 @@ import {
   GetFilesQuery,
   MoveFileParams,
   RenameFileParams,
-  ReplaceFileParams
+  ReplaceFileParams, TrashItemPayload
 } from './files.types';
 
 export class FilesService {
@@ -109,20 +109,21 @@ export class FilesService {
 
   async renameFile(params: RenameFileParams): Promise<Either<Error, boolean>> {
     try {
+      /* even though in path says that /files/{uuid}/meta does not return anything, it does */
       const response = await driveServerClient.PUT('/files/{uuid}/meta', {
         path: { uuid: params.uuid },
         body: { plainName: params.plainName, type: params.type },
         headers: getNewApiHeaders()
       });
 
-      if (typeof response.data !== 'undefined') {
+      if (!response.data) {
         logger.error({
-          msg: 'Rename file response contained unexpected data',
+          msg: 'Rename file response was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/files/{uuid}/meta' }
         });
         return left(
-          new Error('Rename file response contained unexpected data')
+          new Error('Rename file response was not successful')
         );
       }
       return right(true);
@@ -246,12 +247,19 @@ export class FilesService {
 
   async addFileToTrash(item: AddFileToTrashRequest): Promise<Either<Error, boolean>> {
     try {
+      const { uuid, id, type } = item;
+      const payloadItem: TrashItemPayload = uuid
+        ? { uuid, type }
+        : { id: Number(id), type };
+
+      /* even though in path says that /storage/trash/add does not return anything, it does */
       const response = await driveServerClient.POST('/storage/trash/add', {
         body: {
-          items: [item]
-        }
+          items: [payloadItem]
+        },
+        headers: getNewApiHeaders(),
       });
-      if (typeof response.data !== 'undefined') {
+      if (response.data !== undefined && response.data !== '') {
         logger.error({
           msg: 'Response add file to trash contained unexpected data',
           tag: 'FILES',
@@ -281,8 +289,9 @@ export class FilesService {
       const response = await driveServerClient.DELETE(
         '/storage/trash/file/{fileId}',
         {
-          path: { fileId: contentsId }
-        }
+          path: { fileId: contentsId },
+          headers: getNewApiHeaders()
+        },
       );
       if (typeof response.data !== 'undefined') {
         logger.error({
