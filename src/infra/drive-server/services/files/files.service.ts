@@ -146,20 +146,21 @@ export class FilesService {
     params: ReplaceFileParams
   ): Promise<Either<Error, boolean>> {
     try {
+      /* even though in path says that /files/{uuid} does not return anything, it does */
       const response = await driveServerClient.PUT('/files/{uuid}', {
         path: { uuid: params.uuid },
         body: { fileId: params.fileId, size: params.size },
         headers: getNewApiHeaders()
       });
 
-      if (typeof response.data !== 'undefined') {
+      if (!response.data) {
         logger.error({
-          msg: 'Replace file response contained unexpected data',
+          msg: 'Replace file response was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/files/{uuid}' }
         });
         return left(
-          new Error('Replace file response contained unexpected data')
+          new Error('Replace file response was not successful')
         );
       }
       return right(true);
