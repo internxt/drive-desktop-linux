@@ -81,7 +81,7 @@ export class FilesService {
       /* even though in path says that /files/{uuid} does not return anything, it does */
       const response = await driveServerClient.PATCH('/files/{uuid}', {
         path: { uuid: params.uuid },
-        body: { destinationFolder: params.parentUuid },
+        body: { destinationFolder: params.destinationFolder },
         headers: getNewApiHeaders()
       });
 

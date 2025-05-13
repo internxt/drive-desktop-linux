@@ -191,49 +191,49 @@ describe('FilesService', () => {
   describe('moveFile', () => {
     it('should return true when response is successful', async () => {
       const uuid = 'file-123';
-      const parentUuid = 'folder-456';
+      const destinationFolder = 'folder-456';
       const headers = { Authorization: 'Bearer token' };
 
       (driveServerClient.PATCH as jest.Mock).mockResolvedValue({
-        data: undefined,
+        data: {} as unknown as any,
       });
       (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
 
       const sut = new FilesService();
-      const result = await sut.moveFile({ uuid, parentUuid });
+      const result = await sut.moveFile({ uuid, destinationFolder });
 
       expect(result.isRight()).toBe(true);
       expect(result.getRight()).toBe(true);
 
       expect(driveServerClient.PATCH).toHaveBeenCalledWith('/files/{uuid}', {
         path: { uuid },
-        body: { parentUuid },
+        body: { destinationFolder },
         headers,
       });
     });
-    it('should return an error when response is not successful (unexpected data)', async () => {
+    it('should return an error when response is not successful', async () => {
       const uuid = 'file-123';
-      const parentUuid = 'folder-456';
+      const destinationFolder = 'folder-456';
       const headers = { Authorization: 'Bearer token' };
 
       (driveServerClient.PATCH as jest.Mock).mockResolvedValue({
-        data: { unexpected: true },
+        data: undefined, // Because in reality, /files/{uuid} it is responding with data
       });
       (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
 
       const sut = new FilesService();
-      const result = await sut.moveFile({ uuid, parentUuid });
+      const result = await sut.moveFile({ uuid, destinationFolder });
 
       expect(result.isLeft()).toBe(true);
       const error = result.getLeft();
       expect(error).toBeInstanceOf(Error);
       expect(error.message).toBe(
-        'Move file response contained unexpected data'
+        'Move file response was not successful'
       );
 
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          msg: 'Move file response contained unexpected data',
+          msg: 'Move file response was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/files/{uuid}' },
         })
@@ -241,7 +241,7 @@ describe('FilesService', () => {
     });
     it('should return an error when request throws an exception', async () => {
       const uuid = 'file-123';
-      const parentUuid = 'folder-456';
+      const destinationFolder = 'folder-456';
       const headers = { Authorization: 'Bearer token' };
       const thrownError = new Error('Request failed');
 
@@ -249,7 +249,7 @@ describe('FilesService', () => {
       (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
 
       const sut = new FilesService();
-      const result = await sut.moveFile({ uuid, parentUuid });
+      const result = await sut.moveFile({ uuid, destinationFolder });
 
       expect(result.isLeft()).toBe(true);
       const error = result.getLeft();
@@ -276,7 +276,7 @@ describe('FilesService', () => {
       const headers = { Authorization: 'Bearer token' };
 
       (driveServerClient.PUT as jest.Mock).mockResolvedValue({
-        data: undefined,
+        data: {} as unknown as any,
       });
       (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
 
@@ -291,14 +291,14 @@ describe('FilesService', () => {
         headers,
       });
     });
-    it('should return an error when response is not successful (unexpected data)', async () => {
+    it('should return an error when response is not successful', async () => {
       const uuid = 'file-uuid';
       const plainName = 'new-name.txt';
       const type = 'text/plain';
       const headers = { Authorization: 'Bearer token' };
 
       (driveServerClient.PUT as jest.Mock).mockResolvedValue({
-        data: { unexpected: true },
+        data: undefined,
       });
       (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
 
@@ -308,12 +308,12 @@ describe('FilesService', () => {
       const error = result.getLeft();
       expect(error).toBeInstanceOf(Error);
       expect(error.message).toBe(
-        'Rename file response contained unexpected data'
+        'Rename file response was not successful'
       );
 
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          msg: 'Rename file response contained unexpected data',
+          msg: 'Rename file response was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/files/{uuid}/meta' },
         })
@@ -354,7 +354,7 @@ describe('FilesService', () => {
       const size = 123456;
       const headers = { Authorization: 'Bearer token' };
       (driveServerClient.PUT as jest.Mock).mockResolvedValue({
-        data: undefined,
+        data: {} as unknown as any,
       });
       (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
       const result = await sut.replaceFile({ uuid, fileId, size });
@@ -368,13 +368,13 @@ describe('FilesService', () => {
         headers,
       });
     });
-    it('should return an error when response is not successful (unexpected data)', async () => {
+    it('should return an error when response is not successful', async () => {
       const uuid = 'file-uuid';
       const fileId = 'new-file-id';
       const size = 123456;
       const headers = { Authorization: 'Bearer token' };
       (driveServerClient.PUT as jest.Mock).mockResolvedValue({
-        data: { something: 'unexpected' },
+        data: undefined,
       });
       (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
 
@@ -383,12 +383,12 @@ describe('FilesService', () => {
       const error = result.getLeft();
       expect(error).toBeInstanceOf(Error);
       expect(error.message).toBe(
-        'Replace file response contained unexpected data'
+        'Replace file response was not successful'
       );
 
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          msg: 'Replace file response contained unexpected data',
+          msg: 'Replace file response was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/files/{uuid}' },
         })
@@ -587,10 +587,16 @@ describe('FilesService', () => {
       type: 'file',
     };
 
-    it('should return true when response is successful', async () => {
+    it('should return true when response is successful and the request is with id', async () => {
       (driveServerClient.POST as jest.Mock).mockResolvedValue({
-        data: undefined,
+        data: '', // this is the actual response
       });
+      const headers = { Authorization: 'Bearer token' };
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+      const {id, ...rest} = request;
+      const requestWithoutId = {
+        ...rest
+      };
       const result = await sut.addFileToTrash(request);
       expect(result.isRight()).toBe(true);
       expect(result.getRight()).toBe(true);
@@ -598,15 +604,18 @@ describe('FilesService', () => {
       expect(driveServerClient.POST).toHaveBeenCalledWith(
         '/storage/trash/add',
         {
-          body: { items: [request] },
+          body: { items: [requestWithoutId] },
+          headers
         }
       );
     });
 
-    it('should return an error when response is not successful (unexpected data)', async () => {
+    it('should return an error when response is not successful', async () => {
       (driveServerClient.POST as jest.Mock).mockResolvedValue({
-        data: { unexpected: 'value' },
+        data: {} as unknown as any,
       });
+      const headers = { Authorization: 'Bearer token' };
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
 
       const result = await sut.addFileToTrash(request);
 
@@ -614,12 +623,12 @@ describe('FilesService', () => {
       const error = result.getLeft();
       expect(error).toBeInstanceOf(Error);
       expect(error.message).toBe(
-        'Response add file to trash contained unexpected data'
+        'Response add file to trash was not successful'
       );
 
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          msg: 'Response add file to trash contained unexpected data',
+          msg: 'Response add file to trash was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/storage/trash/add' },
         })
@@ -652,8 +661,10 @@ describe('FilesService', () => {
     const contentsId = 'file-123';
 
     it('should return true when response is successful', async () => {
+      const headers = { Authorization: 'Bearer token' };
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
       (driveServerClient.DELETE as jest.Mock).mockResolvedValue({
-        data: undefined,
+        data: '', // this is the actual response
       });
 
       const result = await sut.deleteFileFromTrash(contentsId);
@@ -665,13 +676,14 @@ describe('FilesService', () => {
         '/storage/trash/file/{fileId}',
         {
           path: { fileId: contentsId },
+          headers
         }
       );
     });
 
-    it('should return an error when response is not successful (unexpected data)', async () => {
+    it('should return an error when response is not successful', async () => {
       (driveServerClient.DELETE as jest.Mock).mockResolvedValue({
-        data: { unexpected: true },
+        data: {} as unknown as any,
       });
 
       const result = await sut.deleteFileFromTrash(contentsId);
@@ -680,12 +692,12 @@ describe('FilesService', () => {
       const error = result.getLeft();
       expect(error).toBeInstanceOf(Error);
       expect(error.message).toBe(
-        'Response delete file from trash contained unexpected data'
+        'Response delete file from trash was not successful'
       );
 
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          msg: 'Response delete file from trash contained unexpected data',
+          msg: 'Response delete file from trash was not successful',
           tag: 'FILES',
           attributes: { endpoint: '/storage/trash/file/{fileId}' },
         })

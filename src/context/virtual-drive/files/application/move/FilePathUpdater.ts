@@ -53,7 +53,7 @@ export class FilePathUpdater {
     Logger.debug('REMOTE CHANGES');
     await driveServerModule.files.moveFile({
       uuid: file.uuid,
-      parentUuid: destinationFolder.uuid,
+      destinationFolder: destinationFolder.uuid,
     });
     await this.repository.update(file);
 
