@@ -6,7 +6,6 @@ import { LocalFile } from '../../context/local/localFile/domain/LocalFile';
 import { AbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
 import LocalTreeBuilder from '../../context/local/localTree/application/LocalTreeBuilder';
 import { LocalTree } from '../../context/local/localTree/domain/LocalTree';
-import { FileDeleter } from '../../context/virtual-drive/files/application/delete/FileDeleter';
 import { File } from '../../context/virtual-drive/files/domain/File';
 import { SimpleFolderCreator } from '../../context/virtual-drive/folders/application/create/SimpleFolderCreator';
 import { RemoteTreeBuilder } from '../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
@@ -30,6 +29,7 @@ import { Either, left, right } from '../../context/shared/domain/Either';
 import { RetryOptions } from '../shared/retry/types';
 import { RetryHandler } from '../shared/retry/RetryHandler';
 import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
+import { driveServerModule } from '../../infra/drive-server/drive-server.module';
 
 @Service()
 export class BackupService {
@@ -38,7 +38,6 @@ export class BackupService {
     private readonly remoteTreeBuilder: RemoteTreeBuilder,
     private readonly fileBatchUploader: FileBatchUploader,
     private readonly fileBatchUpdater: FileBatchUpdater,
-    private readonly remoteFileDeleter: FileDeleter,
     private readonly simpleFolderCreator: SimpleFolderCreator,
     private readonly userAvaliableSpaceValidator: UserAvaliableSpaceValidator,
     private readonly backupsDanglingFilesService: BackupsDanglingFilesService
@@ -302,7 +301,11 @@ export class BackupService {
       }
 
       // eslint-disable-next-line no-await-in-loop
-      await this.remoteFileDeleter.run(file);
+      await driveServerModule.files.addFileToTrash({
+        id: file.contentsId,
+        uuid: file.uuid,
+        type: 'file',
+      });
     }
 
     this.backed += deleted.length;

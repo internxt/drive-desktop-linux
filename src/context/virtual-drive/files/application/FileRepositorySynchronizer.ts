@@ -2,15 +2,14 @@ import { Service } from 'diod';
 import { File } from '../domain/File';
 import { FileRepository } from '../domain/FileRepository';
 import Logger from 'electron-log';
-import { RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { StorageFileService } from '../../../storage/StorageFiles/StorageFileService';
+import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 
 @Service()
 export class FileRepositorySynchronizer {
   constructor(
     private readonly repository: FileRepository,
     private readonly storageFileService: StorageFileService,
-    private readonly remoteFileSystem: RemoteFileSystem
   ) {}
 
   async fixDanglingFiles(
@@ -41,7 +40,10 @@ export class FileRepositorySynchronizer {
               Logger.warn(
                 `[DANGLING FILE] File ${file.contentsId} is not downloadable, deleting...`
               );
-              await this.remoteFileSystem.hardDelete(file.contentsId);
+              const deleteResult = await driveServerModule.files.deleteFileFromTrash(file.contentsId);
+              if (deleteResult.isLeft()) {
+                allDanglingFilesFixed = false;
+              }
             }
           } else {
             const error = resultEither.getLeft();

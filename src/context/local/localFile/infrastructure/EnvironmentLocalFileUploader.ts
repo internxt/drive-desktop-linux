@@ -5,10 +5,10 @@ import { Stopwatch } from '../../../../apps/shared/types/Stopwatch';
 import { AbsolutePath } from './AbsolutePath';
 import { LocalFileHandler } from '../domain/LocalFileUploader';
 import { Environment } from '@internxt/inxt-js';
-import { Axios } from 'axios';
 import Logger from 'electron-log';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
+import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 
 @Service()
 export class EnvironmentLocalFileUploader implements LocalFileHandler {
@@ -16,8 +16,7 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
 
   constructor(
     private readonly environment: Environment,
-    private readonly bucket: string,
-    private readonly httpClient: Axios
+    private readonly bucket: string
   ) {}
 
   upload(
@@ -66,13 +65,9 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
   }
 
   async delete(contentsId: string): Promise<void> {
-    try {
-      await this.httpClient.delete(
-        `${process.env.API_URL}/storage/bucket/${this.bucket}/file/${contentsId}`
-      );
-    } catch (error) {
-      // Not being able to delete from the bucket is not critical
-      Logger.error(`Could not delete the file ${contentsId} from the bucket`);
-    }
+    await driveServerModule.files.deleteContentFromBucket({
+      bucketId: this.bucket,
+      fileId: contentsId,
+    });
   }
 }

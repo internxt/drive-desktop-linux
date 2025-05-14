@@ -11,6 +11,7 @@ export type FileDataToPersist = {
   path: FilePath;
   size: FileSize;
   folderId: FileFolderId;
+  folderUuid: string;
 };
 
 export type PersistedFileData = {
@@ -34,6 +35,4 @@ export abstract class RemoteFileSystem {
   abstract override(file: File): Promise<void>;
 
   abstract delete(file: File): Promise<void>;
-
-  abstract hardDelete(contentsId: string): Promise<void>;
 }

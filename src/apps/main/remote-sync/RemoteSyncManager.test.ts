@@ -12,6 +12,21 @@ jest.mock('./RemoteSyncErrorHandler/RemoteSyncErrorHandler', () => ({
     handleSyncError: jest.fn(),
   })),
 }));
+
+jest.mock('../../../infra/drive-server/client/drive-server.client.instance', () => ({
+  driveServerClient: {
+    GET: jest.fn(),
+  },
+}));
+
+jest.mock('../../../infra/drive-server/drive-server.module', () => ({
+  driveServerModule: {
+    files: {
+      getFiles: jest.fn(),
+    },
+  },
+}));
+
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { RemoteSyncManager } from './RemoteSyncManager';
 import { RemoteSyncedFile, RemoteSyncedFolder } from './helpers';
@@ -20,6 +35,8 @@ import axios from 'axios';
 import { DatabaseCollectionAdapter } from '../database/adapters/base';
 import { DriveFile } from '../database/entities/DriveFile';
 import { DriveFolder } from '../database/entities/DriveFolder';
+import { left, right } from '../../../context/shared/domain/Either';
+import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
@@ -114,17 +131,27 @@ describe('RemoteSyncManager', () => {
       errorHandler
     );
     mockedAxios.get.mockClear();
+    jest.clearAllMocks();
   });
 
   describe('When there are files in remote, should sync them with local', () => {
     it('Should sync all the files', async () => {
+      const file1 = createRemoteSyncedFileFixture({ plainName: 'file_1' });
+      const file2 = createRemoteSyncedFileFixture({ plainName: 'file_2' });
+      const file3 = createRemoteSyncedFileFixture({ plainName: 'file_3' });
+      const mockedGetFiles = driveServerModule.files.getFiles as jest.Mock;
+
+      mockedGetFiles.mockResolvedValueOnce(right([file1, file2]));
+      mockedGetFiles.mockResolvedValueOnce(right([file3]));
+
+
       const sut = new RemoteSyncManager(
         {
           folders: inMemorySyncedFoldersCollection,
           files: inMemorySyncedFilesCollection,
         },
         {
-          httpClient: mockedAxios,
+          httpClient: {} as any, // We dont need the httpClient for retrieving files anymore
           fetchFilesLimitPerRequest: 2,
           fetchFoldersLimitPerRequest: 2,
           syncFiles: true,
@@ -133,29 +160,14 @@ describe('RemoteSyncManager', () => {
         errorHandler
       );
 
-      mockedAxios.get
-        .mockResolvedValueOnce({
-          data: [
-            createRemoteSyncedFileFixture({
-              plainName: 'file_1',
-            }),
-            createRemoteSyncedFileFixture({
-              plainName: 'file_2',
-            }),
-          ],
-        })
-        .mockResolvedValueOnce({
-          data: [
-            createRemoteSyncedFileFixture({
-              plainName: 'file_3',
-            }),
-          ],
-        });
-
       await sut.startRemoteSync();
 
-      expect(mockedAxios.get).toBeCalledTimes(2);
+      expect(mockedGetFiles).toBeCalledTimes(2);
       expect(sut.getSyncStatus()).toBe('SYNCED');
+
+      expect(inMemorySyncedFilesCollection.create).toHaveBeenCalledWith(file1);
+      expect(inMemorySyncedFilesCollection.create).toHaveBeenCalledWith(file2);
+      expect(inMemorySyncedFilesCollection.create).toHaveBeenCalledWith(file3);
     });
     it('Should sync all the folders', async () => {
       const sut = new RemoteSyncManager(
@@ -209,13 +221,20 @@ describe('RemoteSyncManager', () => {
     });
 
     it('Should save the files in the database', async () => {
+      const file1 = createRemoteSyncedFileFixture({ plainName: 'file_1' });
+      const file2 = createRemoteSyncedFileFixture({ plainName: 'file_2' });
+      const mockedGetFiles = driveServerModule.files.getFiles as jest.Mock;
+      mockedGetFiles
+        .mockResolvedValueOnce(right([file1, file2]))
+        .mockResolvedValueOnce(right([]));
+
       const sut = new RemoteSyncManager(
         {
           folders: inMemorySyncedFoldersCollection,
           files: inMemorySyncedFilesCollection,
         },
         {
-          httpClient: mockedAxios,
+          httpClient: {} as any,
           fetchFilesLimitPerRequest: 2,
           fetchFoldersLimitPerRequest: 2,
           syncFiles: true,
@@ -223,21 +242,10 @@ describe('RemoteSyncManager', () => {
         },
         errorHandler
       );
-      const file1 = createRemoteSyncedFileFixture({
-        plainName: 'file_1',
-      });
-
-      const file2 = createRemoteSyncedFileFixture({
-        plainName: 'file_2',
-      });
-
-      mockedAxios.get.mockResolvedValueOnce({ data: [file1, file2] });
-
-      mockedAxios.get.mockResolvedValueOnce({ data: [] });
 
       await sut.startRemoteSync();
 
-      expect(mockedAxios.get).toBeCalledTimes(2);
+      expect(mockedGetFiles).toBeCalledTimes(2);
       expect(sut.getSyncStatus()).toBe('SYNCED');
       expect(inMemorySyncedFilesCollection.create).toHaveBeenCalledWith(file1);
       expect(inMemorySyncedFilesCollection.create).toHaveBeenCalledWith(file2);
@@ -246,22 +254,28 @@ describe('RemoteSyncManager', () => {
 
   describe('When something fails during the sync', () => {
     it('Should retry N times and then stop if sync does not succeed', async () => {
+      const mockedGetFiles = driveServerModule.files.getFiles as jest.Mock;
+      mockedGetFiles.mockResolvedValue(left(new Error('Fail on purpose')));
       mockedAxios.get.mockImplementation(() =>
         Promise.reject('Fail on purpose')
       );
 
       await sut.startRemoteSync();
 
-      expect(mockedAxios.get).toBeCalledTimes(6);
+      expect(mockedAxios.get).toBeCalledTimes(3);
+      expect(mockedGetFiles).toBeCalledTimes(3);
       expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
     });
 
     it('Should fail the sync if some files or folders cannot be retrieved', async () => {
+      const mockedGetFiles = driveServerModule.files.getFiles as jest.Mock;
+      mockedGetFiles.mockResolvedValue(left(new Error('Fail on purpose')));
       mockedAxios.get.mockRejectedValueOnce('Fail on purpose');
 
       await sut.startRemoteSync();
 
-      expect(mockedAxios.get).toBeCalledTimes(6);
+      expect(mockedAxios.get).toBeCalledTimes(3);
+      expect(mockedGetFiles).toBeCalledTimes(3);
       expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
     });
 
