@@ -13,6 +13,7 @@ import {
   RenameFileParams,
   ReplaceFileParams, TrashItemPayload
 } from './files.types';
+import { mapToTrashPayload } from './files.mapper';
 
 export class FilesService {
 
@@ -249,10 +250,11 @@ export class FilesService {
 
   async addFileToTrash(item: AddFileToTrashRequest): Promise<Either<Error, boolean>> {
     try {
-      const { uuid, id, type } = item;
-      const payloadItem: TrashItemPayload = uuid
-        ? { uuid, type }
-        : { id: Number(id), type };
+      const payloadItem: TrashItemPayload | undefined = mapToTrashPayload(item);
+
+      if (!payloadItem) {
+        return left(new Error('Either uuid or id must be provided'));
+      }
 
       /* even though in path says that /storage/trash/add does not return anything, it does */
       const response = await driveServerClient.POST('/storage/trash/add', {

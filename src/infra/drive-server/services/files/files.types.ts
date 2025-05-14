@@ -22,6 +22,6 @@ export type AddFileToTrashRequest = components['schemas']['ItemToTrash']
 
 export type TrashItemPayload =
   | { uuid: string; type: string }
-  | { id: number; type: string };
+  | { id: string; type: string };
 
 export type CreateFileBodyRequest = components['schemas']['CreateFileDto']

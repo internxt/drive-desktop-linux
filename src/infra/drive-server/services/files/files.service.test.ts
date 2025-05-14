@@ -587,27 +587,69 @@ describe('FilesService', () => {
       type: 'file',
     };
 
-    it('should return true when response is successful and the request is with id', async () => {
-      (driveServerClient.POST as jest.Mock).mockResolvedValue({
-        data: '', // this is the actual response
-      });
+    it('should return true when response is successful and the request is with uuid', async () => {
+      const uuidOnlyRequest = {
+        id: null,
+        uuid: '36c7e2e0-a873-48ed-9eee-1bd64d53efeb',
+        type: 'file',
+      };
+
+      (driveServerClient.POST as jest.Mock).mockResolvedValue({ data: '' });
       const headers = { Authorization: 'Bearer token' };
       (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
-      const {id, ...rest} = request;
-      const requestWithoutId = {
-        ...rest
-      };
-      const result = await sut.addFileToTrash(request);
+
+      const result = await sut.addFileToTrash(uuidOnlyRequest);
+
       expect(result.isRight()).toBe(true);
       expect(result.getRight()).toBe(true);
 
       expect(driveServerClient.POST).toHaveBeenCalledWith(
         '/storage/trash/add',
         {
-          body: { items: [requestWithoutId] },
-          headers
+          body: { items: [{ uuid: uuidOnlyRequest.uuid, type: uuidOnlyRequest.type }] },
+          headers,
         }
       );
+    });
+
+    it('should return true when response is successful and the request is with id', async () => {
+      const idOnlyRequest = {
+        id: '1',
+        uuid: '',
+        type: 'file',
+      };
+
+      (driveServerClient.POST as jest.Mock).mockResolvedValue({ data: '' });
+      const headers = { Authorization: 'Bearer token' };
+      (getNewApiHeaders as jest.Mock).mockReturnValue(headers);
+
+      const result = await sut.addFileToTrash(idOnlyRequest);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getRight()).toBe(true);
+
+      expect(driveServerClient.POST).toHaveBeenCalledWith(
+        '/storage/trash/add',
+        {
+          body: { items: [{ id: idOnlyRequest.id, type: idOnlyRequest.type }] },
+          headers,
+        }
+      );
+    });
+
+    it('should return an error if neither uuid nor id is provided', async () => {
+      const invalidRequest = {
+        id: null,
+        uuid: '',
+        type: 'file',
+      };
+
+      const result = await sut.addFileToTrash(invalidRequest);
+
+      expect(result.isLeft()).toBe(true);
+      const error = result.getLeft();
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('Either uuid or id must be provided');
     });
 
     it('should return an error when response is not successful', async () => {
