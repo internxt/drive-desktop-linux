@@ -1,11 +1,10 @@
 import { aes } from '@internxt/lib';
 import { app, BrowserWindow, dialog, IpcMainEvent } from 'electron';
-import fetch from 'electron-fetch';
 import logger from 'electron-log';
 import os from 'os';
 import path from 'path';
 import fs, { PathLike } from 'fs';
-import { getHeaders, getNewApiHeaders, getUser } from '../auth/service';
+import { getUser } from '../auth/service';
 import configStore from '../config';
 import { addAppIssue } from '../issues/app';
 import { BackupInfo } from '../../backups/BackupInfo';
@@ -18,6 +17,9 @@ import { BackupError } from '../../backups/BackupError';
 import { PathTypeChecker } from '../../shared/fs/PathTypeChecker ';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import Logger from 'electron-log';
+import axios from 'axios';
+import { ensureBackupListHasUuids, needsBackupListMigration } from './device.utils';
+import { components } from '../../../infra/schemas';
 
 export type Device = {
   id: number;
@@ -104,13 +106,20 @@ export async function getOrCreateDevice() {
   if (onlyLegacy) {
     /* eventually, this whole if section is going to be replaced
     when all the users naturaly migrated to the new uuid */
-    const response = await driveServerModule.backup.getDeviceById(legacyId.toString());
+    const response = await driveServerModule.backup.getDeviceById(
+      legacyId.toString()
+    );
 
     if (response.isRight()) {
       const device = response.getRight();
       if (!device.removed) {
         configStore.set('deviceUUID', device.uuid);
         configStore.set('deviceId', -1);
+        const backupList = configStore.get('backupList');
+        if (needsBackupListMigration(backupList)) {
+          const updatedList = await ensureBackupListHasUuids(backupList);
+          configStore.set('backupList', updatedList);
+        }
 
         return decryptDeviceName(device);
       }
@@ -123,6 +132,12 @@ export async function getOrCreateDevice() {
     if (response.isRight()) {
       const device = response.getRight();
       if (!device.removed) {
+        const backupList = configStore.get('backupList');
+        if (needsBackupListMigration(backupList)) {
+          const updatedList = await ensureBackupListHasUuids(backupList);
+          configStore.set('backupList', updatedList);
+        }
+
         return decryptDeviceName(device);
       }
     }
@@ -191,24 +206,27 @@ export async function getBackupsFromDevice(
   if (isCurrent) {
     const backupsList = configStore.get('backupList');
     const device = await getOrCreateDevice();
-    const folder = await fetchFolder(device.id);
+    const deviceAsFolder = await fetchFolder(device.uuid);
 
-    return folder.children
-      .filter((backup: Backup) => {
+    return deviceAsFolder.children
+      .filter((backup: components['schemas']['FolderDto']) => {
         const pathname = findBackupPathnameFromId(backup.id);
         return pathname && backupsList[pathname].enabled;
       })
-      .map((backup: Backup) => ({
-        ...backup,
-        pathname: findBackupPathnameFromId(backup.id),
-        folderId: backup.id,
-        folderUuid: backup.uuid,
-        tmpPath: app.getPath('temp'),
-        backupsBucket: device.bucket,
-      }));
+      .map((backup: components['schemas']['FolderDto']) => {
+        const pathname = findBackupPathnameFromId(backup.id)!;
+        return {
+          ...backup,
+          pathname,
+          folderId: backup.id,
+          folderUuid: backup.uuid,
+          tmpPath: app.getPath('temp'),
+          backupsBucket: device.bucket,
+        };
+      });
   } else {
-    const folder = await fetchFolder(device.id);
-    return folder.children.map((backup: Backup) => ({
+    const deviceAsFolder = await fetchFolder(device.uuid);
+    return deviceAsFolder.children.map((backup : components['schemas']['FolderDto']) => ({
       ...backup,
       folderId: backup.id,
       folderUuid: backup.uuid,
@@ -226,24 +244,33 @@ export async function getBackupsFromDevice(
  * @returns
  */
 async function postBackup(name: string): Promise<Backup> {
-  const deviceId = (await getOrCreateDevice()).id;
+  const deviceId = (await getOrCreateDevice()).uuid;
 
-  const res = await fetch(`${process.env.API_URL}/storage/folder`, {
-    method: 'POST',
-    headers: getHeaders(true),
-    body: JSON.stringify({ parentFolderId: deviceId, folderName: name }),
+  const response = await driveServerModule.folders.createFolder({
+    plainName: name,
+    parentFolderUuid: deviceId,
   });
 
-  if (res.ok) {
-    return res.json();
+  if (response.isRight()) {
+    const folder = response.getRight();
+    return {
+      id: folder.id,
+      name: folder.plainName,
+      uuid: folder.uuid,
+    };
+  } else {
+    const error = response.getLeft();
+    if (axios.isAxiosError(error.cause)) {
+      const status = error.cause.response?.status;
+      if (status !== undefined && status >= 500) {
+        throw new BackupError('BAD_RESPONSE');
+      }
+      if (status === 409) {
+        throw new BackupError('FOLDER_ALREADY_EXISTS');
+      }
+    }
+    throw new BackupError('UNKNOWN');
   }
-  if (res.status === 409) {
-    throw new BackupError('FOLDER_ALREADY_EXISTS');
-  }
-  if (res.status >= 500) {
-    throw new BackupError('BAD_RESPONSE');
-  }
-  throw new BackupError('UNKNOWN');
 }
 
 /**
@@ -255,7 +282,7 @@ async function createBackup(pathname: string): Promise<void> {
   const newBackup = await postBackup(base);
   const backupList = configStore.get('backupList');
 
-  backupList[pathname] = { enabled: true, folderId: newBackup.id };
+  backupList[pathname] = { enabled: true, folderId: newBackup.id, folderUuid: newBackup.uuid };
 
   configStore.set('backupList', backupList);
 }
@@ -277,7 +304,7 @@ export async function addBackup(): Promise<void> {
 
   let folderStillExists;
   try {
-    await fetchFolder(existingBackup.folderId);
+    await fetchFolder(existingBackup.folderUuid);
     folderStillExists = true;
   } catch {
     folderStillExists = false;
@@ -291,42 +318,30 @@ export async function addBackup(): Promise<void> {
   }
 }
 
-async function fetchFolder(folderId: number) {
-  const res = await fetch(
-    `${process.env.API_URL}/storage/v2/folder/${folderId}`,
-    {
-      method: 'GET',
-      headers: getHeaders(true),
-    }
+async function fetchFolder(folderUuid: string) {
+  const res = await driveServerModule.folders.getFolderContent(
+    folderUuid.toString()
   );
 
-  const responseBody = await res.json().catch(() => null);
-
-  if (res.ok) {
-    if (responseBody?.deleted || responseBody?.removed) {
+  if (res.isRight()) {
+    const folder = res.getRight();
+    if (folder.deleted || folder.removed) {
       throw new Error('Folder does not exist');
     }
-    return responseBody;
+    return folder;
   }
   throw new Error('Unsuccesful request to fetch folder');
 }
 
-export async function fetchFolderTree(folderUuid: string): Promise<{
+export async function fetchAndDecryptFolderTree(folderUuid: string): Promise<{
   tree: FolderTree;
   folderDecryptedNames: Record<number, string>;
   fileDecryptedNames: Record<number, string>;
   size: number;
 }> {
-  const res = await fetch(
-    `${process.env.NEW_DRIVE_URL}/folders/${folderUuid}/tree`,
-    {
-      method: 'GET',
-      headers: getNewApiHeaders(),
-    }
-  );
-
-  if (res.ok) {
-    const { tree } = (await res.json()) as unknown as { tree: FolderTree };
+  const res = await driveServerModule.folders.getFolderTree(folderUuid);
+  if (res.isRight()) {
+    const tree = res.getRight();
 
     let size = 0;
     const folderDecryptedNames: Record<number, string> = {};
@@ -359,7 +374,7 @@ export async function fetchFolderTree(folderUuid: string): Promise<{
 
     return { tree, folderDecryptedNames, fileDecryptedNames, size };
   } else {
-    throw new Error('Unsuccesful request to fetch folder tree');
+    throw new Error('Unsuccessful request to fetch and decrypt folder tree');
   }
 }
 
@@ -439,7 +454,7 @@ async function downloadDeviceBackupZip(
     throw new Error('No saved user');
   }
 
-  const folder = await fetchFolder(device.id);
+  const folder = await fetchFolder(device.uuid);
   if (!folder || !folder.uuid || folder.uuid.length === 0) {
     throw new Error('No backup data found');
   }
@@ -466,19 +481,12 @@ async function downloadDeviceBackupZip(
   );
 }
 
-function deleteFolder(folderId: number) {
-  return fetch(`${process.env.API_URL}/storage/folder/${folderId}`, {
-    method: 'DELETE',
-    headers: getHeaders(true),
-  });
-}
-
 export async function deleteBackup(
   backup: BackupInfo,
   isCurrent?: boolean
 ): Promise<void> {
-  const res = await deleteFolder(backup.folderId);
-  if (!res.ok) {
+  const res = await driveServerModule.folders.deleteFolder(backup.folderUuid);
+  if (res.isLeft()) {
     throw new Error('Request to delete backup wasnt succesful');
   }
 
@@ -486,7 +494,7 @@ export async function deleteBackup(
     const backupsList = configStore.get('backupList');
 
     const entriesFiltered = Object.entries(backupsList).filter(
-      ([, b]) => b.folderId !== backup.folderId
+      ([, b]) => b.folderId !== backup.folderId || b.folderUuid !== backup.folderUuid
     );
 
     const backupListFiltered = Object.fromEntries(entriesFiltered);
@@ -509,11 +517,13 @@ export async function deleteBackupsFromDevice(
   await Promise.all(deletionPromises);
 
   // delete backups that are not in the backup list
-  const { tree } = await fetchFolderTree(device.uuid);
+  const { tree } = await fetchAndDecryptFolderTree(device.uuid);
   const foldersToDelete = tree.children.filter(
     (folder) => !backups.some((backup) => backup.folderId === folder.id)
   );
-  deletionPromises = foldersToDelete.map((folder) => deleteFolder(folder.id));
+  deletionPromises = foldersToDelete.map((folder) =>
+    driveServerModule.folders.deleteFolder(folder.uuid)
+  );
   await Promise.all(deletionPromises);
 }
 
@@ -525,7 +535,7 @@ export async function disableBackup(backup: BackupInfo): Promise<void> {
     backupsList[pathname].enabled = false;
     configStore.set('backupList', backupsList);
 
-    const { size } = await fetchFolderTree(backup.folderUuid);
+    const { size } = await fetchAndDecryptFolderTree(backup.folderUuid);
 
     if (size === 0) {
       await deleteBackup(backup, true);
@@ -554,18 +564,20 @@ export async function changeBackupPath(currentPath: string): Promise<boolean> {
     throw new Error('A backup with this path already exists');
   }
 
-  const res = await fetch(
-    `${process.env.API_URL}/storage/folder/${existingBackup.folderId}/meta`,
-    {
-      method: 'POST',
-      headers: getHeaders(true),
-      body: JSON.stringify({
-        metadata: { itemName: path.basename(chosenPath) },
-      }),
-    }
+  const folderMetadata = await driveServerModule.folders.getFolderMetadata(
+    existingBackup.folderId.toString()
   );
 
-  if (!res.ok) {
+  if (folderMetadata.isLeft()) {
+    throw folderMetadata.getLeft();
+  }
+
+  const response = await driveServerModule.folders.renameFolder({
+    uuid: folderMetadata.getRight().uuid,
+    plainName: path.basename(chosenPath),
+  });
+
+  if (response.isLeft()) {
     throw new Error('Error in the request to rename a backup');
   }
 

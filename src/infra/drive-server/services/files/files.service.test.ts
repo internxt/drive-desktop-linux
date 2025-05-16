@@ -1,9 +1,10 @@
 import { FilesService } from './files.service';
-import { AddFileToTrashRequest, CreateFileBodyRequest, GetFilesQuery } from './files.types';
+import { CreateFileBodyRequest, GetFilesQuery } from './files.types';
 import { components } from '../../../schemas';
 import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import { driveServerClient } from '../../client/drive-server.client.instance';
 import { logger } from '../../../../core/LoggerService/LoggerService';
+import { AddItemToTrashRequest } from '../services.types';
 
 jest.mock('../../../../apps/main/auth/service', () => ({
   getNewApiHeaders: jest.fn(),
@@ -581,7 +582,7 @@ describe('FilesService', () => {
   });
 
   describe('addFileToTrash', () => {
-    const request: AddFileToTrashRequest = {
+    const request: AddItemToTrashRequest = {
       id: '1',
       uuid: 'file-123',
       type: 'file',
