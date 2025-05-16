@@ -22,6 +22,7 @@ import {
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { GetFilesQuery } from '../../../infra/drive-server/services/files/files.types';
+import { GetFoldersQuery } from '../../../infra/drive-server/services/folders/folders.types';
 
 export class RemoteSyncManager {
   private foldersSyncStatus: RemoteSyncStatus = 'IDLE';
@@ -370,6 +371,8 @@ export class RemoteSyncManager {
           } else {
             throw new RemoteSyncNetworkError(error);
           }
+        } else {
+          throw response.getLeft();
         }
       }
 
@@ -418,7 +421,7 @@ export class RemoteSyncManager {
     hasMore: boolean;
     result: RemoteSyncedFolder[];
   }> {
-    const params = {
+    const params: GetFoldersQuery = {
       limit: this.config.fetchFilesLimitPerRequest,
       offset: 0,
       status: 'ALL',
@@ -427,35 +430,40 @@ export class RemoteSyncManager {
         : undefined,
     };
     try {
-      const response = await this.config.httpClient.get(
-        `${process.env.NEW_DRIVE_URL}/folders`,
-        {
-          params,
-        }
-      );
-      if (response.status > 299) {
-        throw new RemoteSyncServerError(response.status, response.data);
-      }
+      const response = await driveServerModule.folders.getFolders(params);
 
-      if (!Array.isArray(response.data)) {
+      if (response.isLeft()) {
+        const error = response.getLeft();
+        if (axios.isAxiosError(error.cause)) {
+          const status = error.cause.response?.status;
+          if (status && status > 299) {
+            throw new RemoteSyncServerError(status, error);
+          } else {
+            throw new RemoteSyncNetworkError(error);
+          }
+        } else {
+          throw response.getLeft();
+        }
+      }
+      const data = response.getRight();
+      if (!Array.isArray(data)) {
         Logger.info(
           `[SYNC MANAGER] Expected to receive an array of folders, but instead received: ${JSON.stringify(
-            response,
+            data,
             null,
             2
           )}`
         );
-        throw new RemoteSyncInvalidResponseError(response);
+        throw new RemoteSyncInvalidResponseError(data);
       }
 
-      const hasMore =
-        response.data.length === this.config.fetchFilesLimitPerRequest;
+      const hasMore =data.length === this.config.fetchFoldersLimitPerRequest;
 
       return {
         hasMore,
         result:
-          response.data && Array.isArray(response.data)
-            ? response.data.map(this.patchDriveFolderResponseItem)
+          data && Array.isArray(data)
+            ? data.map(this.patchDriveFolderResponseItem)
             : [],
       };
     } catch (error) {
