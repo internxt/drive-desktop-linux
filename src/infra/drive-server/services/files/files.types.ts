@@ -18,10 +18,4 @@ export type CreateThumbnailBodyRequest = components['schemas']['CreateThumbnailD
 
 export type DeleteFileContentFromBucketRequest = operations['FileController_deleteFileByFileId']['parameters']['path']
 
-export type AddFileToTrashRequest = components['schemas']['ItemToTrash']
-
-export type TrashItemPayload =
-  | { uuid: string; type: string }
-  | { id: string; type: string };
-
 export type CreateFileBodyRequest = components['schemas']['CreateFileDto']

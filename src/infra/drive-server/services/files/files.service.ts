@@ -5,15 +5,16 @@ import { driveServerClient } from '../../client/drive-server.client.instance';
 import { components } from '../../../schemas';
 import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import {
-  AddFileToTrashRequest, CreateFileBodyRequest,
+  CreateFileBodyRequest,
   CreateThumbnailBodyRequest,
   DeleteFileContentFromBucketRequest,
   GetFilesQuery,
   MoveFileParams,
   RenameFileParams,
-  ReplaceFileParams, TrashItemPayload
+  ReplaceFileParams,
 } from './files.types';
-import { mapToTrashPayload } from './files.mapper';
+import { mapToTrashPayload } from '../utils/mapToTrashPayload';
+import { AddItemToTrashRequest, TrashItemPayload } from '../services.types';
 
 export class FilesService {
 
@@ -248,7 +249,7 @@ export class FilesService {
     }
   }
 
-  async addFileToTrash(item: AddFileToTrashRequest): Promise<Either<Error, boolean>> {
+  async addFileToTrash(item: AddItemToTrashRequest): Promise<Either<Error, boolean>> {
     try {
       const payloadItem: TrashItemPayload | undefined = mapToTrashPayload(item);
 

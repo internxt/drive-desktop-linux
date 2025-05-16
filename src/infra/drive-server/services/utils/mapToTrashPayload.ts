@@ -1,8 +1,8 @@
 import { validate } from 'uuid';
-import { AddFileToTrashRequest, TrashItemPayload } from './files.types';
+import { AddItemToTrashRequest, TrashItemPayload } from '../services.types';
 
 export function mapToTrashPayload(
-  item: AddFileToTrashRequest
+  item: AddItemToTrashRequest
 ): TrashItemPayload | undefined {
   const { uuid, id, type } = item;
 

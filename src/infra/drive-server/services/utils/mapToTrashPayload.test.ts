@@ -1,4 +1,4 @@
-import { mapToTrashPayload } from './files.mapper';
+import { mapToTrashPayload } from './mapToTrashPayload';
 
 describe('mapToTrashPayload', () => {
   it('should return a payload with uuid when uuid is provided', () => {
