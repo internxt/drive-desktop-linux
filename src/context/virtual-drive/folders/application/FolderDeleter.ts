@@ -5,14 +5,13 @@ import { FolderRepository } from '../domain/FolderRepository';
 import { ActionNotPermittedError } from '../domain/errors/ActionNotPermittedError';
 import { FolderNotFoundError } from '../domain/errors/FolderNotFoundError';
 import { LocalFileSystem } from '../domain/file-systems/LocalFileSystem';
-import { RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { AllParentFoldersStatusIsExists } from './AllParentFoldersStatusIsExists';
+import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 
 @Service()
 export class FolderDeleter {
   constructor(
     private readonly repository: FolderRepository,
-    private readonly remote: RemoteFileSystem,
     private readonly local: LocalFileSystem,
     private readonly allParentFoldersStatusIsExists: AllParentFoldersStatusIsExists
   ) {}
@@ -43,7 +42,11 @@ export class FolderDeleter {
 
       folder.trash();
 
-      await this.remote.trash(folder.id);
+      await driveServerModule.folders.addFolderToTrash({
+        id: folder.id.toString(),
+        uuid: folder.uuid,
+        type: 'folder',
+      });
       await this.repository.delete(folder.id);
     } catch (error: unknown) {
       Logger.error(`Error deleting the folder ${folder.name}: `, error);
