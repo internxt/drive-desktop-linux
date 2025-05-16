@@ -1,4 +1,3 @@
-import { RemoteFileSystem } from '../../../../../src/context/virtual-drive/folders/domain/file-systems/RemoteFileSystem';
 import { FolderRenamer } from '../../../../../src/context/virtual-drive/folders/application/FolderRenamer';
 import { FolderRepository } from '../../../../../src/context/virtual-drive/folders/domain/FolderRepository';
 import { SyncFolderMessenger } from '../../../../../src/context/virtual-drive/folders/domain/SyncFolderMessenger';
@@ -10,7 +9,6 @@ export class FolderRenamerMock extends FolderRenamer {
   constructor() {
     super(
       {} as FolderRepository,
-      {} as RemoteFileSystem,
       {} as EventBus,
       {} as SyncFolderMessenger
     );
