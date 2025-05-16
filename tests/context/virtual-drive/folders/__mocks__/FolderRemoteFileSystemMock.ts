@@ -10,7 +10,7 @@ import {
 } from '../../../../../src/context/virtual-drive/folders/domain/file-systems/RemoteFileSystem';
 
 export class FolderRemoteFileSystemMock implements RemoteFileSystem {
-  private readonly persistMock = jest.fn();
+  readonly persistMock = jest.fn();
   private readonly trashMock = jest.fn();
   private readonly moveMock = jest.fn();
   private readonly renameMock = jest.fn();
@@ -24,13 +24,12 @@ export class FolderRemoteFileSystemMock implements RemoteFileSystem {
   }
 
   persist(
-    path: FolderPath,
+    plainName: string,
     parentId: FolderId,
-    uuid?: FolderUuid | undefined
+    parentFolderUuid: string,
+    _attempt = 0
   ): Promise<Either<RemoteFileSystemErrors, FolderPersistedDto>> {
-    expect(this.persistMock).toHaveBeenCalledWith(path, parentId, uuid);
-
-    return this.persistMock();
+    return this.persistMock(plainName, parentId, parentFolderUuid);
   }
 
   trash(id: number): Promise<void> {
@@ -86,17 +85,6 @@ export class FolderRemoteFileSystemMock implements RemoteFileSystem {
     }
 
     this.trashMock.mockReturnValue(Promise.resolve());
-  }
-
-  shouldRename(folder: Folder, error?: Error) {
-    this.renameMock(folder);
-
-    if (error) {
-      this.renameMock.mockRejectedValueOnce(error);
-      return;
-    }
-
-    this.renameMock.mockReturnValueOnce(Promise.resolve());
   }
 
   shouldMove(folder: Folder, error?: Error) {
