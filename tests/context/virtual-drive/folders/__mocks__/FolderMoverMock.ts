@@ -1,4 +1,3 @@
-import { RemoteFileSystem } from '../../../../../src/context/virtual-drive/folders/domain/file-systems/RemoteFileSystem';
 import { FolderMover } from '../../../../../src/context/virtual-drive/folders/application/FolderMover';
 import { FolderRepository } from '../../../../../src/context/virtual-drive/folders/domain/FolderRepository';
 import { FolderPath } from '../../../../../src/context/virtual-drive/folders/domain/FolderPath';
@@ -9,7 +8,6 @@ export class FolderMoverMock extends FolderMover {
   constructor() {
     super(
       {} as FolderRepository,
-      {} as RemoteFileSystem,
       {} as ParentFolderFinder
     );
   }

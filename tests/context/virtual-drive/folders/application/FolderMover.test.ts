@@ -19,7 +19,7 @@ describe('Folder Mover', () => {
     folderFinder = new ParentFolderFinder(repository);
     remote = new FolderRemoteFileSystemMock();
 
-    SUT = new FolderMover(repository, remote, folderFinder);
+    SUT = new FolderMover(repository, folderFinder);
   });
 
   it('Folders cannot be overwrite', async () => {

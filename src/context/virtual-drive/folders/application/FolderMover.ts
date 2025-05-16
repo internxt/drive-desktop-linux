@@ -4,21 +4,23 @@ import { FolderPath } from '../domain/FolderPath';
 import { FolderRepository } from '../domain/FolderRepository';
 import { FolderStatuses } from '../domain/FolderStatus';
 import { ActionNotPermittedError } from '../domain/errors/ActionNotPermittedError';
-import { RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { ParentFolderFinder } from './ParentFolderFinder';
+import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 
 @Service()
 export class FolderMover {
   constructor(
     private readonly repository: FolderRepository,
-    private readonly remote: RemoteFileSystem,
     private readonly fileParentFolderFinder: ParentFolderFinder
   ) {}
 
   private async move(folder: Folder, parentFolder: Folder) {
     folder.moveTo(parentFolder);
 
-    await this.remote.move(folder);
+    await driveServerModule.folders.moveFolder({
+      uuid: folder.uuid,
+      destinationFolder: parentFolder.uuid,
+    });
     await this.repository.update(folder);
   }
 
