@@ -13,7 +13,7 @@ import {
 import { GenerateFileKey } from '@internxt/inxt-js/build/lib/utils/crypto';
 import { createDecipheriv, Decipher } from 'crypto';
 import downloadFileV2 from './downloadv2';
-import { fetchFolderTree } from '../device/service';
+import { fetchAndDecryptFolderTree } from '../device/service';
 import { FolderTree } from '@internxt/sdk/dist/drive/storage/types';
 import { ReadableStream, WritableStream } from 'node:stream/web';
 import { Readable } from 'node:stream';
@@ -41,7 +41,7 @@ export async function downloadFolderAsZip(
   const { abortController, updateProgress } = opts;
   const { bridgeUser, bridgePass, encryptionKey } = environment;
   const { tree, folderDecryptedNames, fileDecryptedNames, size } =
-    await fetchFolderTree(folderUuid);
+    await fetchAndDecryptFolderTree(folderUuid);
   tree.plainName = deviceName;
   folderDecryptedNames[tree.id] = deviceName;
   const pendingFolders: { path: string; data: FolderTree }[] = [
