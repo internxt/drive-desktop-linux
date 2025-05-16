@@ -10,6 +10,7 @@ import { FolderUuid } from '../../domain/FolderUuid';
 import { OfflineFolder } from '../../domain/OfflineFolder';
 import { SyncFolderMessenger } from '../../domain/SyncFolderMessenger';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
+import { ParentFolderFinder } from '../ParentFolderFinder';
 
 @Service()
 export class FolderCreatorFromOfflineFolder {
@@ -17,16 +18,21 @@ export class FolderCreatorFromOfflineFolder {
     private readonly repository: FolderRepository,
     private readonly remote: RemoteFileSystem,
     private readonly eventBus: EventBus,
-    private readonly syncFolderMessenger: SyncFolderMessenger
+    private readonly syncFolderMessenger: SyncFolderMessenger,
+    private readonly parentFolderFinder: ParentFolderFinder,
   ) {}
 
   async run(offlineFolder: OfflineFolder): Promise<Folder> {
     this.syncFolderMessenger.creating(offlineFolder.name);
 
+    const folderPath = new FolderPath(offlineFolder.path);
+
+    const parent = await this.parentFolderFinder.run(folderPath);
+
     const either = await this.remote.persist(
-      new FolderPath(offlineFolder.path),
+      folderPath.name(),
       new FolderId(offlineFolder.parentId),
-      new FolderUuid(offlineFolder.uuid)
+      parent.uuid,
     );
 
     if (either.isLeft()) {

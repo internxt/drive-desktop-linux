@@ -5,6 +5,7 @@ import { FolderRepositoryMock } from '../__mocks__/FolderRepositoryMock';
 import { SyncFolderMessengerMock } from '../__mocks__/SyncFolderMessengerMock';
 import { FolderMother } from '../domain/FolderMother';
 import { OfflineFolderMother } from '../domain/OfflineFolderMother';
+import { ParentFolderFinder } from '../../../../../src/context/virtual-drive/folders/application/ParentFolderFinder';
 
 const WITH_UUID = true;
 
@@ -15,19 +16,23 @@ describe('Folder Creator from Offline Folder', () => {
   let remote: FolderRemoteFileSystemMock;
   let eventBus: EventBusMock;
   let messenger: SyncFolderMessengerMock;
+  let parentFinder: ParentFolderFinder;
 
   beforeEach(() => {
     repository = new FolderRepositoryMock();
     remote = new FolderRemoteFileSystemMock();
     messenger = new SyncFolderMessengerMock();
-
     eventBus = new EventBusMock();
+    parentFinder = {
+      run: jest.fn(),
+    } as unknown as ParentFolderFinder;
 
     SUT = new FolderCreatorFromOfflineFolder(
       repository,
       remote,
       eventBus,
-      messenger
+      messenger,
+      parentFinder
     );
   });
 
@@ -39,7 +44,16 @@ describe('Folder Creator from Offline Folder', () => {
 
     repository.addMock.mockResolvedValueOnce(Promise.resolve());
 
+    const parentFolder = FolderMother.any();
+    (parentFinder.run as jest.Mock).mockResolvedValueOnce(parentFolder);
+
     await SUT.run(offlineFolder);
+
+    expect(remote.persistMock).toHaveBeenCalledWith(
+      offlineFolder.name,
+      expect.objectContaining({ value: offlineFolder.parentId }),
+      parentFolder.uuid
+    );
 
     expect(repository.addMock).toBeCalledWith(folder);
   });
@@ -47,17 +61,13 @@ describe('Folder Creator from Offline Folder', () => {
   describe('Synchronization messages', () => {
     it('sends the message FOLDER_CREATING', async () => {
       const offlineFolder = OfflineFolderMother.random();
+      const expectedFolder = FolderMother.fromPartial(offlineFolder.attributes());
 
-      const expectedFolder = FolderMother.fromPartial(
-        offlineFolder.attributes()
-      );
+      const parentFolder = FolderMother.any();
+      (parentFinder.run as jest.Mock).mockResolvedValueOnce(parentFolder);
 
       remote.shouldPersists(expectedFolder, WITH_UUID);
-      // remote.persistMock.mockResolvedValueOnce(resultFolderAttributes);
-
-      repository.addMock.mockImplementationOnce(() => {
-        // no-op
-      });
+      repository.addMock.mockImplementationOnce(() => {});
 
       await SUT.run(offlineFolder);
 
@@ -66,16 +76,13 @@ describe('Folder Creator from Offline Folder', () => {
 
     it('sends the message FOLDER_CREATED', async () => {
       const offlineFolder = OfflineFolderMother.random();
+      const expectedFolder = FolderMother.fromPartial(offlineFolder.attributes());
 
-      const expectedFolder = FolderMother.fromPartial(
-        offlineFolder.attributes()
-      );
-
-      repository.addMock.mockImplementationOnce(() => {
-        // no-op
-      });
+      const parentFolder = FolderMother.any();
+      (parentFinder.run as jest.Mock).mockResolvedValueOnce(parentFolder);
 
       remote.shouldPersists(expectedFolder, WITH_UUID);
+      repository.addMock.mockImplementationOnce(() => {});
 
       await SUT.run(offlineFolder);
 

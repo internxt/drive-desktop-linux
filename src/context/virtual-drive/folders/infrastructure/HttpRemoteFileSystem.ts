@@ -1,20 +1,18 @@
-import { Axios } from 'axios';
+import axios, { Axios } from 'axios';
 import { Service } from 'diod';
 import Logger from 'electron-log';
-import * as uuid from 'uuid';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { ServerFolder } from '../../../shared/domain/ServerFolder';
 import { Folder } from '../domain/Folder';
 import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
-import { FolderUuid } from '../domain/FolderUuid';
 import {
   FolderPersistedDto,
   RemoteFileSystem,
   RemoteFileSystemErrors,
 } from '../domain/file-systems/RemoteFileSystem';
-import { CreateFolderDTO } from './dtos/CreateFolderDTO';
-import { UpdateFolderNameDTO } from './dtos/UpdateFolderNameDTO';
+import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
+import { mapToFolderPersistedDto } from '../../utils/mapper';
 
 type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
 
@@ -24,7 +22,6 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
   public folders: Record<string, Folder> = {};
 
   constructor(
-    private readonly driveClient: Axios,
     private readonly trashClient: Axios,
     private readonly maxRetries: number = 3
   ) {}
@@ -68,109 +65,65 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
   }
 
   async persist(
-    path: FolderPath,
+    plainName: string,
     parentId: FolderId,
-    uuid?: FolderUuid,
+    parentFolderUuid: string,
     attempt = 0
   ): Promise<Either<RemoteFileSystemErrors, FolderPersistedDto>> {
-    const body: CreateFolderDTO = {
-      folderName: path.name(),
-      parentFolderId: parentId.value,
-      uuid: uuid?.value,
-    };
-
     try {
-      const response = await this.driveClient.post(
-        `${process.env.API_URL}/storage/folder`,
-        body
-      );
-
-      if (response.status !== 201) {
-        throw new Error('Folder creation failed');
-      }
-
-      const serverFolder = response.data as ServerFolder | null;
-
-      if (!serverFolder) {
-        throw new Error('Folder creation failed, no data returned');
-      }
-
-      return right({
-        id: serverFolder.id,
-        uuid: serverFolder.uuid,
-        parentId: parentId.value,
-        updatedAt: serverFolder.updatedAt,
-        createdAt: serverFolder.createdAt,
+      const res2 = await driveServerModule.folders.createFolder({
+        plainName,
+        parentFolderUuid,
       });
-    } catch (err: any) {
-      const { status } = err.response;
 
-      if (status === 400 && attempt < this.maxRetries) {
-        Logger.debug('Folder Creation failed with code 400');
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1_000);
-        });
-        Logger.debug('Retrying');
-        return this.persist(path, parentId, uuid, attempt + 1);
+      if (res2.isRight()) {
+        return right(mapToFolderPersistedDto(res2.getRight()));
+      } else {
+        const error = res2.getLeft();
+        if (axios.isAxiosError(error.cause)) {
+          if (error.cause.status !== 201) {
+            throw new Error('Folder creation failed');
+          }
+        }
+        throw error;
       }
+    } catch (err) {
+      if (err instanceof Error && axios.isAxiosError(err.cause)) {
+        const { status } = err.cause;
 
-      if (status === 400) {
-        return left('WRONG_DATA');
+        if (status === 400 && attempt < this.maxRetries) {
+          Logger.debug('Folder Creation failed with code 400');
+          await new Promise((resolve) => {
+            setTimeout(resolve, 1_000);
+          });
+          Logger.debug('Retrying');
+          return this.persist(plainName, parentId, parentFolderUuid, attempt + 1);
+        }
+
+        if (status === 400) {
+          return left('WRONG_DATA');
+        }
+
+        if (status === 409) {
+          return left('ALREADY_EXISTS');
+        }
       }
-
-      if (status === 409) {
-        return left('ALREADY_EXISTS');
-      }
-
       return left('UNHANDLED');
     }
   }
 
-  async trash(id: Folder['id']): Promise<void> {
-    const result = await this.trashClient.post(
-      `${process.env.NEW_DRIVE_URL}/storage/trash/add`,
-      {
-        items: [{ type: 'folder', id }],
-      }
-    );
-
-    if (result.status !== 200) {
-      Logger.error(
-        '[FOLDER FILE SYSTEM] Folder deletion failed with status: ',
-        result.status,
-        result.statusText
-      );
-
-      throw new Error('Error when deleting folder');
-    }
+  /* @Deprecated use driveServerModule.folders.addFolderToTrash instead */
+  async trash(): Promise<void> {
+    /* no-op */
   }
 
-  async rename(folder: Folder): Promise<void> {
-    const url = `${process.env.API_URL}/storage/folder/${folder.id}/meta`;
-
-    const body: UpdateFolderNameDTO = {
-      metadata: { itemName: folder.name },
-      relativePath: uuid.v4(),
-    };
-
-    const res = await this.driveClient.post(url, body);
-
-    if (res.status !== 200) {
-      throw new Error(
-        `[FOLDER FILE SYSTEM] Error updating item metadata: ${res.status}`
-      );
-    }
+  /* @Deprecated use driveServerModule.folders.renameFolder instead */
+  async rename(): Promise<void> {
+    /* no-op */
   }
 
-  async move(folder: Folder): Promise<void> {
-    const url = `${process.env.API_URL}/storage/move/folder`;
-
-    const body = { destination: folder.parentId, folderId: folder.id };
-
-    const res = await this.driveClient.post(url, body);
-
-    if (res.status !== 200) {
-      throw new Error(`[FOLDER FILE SYSTEM] Error moving item: ${res.status}`);
-    }
+  /* @Deprecated use driveServerModule.folders.moveFolder instead */
+  async move(): Promise<void> {
+    /* no-op */
   }
 }

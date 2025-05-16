@@ -33,19 +33,14 @@ export class FolderCreator {
     }
   }
 
-  private async findParentId(path: FolderPath): Promise<FolderId> {
-    const parent = await this.parentFolderFinder.run(path);
-    return new FolderId(parent.id);
-  }
-
   async run(path: string): Promise<void> {
     const folderPath = new FolderPath(path);
 
     await this.ensureItDoesNotExists(folderPath);
+    const parent = await this.parentFolderFinder.run(folderPath);
+    const parentId = new FolderId(parent.id);
 
-    const parentId = await this.findParentId(folderPath);
-
-    const response = await this.remote.persist(folderPath, parentId);
+    const response = await this.remote.persist(folderPath.name(), parentId, parent.uuid);
 
     if (response.isLeft()) {
       Logger.error(response.getLeft());
