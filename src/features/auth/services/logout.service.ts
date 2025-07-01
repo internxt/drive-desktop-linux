@@ -2,7 +2,7 @@ import Logger from 'electron-log';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { fold } from '../../../context/shared/domain/Fold';
 import configStore, { defaults, fieldsToSave } from '../../../apps/main/config';
-import { User } from '../../../apps/main/types';
+import { getUser } from '../../../apps/main/auth/service';
 
 const keepFields: Array<keyof typeof defaults> = [
   'preferedLanguage',
@@ -19,12 +19,6 @@ function resetCredentials(): void {
   ] as const) {
     configStore.set(field, defaults[field]);
   }
-}
-
-function getUser(): User | null {
-  const user = configStore.get('userData');
-
-  return user && Object.keys(user).length ? user : null;
 }
 
 function saveConfig(): void {
