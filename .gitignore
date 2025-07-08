@@ -40,3 +40,5 @@ clamAV/**
 
 # Http Client
 /http/*.env.json
+
+CLAUDE.md
