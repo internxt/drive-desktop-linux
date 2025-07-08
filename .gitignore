@@ -41,4 +41,5 @@ clamAV/**
 # Http Client
 /http/*.env.json
 
+# Claude Code instructions
 CLAUDE.md
