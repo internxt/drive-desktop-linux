@@ -20,9 +20,10 @@ import { PathTypeChecker } from '../../shared/fs/PathTypeChecker ';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import Logger from 'electron-log';
 import { components } from 'src/infra/schemas';
-import { mapFolderDtoToBackup, mapFolderDtoToBackupInfo } from './utils/mappers';
-import { fold } from 'src/context/shared/domain/Fold';
-import e from 'express';
+import {
+  mapFolderDtoToBackup,
+  mapFolderDtoToBackupInfo,
+} from './utils/mappers';
 
 export type Device = {
   id: number;
@@ -210,20 +211,21 @@ export async function getBackupsFromDevice(
               folderDto: backup,
               pathname,
               tmpPath: app.getPath('temp'),
-              backupsBucket: device.bucket
+              backupsBucket: device.bucket,
             })
           : null;
       })
       .filter((backup): backup is BackupInfo => backup !== null);
   }
 
-  return deviceAsFolder.children.map((backup: components['schemas']['FolderDto']) =>
-    mapFolderDtoToBackupInfo({
-      folderDto: backup,
-      pathname: '',
-      tmpPath: '',
-      backupsBucket: device.bucket
-    })
+  return deviceAsFolder.children.map(
+    (backup: components['schemas']['FolderDto']) =>
+      mapFolderDtoToBackupInfo({
+        folderDto: backup,
+        pathname: '',
+        tmpPath: '',
+        backupsBucket: device.bucket,
+      })
   );
 }
 
@@ -303,7 +305,6 @@ export async function addBackup(): Promise<void> {
     return createBackup(chosenPath);
   }
 
-
   const fetchFolderResult = await fetchFolder(existingBackup.folderUuid);
 
   const folderStillExists = fetchFolderResult.isRight();
@@ -320,13 +321,17 @@ async function fetchFolder(
   folderUUID: string
 ): Promise<Either<Error, components['schemas']['GetFolderContentDto']>> {
   try {
-    const res = await fetch(`${process.env.NEW_DRIVE_URL}/folders/content/${folderUUID}`, {
-      method: 'GET',
-      headers: getNewApiHeaders(),
-    });
+    const res = await fetch(
+      `${process.env.NEW_DRIVE_URL}/folders/content/${folderUUID}`,
+      {
+        method: 'GET',
+        headers: getNewApiHeaders(),
+      }
+    );
 
     if (res.ok) {
-      const result: components['schemas']['GetFolderContentDto'] = await res.json();
+      const result: components['schemas']['GetFolderContentDto'] =
+        await res.json();
       return right(result);
     } else {
       return left(new Error('Unsuccesful request to fetch folder'));
@@ -504,11 +509,15 @@ async function downloadDeviceBackupZip(
   }
 }
 
-function deleteFolder(folderId: number) {
-  return fetch(`${process.env.API_URL}/storage/folder/${folderId}`, {
-    method: 'DELETE',
-    headers: getHeaders(true),
-  });
+async function deleteFolder(folderId: number) {
+  const result = await fetch(
+    `${process.env.NEW_DRIVE_URL}/storage/trash/folder/${folderId}`,
+    {
+      method: 'DELETE',
+      headers: getNewApiHeaders(),
+    }
+  );
+  return result;
 }
 
 export async function deleteBackup(
