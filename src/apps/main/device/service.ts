@@ -20,7 +20,9 @@ import { PathTypeChecker } from '../../shared/fs/PathTypeChecker ';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import Logger from 'electron-log';
 import { components } from 'src/infra/schemas';
-import { mapFolderDtoToBackup } from './utils/mappers';
+import { mapFolderDtoToBackup, mapFolderDtoToBackupInfo } from './utils/mappers';
+import { fold } from 'src/context/shared/domain/Fold';
+import e from 'express';
 
 export type Device = {
   id: number;
@@ -193,35 +195,36 @@ export async function getBackupsFromDevice(
   device: Device,
   isCurrent?: boolean
 ): Promise<Array<BackupInfo>> {
-  if (isCurrent) {
-    const backupsList = configStore.get('backupList');
-    const device = await getOrCreateDevice();
-    const folder = await fetchFolder(device.id);
+  const folderResult = await fetchFolder(device.uuid);
+  if (folderResult.isLeft()) return [];
 
-    return folder.children
-      .filter((backup: Backup) => {
+  const deviceAsFolder = folderResult.getRight();
+  const backupsList = configStore.get('backupList');
+
+  if (isCurrent) {
+    return deviceAsFolder.children
+      .map((backup: components['schemas']['FolderDto']) => {
         const pathname = findBackupPathnameFromId(backup.id);
-        return pathname && backupsList[pathname].enabled;
+        return pathname && backupsList[pathname].enabled
+          ? mapFolderDtoToBackupInfo({
+              folderDto: backup,
+              pathname,
+              tmpPath: app.getPath('temp'),
+              backupsBucket: device.bucket
+            })
+          : null;
       })
-      .map((backup: Backup) => ({
-        ...backup,
-        pathname: findBackupPathnameFromId(backup.id),
-        folderId: backup.id,
-        folderUuid: backup.uuid,
-        tmpPath: app.getPath('temp'),
-        backupsBucket: device.bucket,
-      }));
-  } else {
-    const folder = await fetchFolder(device.id);
-    return folder.children.map((backup: Backup) => ({
-      ...backup,
-      folderId: backup.id,
-      folderUuid: backup.uuid,
-      backupsBucket: device.bucket,
-      tmpPath: '',
-      pathname: '',
-    }));
+      .filter((backup): backup is BackupInfo => backup !== null);
   }
+
+  return deviceAsFolder.children.map((backup: components['schemas']['FolderDto']) =>
+    mapFolderDtoToBackupInfo({
+      folderDto: backup,
+      pathname: '',
+      tmpPath: '',
+      backupsBucket: device.bucket
+    })
+  );
 }
 
 /**
@@ -300,13 +303,10 @@ export async function addBackup(): Promise<void> {
     return createBackup(chosenPath);
   }
 
-  let folderStillExists;
-  try {
-    await fetchFolder(existingBackup.folderId);
-    folderStillExists = true;
-  } catch {
-    folderStillExists = false;
-  }
+
+  const fetchFolderResult = await fetchFolder(existingBackup.folderUuid);
+
+  const folderStillExists = fetchFolderResult.isRight();
 
   if (folderStillExists) {
     backupList[chosenPath].enabled = true;
@@ -316,24 +316,32 @@ export async function addBackup(): Promise<void> {
   }
 }
 
-async function fetchFolder(folderId: number) {
-  const res = await fetch(
-    `${process.env.API_URL}/storage/v2/folder/${folderId}`,
-    {
+async function fetchFolder(
+  folderUUID: string
+): Promise<Either<Error, components['schemas']['GetFolderContentDto']>> {
+  try {
+    const res = await fetch(`${process.env.NEW_DRIVE_URL}/folders/content/${folderUUID}`, {
       method: 'GET',
-      headers: getHeaders(true),
-    }
-  );
+      headers: getNewApiHeaders(),
+    });
 
-  const responseBody = await res.json().catch(() => null);
-
-  if (res.ok) {
-    if (responseBody?.deleted || responseBody?.removed) {
-      throw new Error('Folder does not exist');
+    if (res.ok) {
+      const result: components['schemas']['GetFolderContentDto'] = await res.json();
+      return right(result);
+    } else {
+      return left(new Error('Unsuccesful request to fetch folder'));
     }
-    return responseBody;
+  } catch (error) {
+    logger.error({
+      msg: 'Error fetching folder',
+      tag: 'BACKUP',
+      error,
+      attributes: {
+        folderUUID,
+      },
+    });
+    return left(new Error('Error fetching folder'));
   }
-  throw new Error('Unsuccesful request to fetch folder');
 }
 
 export async function fetchFolderTree(folderUuid: string): Promise<{
@@ -464,31 +472,36 @@ async function downloadDeviceBackupZip(
     throw new Error('No saved user');
   }
 
-  const folder = await fetchFolder(device.id);
-  if (!folder || !folder.uuid || folder.uuid.length === 0) {
-    throw new Error('No backup data found');
+  const fetchFolderResult = await fetchFolder(device.uuid);
+  if (fetchFolderResult.isLeft()) {
+    throw new Error('Error fetching folder');
   }
-
-  const networkApiUrl = process.env.BRIDGE_URL;
-  const bridgeUser = user.bridgeUser;
-  const bridgePass = user.userId;
-  const encryptionKey = user.mnemonic;
-
-  await downloadFolderAsZip(
-    device.name,
-    networkApiUrl,
-    folder.uuid,
-    path,
-    {
-      bridgeUser,
-      bridgePass,
-      encryptionKey,
-    },
-    {
-      abortController,
-      updateProgress,
+  if (fetchFolderResult.isRight()) {
+    const folder = fetchFolderResult.getRight();
+    if (!folder || !folder.uuid || folder.uuid.length === 0) {
+      throw new Error('No backup data found');
     }
-  );
+    const networkApiUrl = process.env.BRIDGE_URL!;
+    const bridgeUser = user.bridgeUser;
+    const bridgePass = user.userId;
+    const encryptionKey = user.mnemonic;
+
+    await downloadFolderAsZip(
+      device.name,
+      networkApiUrl,
+      folder.uuid,
+      path,
+      {
+        bridgeUser,
+        bridgePass,
+        encryptionKey,
+      },
+      {
+        abortController,
+        updateProgress,
+      }
+    );
+  }
 }
 
 function deleteFolder(folderId: number) {
