@@ -6,7 +6,7 @@ import logger from 'electron-log';
 import os from 'os';
 import path from 'path';
 import fs, { PathLike } from 'fs';
-import { getHeaders, getNewApiHeaders, getUser } from '../auth/service';
+import { getNewApiHeaders, getUser } from '../auth/service';
 import configStore from '../config';
 import { addAppIssue } from '../issues/app';
 import { BackupInfo } from '../../backups/BackupInfo';
@@ -602,12 +602,12 @@ export async function changeBackupPath(currentPath: string): Promise<boolean> {
   }
 
   const res = await fetch(
-    `${process.env.API_URL}/storage/folder/${existingBackup.folderId}/meta`,
+    `${process.env.NEW_DRIVE_URL}/folders/${existingBackup.folderUuid}/meta`,
     {
-      method: 'POST',
-      headers: getHeaders(true),
+      method: 'PUT',
+      headers: getNewApiHeaders(),
       body: JSON.stringify({
-        metadata: { itemName: path.basename(chosenPath) },
+        plainName: path.basename(chosenPath),
       }),
     }
   );
