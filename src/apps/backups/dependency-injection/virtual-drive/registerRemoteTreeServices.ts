@@ -5,6 +5,7 @@ import { RemoteItemsGenerator } from '../../../../context/virtual-drive/remoteTr
 import { IpcRemoteItemsGenerator } from '../../../../context/virtual-drive/remoteTree/infrastructure/IpcRemoteItemsGenerator';
 import { SyncEngineIPC } from '../../../sync-engine/SyncEngineIpc';
 import crypt from '../../../../context/shared/infrastructure/crypt';
+import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 
 export function registerRemoteTreeServices(builder: ContainerBuilder) {
   // Infra
@@ -22,5 +23,15 @@ export function registerRemoteTreeServices(builder: ContainerBuilder) {
     .private();
 
   // Services
-  builder.registerAndUse(RemoteTreeBuilder);
+  builder.register(RemoteTreeBuilder).useFactory(container => {
+    const itemsGenerator = container.get(RemoteItemsGenerator);
+    const traverser = container.get(Traverser);
+    const user = DependencyInjectionUserProvider.get();
+
+    return new RemoteTreeBuilder(
+      itemsGenerator,
+      traverser,
+      user.rootFolderId
+    );
+  });
 }

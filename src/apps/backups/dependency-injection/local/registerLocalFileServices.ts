@@ -6,7 +6,6 @@ import { EnvironmentLocalFileUploader } from '../../../../context/local/localFil
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { Environment } from '@internxt/inxt-js';
 import { DependencyInjectionMnemonicProvider } from '../../../shared/dependency-injection/DependencyInjectionMnemonicProvider';
-import { AuthorizedClients } from '../../../shared/HttpClient/Clients';
 import { LocalFileMessenger } from '../../../../context/local/localFile/domain/LocalFileMessenger';
 import { RendererIpcLocalFileMessenger } from '../../../../context/local/localFile/infrastructure/RendererIpcLocalFileMessenger';
 
@@ -31,8 +30,6 @@ export function registerLocalFileServices(builder: ContainerBuilder) {
       return new EnvironmentLocalFileUploader(
         env,
         user.backupsBucket,
-        //@ts-ignore
-        c.get(AuthorizedClients).drive
       );
     })
     .private();

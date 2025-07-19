@@ -7,10 +7,14 @@ import { FileFolderId } from '../../domain/FileFolderId';
 import { File } from '../../domain/File';
 import { Either, left, right } from '../../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
+import { ParentFolderFinder } from '../../../folders/application/ParentFolderFinder';
 
 @Service()
 export class SimpleFileCreator {
-  constructor(private readonly remote: RemoteFileSystem) {}
+  constructor(
+    private readonly remote: RemoteFileSystem,
+    private readonly parentFolderFinder: ParentFolderFinder,
+  ) {}
 
   async run(
     contentsId: string,
@@ -22,6 +26,7 @@ export class SimpleFileCreator {
     const fileContentsId = new FileContentsId(contentsId);
     const filePath = new FilePath(path);
 
+    const folder = await this.parentFolderFinder.run(filePath);
     const fileFolderId = new FileFolderId(folderId);
 
     const either = await this.remote.persist({
@@ -29,6 +34,7 @@ export class SimpleFileCreator {
       path: filePath,
       size: fileSize,
       folderId: fileFolderId,
+      folderUuid: folder.uuid
     });
 
     if (either.isLeft()) {

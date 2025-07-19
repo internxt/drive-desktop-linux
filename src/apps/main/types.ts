@@ -1,22 +1,37 @@
 export type User = {
-  backupsBucket: string;
-  bridgeUser: string;
-  bucket: string;
-  createdAt: string;
-  credit: number;
   email: string;
-  hasReferralsProgram: boolean;
-  lastname: string;
+  userId: string;
   mnemonic: string;
+  root_folder_id: number;
+  /* The user's root folder UUID */
+  rootFolderId: string;
   name: string;
+  lastname: string;
+  uuid: string;
+  credit: number;
+  createdAt: string;
   privateKey: string;
   publicKey: string;
-  registerCompleted: boolean;
   revocateKey: string;
-  root_folder_id: number;
-  sharedWorkspace: boolean;
+  keys: {
+    ecc: {
+      publicKey: string;
+      privateKey: string;
+    },
+    kyber: {
+      publicKey: string;
+      privateKey: string;
+    }
+  },
+  bucket: string;
+  registerCompleted: boolean;
   teams: boolean;
-  userId: string;
   username: string;
-  uuid: string;
+  bridgeUser: string;
+  sharedWorkspace: boolean;
+  hasReferralsProgram: boolean;
+  backupsBucket: string;
+  avatar: string;
+  emailVerified: string;
+  lastPasswordChangedAt: string;
 };
