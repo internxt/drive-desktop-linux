@@ -39,7 +39,10 @@ export interface AppStore {
   /* deviceId is deprecated use deviceUUID instead*/
   deviceId: number;
   deviceUUID: string;
-  backupList: Record<string, { enabled: boolean; folderId: number }>;
+  backupList: Record<
+    string,
+    { enabled: boolean; folderId: number; folderUuid: string }
+  >;
   clientId: string;
   preferedLanguage?: string;
   preferedTheme?: string;

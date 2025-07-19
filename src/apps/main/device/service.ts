@@ -1,3 +1,4 @@
+import { Either, left, right } from './../../../context/shared/domain/Either';
 import { aes } from '@internxt/lib';
 import { app, BrowserWindow, dialog, IpcMainEvent } from 'electron';
 import fetch from 'electron-fetch';
@@ -18,6 +19,8 @@ import { BackupError } from '../../backups/BackupError';
 import { PathTypeChecker } from '../../shared/fs/PathTypeChecker ';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import Logger from 'electron-log';
+import { components } from 'src/infra/schemas';
+import { mapFolderDtoToBackup } from './utils/mappers';
 
 export type Device = {
   id: number;
@@ -104,7 +107,9 @@ export async function getOrCreateDevice() {
   if (onlyLegacy) {
     /* eventually, this whole if section is going to be replaced
     when all the users naturaly migrated to the new uuid */
-    const response = await driveServerModule.backup.getDeviceById(legacyId.toString());
+    const response = await driveServerModule.backup.getDeviceById(
+      legacyId.toString()
+    );
 
     if (response.isRight()) {
       const device = response.getRight();
@@ -225,25 +230,40 @@ export async function getBackupsFromDevice(
  * @param name Name of the backup folder
  * @returns
  */
-async function postBackup(name: string): Promise<Backup> {
-  const deviceId = (await getOrCreateDevice()).id;
+async function postBackup(name: string): Promise<Either<BackupError, Backup>> {
+  const deviceUUID = (await getOrCreateDevice()).uuid;
 
-  const res = await fetch(`${process.env.API_URL}/storage/folder`, {
-    method: 'POST',
-    headers: getHeaders(true),
-    body: JSON.stringify({ parentFolderId: deviceId, folderName: name }),
-  });
+  try {
+    const res = await fetch(`${process.env.NEW_DRIVE_URL}/folders`, {
+      method: 'POST',
+      headers: getNewApiHeaders(),
+      body: JSON.stringify({ parentFolderUuid: deviceUUID, plainName: name }),
+    });
 
-  if (res.ok) {
-    return res.json();
+    if (res.ok) {
+      const result: components['schemas']['FolderDto'] = await res.json();
+      return right(mapFolderDtoToBackup(result));
+    }
+    if (res.status === 409) {
+      return left(new BackupError('FOLDER_ALREADY_EXISTS'));
+    }
+    if (res.status >= 500) {
+      return left(new BackupError('BAD_RESPONSE'));
+    }
+    return left(new BackupError('UNKNOWN'));
+  } catch (err) {
+    logger.error({
+      msg: 'Error posting backup',
+      tag: 'BACKUP',
+      error: err,
+      attributes: {
+        endpoint: '/folders',
+        deviceUUID,
+        name,
+      },
+    });
+    return left(new BackupError('UNKNOWN'));
   }
-  if (res.status === 409) {
-    throw new BackupError('FOLDER_ALREADY_EXISTS');
-  }
-  if (res.status >= 500) {
-    throw new BackupError('BAD_RESPONSE');
-  }
-  throw new BackupError('UNKNOWN');
 }
 
 /**
@@ -252,12 +272,17 @@ async function postBackup(name: string): Promise<Backup> {
  */
 async function createBackup(pathname: string): Promise<void> {
   const { base } = path.parse(pathname);
-  const newBackup = await postBackup(base);
+  const postBackupResult = await postBackup(base);
   const backupList = configStore.get('backupList');
-
-  backupList[pathname] = { enabled: true, folderId: newBackup.id };
-
-  configStore.set('backupList', backupList);
+  if (postBackupResult.isRight()) {
+    const newBackup = postBackupResult.getRight();
+    backupList[pathname] = {
+      enabled: true,
+      folderId: newBackup.id,
+      folderUuid: newBackup.uuid,
+    };
+    configStore.set('backupList', backupList);
+  }
 }
 
 export async function addBackup(): Promise<void> {
