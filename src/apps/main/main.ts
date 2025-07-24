@@ -62,6 +62,7 @@ import { setupAntivirusIpc } from './background-processes/antivirus/setupAntivir
 import { registerAvailableUserProductsHandlers } from './payments/ipc/AvailableUserProductsIPCHandler';
 import { getAntivirusManager } from './antivirus/antivirusManager';
 import { registerAuthIPCHandlers } from '../../infra/ipc/auth-ipc-handlers';
+import { AuthModule } from './../../features/auth/auth.module';
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -190,6 +191,7 @@ eventBus.on('USER_LOGGED_OUT', async () => {
 
     void getAntivirusManager().shutdown();
   }
+  void AuthModule.logout();
 
   await createAuthWindow();
 

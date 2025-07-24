@@ -49,8 +49,7 @@ describe('driveServerClient instance', () => {
 
     clientOptionsArg.onUnauthorized();
 
-    expect(eventBus.emit).toHaveBeenCalledWith('USER_WAS_UNAUTHORIZED');
-    expect(AuthModule.logout).toHaveBeenCalled();
+    expect(eventBus.emit).toHaveBeenCalledWith('USER_LOGGED_OUT');
   });
 
   it('should use process.env.NEW_DRIVE_URL as baseUrl', async () => {

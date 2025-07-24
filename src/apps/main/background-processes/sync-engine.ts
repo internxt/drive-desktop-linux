@@ -222,6 +222,5 @@ export function updateSyncEngine() {
 
 if (process.platform === 'win32') {
   eventBus.on('USER_LOGGED_OUT', stopAndClearSyncEngineWatcher);
-  eventBus.on('USER_WAS_UNAUTHORIZED', stopAndClearSyncEngineWatcher);
   eventBus.on('INITIAL_SYNC_READY', spawnSyncEngineWorker);
 }

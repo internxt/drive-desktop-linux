@@ -1,12 +1,11 @@
 import './App.css';
 import './localize/i18n.service';
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect } from 'react';
 import {
   HashRouter as Router,
   Route,
   Routes,
   useLocation,
-  useNavigate,
 } from 'react-router-dom';
 import { TranslationProvider } from './context/LocalContext';
 import useLanguageChangedListener from './hooks/useLanguage';
@@ -18,6 +17,8 @@ import Widget from './pages/Widget';
 import Migration from './pages/Migration';
 import Feedback from './pages/Feedback';
 import { useBackupNotifications } from './hooks/useBackupNotifications';
+import { AuthGuard } from './components/AuthGuard';
+
 function LocationWrapper({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -27,42 +28,16 @@ function LocationWrapper({ children }: { children: JSX.Element }) {
   return children;
 }
 
-function LoggedInWrapper({ children }: { children: JSX.Element }) {
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const intendedRoute = useRef<null | string>(null);
-
-  function onUserLoggedInChanged(isLoggedIn: boolean) {
-    if (!isLoggedIn) {
-      intendedRoute.current = pathname;
-      navigate('/login');
-    } else if (intendedRoute.current) {
-      navigate(intendedRoute.current);
-      intendedRoute.current = null;
-    }
-  }
-  useEffect(() => {
-    window.electron.onUserLoggedInChanged(onUserLoggedInChanged);
-    window.electron.isUserLoggedIn().then(onUserLoggedInChanged);
-  }, []);
-
-  return children;
-}
-
-function Loader() {
-  return <></>;
-}
-
 export default function App() {
   useLanguageChangedListener();
   useBackupNotifications();
 
   return (
     <Router>
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<></>}>
         <TranslationProvider>
           <LocationWrapper>
-            <LoggedInWrapper>
+            <AuthGuard>
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/process-issues" element={<IssuesPage />} />
@@ -72,7 +47,7 @@ export default function App() {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/" element={<Widget />} />
               </Routes>
-            </LoggedInWrapper>
+            </AuthGuard>
           </LocationWrapper>
         </TranslationProvider>
       </Suspense>

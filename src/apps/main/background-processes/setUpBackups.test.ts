@@ -157,7 +157,6 @@ describe('setUpBackups', () => {
 
     // Verify event listeners were set up
     expect(eventBus.on).toHaveBeenCalledWith('USER_LOGGED_OUT', expect.any(Function));
-    expect(eventBus.on).toHaveBeenCalledWith('USER_WAS_UNAUTHORIZED', expect.any(Function));
     expect(eventBus.on).toHaveBeenCalledWith('USER_AVAILABLE_PRODUCTS_UPDATED', expect.any(Function));
     expect(ipcMain.on).toHaveBeenCalledWith('start-backups-process', expect.any(Function));
 

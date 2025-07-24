@@ -62,8 +62,7 @@ export async function fetchDevice(
     if (device && !device.removed) {
       const decryptedDevice = decryptDeviceName(device);
       logger.info({
-        msg: '[DEVICE] Found device',
-        device: decryptedDevice.name,
+        msg: `[DEVICE] Found device ${decryptedDevice.name}`,
       });
       return right(decryptedDevice);
     }

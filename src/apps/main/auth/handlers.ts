@@ -52,9 +52,7 @@ ipcMain.handle('get-token', () => {
 });
 
 export function onUserUnauthorized() {
-  eventBus.emit('USER_WAS_UNAUTHORIZED');
-
-  AuthModule.logout();
+  eventBus.emit('USER_LOGGED_OUT');
   Logger.info('[AUTH] User has been logged out because it was unauthorized');
   setIsLoggedIn(false);
 }
@@ -84,8 +82,6 @@ ipcMain.on('user-logged-out', () => {
   eventBus.emit('USER_LOGGED_OUT');
 
   setIsLoggedIn(false);
-
-  AuthModule.logout();
 });
 
 eventBus.on('APP_IS_READY', async (): Promise<void> => {

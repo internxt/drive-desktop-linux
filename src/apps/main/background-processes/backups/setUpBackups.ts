@@ -58,7 +58,6 @@ export async function setUpBackups() {
   }
 
   eventBus.on('USER_LOGGED_OUT', stopAndClearBackups);
-  eventBus.on('USER_WAS_UNAUTHORIZED', stopAndClearBackups);
 
   eventBus.on('USER_AVAILABLE_PRODUCTS_UPDATED', (updatedProducts) => {
     const userHasBackupFeatureNow = !!updatedProducts?.backups;

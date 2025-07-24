@@ -18,7 +18,7 @@ interface Events {
 
   // Fired when a response to any internxt service
   // has status 401 UNAUTHORIZED
-  USER_WAS_UNAUTHORIZED: () => void;
+  // USER_WAS_UNAUTHORIZED: () => void;
 
   WIDGET_IS_READY: () => void;
 
