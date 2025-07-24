@@ -1,26 +1,21 @@
-import { Storage } from '@internxt/sdk/dist/drive/storage';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-import { isAxiosError } from 'axios';
+import axios from 'axios';
 import { Service } from 'diod';
-import Logger from 'electron-log';
-import * as uuid from 'uuid';
-import { AuthorizedClients } from '../../../../apps/shared/HttpClient/Clients';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 import { Crypt } from '../../shared/domain/Crypt';
-import { File } from '../domain/File';
+
 import {
   FileDataToPersist,
   PersistedFileData,
   RemoteFileSystem,
 } from '../domain/file-systems/RemoteFileSystem';
-import { CreateFileDTO } from './dtos/CreateFileDTO';
+import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
+import { CreateFileBodyRequest } from '../../../../infra/drive-server/services/files/files.types';
 
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
   constructor(
-    private readonly sdk: Storage,
-    private readonly clients: AuthorizedClients,
     private readonly crypt: Crypt,
     private readonly bucket: string
   ) {}
@@ -44,142 +39,103 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       );
     }
 
-    const body: CreateFileDTO = {
-      file: {
-        fileId: dataToPersists.contentsId.value,
-        file_id: dataToPersists.contentsId.value,
-        type: dataToPersists.path.extension(),
-        size: dataToPersists.size.value,
-        name: encryptedName,
-        plain_name: plainName,
-        bucket: this.bucket,
-        folder_id: dataToPersists.folderId.value,
-        encrypt_version: EncryptionVersion.Aes03,
-      },
+    const body: CreateFileBodyRequest = {
+      bucket: this.bucket,
+      fileId: dataToPersists.contentsId.value,
+      encryptVersion: EncryptionVersion.Aes03,
+      folderUuid: dataToPersists.folderUuid,
+      size: dataToPersists.size.value,
+      plainName: plainName,
+      type: dataToPersists.path.extension(),
     };
 
-    try {
-      const { data } = await this.clients.drive.post(
-        `${process.env.API_URL}/storage/file`,
-        body
-      );
-
+    const response = await driveServerModule.files.createFile(body);
+    if (response.isRight()) {
+      const data = response.getRight();
       const result: PersistedFileData = {
         modificationTime: data.updatedAt,
         id: data.id,
         uuid: data.uuid,
         createdAt: data.createdAt,
       };
-
       return right(result);
-    } catch (err: unknown) {
-      if (!isAxiosError(err) || !err.response) {
-        return left(
-          new DriveDesktopError('UNKNOWN', `Creating file ${plainName}: ${err}`)
-        );
-      }
+    } else {
+      const error = response.getLeft();
+      if (axios.isAxiosError(error.cause)) {
+        const status = error.cause.response?.status;
+        switch (true) {
+          case status === undefined:
+            return left(
+              new DriveDesktopError(
+                'UNKNOWN',
+                `Response with status ${status} not expected`
+              )
+            );
 
-      const { status } = err.response;
-
-      if (status === 400) {
+          case status === 400:
+            return left(
+              new DriveDesktopError(
+                'BAD_REQUEST',
+                `Some data was not valid for ${plainName}: ${body}`
+              )
+            );
+          case status === 409:
+            return left(
+              new DriveDesktopError(
+                'FILE_ALREADY_EXISTS',
+                `File with name ${plainName} on ${dataToPersists.folderId.value} already exists`
+              )
+            );
+          default:
+            if (status >= 500) {
+              return left(
+                new DriveDesktopError(
+                  'BAD_RESPONSE',
+                  `The server could not handle the creation of ${plainName}: ${body}`
+                )
+              );
+            } else {
+              return left(
+                new DriveDesktopError(
+                  'UNKNOWN',
+                  `Response with status ${status} not expected`
+                )
+              );
+            }
+        }
+      } else {
         return left(
           new DriveDesktopError(
-            'BAD_REQUEST',
-            `Some data was not valid for ${plainName}: ${body.file}`
+            'UNKNOWN',
+            `Creating file ${plainName}: ${error}`
           )
         );
       }
-
-      if (status === 409) {
-        return left(
-          new DriveDesktopError(
-            'FILE_ALREADY_EXISTS',
-            `File with name ${plainName} on ${dataToPersists.folderId.value} already exists`
-          )
-        );
-      }
-
-      if (status >= 500) {
-        return left(
-          new DriveDesktopError(
-            'BAD_RESPONSE',
-            `The server could not handle the creation of ${plainName}: ${body.file}`
-          )
-        );
-      }
-
-      return left(
-        new DriveDesktopError(
-          'UNKNOWN',
-          `Response with status ${status} not expected`
-        )
-      );
     }
   }
 
-  async trash(contentsId: string): Promise<void> {
-    const result = await this.clients.newDrive.post(
-      `${process.env.NEW_DRIVE_URL}/storage/trash/add`,
-      {
-        items: [{ type: 'file', id: contentsId }],
-      }
-    );
-
-    if (result.status !== 200) {
-      Logger.error(
-        '[FILE FILE SYSTEM] File deletion failed with status: ',
-        result.status,
-        result.statusText
-      );
-
-      throw new Error('Error when deleting file');
-    }
+  /* @Deprecated use driveServerModule.files.addFileToTrash instead */
+  async trash(): Promise<void> {
+    /* no-op */
   }
 
-  async delete(file: File): Promise<void> {
-    await this.trash(file.contentsId);
+  /* @Deprecated use driveServerModule.files.addFileToTrash instead */
+  async delete(): Promise<void> {
+    /* no-op */
   }
 
-  async rename(file: File): Promise<void> {
-    await this.sdk.updateFile({
-      fileId: file.contentsId,
-      bucketId: this.bucket,
-      destinationPath: uuid.v4(),
-      metadata: {
-        itemName: file.name,
-      },
-    });
+  /* @Deprecated use driveServerModule.files.renameFile instead */
+  async rename(): Promise<void> {
+    /* no-op */
   }
 
-  async move(file: File): Promise<void> {
-    await this.sdk.moveFile({
-      fileId: file.contentsId,
-      destination: file.folderId,
-      destinationPath: uuid.v4(),
-      bucketId: this.bucket,
-    });
+  /* @Deprecated use driveServerModule.files.moveFile instead */
+  async move(): Promise<void> {
+    /* no-op */
   }
 
-  async override(file: File): Promise<void> {
-    await this.clients.newDrive.put(
-      `${process.env.NEW_DRIVE_URL}/files/${file.uuid}`,
-      {
-        fileId: file.contentsId,
-        size: file.size,
-      }
-    );
-
-    Logger.info(`File ${file.path} overridden`);
-  }
-
-  async hardDelete(contentsId: string): Promise<void> {
-    const result = await this.clients.newDrive.delete(
-      `${process.env.NEW_DRIVE_URL}/storage/trash/file/${contentsId}`
-    );
-    if (result.status > 204) {
-      Logger.error('[FILE FILE SYSTEM] Hard delete failed with status:', result.status);
-
-      throw new Error('Error when hard deleting file');
-    }
+  /* @Deprecated use driveServerModule.files.replaceFile instead */
+  async override(): Promise<void> {
+    /* no-op */
   }
 }

@@ -1,17 +1,24 @@
 import { FileRepositoryMock } from '../__mocks__/FileRepositoryMock';
 import { FileMother } from '../domain/FileMother';
-import { RemoteFileSystemMock } from '../__mocks__/RemoteFileSystemMock';
 import { FileTrasher } from '../../../../../src/context/virtual-drive/files/application/trash/FileTrasher';
 import { FolderRepositoryMock } from '../../folders/__mocks__/FolderRepositoryMock';
 import { AllParentFoldersStatusIsExists } from '../../../../../src/context/virtual-drive/folders/application/AllParentFoldersStatusIsExists';
 import { FileSyncNotifierMock } from '../__mocks__/FileSyncNotifierMock';
 import { FileStatus } from '../../../../../src/context/virtual-drive/files/domain/FileStatus';
 import { BucketEntryIdMother } from '../../shared/domain/BucketEntryIdMother';
+import { driveServerModule } from '../../../../../src/infra/drive-server/drive-server.module';
+
+jest.mock('../../../../../src/infra/drive-server/drive-server.module', () => ({
+  driveServerModule: {
+    files: {
+      addFileToTrash: jest.fn(),
+    },
+  },
+}));
 
 describe('File Deleter', () => {
   let repository: FileRepositoryMock;
   let allParentFoldersStatusIsExists: AllParentFoldersStatusIsExists;
-  let remoteFileSystemMock: RemoteFileSystemMock;
   let notifier: FileSyncNotifierMock;
 
   let SUT: FileTrasher;
@@ -22,15 +29,9 @@ describe('File Deleter', () => {
     allParentFoldersStatusIsExists = new AllParentFoldersStatusIsExists(
       folderRepository
     );
-    remoteFileSystemMock = new RemoteFileSystemMock();
     notifier = new FileSyncNotifierMock();
 
-    SUT = new FileTrasher(
-      remoteFileSystemMock,
-      repository,
-      allParentFoldersStatusIsExists,
-      notifier
-    );
+    SUT = new FileTrasher(repository, allParentFoldersStatusIsExists, notifier);
   });
 
   it('does not nothing if the file its not found', async () => {
@@ -69,7 +70,7 @@ describe('File Deleter', () => {
 
     await SUT.run(file.contentsId);
 
-    expect(remoteFileSystemMock.trashMock).toBeCalled();
+    expect(driveServerModule.files.addFileToTrash).toBeCalled();
   });
 
   it('trashes the file with the status trashed', async () => {
@@ -82,7 +83,11 @@ describe('File Deleter', () => {
 
     await SUT.run(file.contentsId);
 
-    expect(remoteFileSystemMock.trashMock).toBeCalledWith(file.contentsId);
+    expect(driveServerModule.files.addFileToTrash).toBeCalledWith({
+      id: file.contentsId,
+      uuid: file.uuid,
+      type: 'file',
+    });
     expect(repository.updateMock).toBeCalledWith(
       expect.objectContaining({ status: FileStatus.Trashed })
     );
