@@ -62,6 +62,7 @@ import { setupAntivirusIpc } from './background-processes/antivirus/setupAntivir
 import { registerAvailableUserProductsHandlers } from './payments/ipc/AvailableUserProductsIPCHandler';
 import { getAntivirusManager } from './antivirus/antivirusManager';
 import { registerAuthIPCHandlers } from '../../infra/ipc/auth-ipc-handlers';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -70,9 +71,9 @@ if (!gotTheLock) {
 }
 registerAuthIPCHandlers();
 
-Logger.log(`Running ${packageJson.version}`);
+logger.debug({ msg: `Running ${packageJson.version}` });
 
-Logger.log('Initializing Sentry for main process');
+logger.debug({ msg: 'Initializing Sentry for main process' });
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     // Enable Sentry only when app is packaged
