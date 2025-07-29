@@ -17,7 +17,7 @@ async function getDeviceByProps(
     const query = {
       key: props.deviceIdentifier.key,
       platform: props.deviceIdentifier.platform,
-      hostname: props.deviceIdentifier.hostname
+      hostname: props.deviceIdentifier.hostname,
     };
     const result = await driveServerModule.backup.getDevicesByIdentifier(query);
 
@@ -74,6 +74,13 @@ export async function fetchDevice(
 
     if (error instanceof BackupError && error.code === 'NOT_FOUND') {
       const msg = 'Device not found';
+      logger.info({ msg: `[DEVICE] ${msg}` });
+      addUnknownDeviceIssue(new Error(msg));
+      return right(null);
+    }
+
+    if (error instanceof BackupError && error.code === 'FORBIDDEN') {
+      const msg = 'Device request returned forbidden';
       logger.info({ msg: `[DEVICE] ${msg}` });
       addUnknownDeviceIssue(new Error(msg));
       return right(null);

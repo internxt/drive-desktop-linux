@@ -9,12 +9,11 @@ import { BackupError } from './backup.error';
 import { mapDeviceAsFolderToDevice } from '../../../../backend/features/device/utils/deviceMapper';
 import { Device } from '../../../../apps/main/device/service';
 
-type getDevicesByIdentifierQuery = operations['BackupController_getDevicesAndFolders']['parameters']['query'];
+type getDevicesByIdentifierQuery =
+  operations['BackupController_getDevicesAndFolders']['parameters']['query'];
 
 export class BackupService {
-  async getDevices(): Promise<
-    Either<Error, Array<Device>>
-  > {
+  async getDevices(): Promise<Either<Error, Array<Device>>> {
     try {
       const response = await driveServerClient.GET('/backup/deviceAsFolder', {
         headers: getNewApiHeaders(),
@@ -44,9 +43,7 @@ export class BackupService {
     }
   }
 
-  async getDevice(
-    deviceUUID: string
-  ): Promise<Either<Error, Device>> {
+  async getDevice(deviceUUID: string): Promise<Either<Error, Device>> {
     try {
       const response = await driveServerClient.GET(
         '/backup/deviceAsFolder/{uuid}',
@@ -80,6 +77,20 @@ export class BackupService {
         return left(notFoundError);
       }
 
+      if (err instanceof AxiosError && err.response?.status === 403) {
+        const forbiddenError = BackupError.forbidden(
+          'Device request returned forbidden'
+        );
+        logger.error({
+          msg: 'Device request returned forbidden (403)',
+          tag: 'BACKUP',
+          attributes: {
+            endpoint: '/backup/deviceAsFolder/{uuid}',
+          },
+        });
+        return left(forbiddenError);
+      }
+
       const error = mapError(err);
       logger.error({
         msg: 'Get device as folder request threw an exception',
@@ -97,9 +108,7 @@ export class BackupService {
    * @Deprecated
    * Please use the method getDevice instead
    * */
-  async getDeviceById(
-    deviceId: string
-  ): Promise<Either<Error, Device>> {
+  async getDeviceById(deviceId: string): Promise<Either<Error, Device>> {
     try {
       const response = await driveServerClient.GET(
         '/backup/deviceAsFolderById/{id}',
@@ -131,6 +140,19 @@ export class BackupService {
         });
         return left(notFoundError);
       }
+      if (err instanceof AxiosError && err.response?.status === 403) {
+        const forbiddenError = BackupError.forbidden(
+          'Device request returned forbidden'
+        );
+        logger.error({
+          msg: 'Device request returned forbidden (403)',
+          tag: 'BACKUP',
+          attributes: {
+            endpoint: '/backup/deviceAsFolder/{uuid}',
+          },
+        });
+        return left(forbiddenError);
+      }
 
       const error = mapError(err);
       logger.error({
@@ -145,9 +167,7 @@ export class BackupService {
     }
   }
 
-  async createDevice(
-    deviceName: string
-  ): Promise<Either<Error, Device>> {
+  async createDevice(deviceName: string): Promise<Either<Error, Device>> {
     try {
       const response = await driveServerClient.POST('/backup/deviceAsFolder', {
         headers: getNewApiHeaders(),
@@ -288,6 +308,19 @@ export class BackupService {
       }
       return right(mapDeviceAsFolderToDevice(response.data.folder!));
     } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 409) {
+        const alreadyExistsError = BackupError.alreadyExists(
+          'Device already exists'
+        );
+        logger.error({
+          msg: 'Device already exists (409)',
+          tag: 'BACKUP',
+          attributes: {
+            endpoint: '/backup/v2/devices',
+          },
+        });
+        return left(alreadyExistsError);
+      }
       const error = mapError(err);
       logger.error({
         msg: 'Add device identifier request threw an exception',
@@ -359,7 +392,9 @@ export class BackupService {
         }
       );
       if (!response.data) {
-        const error = new Error('Update device by identifier request was not successful');
+        const error = new Error(
+          'Update device by identifier request was not successful'
+        );
         logger.error({
           msg: error.message,
           tag: 'BACKUP',
@@ -374,25 +409,6 @@ export class BackupService {
       const error = mapError(err);
       logger.error({
         msg: 'Update device by identifier request threw an exception',
-        tag: 'BACKUP',
-        error: error,
-      });
-      return left(error);
-    }
-  }
-
-  async deleteDeviceByIdentifier(
-    deviceIdentifier: string
-  ): Promise<Either<Error, void>> {
-    try {
-      await driveServerClient.DELETE('/backup/v2/devices/{key}', {
-        headers: getNewApiHeaders(),
-        path: { key: deviceIdentifier },
-      });
-    } catch (err) {
-      const error = mapError(err);
-      logger.error({
-        msg: 'Delete device by identifier request threw an exception',
         tag: 'BACKUP',
         error: error,
       });

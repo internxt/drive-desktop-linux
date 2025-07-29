@@ -1,4 +1,4 @@
-export type BackupErrorCode = 'NOT_FOUND' | 'ALREADY_EXISTS' | 'ERROR';
+export type BackupErrorCode = 'NOT_FOUND' | 'ALREADY_EXISTS' | 'ERROR' | 'FORBIDDEN';
 
 export class BackupError extends Error {
   public readonly code: BackupErrorCode;
@@ -15,5 +15,9 @@ export class BackupError extends Error {
 
   static alreadyExists(message: string): BackupError {
     return new BackupError(message, 'ALREADY_EXISTS');
+  }
+
+  static forbidden(message: string): BackupError {
+    return new BackupError(message, 'FORBIDDEN');
   }
 }

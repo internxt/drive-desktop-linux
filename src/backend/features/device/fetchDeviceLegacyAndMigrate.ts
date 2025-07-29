@@ -1,7 +1,8 @@
-import { Either } from 'src/context/shared/domain/Either';
+import { Either } from '../../../context/shared/domain/Either';
 import { fetchDevice, FetchDeviceProps } from './fetchDevice';
 import { migrateLegacyDeviceIdentifier } from './migrateLegacyDeviceIdentifier';
-import { Device } from 'src/apps/main/device/service';
+import { Device } from '../../../apps/main/device/service';
+import configStore from '../../../apps/main/config';
 
 export async function fetchDeviceLegacyAndMigrate(
   props: FetchDeviceProps
@@ -13,6 +14,8 @@ export async function fetchDeviceLegacyAndMigrate(
     if (device) {
       return await migrateLegacyDeviceIdentifier(device);
     }
+    configStore.set('deviceId', -1);
+    configStore.set('deviceUUID', '');
   }
   return deviceResult;
 }
