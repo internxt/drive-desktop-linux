@@ -5,6 +5,7 @@ import { Either } from './../../../context/shared/domain/Either';
 import { Device } from './../../../apps/main/device/service';
 import { getDeviceIdentifier } from './getDeviceIdentifier';
 import configStore from './../../../apps/main/config';
+import { BackupError } from '../../../infra/drive-server/services/backup/backup.error';
 
 export async function migrateLegacyDeviceIdentifier(
   device: Device
@@ -39,6 +40,16 @@ export async function migrateLegacyDeviceIdentifier(
     return right(addIdentifierResult.getRight());
   }
   const error = addIdentifierResult.getLeft();
+  if (error instanceof BackupError && error.code === 'ALREADY_EXISTS') {
+    configStore.set('deviceId', -1);
+    configStore.set('deviceUUID', '');
+    logger.info({
+      tag: 'BACKUP',
+      msg: 'Successfully migrated legacy device identifier',
+      device: addIdentifierResult.getRight(),
+    });
+    return right(device);
+  }
   logger.warn({
     tag: 'BACKUP',
     msg: 'Failed to migrate legacy device identifier',
