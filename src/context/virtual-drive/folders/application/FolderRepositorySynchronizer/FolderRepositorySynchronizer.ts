@@ -11,8 +11,6 @@ export class FolderRepositorySynchronizer {
   }
 
   async run(remoteFolders: Array<Folder>): Promise<void> {
-    await this.repository.clear();
-
     const currentFolders = await this.repository.all();
 
     const remoteFoldersIds = new Set(remoteFolders.map((folder) => folder.id));
