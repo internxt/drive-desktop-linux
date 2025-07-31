@@ -8,6 +8,7 @@ jobs:
   check_pr_size:
     runs-on: ubuntu-latest
     timeout-minutes: 1
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Release') }}
 
     steps:
       - name: Checkout code
