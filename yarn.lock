@@ -1329,6 +1329,13 @@
   resolved "https://registry.yarnpkg.com/@inquirer/type/-/type-3.0.6.tgz#2500e435fc2014c5250eec3279f42b70b64089bd"
   integrity sha512-/mKVCtVpyBu3IDarv0G+59KC4stsD5mDsGpYh+GKs1NZT88Jh52+cuoA1AtLk2Q0r/quNl+1cSUyLRHBFeD0XA==
 
+"@internxt/drive-desktop-core@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@internxt/drive-desktop-core/-/drive-desktop-core-0.0.3.tgz#a39ef86e55745fd811d26f4a364bfdd5dd8a0ebd"
+  integrity sha512-yJ609/WWUmsObgRi9ZP6P4yGoI4/Y/4JVV4DXvUwl4tffxDHbFk4J0ICcJqxrOiIQj5XFjva6AZ7Fh8wGGM00g==
+  dependencies:
+    electron-log "^5.4.1"
+
 "@internxt/eslint-config-internxt@^1.0.9":
   version "1.0.9"
   resolved "https://npm.pkg.github.com/download/@internxt/eslint-config-internxt/1.0.9/d2dddb6a5809873ce717507f8d9dbc5964f6d0f4#d2dddb6a5809873ce717507f8d9dbc5964f6d0f4"
@@ -5676,6 +5683,11 @@ electron-log@^4.4.4:
   version "4.4.8"
   resolved "https://registry.yarnpkg.com/electron-log/-/electron-log-4.4.8.tgz#fcb9f714dbcaefb6ac7984c4683912c74730248a"
   integrity sha512-QQ4GvrXO+HkgqqEOYbi+DHL7hj5JM+nHi/j+qrN9zeeXVKy8ZABgbu4CnG+BBqDZ2+tbeq9tUC4DZfIWFU5AZA==
+
+electron-log@^5.4.1:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/electron-log/-/electron-log-5.4.1.tgz#700ddc6ef4b06c13a983468580ba7a7e579129d4"
+  integrity sha512-QvisA18Z++8E3Th0zmhUelys9dEv7aIeXJlbFw3UrxCc8H9qSRW0j8/ooTef/EtHui8tVmbKSL+EIQzP9GoRLg==
 
 electron-notarize@^1.1.1:
   version "1.2.2"
