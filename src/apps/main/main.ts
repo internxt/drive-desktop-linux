@@ -8,9 +8,15 @@ import 'regenerator-runtime/runtime';
 // via webpack in prod
 import 'dotenv/config';
 // ***** APP BOOTSTRAPPING ****************************************************** //
+import { PATHS } from '../../core/electron/paths';
+import { setupElectronLog } from '@internxt/drive-desktop-core/build/backend';
+
+setupElectronLog({
+  logsPath: PATHS.ELECTRON_LOGS,
+  importantLogsPath: PATHS.ELECTRON_IMPORTANT_LOGS,
+});
 import './virtual-root-folder/handlers';
 import './auto-launch/handlers';
-// import './logger';
 import './bug-report/handlers';
 import './auth/handlers';
 import './windows/settings';
