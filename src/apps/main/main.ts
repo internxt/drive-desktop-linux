@@ -10,7 +10,7 @@ import 'dotenv/config';
 // ***** APP BOOTSTRAPPING ****************************************************** //
 import './virtual-root-folder/handlers';
 import './auto-launch/handlers';
-import './logger';
+// import './logger';
 import './bug-report/handlers';
 import './auth/handlers';
 import './windows/settings';
@@ -34,7 +34,6 @@ import './virtual-drive';
 import './payments/handler';
 
 import { app, nativeTheme, ipcMain } from 'electron';
-import Logger from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import packageJson from '../../../package.json';
 import eventBus from './event-bus';
@@ -83,17 +82,22 @@ if (process.env.SENTRY_DSN) {
     debug: !app.isPackaged && process.env.SENTRY_DEBUG === 'true',
     environment: process.env.NODE_ENV,
   });
-  Logger.log('Sentry is ready for main process');
+  logger.debug({ msg: 'Sentry is ready for main process' });
 } else {
-  Logger.error('Sentry DSN not found, cannot initialize Sentry');
+  logger.error({ msg: 'Sentry DSN not found, cannot initialize Sentry' });
 }
 
 function checkForUpdates() {
   try {
-    autoUpdater.logger = Logger;
+    autoUpdater.logger = {
+      debug: (msg) => logger.debug({ msg: `AutoUpdater: ${msg}` }),
+      info: (msg) => logger.debug({ msg: `AutoUpdater: ${msg}` }),
+      error: (msg) => logger.error({ msg: `AutoUpdater: ${msg}` }),
+      warn: (msg) => logger.warn({ msg: `AutoUpdater: ${msg}` }),
+    };
     autoUpdater.checkForUpdatesAndNotify();
   } catch (err: unknown) {
-    Logger.error(err);
+    logger.error({ msg: 'AutoUpdater Error:', err });
   }
 }
 
@@ -128,19 +132,18 @@ app
     checkForUpdates();
     registerAvailableUserProductsHandlers();
   })
-  .catch(Logger.error);
+  .catch((exc) => logger.error({ msg: 'Error starting app', exc }));
 
 eventBus.on('WIDGET_IS_READY', () => {
   setUpBackups();
 
   try {
-    Logger.info('[Main] Setting up antivirus IPC handlers');
+    logger.debug({ msg: '[Main] Setting up antivirus IPC handlers'});
     setupAntivirusIpc();
-    Logger.info('[Main] Antivirus IPC handlers setup complete');
-
+    logger.debug({ msg: '[Main] Antivirus IPC handlers setup complete'});
     void getAntivirusManager().initialize();
   } catch (error) {
-    Logger.error('[Main] Error setting up antivirus:', error);
+    logger.error({ msg: '[Main] Error setting up antivirus:', error });
   }
 });
 
@@ -177,7 +180,7 @@ eventBus.on('USER_LOGGED_IN', async () => {
 
     void getAntivirusManager().initialize();
   } catch (error) {
-    Logger.error(error);
+    logger.error({ msg: 'Error on main process while handling USER_LOGGED_IN event:', error });
     reportError(error as Error);
   }
 });
@@ -206,9 +209,9 @@ eventBus.on('USER_LOGGED_OUT', async () => {
 
 process.on('uncaughtException', (error) => {
   if (error.name === 'AbortError') {
-    Logger.log('Fetch request was aborted');
+    logger.debug({ msg: 'Fetch request was aborted' });
   } else {
-    Logger.error('Uncaught exception in main process: ', error);
+    logger.error({ msg: 'Uncaught exception in main process: ', error});
   }
 });
 
