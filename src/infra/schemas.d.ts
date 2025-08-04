@@ -1890,9 +1890,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get public key by email */
+        /**
+         * Get public key by email
+         * @deprecated
+         */
         get: operations["UserController_getPublicKeyByEmail"];
-        put?: never;
+        /** Retieve public key (existing users) or pre-create user and retrieve key */
+        put: operations["UserController_getOrPreCreatePublicKeyByEmail"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2889,6 +2893,12 @@ export interface components {
              * @example 3005
              */
             size: number;
+            /**
+             * Format: date-time
+             * @description The last modification time of the file (optional)
+             * @example 2023-05-30T12:34:56.789Z
+             */
+            modificationTime?: string;
         };
         UpdateFileMetaDto: {
             /**
@@ -3855,6 +3865,18 @@ export interface components {
             asymmetricEncryptedMnemonic: components["schemas"]["EncryptedMnemonicDto"];
             /** @description User ecc and kyber keys */
             keys: components["schemas"]["NewGeneratedKeysDto"];
+        };
+        GetOrCreatePublicKeysDto: {
+            /**
+             * @description Public ecc key
+             * @example
+             */
+            publicKey: string;
+            /**
+             * @description Public kyber key
+             * @example
+             */
+            publicKyberKey: string;
         };
         CreateAttemptChangeEmailDto: {
             /**
@@ -7396,6 +7418,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    UserController_getOrPreCreatePublicKeyByEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                email: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns a public key */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetOrCreatePublicKeysDto"];
+                };
             };
         };
     };
