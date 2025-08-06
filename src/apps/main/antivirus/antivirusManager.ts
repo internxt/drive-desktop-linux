@@ -12,6 +12,7 @@ import { AvailableProducts } from '@internxt/sdk/dist/drive/payments/types';
  */
 export class AntivirusManager {
   private static instance: AntivirusManager;
+  private lastAntivirusState: boolean | null = null;
 
   private constructor() {
     eventBus.on(
@@ -153,16 +154,23 @@ export class AntivirusManager {
     products: AvailableProducts['featuresPerService']
   ): Promise<void> {
     try {
-      const hasAntivirus = products && products.antivirus;
+      const isAntivirusEnabled = !!(products && products.antivirus);
+      
+      // Only proceed if antivirus state has actually changed
+      if (this.lastAntivirusState === isAntivirusEnabled) {
+        return;
+      }
+
+      this.lastAntivirusState = isAntivirusEnabled;
       const isClamRunning = await this.isClamAVRunning();
 
-      if (hasAntivirus && !isClamRunning) {
+      if (isAntivirusEnabled && !isClamRunning) {
         logger.debug({
           tag: 'ANTIVIRUS',
           msg: '[ANTIVIRUS_MANAGER] Feature became available, initializing ClamAV',
         });
         await this.initialize();
-      } else if (!hasAntivirus && isClamRunning) {
+      } else if (!isAntivirusEnabled && isClamRunning) {
         logger.debug({
           tag: 'ANTIVIRUS',
           msg: '[ANTIVIRUS_MANAGER] Feature no longer available, shutting down ClamAV',

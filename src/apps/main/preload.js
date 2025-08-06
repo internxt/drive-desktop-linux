@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+const { logger } = require('@internxt/drive-desktop-core/build/backend');
 
 contextBridge.exposeInMainWorld('electron', {
   getConfigKey(key) {
