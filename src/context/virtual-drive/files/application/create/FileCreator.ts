@@ -1,5 +1,5 @@
 import { Service } from 'diod';
-import Logger from 'electron-log';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { basename } from 'path';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { ParentFolderFinder } from '../../../folders/application/ParentFolderFinder';
@@ -80,9 +80,7 @@ export class FileCreator {
 
       return file;
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'unknown error';
-
-      Logger.error(`[File Creator] ${path}`, message);
+      logger.error({ msg: `[File Creator] Error creating file: ${path}`, error });
 
       const cause =
         error instanceof DriveDesktopError ? error.cause : 'UNKNOWN';
