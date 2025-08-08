@@ -1,3 +1,5 @@
+import { Usage } from '../../backend/features/usage/usage.types';
+import { Result } from './../../context/shared/domain/Result';
 import { AvailableProducts } from '@internxt/sdk/dist/drive/payments/types';
 import { Device } from './device/service';
 import {
@@ -41,6 +43,7 @@ export interface IElectronAPI {
     warn: (rawBody: TLoggerBody) => void;
     error: (rawBody: TLoggerBody) => void;
   };
+  getUsage(): Promise<Result<Usage, Error>>;
 }
 
 declare global {

@@ -198,7 +198,7 @@ declare interface Window {
       func: (value: import('../main/realtime').EventPayload) => void
     ): () => void;
 
-    getUsage: () => Promise<import('./usage/Usage').Usage>;
+    getUsage: () => Promise<import('../../backend/features/usage/usage.types').Usage>;
 
     getPlatform: () => Promise<
       import('../main/platform/DesktopPlatform').DesktopPlatform
@@ -282,6 +282,5 @@ declare interface Window {
     };
 
     login(email: string): Promise<AuthLoginResponseViewModel>;
-    
   };
 }
