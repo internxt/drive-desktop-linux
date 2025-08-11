@@ -18,6 +18,9 @@ import { driveServerModule } from '../../../infra/drive-server/drive-server.modu
 import { DeviceModule } from '../../../backend/features/device/device.module';
 import { fetchFolder } from './fetch-folder';
 import { deleteFolder } from './delete-folder';
+import { getBackupFolderUuid } from './fetch-backup-folder-uuid';
+import { updateBackupFolderName } from './update-backup-folder-metadata';
+import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 
 export type Device = {
   id: number;
@@ -99,7 +102,11 @@ async function createBackup(pathname: string): Promise<void> {
   const newBackup = await postBackup(base);
   const backupList = configStore.get('backupList');
 
-  backupList[pathname] = { enabled: true, folderId: newBackup.id, folderUuid: newBackup.uuid };
+  backupList[pathname] = {
+    enabled: true,
+    folderId: newBackup.id,
+    folderUuid: newBackup.uuid,
+  };
 
   configStore.set('backupList', backupList);
 }
@@ -118,17 +125,22 @@ export async function addBackup(): Promise<void> {
   if (!existingBackup) {
     return createBackup(chosenPath);
   }
+  const migratedBackup = await migrateBackupEntryIfNeeded(
+    chosenPath,
+    existingBackup
+  );
 
   let folderStillExists;
   try {
-    await fetchFolder(existingBackup.folderUuid);
+    await fetchFolder(migratedBackup.folderUuid);
     folderStillExists = true;
   } catch {
     folderStillExists = false;
   }
 
   if (folderStillExists) {
-    backupList[chosenPath].enabled = true;
+    const updatedBackupList = configStore.get('backupList');
+    updatedBackupList[chosenPath].enabled = true;
     configStore.set('backupList', backupList);
   } else {
     return createBackup(chosenPath);
@@ -370,29 +382,35 @@ export async function changeBackupPath(currentPath: string): Promise<boolean> {
   if (backupsList[chosenPath]) {
     throw new Error('A backup with this path already exists');
   }
-
-  const res = await fetch(
-    `${process.env.API_URL}/storage/folder/${existingBackup.folderId}/meta`,
-    {
-      method: 'POST',
-      headers: getHeaders(true),
-      body: JSON.stringify({
-        metadata: { itemName: path.basename(chosenPath) },
-      }),
+  const oldFolderName = path.basename(currentPath);
+  const newFolderName = path.basename(chosenPath);
+  if (oldFolderName !== newFolderName) {
+    logger.info({ tag: 'BACKUPS', msg: 'Renaming backup', existingBackup });
+    const getFolderUuidResponse = await getBackupFolderUuid(existingBackup);
+    if (getFolderUuidResponse.error) {
+      throw getFolderUuidResponse.error;
     }
-  );
+    const { data: folderUuid } = getFolderUuidResponse;
 
-  if (!res.ok) {
-    throw new Error('Error in the request to rename a backup');
+    const res = await updateBackupFolderName(folderUuid, newFolderName);
+
+    if (res.error) {
+      throw new Error('Error in the request to rename a backup');
+    }
+
+    delete backupsList[currentPath];
+
+    const migratedExistingBackup = await migrateBackupEntryIfNeeded(
+      chosenPath,
+      existingBackup
+    );
+    backupsList[chosenPath] = migratedExistingBackup;
+
+    configStore.set('backupList', backupsList);
+
+    return true;
   }
-
-  delete backupsList[currentPath];
-
-  backupsList[chosenPath] = existingBackup;
-
-  configStore.set('backupList', backupsList);
-
-  return true;
+  return false;
 }
 
 export function findBackupPathnameFromId(id: number): string | undefined {

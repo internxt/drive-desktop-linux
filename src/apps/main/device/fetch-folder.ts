@@ -1,3 +1,4 @@
+import fetch from 'electron-fetch';
 import { components } from '../../../infra/schemas';
 import { getNewApiHeaders } from '../auth/service';
 
