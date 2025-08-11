@@ -1,6 +1,6 @@
 import fetch from 'electron-fetch';
-import { components } from '../../../infra/schemas';
-import { getNewApiHeaders } from '../auth/service';
+import { components } from '../../../../schemas';
+import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 
 export async function fetchFolder(
   folderUuid: string

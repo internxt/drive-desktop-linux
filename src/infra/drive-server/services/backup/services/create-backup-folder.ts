@@ -1,7 +1,7 @@
-import { BackupError } from '../../backups/BackupError';
-import { Result } from '../../../context/shared/domain/Result';
-import { components } from '../../../infra/schemas';
-import { getNewApiHeaders } from '../auth/service';
+import { BackupError } from '../../../../../apps/backups/BackupError';
+import { Result } from '../../../../../context/shared/domain/Result';
+import { components } from '../../../../schemas';
+import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 
 export async function createBackupFolder(

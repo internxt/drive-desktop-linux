@@ -16,12 +16,12 @@ import { BackupError } from '../../backups/BackupError';
 import { PathTypeChecker } from '../../shared/fs/PathTypeChecker ';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { DeviceModule } from '../../../backend/features/device/device.module';
-import { fetchFolder } from './fetch-folder';
-import { deleteFolder } from './delete-folder';
-import { getBackupFolderUuid } from './fetch-backup-folder-uuid';
-import { updateBackupFolderName } from './update-backup-folder-metadata';
+import { fetchFolder } from '../../../infra/drive-server/services/backup/services/fetch-folder';
+import { deleteFolder } from '../../../infra/drive-server/services/backup/services/delete-folder';
+import { getBackupFolderUuid } from '../../../infra/drive-server/services/backup/services/fetch-backup-folder-uuid';
+import { updateBackupFolderName } from '../../../infra/drive-server/services/backup/services/update-backup-folder-metadata';
 import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
-import { createBackupFolder } from './create-backup-folder';
+import { createBackupFolder } from '../../../infra/drive-server/services/backup/services/create-backup-folder';
 
 export type Device = {
   id: number;

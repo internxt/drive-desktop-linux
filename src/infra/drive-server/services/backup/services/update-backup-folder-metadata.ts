@@ -1,6 +1,6 @@
-import { components } from '../../../infra/schemas';
+import { components } from '../../../../schemas';
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
-import { Result } from '../../../context/shared/domain/Result';
+import { Result } from '../../../../../context/shared/domain/Result';
 import fetch from 'electron-fetch';
 
 export async function updateBackupFolderName(

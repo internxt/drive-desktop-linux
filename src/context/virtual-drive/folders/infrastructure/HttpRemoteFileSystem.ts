@@ -13,7 +13,7 @@ import {
   RemoteFileSystemErrors,
 } from '../domain/file-systems/RemoteFileSystem';
 import { UpdateFolderNameDTO } from './dtos/UpdateFolderNameDTO';
-import { createBackupFolder } from '../../../../apps/main/device/create-backup-folder';
+import { createBackupFolder } from '../../../../infra/drive-server/services/backup/services/create-backup-folder';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
 import { BackupError } from '../../../../apps/backups/BackupError';
 
@@ -89,11 +89,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
             setTimeout(resolve, 1_000);
           });
           Logger.debug('Retrying');
-          return this.persist(
-            plainName,
-            parentFolderUuid,
-            attempt + 1
-          );
+          return this.persist(plainName, parentFolderUuid, attempt + 1);
         }
         if (err.cause === 'BAD_RESPONSE') {
           return left('WRONG_DATA');

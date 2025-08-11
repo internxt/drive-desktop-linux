@@ -1,5 +1,5 @@
 import { app } from 'electron';
-import { fetchFolder } from '../../../apps/main/device/fetch-folder';
+import { fetchFolder } from '../../../infra/drive-server/services/backup/services/fetch-folder';
 import configStore from '../../../apps/main/config';
 import { BackupInfo } from './../../../apps/backups/BackupInfo';
 import {

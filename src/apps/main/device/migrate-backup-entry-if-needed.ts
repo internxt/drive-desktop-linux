@@ -1,6 +1,6 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import configStore from '../config';
-import { getBackupFolderUuid } from './fetch-backup-folder-uuid';
+import { getBackupFolderUuid } from '../../../infra/drive-server/services/backup/services/fetch-backup-folder-uuid';
 
 export async function migrateBackupEntryIfNeeded(
   pathname: string,

@@ -1,7 +1,7 @@
-import { components } from '../../../infra/schemas';
-import { Result } from '../../../context/shared/domain/Result';
+import { components } from '../../../../schemas';
+import { Result } from '../../../../../context/shared/domain/Result';
 import fetch from 'electron-fetch';
-import { getNewApiHeaders } from '../auth/service';
+import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 
 export async function getBackupFolderUuid(backup: {
