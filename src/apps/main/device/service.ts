@@ -21,6 +21,7 @@ import { deleteFolder } from './delete-folder';
 import { getBackupFolderUuid } from './fetch-backup-folder-uuid';
 import { updateBackupFolderName } from './update-backup-folder-metadata';
 import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
+import { createBackupFolder } from './create-backup-folder';
 
 export type Device = {
   id: number;
@@ -73,22 +74,13 @@ async function postBackup(name: string): Promise<Backup> {
   if (getOrCreateDeviceResult instanceof Error) {
     throw getOrCreateDeviceResult;
   }
-  const deviceId = getOrCreateDeviceResult.id;
-
-  const res = await fetch(`${process.env.API_URL}/storage/folder`, {
-    method: 'POST',
-    headers: getHeaders(true),
-    body: JSON.stringify({ parentFolderId: deviceId, folderName: name }),
-  });
-
-  if (res.ok) {
-    return res.json();
+  const deviceUuid = getOrCreateDeviceResult.uuid;
+  const createBackupResponse = await createBackupFolder(deviceUuid, name);
+  if (createBackupResponse.data) {
+    return createBackupResponse.data;
   }
-  if (res.status === 409) {
-    throw new BackupError('FOLDER_ALREADY_EXISTS');
-  }
-  if (res.status >= 500) {
-    throw new BackupError('BAD_RESPONSE');
+  if (createBackupResponse.error) {
+    throw createBackupResponse.error;
   }
   throw new BackupError('UNKNOWN');
 }
