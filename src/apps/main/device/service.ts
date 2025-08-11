@@ -18,6 +18,7 @@ import { driveServerModule } from '../../../infra/drive-server/drive-server.modu
 import { DeviceModule } from '../../../backend/features/device/device.module';
 import { fetchFolder } from './fetch-folder';
 import { deleteFolder } from './delete-folder';
+import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 
 export type Device = {
   id: number;
@@ -99,7 +100,11 @@ async function createBackup(pathname: string): Promise<void> {
   const newBackup = await postBackup(base);
   const backupList = configStore.get('backupList');
 
-  backupList[pathname] = { enabled: true, folderId: newBackup.id, folderUuid: newBackup.uuid };
+  backupList[pathname] = {
+    enabled: true,
+    folderId: newBackup.id,
+    folderUuid: newBackup.uuid,
+  };
 
   configStore.set('backupList', backupList);
 }
@@ -118,10 +123,13 @@ export async function addBackup(): Promise<void> {
   if (!existingBackup) {
     return createBackup(chosenPath);
   }
-
+  const migratedBackup = await migrateBackupEntryIfNeeded(
+    chosenPath,
+    existingBackup
+  );
   let folderStillExists;
   try {
-    await fetchFolder(existingBackup.folderUuid);
+    await fetchFolder(migratedBackup.folderUuid);
     folderStillExists = true;
   } catch {
     folderStillExists = false;
