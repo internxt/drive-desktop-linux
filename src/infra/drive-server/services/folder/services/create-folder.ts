@@ -1,37 +1,37 @@
-import { BackupError } from '../../../../../apps/backups/BackupError';
-import { Result } from '../../../../../context/shared/domain/Result';
-import { components } from '../../../../schemas';
-import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
+import { components } from '@internxt/drive-desktop-core/build/backend/infra/drive-server-wip/schema';
+import { getNewApiHeaders } from 'src/apps/main/auth/service';
+import { Result } from 'src/context/shared/domain/Result';
+import { FolderError } from '../folder.error';
 
-function errorHandler(response: Response): { error: BackupError } {
+function errorHandler(response: Response): { error: FolderError } {
   if (response.status === 409) {
     return {
-      error: new BackupError('FOLDER_ALREADY_EXISTS'),
+      error: new FolderError('FOLDER_ALREADY_EXISTS'),
     };
   }
   if (response.status >= 500) {
     return {
-      error: new BackupError('SERVER_ERROR'),
+      error: new FolderError('SERVER_ERROR'),
     };
   }
   if (response.status === 401 || response.status === 403) {
     return {
-      error: new BackupError('NO_PERMISSION'),
+      error: new FolderError('NO_PERMISSION'),
     };
   }
   if (response.status >= 400) {
     return {
-      error: new BackupError('BAD_RESPONSE'),
+      error: new FolderError('BAD_REQUEST'),
     };
   }
-  return { error: new BackupError('UNKNOWN') };
+  return { error: new FolderError('UNKNOWN') };
 }
 
-export async function createBackupFolder(
+export async function createFolder(
   deviceUuid: string,
   plainName: string
-): Promise<Result<components['schemas']['FolderDto'], BackupError>> {
+): Promise<Result<components['schemas']['FolderDto'], FolderError>> {
   try {
     const response = await fetch('/folders', {
       method: 'POST',
@@ -48,12 +48,11 @@ export async function createBackupFolder(
     return errorHandler(response);
   } catch (error) {
     logger.error({
-      tag: 'BACKUPS',
-      msg: 'error posting a backup',
+      msg: 'error creating a folder',
       error,
     });
     return {
-      error: new BackupError('UNKNOWN'),
+      error: new FolderError('UNKNOWN'),
     };
   }
 }

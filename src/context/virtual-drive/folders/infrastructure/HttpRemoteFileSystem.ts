@@ -13,9 +13,9 @@ import {
   RemoteFileSystemErrors,
 } from '../domain/file-systems/RemoteFileSystem';
 import { UpdateFolderNameDTO } from './dtos/UpdateFolderNameDTO';
-import { createBackupFolder } from '../../../../infra/drive-server/services/backup/services/create-backup-folder';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
-import { BackupError } from '../../../../apps/backups/BackupError';
+import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
+import { FolderError } from 'src/infra/drive-server/services/folder/folder.error';
 
 type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
 
@@ -73,17 +73,14 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
     attempt = 0
   ): Promise<Either<RemoteFileSystemErrors, FolderPersistedDto>> {
     try {
-      const { data, error } = await createBackupFolder(
-        parentFolderUuid,
-        plainName
-      );
+      const { data, error } = await createFolder(parentFolderUuid, plainName);
       if (data) {
         return right(mapToFolderPersistedDto(data));
       }
       throw error;
     } catch (err) {
-      if (err instanceof BackupError) {
-        if (err.cause === 'BAD_RESPONSE' && attempt < this.maxRetries) {
+      if (err instanceof FolderError) {
+        if (err.cause === 'BAD_REQUEST' && attempt < this.maxRetries) {
           Logger.debug('Folder Creation failed with code 400');
           await new Promise((resolve) => {
             setTimeout(resolve, 1_000);
@@ -91,7 +88,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
           Logger.debug('Retrying');
           return this.persist(plainName, parentFolderUuid, attempt + 1);
         }
-        if (err.cause === 'BAD_RESPONSE') {
+        if (err.cause === 'BAD_REQUEST') {
           return left('WRONG_DATA');
         }
         if (err.cause === 'FOLDER_ALREADY_EXISTS') {
