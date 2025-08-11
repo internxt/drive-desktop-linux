@@ -213,7 +213,8 @@ export class BackupService {
       // eslint-disable-next-line no-await-in-loop
       const folder = await this.simpleFolderCreator.run(
         relative(local.root.path, localFolder.path),
-        parent.id
+        parent.id,
+        parent.uuid
       );
 
       remote.addFolder(parent, folder);

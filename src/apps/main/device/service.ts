@@ -77,7 +77,12 @@ async function postBackup(name: string): Promise<Backup> {
   const deviceUuid = getOrCreateDeviceResult.uuid;
   const createBackupResponse = await createBackupFolder(deviceUuid, name);
   if (createBackupResponse.data) {
-    return createBackupResponse.data;
+    const backup: Backup = {
+      id: createBackupResponse.data.id,
+      name: createBackupResponse.data.name,
+      uuid: createBackupResponse.data.uuid,
+    };
+    return backup;
   }
   if (createBackupResponse.error) {
     throw createBackupResponse.error;

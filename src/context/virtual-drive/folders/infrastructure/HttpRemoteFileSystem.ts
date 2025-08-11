@@ -7,14 +7,15 @@ import { ServerFolder } from '../../../shared/domain/ServerFolder';
 import { Folder } from '../domain/Folder';
 import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
-import { FolderUuid } from '../domain/FolderUuid';
 import {
   FolderPersistedDto,
   RemoteFileSystem,
   RemoteFileSystemErrors,
 } from '../domain/file-systems/RemoteFileSystem';
-import { CreateFolderDTO } from './dtos/CreateFolderDTO';
 import { UpdateFolderNameDTO } from './dtos/UpdateFolderNameDTO';
+import { createBackupFolder } from '../../../../apps/main/device/create-backup-folder';
+import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
+import { BackupError } from '../../../../apps/backups/BackupError';
 
 type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
 
@@ -66,62 +67,41 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
       path: folderPath.value,
     });
   }
-
   async persist(
-    path: FolderPath,
-    parentId: FolderId,
-    uuid?: FolderUuid,
+    plainName: string,
+    parentFolderUuid: string,
     attempt = 0
   ): Promise<Either<RemoteFileSystemErrors, FolderPersistedDto>> {
-    const body: CreateFolderDTO = {
-      folderName: path.name(),
-      parentFolderId: parentId.value,
-      uuid: uuid?.value,
-    };
-
     try {
-      const response = await this.driveClient.post(
-        `${process.env.API_URL}/storage/folder`,
-        body
+      const { data, error } = await createBackupFolder(
+        parentFolderUuid,
+        plainName
       );
-
-      if (response.status !== 201) {
-        throw new Error('Folder creation failed');
+      if (data) {
+        return right(mapToFolderPersistedDto(data));
       }
-
-      const serverFolder = response.data as ServerFolder | null;
-
-      if (!serverFolder) {
-        throw new Error('Folder creation failed, no data returned');
+      throw error;
+    } catch (err) {
+      if (err instanceof BackupError) {
+        if (err.cause === 'BAD_RESPONSE' && attempt < this.maxRetries) {
+          Logger.debug('Folder Creation failed with code 400');
+          await new Promise((resolve) => {
+            setTimeout(resolve, 1_000);
+          });
+          Logger.debug('Retrying');
+          return this.persist(
+            plainName,
+            parentFolderUuid,
+            attempt + 1
+          );
+        }
+        if (err.cause === 'BAD_RESPONSE') {
+          return left('WRONG_DATA');
+        }
+        if (err.cause === 'FOLDER_ALREADY_EXISTS') {
+          return left('ALREADY_EXISTS');
+        }
       }
-
-      return right({
-        id: serverFolder.id,
-        uuid: serverFolder.uuid,
-        parentId: parentId.value,
-        updatedAt: serverFolder.updatedAt,
-        createdAt: serverFolder.createdAt,
-      });
-    } catch (err: any) {
-      const { status } = err.response;
-
-      if (status === 400 && attempt < this.maxRetries) {
-        Logger.debug('Folder Creation failed with code 400');
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1_000);
-        });
-        Logger.debug('Retrying');
-        return this.persist(path, parentId, uuid, attempt + 1);
-      }
-
-      if (status === 400) {
-        return left('WRONG_DATA');
-      }
-
-      if (status === 409) {
-        return left('ALREADY_EXISTS');
-      }
-
       return left('UNHANDLED');
     }
   }

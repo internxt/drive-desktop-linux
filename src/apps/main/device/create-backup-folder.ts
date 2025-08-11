@@ -2,13 +2,12 @@ import { BackupError } from '../../backups/BackupError';
 import { Result } from '../../../context/shared/domain/Result';
 import { components } from '../../../infra/schemas';
 import { getNewApiHeaders } from '../auth/service';
-import { Backup } from './service';
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 
 export async function createBackupFolder(
   deviceUuid: string,
   plainName: string
-): Promise<Result<Backup, BackupError>> {
+): Promise<Result<components['schemas']['FolderDto'], BackupError>> {
   try {
     const response = await fetch('/folders', {
       method: 'POST',
@@ -20,12 +19,7 @@ export async function createBackupFolder(
     });
     if (response.ok) {
       const data: components['schemas']['FolderDto'] = await response.json();
-      const backup: Backup = {
-        id: data.id,
-        name: data.plainName,
-        uuid: data.uuid,
-      };
-      return { data: backup };
+      return { data };
     }
     if (response.status === 409) {
       return {
@@ -33,6 +27,16 @@ export async function createBackupFolder(
       };
     }
     if (response.status >= 500) {
+      return {
+        error: new BackupError('SERVER_ERROR'),
+      };
+    }
+    if (response.status === 401 || response.status === 403) {
+      return {
+        error: new BackupError('NO_PERMISSION'),
+      };
+    }
+    if (response.status >= 400) {
       return {
         error: new BackupError('BAD_RESPONSE'),
       };
@@ -45,7 +49,7 @@ export async function createBackupFolder(
       error,
     });
     return {
-      error: new BackupError('BAD_RESPONSE'),
+      error: new BackupError('UNKNOWN'),
     };
   }
 }
