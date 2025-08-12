@@ -6,7 +6,6 @@ import { registerLocalFileServices } from './local/registerLocalFileServices';
 import { BackupService } from '../BackupService';
 import { registerLocalTreeServices } from './local/registerLocalTreeServices';
 import { registerRemoteTreeServices } from './virtual-drive/registerRemoteTreeServices';
-import { registerUserUsageServices } from './user/registerUsageServices';
 import { DependencyInjectionUserProvider } from '../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { DownloaderHandlerFactory } from '../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
 import { EnvironmentFileDownloaderHandlerFactory } from '../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
@@ -31,8 +30,6 @@ export class BackupsDependencyContainerFactory {
 
     registerLocalFileServices(builder);
     registerLocalTreeServices(builder);
-
-    registerUserUsageServices(builder);
 
     builder
       .register(DownloaderHandlerFactory)

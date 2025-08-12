@@ -37,5 +37,11 @@
 	},
 	"cSpell.words": [
 		"avaliable"
-	]
+	],
+	"jest.jestCommandLine": "yarn jest --config=jest.config.main.js",
+	"jest.autoRun": "off",
+	"jest.rootPath": ".",
+	"jest.runMode": "on-demand",
+	"jest.testMatch": ["<rootDir>/src/**/*.test.ts", "<rootDir>/src/**/*.spec.ts"],
+	"jest.disabledWorkspaceFolders": []
 }

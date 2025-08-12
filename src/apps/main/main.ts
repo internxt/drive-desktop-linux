@@ -24,7 +24,7 @@ import './windows/process-issues';
 import './windows';
 import './issues/virtual-drive';
 import './device/handlers';
-import './usage/handlers';
+import './../../backend/features/usage/handlers/handlers';
 import './realtime';
 import './tray/tray';
 import './tray/handlers';
