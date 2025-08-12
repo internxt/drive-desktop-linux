@@ -1,7 +1,6 @@
 import { Axios } from 'axios';
 import { Service } from 'diod';
 import Logger from 'electron-log';
-import * as uuid from 'uuid';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { ServerFolder } from '../../../shared/domain/ServerFolder';
 import { Folder } from '../domain/Folder';
@@ -12,7 +11,6 @@ import {
   RemoteFileSystem,
   RemoteFileSystemErrors,
 } from '../domain/file-systems/RemoteFileSystem';
-import { UpdateFolderNameDTO } from './dtos/UpdateFolderNameDTO';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
 import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
 import { FolderError } from 'src/infra/drive-server/services/folder/folder.error';
@@ -27,7 +25,6 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
   public folders: Record<string, Folder> = {};
 
   constructor(
-    private readonly driveClient: Axios,
     private readonly trashClient: Axios,
     private readonly maxRetries: number = 3
   ) {}
