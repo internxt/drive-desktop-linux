@@ -17,6 +17,7 @@ import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto
 import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
 import { FolderError } from 'src/infra/drive-server/services/folder/folder.error';
 import { renameFolder } from 'src/infra/drive-server/services/folder/services/rename-folder';
+import { moveFolder } from 'src/infra/drive-server/services/folder/services/move-folder';
 
 type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
 
@@ -120,10 +121,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
   }
 
   async rename(folder: Folder): Promise<void> {
-    const response = await renameFolder(
-      folder.uuid,
-      folder.name
-    );
+    const response = await renameFolder(folder.uuid, folder.name);
 
     if (response.error) {
       throw new Error(
@@ -132,15 +130,13 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
     }
   }
 
-  async move(folder: Folder): Promise<void> {
-    const url = `${process.env.API_URL}/storage/move/folder`;
+  async move(folderUuid: string, destinationFolderUuid: string): Promise<void> {
+    const response = await moveFolder(folderUuid, destinationFolderUuid);
 
-    const body = { destination: folder.parentId, folderId: folder.id };
-
-    const res = await this.driveClient.post(url, body);
-
-    if (res.status !== 200) {
-      throw new Error(`[FOLDER FILE SYSTEM] Error moving item: ${res.status}`);
+    if (response.error) {
+      throw new Error(
+        `[FOLDER FILE SYSTEM] Error moving item: ${response.error.message}`
+      );
     }
   }
 }
