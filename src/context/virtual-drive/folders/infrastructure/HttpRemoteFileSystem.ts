@@ -16,6 +16,7 @@ import { UpdateFolderNameDTO } from './dtos/UpdateFolderNameDTO';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
 import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
 import { FolderError } from 'src/infra/drive-server/services/folder/folder.error';
+import { renameFolder } from 'src/infra/drive-server/services/folder/services/rename-folder';
 
 type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
 
@@ -119,18 +120,14 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
   }
 
   async rename(folder: Folder): Promise<void> {
-    const url = `${process.env.API_URL}/storage/folder/${folder.id}/meta`;
+    const response = await renameFolder(
+      folder.uuid,
+      folder.name
+    );
 
-    const body: UpdateFolderNameDTO = {
-      metadata: { itemName: folder.name },
-      relativePath: uuid.v4(),
-    };
-
-    const res = await this.driveClient.post(url, body);
-
-    if (res.status !== 200) {
+    if (response.error) {
       throw new Error(
-        `[FOLDER FILE SYSTEM] Error updating item metadata: ${res.status}`
+        `[FOLDER FILE SYSTEM] Error updating item metadata: ${response.error.message}`
       );
     }
   }

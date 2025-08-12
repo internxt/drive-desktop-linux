@@ -3,6 +3,7 @@ import { components } from '@internxt/drive-desktop-core/build/backend/infra/dri
 import { getNewApiHeaders } from 'src/apps/main/auth/service';
 import { Result } from 'src/context/shared/domain/Result';
 import { FolderError } from '../folder.error';
+import fetch from 'electron-fetch';
 
 function errorHandler(response: Response): { error: FolderError } {
   if (response.status === 409) {

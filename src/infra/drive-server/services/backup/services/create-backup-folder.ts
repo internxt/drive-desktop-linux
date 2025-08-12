@@ -3,6 +3,7 @@ import { Result } from '../../../../../context/shared/domain/Result';
 import { components } from '../../../../schemas';
 import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
+import fetch from 'electron-fetch';
 
 function errorHandler(response: Response): { error: BackupError } {
   if (response.status === 409) {
