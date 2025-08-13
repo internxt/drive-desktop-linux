@@ -3,7 +3,7 @@ import { Result } from '../../../../../context/shared/domain/Result';
 import { components } from '../../../../schemas';
 import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
-import fetch from 'electron-fetch';
+import fetch, { Response } from 'electron-fetch';
 
 function errorHandler(response: Response): { error: BackupError } {
   if (response.status === 409) {
@@ -34,7 +34,7 @@ export async function createBackupFolder(
   plainName: string
 ): Promise<Result<components['schemas']['FolderDto'], BackupError>> {
   try {
-    const response = await fetch('/folders', {
+    const response = await fetch(`${process.env.NEW_DRIVE_URL}/folders`, {
       method: 'POST',
       headers: getNewApiHeaders(),
       body: JSON.stringify({

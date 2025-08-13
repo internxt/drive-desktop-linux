@@ -1,9 +1,6 @@
-import { Storage } from '@internxt/sdk/dist/drive/storage';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-import { isAxiosError } from 'axios';
 import { Service } from 'diod';
 import Logger from 'electron-log';
-import * as uuid from 'uuid';
 import { AuthorizedClients } from '../../../../apps/shared/HttpClient/Clients';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
@@ -14,12 +11,14 @@ import {
   PersistedFileData,
   RemoteFileSystem,
 } from '../domain/file-systems/RemoteFileSystem';
-import { CreateFileDTO } from './dtos/CreateFileDTO';
+import { createFile } from '../../../../infra/drive-server/services/files/services/create-file';
+import { FileError } from '../../../../infra/drive-server/services/files/file.error';
+import { moveFile } from '../../../../infra/drive-server/services/files/services/move-file';
+import { renameFile } from 'src/infra/drive-server/services/files/services/rename-file';
 
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
   constructor(
-    private readonly sdk: Storage,
     private readonly clients: AuthorizedClients,
     private readonly crypt: Crypt,
     private readonly bucket: string
@@ -43,54 +42,35 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
         )
       );
     }
-
-    const body: CreateFileDTO = {
-      file: {
-        fileId: dataToPersists.contentsId.value,
-        file_id: dataToPersists.contentsId.value,
-        type: dataToPersists.path.extension(),
-        size: dataToPersists.size.value,
-        name: encryptedName,
-        plain_name: plainName,
-        bucket: this.bucket,
-        folder_id: dataToPersists.folderId.value,
-        encrypt_version: EncryptionVersion.Aes03,
-      },
+    const body = {
+      bucket: this.bucket,
+      fileId: dataToPersists.contentsId.value,
+      encryptVersion: EncryptionVersion.Aes03,
+      folderUuid: dataToPersists.folderUuid,
+      size: dataToPersists.size.value,
+      plainName: plainName,
+      type: dataToPersists.path.extension(),
     };
-
-    try {
-      const { data } = await this.clients.drive.post(
-        `${process.env.API_URL}/storage/file`,
-        body
-      );
-
+    const response = await createFile(body);
+    if (response.data) {
       const result: PersistedFileData = {
-        modificationTime: data.updatedAt,
-        id: data.id,
-        uuid: data.uuid,
-        createdAt: data.createdAt,
+        modificationTime: response.data.updatedAt,
+        id: response.data.id,
+        uuid: response.data.uuid,
+        createdAt: response.data.createdAt,
       };
-
       return right(result);
-    } catch (err: unknown) {
-      if (!isAxiosError(err) || !err.response) {
-        return left(
-          new DriveDesktopError('UNKNOWN', `Creating file ${plainName}: ${err}`)
-        );
-      }
-
-      const { status } = err.response;
-
-      if (status === 400) {
+    }
+    if (response.error instanceof FileError) {
+      if (response.error.cause === 'BAD_REQUEST') {
         return left(
           new DriveDesktopError(
             'BAD_REQUEST',
-            `Some data was not valid for ${plainName}: ${body.file}`
+            `Some data was not valid for ${plainName}: ${body}`
           )
         );
       }
-
-      if (status === 409) {
+      if (response.error.cause === 'FILE_ALREADY_EXISTS') {
         return left(
           new DriveDesktopError(
             'FILE_ALREADY_EXISTS',
@@ -98,23 +78,21 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
           )
         );
       }
-
-      if (status >= 500) {
+      if (response.error.cause === 'SERVER_ERROR') {
         return left(
           new DriveDesktopError(
             'BAD_RESPONSE',
-            `The server could not handle the creation of ${plainName}: ${body.file}`
+            `The server could not handle the creation of ${plainName}: ${body}`
           )
         );
       }
-
-      return left(
-        new DriveDesktopError(
-          'UNKNOWN',
-          `Response with status ${status} not expected`
-        )
-      );
     }
+    return left(
+      new DriveDesktopError(
+        'UNKNOWN',
+        `Creating file ${plainName}: ${response.error}`
+      )
+    );
   }
 
   async trash(contentsId: string): Promise<void> {
@@ -141,22 +119,17 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
   }
 
   async rename(file: File): Promise<void> {
-    await this.sdk.updateFile({
-      fileId: file.contentsId,
-      bucketId: this.bucket,
-      destinationPath: uuid.v4(),
-      metadata: {
-        itemName: file.name,
-      },
+    await renameFile({
+      plainName: file.name,
+      type: file.type,
+      folderUuid: file.uuid,
     });
   }
 
-  async move(file: File): Promise<void> {
-    await this.sdk.moveFile({
-      fileId: file.contentsId,
-      destination: file.folderId,
-      destinationPath: uuid.v4(),
-      bucketId: this.bucket,
+  async move(file: File, destinationFolderUuid: string): Promise<void> {
+    await moveFile({
+      uuid: file.uuid,
+      destinationFolder: destinationFolderUuid,
     });
   }
 
@@ -177,7 +150,10 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       `${process.env.NEW_DRIVE_URL}/storage/trash/file/${contentsId}`
     );
     if (result.status > 204) {
-      Logger.error('[FILE FILE SYSTEM] Hard delete failed with status:', result.status);
+      Logger.error(
+        '[FILE FILE SYSTEM] Hard delete failed with status:',
+        result.status
+      );
 
       throw new Error('Error when hard deleting file');
     }
