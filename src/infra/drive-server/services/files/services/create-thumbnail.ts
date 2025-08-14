@@ -1,4 +1,4 @@
-import { getNewApiHeaders } from 'src/apps/main/auth/service';
+import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import { components } from './../../../../schemas.d';
 import { Result } from './../../../../../context/shared/domain/Result';

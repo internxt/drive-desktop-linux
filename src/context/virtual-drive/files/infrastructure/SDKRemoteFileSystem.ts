@@ -14,7 +14,7 @@ import {
 import { createFile } from '../../../../infra/drive-server/services/files/services/create-file';
 import { FileError } from '../../../../infra/drive-server/services/files/file.error';
 import { moveFile } from '../../../../infra/drive-server/services/files/services/move-file';
-import { renameFile } from 'src/infra/drive-server/services/files/services/rename-file';
+import { renameFile } from '../../../../infra/drive-server/services/files/services/rename-file';
 
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {

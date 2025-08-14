@@ -1,6 +1,6 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import { components } from '@internxt/drive-desktop-core/build/backend/infra/drive-server-wip/schema';
-import { getNewApiHeaders } from 'src/apps/main/auth/service';
+import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { Result } from './../../../../../context/shared/domain/Result';
 import { FolderError } from '../folder.error';
 import fetch, { Response } from 'electron-fetch';

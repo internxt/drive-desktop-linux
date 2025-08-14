@@ -8,7 +8,7 @@ import { Environment } from '@internxt/inxt-js';
 import Logger from 'electron-log';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
-import { deleteFileFromStorageByFileId } from 'src/infra/drive-server/services/files/services/delete-file-content-from-bucket';
+import { deleteFileFromStorageByFileId } from '../../../../infra/drive-server/services/files/services/delete-file-content-from-bucket';
 
 @Service()
 export class EnvironmentLocalFileUploader implements LocalFileHandler {

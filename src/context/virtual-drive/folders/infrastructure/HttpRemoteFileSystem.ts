@@ -13,9 +13,9 @@ import {
 } from '../domain/file-systems/RemoteFileSystem';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
 import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
-import { FolderError } from 'src/infra/drive-server/services/folder/folder.error';
-import { renameFolder } from 'src/infra/drive-server/services/folder/services/rename-folder';
-import { moveFolder } from 'src/infra/drive-server/services/folder/services/move-folder';
+import { FolderError } from '../../../../infra/drive-server/services/folder/folder.error';
+import { renameFolder } from '../../../../infra/drive-server/services/folder/services/rename-folder';
+import { moveFolder } from '../../../../infra/drive-server/services/folder/services/move-folder';
 
 type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
 

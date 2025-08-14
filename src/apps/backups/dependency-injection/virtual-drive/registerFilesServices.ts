@@ -7,9 +7,8 @@ import crypt from '../../../../context/shared/infrastructure/crypt';
 import { SDKRemoteFileSystem } from '../../../../context/virtual-drive/files/infrastructure/SDKRemoteFileSystem';
 import { AuthorizedClients } from '../../../shared/HttpClient/Clients';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
-import { ParentFolderFinder } from './../../../../context/virtual-drive/folders/application/ParentFolderFinder';
 
-export async function registerFilesServices(builder: ContainerBuilder) {
+export function registerFilesServices(builder: ContainerBuilder) {
   // Infra
   const user = DependencyInjectionUserProvider.get();
 
@@ -25,8 +24,6 @@ export async function registerFilesServices(builder: ContainerBuilder) {
     )
     .private();
 
-  // Services
-  builder.registerAndUse(ParentFolderFinder);
   builder.registerAndUse(SimpleFileCreator);
   builder.registerAndUse(FileDeleter);
   builder.registerAndUse(SimpleFileOverrider);
