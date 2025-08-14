@@ -68,7 +68,7 @@ export class BackupService {
       Logger.info('[BACKUPS] Local tree generated successfully');
 
       Logger.info('[BACKUPS] Generating remote tree');
-      const remote = await this.remoteTreeBuilder.run(info.folderId);
+      const remote = await this.remoteTreeBuilder.run(info.folderId, info.folderUuid);
       Logger.info('[BACKUPS] Remote tree generated successfully');
 
       Logger.info('[BACKUPS] Calculating folder differences');

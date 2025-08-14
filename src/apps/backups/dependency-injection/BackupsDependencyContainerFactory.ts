@@ -24,7 +24,7 @@ export class BackupsDependencyContainerFactory {
     const builder = await backgroundProcessSharedInfraBuilder();
     const user = DependencyInjectionUserProvider.get();
 
-    await registerFilesServices(builder);
+    registerFilesServices(builder);
     registerFolderServices(builder);
     registerRemoteTreeServices(builder);
 
