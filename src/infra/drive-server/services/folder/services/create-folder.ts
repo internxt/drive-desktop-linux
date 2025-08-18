@@ -1,9 +1,9 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import { components } from '@internxt/drive-desktop-core/build/backend/infra/drive-server-wip/schema';
-import { getNewApiHeaders } from 'src/apps/main/auth/service';
-import { Result } from 'src/context/shared/domain/Result';
+import { Result } from './../../../../../context/shared/domain/Result';
 import { FolderError } from '../folder.error';
-import fetch from 'electron-fetch';
+import fetch, { Response } from 'electron-fetch';
+import { getNewApiHeadersIPC } from '../../../../ipc/get-new-api-headers-ipc';
 
 function errorHandler(response: Response): { error: FolderError } {
   if (response.status === 409) {
@@ -34,9 +34,10 @@ export async function createFolder(
   plainName: string
 ): Promise<Result<components['schemas']['FolderDto'], FolderError>> {
   try {
-    const response = await fetch('/folders', {
+    const headers = await getNewApiHeadersIPC();
+    const response = await fetch(`${process.env.NEW_DRIVE_URL}/folders`, {
       method: 'POST',
-      headers: getNewApiHeaders(),
+      headers,
       body: JSON.stringify({
         parentFolderUuid: deviceUuid,
         plainName,

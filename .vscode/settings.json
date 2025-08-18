@@ -43,5 +43,6 @@
 	"jest.rootPath": ".",
 	"jest.runMode": "on-demand",
 	"jest.testMatch": ["<rootDir>/src/**/*.test.ts", "<rootDir>/src/**/*.spec.ts"],
-	"jest.disabledWorkspaceFolders": []
+	"jest.disabledWorkspaceFolders": [],
+	"debug.node.autoAttach": "on"
 }

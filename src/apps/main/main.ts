@@ -19,6 +19,8 @@ import './virtual-root-folder/handlers';
 import './auto-launch/handlers';
 import './bug-report/handlers';
 import './auth/handlers';
+import '../../infra/ipc/files-ipc-handlers';
+import '../../infra/ipc/folders-ipc-handlers';
 import './windows/settings';
 import './windows/process-issues';
 import './windows';
@@ -144,9 +146,9 @@ eventBus.on('WIDGET_IS_READY', () => {
   setUpBackups();
 
   try {
-    logger.debug({ msg: '[Main] Setting up antivirus IPC handlers'});
+    logger.debug({ msg: '[Main] Setting up antivirus IPC handlers' });
     setupAntivirusIpc();
-    logger.debug({ msg: '[Main] Antivirus IPC handlers setup complete'});
+    logger.debug({ msg: '[Main] Antivirus IPC handlers setup complete' });
     void getAntivirusManager().initialize();
   } catch (error) {
     logger.error({ msg: '[Main] Error setting up antivirus:', error });
@@ -186,7 +188,10 @@ eventBus.on('USER_LOGGED_IN', async () => {
 
     void getAntivirusManager().initialize();
   } catch (error) {
-    logger.error({ msg: 'Error on main process while handling USER_LOGGED_IN event:', error });
+    logger.error({
+      msg: 'Error on main process while handling USER_LOGGED_IN event:',
+      error,
+    });
     reportError(error as Error);
   }
 });
@@ -217,7 +222,7 @@ process.on('uncaughtException', (error) => {
   if (error.name === 'AbortError') {
     logger.debug({ msg: 'Fetch request was aborted' });
   } else {
-    logger.error({ msg: 'Uncaught exception in main process: ', error});
+    logger.error({ msg: 'Uncaught exception in main process: ', error });
   }
 });
 

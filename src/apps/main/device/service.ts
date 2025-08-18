@@ -79,7 +79,7 @@ async function postBackup(name: string): Promise<Backup> {
   if (createBackupResponse.data) {
     const backup: Backup = {
       id: createBackupResponse.data.id,
-      name: createBackupResponse.data.name,
+      name: createBackupResponse.data.plainName,
       uuid: createBackupResponse.data.uuid,
     };
     return backup;
@@ -138,7 +138,7 @@ export async function addBackup(): Promise<void> {
   if (folderStillExists) {
     const updatedBackupList = configStore.get('backupList');
     updatedBackupList[chosenPath].enabled = true;
-    configStore.set('backupList', backupList);
+    configStore.set('backupList', updatedBackupList);
   } else {
     return createBackup(chosenPath);
   }

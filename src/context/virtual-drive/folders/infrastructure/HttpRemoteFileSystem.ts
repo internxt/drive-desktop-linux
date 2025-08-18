@@ -12,10 +12,12 @@ import {
   RemoteFileSystemErrors,
 } from '../domain/file-systems/RemoteFileSystem';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
-import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
-import { FolderError } from 'src/infra/drive-server/services/folder/folder.error';
-import { renameFolder } from 'src/infra/drive-server/services/folder/services/rename-folder';
-import { moveFolder } from 'src/infra/drive-server/services/folder/services/move-folder';
+import { FolderError } from '../../../../infra/drive-server/services/folder/folder.error';
+import {
+  createFolderIPC,
+  moveFolderIPC,
+  renameFolderIPC,
+} from '../../../../infra/ipc/folders-ipc';
 
 type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
 
@@ -66,13 +68,17 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
       path: folderPath.value,
     });
   }
+
   async persist(
     plainName: string,
     parentFolderUuid: string,
     attempt = 0
   ): Promise<Either<RemoteFileSystemErrors, FolderPersistedDto>> {
     try {
-      const { data, error } = await createFolder(parentFolderUuid, plainName);
+      const { data, error } = await createFolderIPC(
+        parentFolderUuid,
+        plainName
+      );
       if (data) {
         return right(mapToFolderPersistedDto(data));
       }
@@ -118,7 +124,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
   }
 
   async rename(folder: Folder): Promise<void> {
-    const response = await renameFolder(folder.uuid, folder.name);
+    const response = await renameFolderIPC(folder.uuid, folder.name);
 
     if (response.error) {
       throw new Error(
@@ -128,7 +134,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
   }
 
   async move(folderUuid: string, destinationFolderUuid: string): Promise<void> {
-    const response = await moveFolder(folderUuid, destinationFolderUuid);
+    const response = await moveFolderIPC(folderUuid, destinationFolderUuid);
 
     if (response.error) {
       throw new Error(
