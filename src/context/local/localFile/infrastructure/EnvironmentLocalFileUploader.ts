@@ -8,7 +8,7 @@ import { Environment } from '@internxt/inxt-js';
 import Logger from 'electron-log';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
-import { deleteFileFromStorageByFileId } from '../../../../infra/drive-server/services/files/services/delete-file-content-from-bucket';
+import { deleteFileContentIPC } from '../../../../infra/ipc/files-ipc';
 
 @Service()
 export class EnvironmentLocalFileUploader implements LocalFileHandler {
@@ -66,7 +66,7 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
 
   async delete(contentsId: string): Promise<void> {
     try {
-      await deleteFileFromStorageByFileId({
+      await deleteFileContentIPC({
         bucketId: this.bucket,
         fileId: contentsId,
       });
