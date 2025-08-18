@@ -1,0 +1,59 @@
+import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
+import { components } from '@internxt/drive-desktop-core/build/backend/infra/drive-server-wip/schema';
+import { getNewApiHeaders } from 'src/apps/main/auth/service';
+import { Result } from 'src/context/shared/domain/Result';
+import { FolderError } from '../folder.error';
+import fetch from 'electron-fetch';
+
+function errorHandler(response: Response): { error: FolderError } {
+  if (response.status === 409) {
+    return {
+      error: new FolderError('FOLDER_ALREADY_EXISTS'),
+    };
+  }
+  if (response.status >= 500) {
+    return {
+      error: new FolderError('SERVER_ERROR'),
+    };
+  }
+  if (response.status === 401 || response.status === 403) {
+    return {
+      error: new FolderError('NO_PERMISSION'),
+    };
+  }
+  if (response.status >= 400) {
+    return {
+      error: new FolderError('BAD_REQUEST'),
+    };
+  }
+  return { error: new FolderError('UNKNOWN') };
+}
+
+export async function createFolder(
+  deviceUuid: string,
+  plainName: string
+): Promise<Result<components['schemas']['FolderDto'], FolderError>> {
+  try {
+    const response = await fetch('/folders', {
+      method: 'POST',
+      headers: getNewApiHeaders(),
+      body: JSON.stringify({
+        parentFolderUuid: deviceUuid,
+        plainName,
+      }),
+    });
+    if (response.ok) {
+      const data: components['schemas']['FolderDto'] = await response.json();
+      return { data };
+    }
+    return errorHandler(response);
+  } catch (error) {
+    logger.error({
+      msg: 'error creating a folder',
+      error,
+    });
+    return {
+      error: new FolderError('UNKNOWN'),
+    };
+  }
+}
