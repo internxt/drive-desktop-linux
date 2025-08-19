@@ -120,7 +120,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     await renameFileIPC({
       plainName: file.name,
       type: file.type,
-      folderUuid: file.uuid,
+      fileUuid: file.uuid,
     });
   }
 

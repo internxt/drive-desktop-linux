@@ -9,18 +9,18 @@ import { getNewApiHeadersIPC } from '../../../../ipc/get-new-api-headers-ipc';
 export async function renameFile({
   plainName,
   type,
-  folderUuid,
+  fileUuid,
 }: {
   plainName: string;
   type: string;
-  folderUuid: string;
+  fileUuid: string;
 }): Promise<Result<components['schemas']['FileDto'], FileError>> {
   try {
     const headers = await getNewApiHeadersIPC();
     const response = await fetch(
-      `${process.env.NEW_DRIVE_URL}/files/${folderUuid}/meta`,
+      `${process.env.NEW_DRIVE_URL}/files/${fileUuid}/meta`,
       {
-        method: 'PATCH',
+        method: 'PUT',
         headers,
         body: JSON.stringify({
           plainName,

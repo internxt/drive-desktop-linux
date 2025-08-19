@@ -51,7 +51,7 @@ export async function moveFileIPC(params: {
 export async function renameFileIPC(params: {
   plainName: string;
   type: string;
-  folderUuid: string;
+  fileUuid: string;
 }): Promise<Result<components['schemas']['FileDto'], FileError>> {
   if (isMainProcess) {
     const { renameFile } = await import(
