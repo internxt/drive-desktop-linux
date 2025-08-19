@@ -19,12 +19,14 @@ import './virtual-root-folder/handlers';
 import './auto-launch/handlers';
 import './bug-report/handlers';
 import './auth/handlers';
+import '../../infra/ipc/files-ipc-handlers';
+import '../../infra/ipc/folders-ipc-handlers';
 import './windows/settings';
 import './windows/process-issues';
 import './windows';
 import './issues/virtual-drive';
 import './device/handlers';
-import './usage/handlers';
+import './../../backend/features/usage/handlers/handlers';
 import './realtime';
 import './tray/tray';
 import './tray/handlers';
@@ -178,7 +180,10 @@ eventBus.on('USER_LOGGED_IN', async () => {
 
     await trySetupAntivirusIpcAndInitialize();
   } catch (error) {
-    logger.error({ msg: 'Error on main process while handling USER_LOGGED_IN event:', error });
+    logger.error({
+      msg: 'Error on main process while handling USER_LOGGED_IN event:',
+      error,
+    });
     reportError(error as Error);
   }
 });
@@ -209,7 +214,7 @@ process.on('uncaughtException', (error) => {
   if (error.name === 'AbortError') {
     logger.debug({ msg: 'Fetch request was aborted' });
   } else {
-    logger.error({ msg: 'Uncaught exception in main process: ', error});
+    logger.error({ msg: 'Uncaught exception in main process: ', error });
   }
 });
 

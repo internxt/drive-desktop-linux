@@ -1,3 +1,6 @@
+import { BackupInfo } from './../backups/BackupInfo';
+import { Usage } from '../../backend/features/usage/usage.types';
+import { Result } from './../../context/shared/domain/Result';
 import { AvailableProducts } from '@internxt/sdk/dist/drive/payments/types';
 import { Device } from './device/service';
 import {
@@ -18,6 +21,12 @@ export interface IElectronAPI {
   setBackupsInterval(value: number): Promise<void>;
 
   getOrCreateDevice: () => Promise<Device | Error>;
+
+  getBackupsFromDevice: (
+    device: Device,
+    isCurrent?: boolean
+  ) => Promise<Array<BackupInfo>>;
+
   renameDevice: (deviceName: string) => Promise<Device>;
   devices: {
     getDevices: () => Promise<Array<Device>>;
@@ -41,6 +50,7 @@ export interface IElectronAPI {
     warn: (rawBody: TLoggerBody) => void;
     error: (rawBody: TLoggerBody) => void;
   };
+  getUsage(): Promise<Result<Usage, Error>>;
 }
 
 declare global {

@@ -60,7 +60,8 @@ export class FileBatchUploader {
         contentsId,
         localFile.path,
         localFile.size,
-        parent.id
+        parent.id,
+        parent.uuid
       );
 
       if (either.isLeft()) {
