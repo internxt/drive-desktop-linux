@@ -1,9 +1,13 @@
 import fetch from 'electron-fetch';
-import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
+import { getNewApiHeadersIPC } from '../../../../../infra/ipc/get-new-api-headers-ipc';
 
-export function deleteFolder(folderId: number) {
+export async function deleteFolder(folderId: number) {
+  const headers = await getNewApiHeadersIPC();
   return fetch(`${process.env.NEW_DRIVE_URL}/storage/trash/${folderId}`, {
-    method: 'DELETE',
-    headers: getNewApiHeaders(),
+    method: 'POST',
+    headers,
+    body:  JSON.stringify({
+      items: [{ type: 'folder', id: folderId }],
+    }),
   });
 }
