@@ -70,6 +70,7 @@ import { registerAvailableUserProductsHandlers } from './payments/ipc/AvailableU
 import { getAntivirusManager } from './antivirus/antivirusManager';
 import { registerAuthIPCHandlers } from '../../infra/ipc/auth-ipc-handlers';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { trySetupAntivirusIpcAndInitialize } from './background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -144,15 +145,6 @@ app
 
 eventBus.on('WIDGET_IS_READY', () => {
   setUpBackups();
-
-  try {
-    logger.debug({ msg: '[Main] Setting up antivirus IPC handlers' });
-    setupAntivirusIpc();
-    logger.debug({ msg: '[Main] Antivirus IPC handlers setup complete' });
-    void getAntivirusManager().initialize();
-  } catch (error) {
-    logger.error({ msg: '[Main] Error setting up antivirus:', error });
-  }
 });
 
 eventBus.on('USER_LOGGED_IN', async () => {
@@ -186,7 +178,7 @@ eventBus.on('USER_LOGGED_IN', async () => {
 
     setCleanUpFunction(stopSyncEngineWatcher);
 
-    void getAntivirusManager().initialize();
+    await trySetupAntivirusIpcAndInitialize();
   } catch (error) {
     logger.error({
       msg: 'Error on main process while handling USER_LOGGED_IN event:',
