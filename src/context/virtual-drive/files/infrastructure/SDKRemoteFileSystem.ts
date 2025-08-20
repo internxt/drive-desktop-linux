@@ -12,8 +12,6 @@ import {
   RemoteFileSystem,
 } from '../domain/file-systems/RemoteFileSystem';
 import { createFileIPC, moveFileIPC, renameFileIPC } from '../../../../infra/ipc/files-ipc';
-import { FileError } from '../../../../infra/drive-server/services/files/file.error';
-
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
   constructor(
@@ -59,8 +57,9 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       };
       return right(result);
     }
-    if (response.error instanceof FileError) {
-      if (response.error.cause === 'BAD_REQUEST') {
+    if (response.error && typeof response.error === 'object' && 'cause' in response.error) {
+      const errorCause = (response.error as { cause: string }).cause;
+      if (errorCause === 'BAD_REQUEST') {
         return left(
           new DriveDesktopError(
             'BAD_REQUEST',
@@ -68,7 +67,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
           )
         );
       }
-      if (response.error.cause === 'FILE_ALREADY_EXISTS') {
+      if (errorCause === 'FILE_ALREADY_EXISTS') {
         return left(
           new DriveDesktopError(
             'FILE_ALREADY_EXISTS',
@@ -76,7 +75,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
           )
         );
       }
-      if (response.error.cause === 'SERVER_ERROR') {
+      if (errorCause === 'SERVER_ERROR') {
         return left(
           new DriveDesktopError(
             'BAD_RESPONSE',
