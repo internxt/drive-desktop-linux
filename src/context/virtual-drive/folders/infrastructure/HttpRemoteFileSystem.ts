@@ -74,34 +74,28 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
     parentFolderUuid: string,
     attempt = 0
   ): Promise<Either<RemoteFileSystemErrors, FolderPersistedDto>> {
-    try {
-      const { data, error } = await createFolderIPC(
-        parentFolderUuid,
-        plainName
-      );
-      if (data) {
-        return right(mapToFolderPersistedDto(data));
-      }
-      throw error;
-    } catch (err) {
-      if (err instanceof FolderError) {
-        if (err.cause === 'BAD_REQUEST' && attempt < this.maxRetries) {
-          Logger.debug('Folder Creation failed with code 400');
-          await new Promise((resolve) => {
-            setTimeout(resolve, 1_000);
-          });
-          Logger.debug('Retrying');
-          return this.persist(plainName, parentFolderUuid, attempt + 1);
-        }
-        if (err.cause === 'BAD_REQUEST') {
-          return left('WRONG_DATA');
-        }
-        if (err.cause === 'FOLDER_ALREADY_EXISTS') {
-          return left('ALREADY_EXISTS');
-        }
-      }
-      return left('UNHANDLED');
+    const { data, error } = await createFolderIPC(parentFolderUuid, plainName);
+    if (data) {
+      return right(mapToFolderPersistedDto(data));
     }
+    if (error && typeof error === 'object' && 'cause' in error) {
+      const errorCause = (error as { cause: string }).cause;
+      if (errorCause === 'BAD_REQUEST' && attempt < this.maxRetries) {
+        Logger.debug('Folder Creation failed with code 400');
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1_000);
+        });
+        Logger.debug('Retrying');
+        return this.persist(plainName, parentFolderUuid, attempt + 1);
+      }
+      if (errorCause === 'BAD_REQUEST') {
+        return left('WRONG_DATA');
+      }
+      if (errorCause === 'FOLDER_ALREADY_EXISTS') {
+        return left('ALREADY_EXISTS');
+      }
+    }
+    return left('UNHANDLED');
   }
 
   async trash(id: Folder['id']): Promise<void> {
