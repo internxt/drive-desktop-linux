@@ -5,7 +5,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import os from 'os';
 import path from 'path';
 import fs, { PathLike } from 'fs';
-import { getHeaders, getNewApiHeaders, getUser } from '../auth/service';
+import { getNewApiHeaders, getUser } from '../auth/service';
 import configStore from '../config';
 import { BackupInfo } from '../../backups/BackupInfo';
 import { downloadFolderAsZip } from '../network/download';

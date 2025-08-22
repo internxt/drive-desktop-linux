@@ -1,4 +1,4 @@
-import Logger from 'electron-log';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import nodeSchedule from 'node-schedule';
 
@@ -19,7 +19,7 @@ export class TokenScheduler {
 
       return decoded.exp || TokenScheduler.MAX_TIME;
     } catch (err) {
-      Logger.error('[TOKEN] Token could be not decoded');
+      logger.error({ msg: '[TOKEN] Token could be not decoded' });
 
       return TokenScheduler.MAX_TIME;
     }

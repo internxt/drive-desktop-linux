@@ -1,18 +1,20 @@
 import eventBus from '../event-bus';
 import { buildPaymentsService } from './builder';
-import Logger from 'electron-log';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { AvailableProducts } from '@internxt/sdk/dist/drive/payments/types';
 
 function areProductsEqual({
   stored,
-  fetched
+  fetched,
 }: {
   stored: AvailableProducts['featuresPerService'] | undefined;
   fetched: AvailableProducts['featuresPerService'];
 }): boolean {
   if (!stored) return false;
 
-  return stored.antivirus === fetched.antivirus && stored.backups === fetched.backups;
+  return (
+    stored.antivirus === fetched.antivirus && stored.backups === fetched.backups
+  );
 }
 
 export async function getUserAvailableProductsAndStore() {
@@ -26,7 +28,10 @@ export async function getUserAvailableProductsAndStore() {
       eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', fetched);
     }
   } catch (err) {
-    Logger.error(`[PRODUCTS] Failed to get user available products with error: ${err}`);
+    logger.error({
+      msg: '[PRODUCTS] Failed to get user available products with error',
+      error: err,
+    });
   }
 }
 
