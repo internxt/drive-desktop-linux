@@ -1,16 +1,20 @@
 import eventBus from '../event-bus';
 import { buildPaymentsService } from './builder';
-import Logger from 'electron-log';
 import { jest } from '@jest/globals';
 import { getUserAvailableProductsAndStore } from './handler';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 jest.mock('../event-bus', () => ({
   on: jest.fn(),
   emit: jest.fn(),
 }));
 
-jest.mock('electron-log', () => ({
-  error: jest.fn(),
+jest.mock('@internxt/drive-desktop-core/build/backend', () => ({
+  logger: {
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
 }));
 
 jest.mock('./builder', () => ({
@@ -86,9 +90,9 @@ describe('paymentServiceHandlers', () => {
 
       await getUserAvailableProductsAndStore();
 
-      expect(Logger.error).toHaveBeenCalledWith(
-        `[PRODUCTS] Failed to get user available products with error: ${error}`
-      );
+      expect(logger.error).toHaveBeenCalledWith({
+        msg: `[PRODUCTS] Failed to get user available products with error: ${error}`
+      });
     });
   });
 
