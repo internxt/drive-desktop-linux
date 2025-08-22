@@ -12,11 +12,11 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 export class SimpleFolderCreator {
   constructor(private readonly rfs: RemoteFileSystem) {}
 
-  async run(path: string, parentId: number): Promise<Folder> {
+  async run(path: string, parentId: number, parentUuid: string): Promise<Folder> {
     const folderPath = new FolderPath(path);
     const folderParentId = new FolderId(parentId);
 
-    const response = await this.rfs.persist(folderPath, folderParentId);
+    const response = await this.rfs.persist(folderPath.name(), parentUuid);
 
     const folder = await response.fold<Promise<Folder | undefined>>(
       async (error): Promise<Folder | undefined> => {

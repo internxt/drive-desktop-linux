@@ -6,7 +6,7 @@ import { File } from '../../../context/virtual-drive/files/domain/File';
 import { RemoteTree } from '../../../context/virtual-drive/remoteTree/domain/RemoteTree';
 import { relative } from '../utils/relative';
 import configStore from '../../main/config';
-import { logger } from '../utils/logger';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 export type FilesDiff = {
   added: Array<LocalFile>;
