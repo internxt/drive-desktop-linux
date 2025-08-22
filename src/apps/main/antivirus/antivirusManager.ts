@@ -155,7 +155,7 @@ export class AntivirusManager {
   ): Promise<void> {
     try {
       const isAntivirusEnabled = !!(products && products.antivirus);
-      
+
       // Only proceed if antivirus state has actually changed
       if (this.lastAntivirusState === isAntivirusEnabled) {
         return;

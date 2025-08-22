@@ -284,5 +284,6 @@ declare interface Window {
     };
 
     login(email: string): Promise<AuthLoginResponseViewModel>;
+    
   };
 }
