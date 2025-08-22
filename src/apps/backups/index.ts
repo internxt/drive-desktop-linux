@@ -4,7 +4,7 @@ import { BackupInfo } from './BackupInfo';
 import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 import { BackupsDependencyContainerFactory } from './dependency-injection/BackupsDependencyContainerFactory';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
-import { logger } from './utils/logger';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 function handleAbortAndOfflineEvents(
   abortController: AbortController,

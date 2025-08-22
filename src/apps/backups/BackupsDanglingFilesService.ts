@@ -2,7 +2,7 @@ import { Service } from 'diod';
 import { LocalFile } from '../../context/local/localFile/domain/LocalFile';
 import { File } from '../../context/virtual-drive/files/domain/File';
 import { StorageFileService } from '../../context/storage/StorageFiles/StorageFileService';
-import { logger } from './utils/logger';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 @Service()
 export class BackupsDanglingFilesService {
