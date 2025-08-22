@@ -1,5 +1,4 @@
 import { Service } from 'diod';
-import { logger } from './utils/logger';
 import { FileBatchUpdater } from '../../context/local/localFile/application/update/FileBatchUpdater';
 import { FileBatchUploader } from '../../context/local/localFile/application/upload/FileBatchUploader';
 import { LocalFile } from '../../context/local/localFile/domain/LocalFile';
@@ -25,11 +24,12 @@ import {
 } from './diff/FoldersDiffCalculator';
 import { relative } from './utils/relative';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
-import { UserAvaliableSpaceValidator } from '../../context/user/usage/application/UserAvaliableSpaceValidator';
 import { Either, left, right } from '../../context/shared/domain/Either';
 import { RetryOptions } from '../shared/retry/types';
 import { RetryHandler } from '../shared/retry/RetryHandler';
 import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
+import { UsageModule } from  '../../backend/features/usage/usage.module';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 @Service()
 export class BackupService {
@@ -40,7 +40,6 @@ export class BackupService {
     private readonly fileBatchUpdater: FileBatchUpdater,
     private readonly remoteFileDeleter: FileDeleter,
     private readonly simpleFolderCreator: SimpleFolderCreator,
-    private readonly userAvaliableSpaceValidator: UserAvaliableSpaceValidator,
     private readonly backupsDanglingFilesService: BackupsDanglingFilesService
   ) {}
 
@@ -69,7 +68,7 @@ export class BackupService {
       logger.debug({ tag: 'BACKUPS', msg: 'Local tree generated successfully' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Generating remote tree' });
-      const remote = await this.remoteTreeBuilder.run(info.folderId);
+      const remote = await this.remoteTreeBuilder.run(info.folderId, info.folderUuid);
       logger.debug({ tag: 'BACKUPS', msg: 'Remote tree generated successfully' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Calculating folder differences' });
@@ -174,14 +173,17 @@ export class BackupService {
 
     const total = bytesToUpdate + bytesToUpload;
 
-    const thereIsEnoughSpace = await this.userAvaliableSpaceValidator.run(
-      total
-    );
-
-    if (!thereIsEnoughSpace) {
+    const validateSpaceResult = await UsageModule.validateSpace(total);
+    if (validateSpaceResult.error) {
+      throw new DriveDesktopError(
+        'BAD_RESPONSE',
+        validateSpaceResult.error.message
+      );
+    }
+    if (validateSpaceResult.data.hasSpace === false) {
       throw new DriveDesktopError(
         'NOT_ENOUGH_SPACE',
-        'The size of the files to upload is greater than the avaliable space'
+        'The size of the files to upload is greater than the available space'
       );
     }
   }
@@ -211,7 +213,8 @@ export class BackupService {
       // eslint-disable-next-line no-await-in-loop
       const folder = await this.simpleFolderCreator.run(
         relative(local.root.path, localFolder.path),
-        parent.id
+        parent.id,
+        parent.uuid
       );
 
       remote.addFolder(parent, folder);

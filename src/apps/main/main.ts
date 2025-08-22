@@ -19,12 +19,14 @@ import './virtual-root-folder/handlers';
 import './auto-launch/handlers';
 import './bug-report/handlers';
 import './auth/handlers';
+import '../../infra/ipc/files-ipc-handlers';
+import '../../infra/ipc/folders-ipc-handlers';
 import './windows/settings';
 import './windows/process-issues';
 import './windows';
 import './issues/virtual-drive';
 import './device/handlers';
-import './usage/handlers';
+import './../../backend/features/usage/handlers/handlers';
 import './realtime';
 import './tray/tray';
 import './tray/handlers';
@@ -63,11 +65,11 @@ import { installNautilusExtension } from './nautilus-extension/install';
 import { uninstallNautilusExtension } from './nautilus-extension/uninstall';
 import { setUpBackups } from './background-processes/backups/setUpBackups';
 import dns from 'node:dns';
-import { setupAntivirusIpc } from './background-processes/antivirus/setupAntivirusIPC';
 import { registerAvailableUserProductsHandlers } from './payments/ipc/AvailableUserProductsIPCHandler';
 import { getAntivirusManager } from './antivirus/antivirusManager';
 import { registerAuthIPCHandlers } from '../../infra/ipc/auth-ipc-handlers';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { trySetupAntivirusIpcAndInitialize } from './background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -142,15 +144,6 @@ app
 
 eventBus.on('WIDGET_IS_READY', () => {
   setUpBackups();
-
-  try {
-    logger.debug({ msg: '[Main] Setting up antivirus IPC handlers'});
-    setupAntivirusIpc();
-    logger.debug({ msg: '[Main] Antivirus IPC handlers setup complete'});
-    void getAntivirusManager().initialize();
-  } catch (error) {
-    logger.error({ msg: '[Main] Error setting up antivirus:', error });
-  }
 });
 
 eventBus.on('USER_LOGGED_IN', async () => {
@@ -184,9 +177,12 @@ eventBus.on('USER_LOGGED_IN', async () => {
 
     setCleanUpFunction(stopSyncEngineWatcher);
 
-    void getAntivirusManager().initialize();
+    await trySetupAntivirusIpcAndInitialize();
   } catch (error) {
-    logger.error({ msg: 'Error on main process while handling USER_LOGGED_IN event:', error });
+    logger.error({
+      msg: 'Error on main process while handling USER_LOGGED_IN event:',
+      error,
+    });
     reportError(error as Error);
   }
 });
@@ -217,7 +213,7 @@ process.on('uncaughtException', (error) => {
   if (error.name === 'AbortError') {
     logger.debug({ msg: 'Fetch request was aborted' });
   } else {
-    logger.error({ msg: 'Uncaught exception in main process: ', error});
+    logger.error({ msg: 'Uncaught exception in main process: ', error });
   }
 });
 
