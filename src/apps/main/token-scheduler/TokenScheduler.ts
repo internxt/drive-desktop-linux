@@ -50,13 +50,13 @@ export class TokenScheduler {
     const expiration = this.nearestExpiration();
 
     if (expiration === TokenScheduler.MAX_TIME) {
-      Logger.warn('[TOKEN] Refresh token schedule will not be set');
+      logger.warn({ msg: '[TOKEN] Refresh token schedule will not be set' });
 
       return;
     }
 
     if (expiration >= Date.now()) {
-      Logger.warn('[TOKEN] TOKEN IS EXPIRED');
+      logger.warn({ msg: '[TOKEN] TOKEN IS EXPIRED' });
       this.unauthorized();
 
       return;
@@ -64,10 +64,10 @@ export class TokenScheduler {
 
     const renewDate = this.calculateRenewDate(expiration);
 
-    Logger.info(
-      '[TOKEN] Tokens will be refreshed on ',
-      renewDate.toLocaleDateString()
-    );
+    logger.debug({
+      msg: '[TOKEN] Tokens will be refreshed on ',
+      renewDate: renewDate.toLocaleDateString(),
+    });
 
     return nodeSchedule.scheduleJob(renewDate, refreshCallback);
   }

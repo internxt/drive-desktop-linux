@@ -65,7 +65,7 @@ export class FileBatchUploader {
       );
 
       if (either.isLeft()) {
-        logger.debug({ msg: '[FILE CREATION FAILED]', either.getLeft() });
+        logger.debug({ msg: '[FILE CREATION FAILED]', error: either.getLeft() });
         // eslint-disable-next-line no-await-in-loop
         await this.localHandler.delete(contentsId);
         const error = either.getLeft();
