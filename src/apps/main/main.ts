@@ -39,7 +39,6 @@ import './config/handlers';
 import './app-info/handlers';
 import './remote-sync/handlers';
 import './virtual-drive';
-import './payments/handler';
 
 import { app, nativeTheme, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
@@ -65,7 +64,7 @@ import { installNautilusExtension } from './nautilus-extension/install';
 import { uninstallNautilusExtension } from './nautilus-extension/uninstall';
 import { setUpBackups } from './background-processes/backups/setUpBackups';
 import dns from 'node:dns';
-import { registerAvailableUserProductsHandlers } from './payments/ipc/AvailableUserProductsIPCHandler';
+import { registerAvailableUserProductsHandlers } from '../../backend/features/payments/ipc/AvailableUserProductsIPCHandler';
 import { getAntivirusManager } from './antivirus/antivirusManager';
 import { registerAuthIPCHandlers } from '../../infra/ipc/auth-ipc-handlers';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
