@@ -1,9 +1,9 @@
-import { AvailableProducts } from '@internxt/sdk/dist/drive/payments/types';
+import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 
 export type RendererProcessAvailableUserProductsMessages = {
   /**
    * gets the updated available user products
    * @param products
    */
-  'available-user-products-updated': (products: AvailableProducts['featuresPerService']) => void
-}
+  'available-user-products-updated': (products: UserAvailableProducts) => void;
+};

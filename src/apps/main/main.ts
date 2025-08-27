@@ -64,7 +64,7 @@ import { installNautilusExtension } from './nautilus-extension/install';
 import { uninstallNautilusExtension } from './nautilus-extension/uninstall';
 import { setUpBackups } from './background-processes/backups/setUpBackups';
 import dns from 'node:dns';
-import { registerAvailableUserProductsHandlers } from '../../backend/features/payments/ipc/AvailableUserProductsIPCHandler';
+import { registerAvailableUserProductsHandlers } from '../../backend/features/payments/ipc/register-available-user-products-handlers';
 import { getAntivirusManager } from './antivirus/antivirusManager';
 import { registerAuthIPCHandlers } from '../../infra/ipc/auth-ipc-handlers';
 import { logger } from '@internxt/drive-desktop-core/build/backend';

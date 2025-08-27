@@ -1,6 +1,6 @@
 import { onUserUnauthorized } from '../../../../apps/shared/HttpClient/background-process-clients';
 import {
-  getUserAvailableProductsAndCallback,
+  getUserAvailableProducts,
   UserAvailableProducts,
 } from '@internxt/drive-desktop-core/build/backend';
 
@@ -9,13 +9,12 @@ import { obtainToken } from '../../../../apps/main/auth/service';
 import configStore from '../../../../apps/main/config';
 import eventBus from '../../../../apps/main/event-bus';
 import { getStoredUserProducts } from './get-stored-user-products';
+import { areProductsEqual } from './are-products-equal';
 
 function storeProductsAndEmitEvent(fetchedProducts: UserAvailableProducts) {
   configStore.set('availableUserProducts', fetchedProducts);
   eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', fetchedProducts);
 }
-
-
 
 export async function getUserAvailableProductsAndStore() {
   const storedProducts = getStoredUserProducts();
@@ -27,9 +26,13 @@ export async function getUserAvailableProductsAndStore() {
     token: obtainToken('newToken'),
     unauthorizedCallback: onUserUnauthorized,
   };
-  await getUserAvailableProductsAndCallback({
-    storedProducts,
+  const userProducts = await getUserAvailableProducts({
     paymentsClientConfig,
-    callbackOnProductsNotEqual: storeProductsAndEmitEvent,
   });
+  if (
+    userProducts &&
+    areProductsEqual({ stored: storedProducts, fetched: userProducts })
+  ) {
+    storeProductsAndEmitEvent(userProducts);
+  }
 }
