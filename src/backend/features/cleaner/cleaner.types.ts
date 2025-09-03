@@ -26,3 +26,9 @@ export type CleanerReport = {
   /** Web browser cache */
   webCache: CleanerSection;
 };
+
+export type LogFilesPaths = {
+  localShareLogs: string;
+  xsessionErrorsFile: string;
+  varLogDir: string;
+};
