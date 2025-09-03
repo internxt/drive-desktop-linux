@@ -1,0 +1,104 @@
+import { Dirent } from 'fs';
+import { processDirent } from './process-dirent';
+import { wasAccessedWithinLastHour } from './utils/was-accessed-within-last-hour';
+import { createCleanableItem } from './utils/create-cleanable-item';
+import { scanDirectory } from './scan-directory';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
+
+jest.mock('./utils/get-last-access-time');
+jest.mock('./utils/create-cleanable-item');
+jest.mock('./scan-directory');
+jest.mock('@internxt/drive-desktop-core/build/backend', () => ({
+  logger: {
+    warn: jest.fn(),
+  },
+}));
+
+describe('processDirent', () => {
+  const mockedWasAccessedWithinLastHour = jest.mocked(
+    wasAccessedWithinLastHour
+  );
+  const mockedCreateCleanableItem = jest.mocked(createCleanableItem);
+  const mockedScanDirectory = jest.mocked(scanDirectory);
+  const mockedLogger = jest.mocked(logger);
+  const mockBasePath = '/test';
+  const mockFileName = 'test.txt';
+  const mockFullpath = `${mockBasePath}/${mockFileName}`;
+  const createMockDirent = (name: string, isFile = true): Dirent =>
+    ({
+      name,
+      isFile: () => isFile,
+      isDirectory: () => !isFile,
+    } as Dirent);
+
+  const mockFileDirent = createMockDirent(mockFileName);
+  const mockCleanableItem = {
+    fullPath: mockFullpath,
+    fileName: mockFileName,
+    sizeInBytes: 1024,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedWasAccessedWithinLastHour.mockResolvedValue(false);
+  });
+
+  it('should process file and return CleanableItem when file is safe to delete', async () => {
+    mockedCreateCleanableItem.mockResolvedValue(mockCleanableItem);
+    const result = await processDirent(mockFileDirent, mockFullpath);
+
+    expect(result).toStrictEqual([mockCleanableItem]);
+    expect(mockedWasAccessedWithinLastHour).toHaveBeenCalledWith(mockFullpath);
+    expect(mockedCreateCleanableItem).toHaveBeenCalledWith(mockFullpath);
+  });
+
+  it('should return empty array when file was accessed within last hour', async () => {
+    mockedWasAccessedWithinLastHour.mockResolvedValue(true);
+
+    const result = await processDirent(mockFileDirent, mockFullpath);
+
+    expect(result).toStrictEqual([]);
+    expect(mockedCreateCleanableItem).not.toHaveBeenCalled();
+  });
+
+  it('should return empty array when custom filter excludes file', async () => {
+    const customFilter = jest.fn().mockReturnValue(true); // true means skip
+    mockedWasAccessedWithinLastHour.mockResolvedValue(false);
+    const result = await processDirent(
+      mockFileDirent,
+      mockFullpath,
+      customFilter
+    );
+
+    expect(result).toStrictEqual([]);
+    expect(customFilter).toHaveBeenCalledWith(mockFileDirent, mockFullpath);
+    expect(mockedCreateCleanableItem).not.toHaveBeenCalled();
+  });
+
+  it('should process directory by calling scanDirectory', async () => {
+    const mockDir = createMockDirent('subdir', false);
+    const mockPath = '/test/subdir';
+    const mockDirectoryItems = [mockCleanableItem];
+
+    mockedScanDirectory.mockResolvedValue(mockDirectoryItems);
+
+    const result = await processDirent(mockDir, mockPath);
+
+    expect(result).toStrictEqual(mockDirectoryItems);
+    expect(mockedScanDirectory).toHaveBeenCalledWith(mockPath, undefined);
+    expect(mockedWasAccessedWithinLastHour).not.toHaveBeenCalled();
+  });
+
+  it('should handle errors gracefully and log warning', async () => {
+    mockedWasAccessedWithinLastHour.mockRejectedValue(
+      new Error('Permission denied')
+    );
+
+    const result = await processDirent(mockFileDirent, mockFullpath);
+
+    expect(result).toStrictEqual([]);
+    expect(mockedLogger.warn).toHaveBeenCalledWith({
+      msg: `File or Directory with path ${mockFullpath} cannot be accessed, skipping`,
+    });
+  });
+});
