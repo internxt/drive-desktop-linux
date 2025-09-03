@@ -1,20 +1,25 @@
 import { CleanableItem } from './cleaner.types';
-import { Dirent, promises as fs } from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 import { isInternxtRelated } from './utils/is-file-internxt-related';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { processDirent } from './process-dirent';
 
+type ScanDirectoryProps = {
+  dirPath: string;
+  customFileFilter?: (fileName: string) => boolean;
+};
+
 /**
  * scan a directory and process the result dirents (directory or file entries)
  * @param dirPath Directory path to scan
- * @param direntCustomFilter Optional custom filter function to apply to files.
- *  Return true to skip the file, false to include it.
+ *  @param customFileFilter Optional custom filter function to apply to files.
+ *  Return true to skip the directory, false to include it.
  */
-export async function scanDirectory(
-  dirPath: string,
-  direntCustomFilter?: (entry: Dirent, fullPath: string) => boolean
-): Promise<CleanableItem[]> {
+export async function scanDirectory({
+  dirPath,
+  customFileFilter,
+}: ScanDirectoryProps): Promise<CleanableItem[]> {
   try {
     const stat = await fs.stat(dirPath);
     if (!stat.isDirectory()) {
@@ -27,11 +32,11 @@ export async function scanDirectory(
     for (const dirent of dirents) {
       const fullPath = path.join(dirPath, dirent.name);
       if (!isInternxtRelated(fullPath)) {
-        const cleanableItems = await processDirent(
-          dirent,
+        const cleanableItems = await processDirent({
+          entry: dirent,
           fullPath,
-          direntCustomFilter
-        );
+          customFileFilter,
+        });
         items.push(...cleanableItems);
       }
     }

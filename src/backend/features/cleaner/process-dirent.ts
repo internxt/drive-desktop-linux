@@ -4,20 +4,25 @@ import { wasAccessedWithinLastHour } from './utils/was-accessed-within-last-hour
 import { createCleanableItem } from './utils/create-cleanable-item';
 import { scanDirectory } from './scan-directory';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-
+type ProcessDirentProps = {
+  entry: Dirent;
+  fullPath: string;
+  customDirectoryFilter?: (directoryName: string) => boolean;
+  customFileFilter?: (fileName: string) => boolean;
+};
 /**
  * Process a single directory entry (file or subdirectory)
  */
-export async function processDirent(
-  entry: Dirent,
-  fullPath: string,
-  customFilter?: (entry: Dirent, fullPath: string) => boolean
-): Promise<CleanableItem[]> {
+export async function processDirent({
+  entry,
+  fullPath,
+  customFileFilter,
+}: ProcessDirentProps): Promise<CleanableItem[]> {
   try {
     if (entry.isFile()) {
       if (
         (await wasAccessedWithinLastHour(fullPath)) ||
-        (customFilter && customFilter(entry, fullPath))
+        (customFileFilter && customFileFilter(entry.name))
       ) {
         return [];
       }
@@ -25,7 +30,10 @@ export async function processDirent(
       const item = await createCleanableItem(fullPath);
       return [item];
     } else if (entry.isDirectory()) {
-      return await scanDirectory(fullPath, customFilter);
+      return await scanDirectory({
+        dirPath: fullPath,
+        customFileFilter,
+      });
     }
   } catch (error) {
     logger.warn({

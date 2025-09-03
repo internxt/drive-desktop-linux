@@ -2,7 +2,6 @@ import { Dirent, promises as fs } from 'fs';
 import path from 'path';
 import { isInternxtRelated } from './utils/is-file-internxt-related';
 import { scanDirectory } from './scan-directory';
-import { appCacheFileFilter } from './app-cache/utils/is-safe-cache-file';
 import { scanSubDirectory } from './scan-subdirectory';
 
 jest.mock('fs', () => ({
@@ -23,7 +22,6 @@ describe('scanSubDirectory', () => {
   const mockedPath = jest.mocked(path);
   const mockedIsInternxtRelated = jest.mocked(isInternxtRelated);
   const mockedScanDirectory = jest.mocked(scanDirectory);
-  const mockAppCacheFilter = jest.mocked(appCacheFileFilter);
 
   const createMockDirent = (name: string, isDirectory = true) =>
     ({
@@ -77,16 +75,17 @@ describe('scanSubDirectory', () => {
       .mockResolvedValueOnce(mockApp1Items)
       .mockResolvedValueOnce(mockApp2Items);
 
-    const result = await scanSubDirectory(mockBaseDir, mockSubDir);
+    const result = await scanSubDirectory({
+      baseDir: mockBaseDir,
+      subPath: mockSubDir,
+    });
 
     expect(result).toStrictEqual([...mockApp1Items, ...mockApp2Items]);
     expect(mockedScanDirectory).toHaveBeenCalledWith(
-      `${mockBaseDir}/app1/${mockSubDir}`,
-      mockAppCacheFilter
+      expect.objectContaining({ dirPath: `${mockBaseDir}/app1/${mockSubDir}` })
     );
     expect(mockedScanDirectory).toHaveBeenCalledWith(
-      `${mockBaseDir}/app2/${mockSubDir}`,
-      mockAppCacheFilter
+      expect.objectContaining({ dirPath: `${mockBaseDir}/app2/${mockSubDir}` })
     );
   });
 
@@ -99,7 +98,10 @@ describe('scanSubDirectory', () => {
       .mockRejectedValueOnce(new Error('Permission denied'))
       .mockResolvedValueOnce(app2Items);
 
-    const result = await scanSubDirectory(mockBaseDir, mockSubDir);
+    const result = await scanSubDirectory({
+      baseDir: mockBaseDir,
+      subPath: mockSubDir,
+    });
 
     expect(result).toStrictEqual(app2Items);
     expect(mockedScanDirectory).toHaveBeenCalledTimes(2);

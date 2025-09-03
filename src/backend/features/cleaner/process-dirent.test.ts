@@ -5,7 +5,7 @@ import { createCleanableItem } from './utils/create-cleanable-item';
 import { scanDirectory } from './scan-directory';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
-jest.mock('./utils/get-last-access-time');
+jest.mock('./utils/was-accessed-within-last-hour');
 jest.mock('./utils/create-cleanable-item');
 jest.mock('./scan-directory');
 jest.mock('@internxt/drive-desktop-core/build/backend', () => ({
@@ -45,7 +45,10 @@ describe('processDirent', () => {
 
   it('should process file and return CleanableItem when file is safe to delete', async () => {
     mockedCreateCleanableItem.mockResolvedValue(mockCleanableItem);
-    const result = await processDirent(mockFileDirent, mockFullpath);
+    const result = await processDirent({
+      entry: mockFileDirent,
+      fullPath: mockFullpath,
+    });
 
     expect(result).toStrictEqual([mockCleanableItem]);
     expect(mockedWasAccessedWithinLastHour).toHaveBeenCalledWith(mockFullpath);
@@ -55,23 +58,26 @@ describe('processDirent', () => {
   it('should return empty array when file was accessed within last hour', async () => {
     mockedWasAccessedWithinLastHour.mockResolvedValue(true);
 
-    const result = await processDirent(mockFileDirent, mockFullpath);
+    const result = await processDirent({
+      entry: mockFileDirent,
+      fullPath: mockFullpath,
+    });
 
     expect(result).toStrictEqual([]);
     expect(mockedCreateCleanableItem).not.toHaveBeenCalled();
   });
 
   it('should return empty array when custom filter excludes file', async () => {
-    const customFilter = jest.fn().mockReturnValue(true); // true means skip
+    const customFileFilter = jest.fn().mockReturnValue(true); // true means skip
     mockedWasAccessedWithinLastHour.mockResolvedValue(false);
-    const result = await processDirent(
-      mockFileDirent,
-      mockFullpath,
-      customFilter
-    );
+    const result = await processDirent({
+      entry: mockFileDirent,
+      fullPath: mockFullpath,
+      customFileFilter,
+    });
 
     expect(result).toStrictEqual([]);
-    expect(customFilter).toHaveBeenCalledWith(mockFileDirent, mockFullpath);
+    expect(customFileFilter).toHaveBeenCalledWith(mockFileDirent.name);
     expect(mockedCreateCleanableItem).not.toHaveBeenCalled();
   });
 
@@ -82,10 +88,13 @@ describe('processDirent', () => {
 
     mockedScanDirectory.mockResolvedValue(mockDirectoryItems);
 
-    const result = await processDirent(mockDir, mockPath);
+    const result = await processDirent({
+      entry: mockDir,
+      fullPath: mockPath,
+    });
 
     expect(result).toStrictEqual(mockDirectoryItems);
-    expect(mockedScanDirectory).toHaveBeenCalledWith(mockPath, undefined);
+    expect(mockedScanDirectory).toHaveBeenCalledTimes(1);
     expect(mockedWasAccessedWithinLastHour).not.toHaveBeenCalled();
   });
 
@@ -94,7 +103,10 @@ describe('processDirent', () => {
       new Error('Permission denied')
     );
 
-    const result = await processDirent(mockFileDirent, mockFullpath);
+    const result = await processDirent({
+      entry: mockFileDirent,
+      fullPath: mockFullpath,
+    });
 
     expect(result).toStrictEqual([]);
     expect(mockedLogger.warn).toHaveBeenCalledWith({

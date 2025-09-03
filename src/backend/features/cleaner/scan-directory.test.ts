@@ -52,7 +52,7 @@ describe('scanDirectory', () => {
   it('should return empty array when directory is not a directory', async () => {
     mockedFs.stat.mockResolvedValue(createMockStats(false));
 
-    const result = await scanDirectory(mockBasePath);
+    const result = await scanDirectory({ dirPath: mockBasePath });
 
     expect(result).toStrictEqual([]);
     expect(mockedFs.readdir).not.toHaveBeenCalled();
@@ -61,7 +61,7 @@ describe('scanDirectory', () => {
   it('should return empty array when directory cannot be accessed', async () => {
     mockedFs.stat.mockRejectedValue(new Error('Permission denied'));
 
-    const result = await scanDirectory(mockBasePath);
+    const result = await scanDirectory({ dirPath: mockBasePath });
 
     expect(result).toStrictEqual([]);
   });
@@ -72,13 +72,15 @@ describe('scanDirectory', () => {
     const expectedItem = createCleanableItemMock('file1.txt', 2048);
     mockedProcessDirent.mockResolvedValue([expectedItem]);
 
-    const result = await scanDirectory(mockBasePath);
+    const result = await scanDirectory({ dirPath: mockBasePath });
 
     expect(result).toStrictEqual([expectedItem]);
     expect(mockedProcessDirent).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'file1.txt' }),
-      '/test/path/file1.txt',
-      undefined
+      expect.objectContaining({
+        entry: expect.objectContaining({ name: 'file1.txt' }),
+        fullPath: '/test/path/file1.txt',
+        customFileFilter: undefined,
+      })
     );
   });
 
@@ -95,7 +97,7 @@ describe('scanDirectory', () => {
     const expectedItem = createCleanableItemMock('regular-file.txt', 1024);
     mockedProcessDirent.mockResolvedValue([expectedItem]);
 
-    const result = await scanDirectory(mockBasePath);
+    const result = await scanDirectory({ dirPath: mockBasePath });
 
     expect(result).toStrictEqual([expectedItem]);
     expect(isInternxtRelated).toHaveBeenCalledWith('/test/path/internxt-app');
@@ -104,9 +106,11 @@ describe('scanDirectory', () => {
     );
     expect(mockedProcessDirent).toHaveBeenCalledTimes(1);
     expect(mockedProcessDirent).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'regular-file.txt' }),
-      '/test/path/regular-file.txt',
-      undefined
+      expect.objectContaining({
+        entry: expect.objectContaining({ name: 'regular-file.txt' }),
+        fullPath: '/test/path/regular-file.txt',
+        customFileFilter: undefined,
+      })
     );
   });
 
@@ -119,16 +123,18 @@ describe('scanDirectory', () => {
     ];
     mockedProcessDirent.mockResolvedValue(expectedItem);
 
-    const result = await scanDirectory(mockBasePath);
+    const result = await scanDirectory({ dirPath: mockBasePath });
 
     expect(result).toStrictEqual(expectedItem);
     expect(mockedFs.readdir).toHaveBeenCalledWith(mockBasePath, {
       withFileTypes: true,
     });
     expect(mockedProcessDirent).toHaveBeenCalledWith(
-      dirent,
-      '/test/path/subdir',
-      undefined
+      expect.objectContaining({
+        entry: dirent,
+        fullPath: '/test/path/subdir',
+        customFileFilter: undefined,
+      })
     );
   });
 
@@ -151,7 +157,7 @@ describe('scanDirectory', () => {
       .mockResolvedValueOnce([subdirItem])
       .mockResolvedValueOnce([file2Item]);
 
-    const result = await scanDirectory(mockBasePath);
+    const result = await scanDirectory({ dirPath: mockBasePath });
 
     expect(result).toStrictEqual([file1Item, subdirItem, file2Item]);
     expect(mockedProcessDirent).toHaveBeenCalledTimes(3);
@@ -170,7 +176,7 @@ describe('scanDirectory', () => {
       .mockResolvedValueOnce(accessibleItem)
       .mockResolvedValueOnce([]);
 
-    const result = await scanDirectory(mockBasePath);
+    const result = await scanDirectory({ dirPath: mockBasePath });
 
     expect(result).toStrictEqual(accessibleItem);
     expect(mockedProcessDirent).toHaveBeenCalledTimes(2);
@@ -179,7 +185,7 @@ describe('scanDirectory', () => {
   it('should handle empty directories', async () => {
     mockedFs.readdir.mockResolvedValue([]);
 
-    const result = await scanDirectory(mockBasePath);
+    const result = await scanDirectory({ dirPath: mockBasePath });
 
     expect(result).toStrictEqual([]);
     expect(mockedProcessDirent).toHaveBeenCalledTimes(0);
@@ -189,7 +195,7 @@ describe('scanDirectory', () => {
     mockedFs.stat.mockResolvedValue(createMockStats(true));
     mockedFs.readdir.mockRejectedValue(new Error('Cannot read directory'));
 
-    const result = await scanDirectory(mockBasePath);
+    const result = await scanDirectory({ dirPath: mockBasePath });
 
     expect(result).toStrictEqual([]);
   });
