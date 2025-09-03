@@ -26,3 +26,9 @@ export type CleanerReport = {
   /** Web browser cache */
   webCache: CleanerSection;
 };
+
+export type TrashFilesPaths = {
+  localShareTrash: string;
+  legacyTrash: string;
+  xdgDataTrash?: string;
+};
