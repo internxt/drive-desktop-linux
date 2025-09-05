@@ -213,10 +213,11 @@
   "settings": {
     "header": {
       "section": {
-        "GENERAL": "general",
-        "ACCOUNT": "account",
-        "BACKUPS": "backups",
-        "ANTIVIRUS": "antivirus"
+        "GENERAL": "General",
+        "ACCOUNT": "Account",
+        "BACKUPS": "Backups",
+        "ANTIVIRUS": "Antivirus",
+        "CLEANER": "Cleaner"
       }
     },
     "general": {

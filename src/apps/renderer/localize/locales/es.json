@@ -215,7 +215,8 @@
         "GENERAL": "General",
         "ACCOUNT": "Cuenta",
         "BACKUPS": "Backups",
-        "ANTIVIRUS": "Antivirus"
+        "ANTIVIRUS": "Antivirus",
+        "CLEANER": "Cleaner"
       }
     },
     "general": {

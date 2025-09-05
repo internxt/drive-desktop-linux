@@ -211,7 +211,8 @@
         "GENERAL": "Général",
         "ACCOUNT": "Compte",
         "BACKUPS": "Sauvegardes",
-        "ANTIVIRUS": "Antivirus"
+        "ANTIVIRUS": "Antivirus",
+        "CLEANER": "Cleaner"
       }
     },
     "general": {

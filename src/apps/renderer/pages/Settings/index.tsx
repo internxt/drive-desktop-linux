@@ -4,13 +4,15 @@ import WindowTopBar from '../../components/WindowTopBar';
 import AccountSection from './Account';
 import GeneralSection from './General';
 import BackupsSection from './Backups';
-import Header, { Section } from './Header';
+import Header from './Header';
 import { DeviceProvider } from '../../context/DeviceContext';
 import { BackupProvider } from '../../context/BackupContext';
 import { AntivirusProvider } from '../../context/AntivirusContext';
 import { RemoveMalwareState } from './Antivirus/views/RemoveMalwareState';
 import BackupFolderSelector from './Backups/Selector/BackupFolderSelector';
 import AntivirusSection from './Antivirus';
+import { isTypeSection, Section } from './Utils/section.types';
+import { CleanerSection } from './Cleaner/cleaner-section';
 
 const SHOW_ANTIVIRUS_TOOL = true;
 
@@ -41,11 +43,8 @@ export default function Settings() {
   useEffect(() => {
     const url = new URL(window.location.href);
     const section = url.searchParams.get('section');
-    if (
-      section &&
-      ['BACKUPS', 'GENERAL', 'ACCOUNT', 'ANTIVIRUS'].includes(section)
-    ) {
-      setActiveSection(section as Section);
+    if (section && isTypeSection(section)) {
+      setActiveSection(section);
     }
   }, []);
 
@@ -97,6 +96,10 @@ export default function Settings() {
                       data-automation-id="itemSettingsAntivirus"
                     />
                   )}
+                  <CleanerSection
+                    active={activeSection === 'CLEANER'}
+                    data-automation-id="itemSettingsCleaner"
+                  />
                 </div>
               </div>
             )}
