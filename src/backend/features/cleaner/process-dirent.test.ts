@@ -98,6 +98,33 @@ describe('processDirent', () => {
     expect(mockedWasAccessedWithinLastHour).not.toHaveBeenCalled();
   });
 
+  it('should process directory when custom directory filter allows it', async () => {
+    const mockDir = createMockDirent('important-folder', false);
+    const mockPath = '/test/important-folder';
+    const customDirectoryFilter = jest.fn().mockReturnValue(false); // false means process
+    const customFileFilter = jest.fn();
+    const mockDirectoryItems = [mockCleanableItem];
+
+    mockedScanDirectory.mockResolvedValue(mockDirectoryItems);
+
+    const result = await processDirent({
+      entry: mockDir,
+      fullPath: mockPath,
+      customDirectoryFilter,
+      customFileFilter,
+    });
+
+    expect(result).toStrictEqual(mockDirectoryItems);
+    expect(customDirectoryFilter).toHaveBeenCalledWith(mockDir.name);
+    expect(mockedScanDirectory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dirPath: mockPath,
+        customFileFilter,
+        customDirectoryFilter,
+      })
+    );
+  });
+
   it('should handle errors gracefully and log warning', async () => {
     mockedWasAccessedWithinLastHour.mockRejectedValue(
       new Error('Permission denied')

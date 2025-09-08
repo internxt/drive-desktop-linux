@@ -27,6 +27,13 @@ export type CleanerReport = {
   webCache: CleanerSection;
 };
 
+export type AppCachePaths = {
+  userCache: string;
+  tmpDir: string;
+  varTmpDir: string;
+  localShareCache: string;
+};
+
 export type LogFilesPaths = {
   localShareLogs: string;
   xsessionErrorsFile: string;

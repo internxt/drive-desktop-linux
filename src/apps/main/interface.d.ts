@@ -1,7 +1,7 @@
 import { BackupInfo } from './../backups/BackupInfo';
 import { Usage } from '../../backend/features/usage/usage.types';
 import { Result } from './../../context/shared/domain/Result';
-import { AvailableProducts } from '@internxt/sdk/dist/drive/payments/types';
+import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 import { Device } from './device/service';
 import {
   AuthAccessResponseViewModel,
@@ -37,10 +37,10 @@ export interface IElectronAPI {
   openUrl: (url: string) => Promise<void>;
 
   userAvailableProducts: {
-    get: () => Promise<AvailableProducts['featuresPerService'] | undefined>;
+    get: () => Promise<UserAvailableProducts | undefined>;
     subscribe: () => void;
     onUpdate: (
-      callback: (products: AvailableProducts['featuresPerService']) => void
+      callback: (products: UserAvailableProducts) => void
     ) => void;
   };
   login(email: string): Promise<AuthLoginResponseViewModel>;
