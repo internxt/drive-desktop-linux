@@ -33,3 +33,9 @@ export type AppCachePaths = {
   varTmpDir: string;
   localShareCache: string;
 };
+
+export type LogFilesPaths = {
+  localShareLogs: string;
+  xsessionErrorsFile: string;
+  varLogDir: string;
+};
