@@ -39,3 +39,9 @@ export type LogFilesPaths = {
   xsessionErrorsFile: string;
   varLogDir: string;
 };
+
+export type TrashFilesPaths = {
+  localShareTrash: string;
+  legacyTrash: string;
+  xdgDataTrash?: string;
+};
