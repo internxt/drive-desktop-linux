@@ -8,6 +8,7 @@ import { processDirent } from './process-dirent';
 type ScanDirectoryProps = {
   dirPath: string;
   customFileFilter?: (fileName: string) => boolean;
+  customDirectoryFilter?: (folderName: string) => boolean;
 };
 
 /**
@@ -15,10 +16,13 @@ type ScanDirectoryProps = {
  * @param dirPath Directory path to scan
  *  @param customFileFilter Optional custom filter function to apply to files.
  *  Return true to skip the directory, false to include it.
+ *  @param customDirectoryFilter Optional custom filter function to apply to directories.
+ *  Return true to skip the directory, false to include it.
  */
 export async function scanDirectory({
   dirPath,
   customFileFilter,
+  customDirectoryFilter,
 }: ScanDirectoryProps): Promise<CleanableItem[]> {
   try {
     const stat = await fs.stat(dirPath);
@@ -36,6 +40,7 @@ export async function scanDirectory({
           entry: dirent,
           fullPath,
           customFileFilter,
+          customDirectoryFilter,
         });
         items.push(...cleanableItems);
       }
