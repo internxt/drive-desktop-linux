@@ -20,6 +20,7 @@ export async function generateAppCacheReport(): Promise<CleanerSection> {
     scanDirectory({
       dirPath: paths.userCache,
       customFileFilter: appCacheFileFilter,
+      customDirectoryFilter: isDirectoryWebBrowserRelated,
     }),
     /**
      * Scan /tmp/ for temporary files

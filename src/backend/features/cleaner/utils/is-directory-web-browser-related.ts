@@ -7,6 +7,7 @@ const WEB_BROWSER_DIRECTORIES = [
   'chromium',
   'firefox',
   'opera',
+  'brave'
 ];
 
 /**
