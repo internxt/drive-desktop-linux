@@ -17,6 +17,7 @@ export async function processDirent({
   entry,
   fullPath,
   customFileFilter,
+  customDirectoryFilter,
 }: ProcessDirentProps): Promise<CleanableItem[]> {
   try {
     if (entry.isFile()) {
@@ -30,9 +31,14 @@ export async function processDirent({
       const item = await createCleanableItem(fullPath);
       return [item];
     } else if (entry.isDirectory()) {
+      if (customDirectoryFilter && customDirectoryFilter(entry.name)) {
+        return [];
+      }
+
       return await scanDirectory({
         dirPath: fullPath,
         customFileFilter,
+        customDirectoryFilter,
       });
     }
   } catch (error) {
