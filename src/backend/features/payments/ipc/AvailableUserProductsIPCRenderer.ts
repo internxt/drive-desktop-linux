@@ -1,7 +1,8 @@
 import { ipcRenderer } from 'electron';
-import { TypedIPC } from '../../../shared/IPC/TypedIPC';
+
 import { MainProcessAvailableUserProductsMessages } from './messages/MainProcessAvailableUserProductsMessages';
 import { RendererProcessAvailableUserProductsMessages } from './messages/RendererProcessAvailableUserProductsMessages';
+import { TypedIPC } from '../../../../apps/shared/IPC/TypedIPC';
 
 /**
  * Typed IPC for the user's products availability communication in the renderer process
