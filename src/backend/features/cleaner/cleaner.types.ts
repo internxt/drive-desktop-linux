@@ -45,3 +45,15 @@ export type TrashFilesPaths = {
   legacyTrash: string;
   xdgDataTrash?: string;
 };
+
+export type WebStorageFilesPaths = {
+  chromeCookies: string;
+  chromeLocalStorage: string;
+  chromeSessionStorage: string;
+  chromeIndexedDB: string;
+  chromeWebStorage: string;
+};
+
+export type WebCacheFilesPaths = {
+  chromeCacheDir: string;
+};
