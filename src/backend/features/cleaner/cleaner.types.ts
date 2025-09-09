@@ -52,8 +52,16 @@ export type WebStorageFilesPaths = {
   chromeSessionStorage: string;
   chromeIndexedDB: string;
   chromeWebStorage: string;
+  firefoxProfile: string;
+  braveCookies: string;
+  braveLocalStorage: string;
+  braveSessionStorage: string;
+  braveIndexedDB: string;
+  braveWebStorage: string;
 };
 
 export type WebCacheFilesPaths = {
   chromeCacheDir: string;
+  firefoxCacheDir: string;
+  braveCacheDir: string;
 };
