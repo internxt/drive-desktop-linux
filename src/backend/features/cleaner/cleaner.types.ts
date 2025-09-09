@@ -13,7 +13,6 @@ export type CleanerSection = {
   /** Array of cleanable items in this section */
   items: CleanableItem[];
 };
-
 export type CleanerReport = {
   /** App cache files and directories */
   appCache: CleanerSection;
