@@ -13,6 +13,7 @@ import BackupFolderSelector from './Backups/Selector/BackupFolderSelector';
 import AntivirusSection from './Antivirus';
 import { isTypeSection, Section } from './Utils/section.types';
 import { CleanerSection } from './Cleaner/cleaner-section';
+import { CleanerProvider } from '../../context/CleanerContext';
 
 const SHOW_ANTIVIRUS_TOOL = true;
 
@@ -52,58 +53,65 @@ export default function Settings() {
     <DeviceProvider>
       <BackupProvider>
         <AntivirusProvider>
-          <div
-            ref={rootRef}
-            style={{
-              minWidth: 600,
-              minHeight: subsection === 'list' ? 0 : 420,
-            }}
-          >
-            {subsection === 'list' && activeSection === 'BACKUPS' && (
-              <BackupFolderSelector onClose={() => setSubsection('panel')} />
-            )}
-            {SHOW_ANTIVIRUS_TOOL &&
-              subsection === 'list' &&
-              activeSection === 'ANTIVIRUS' && (
-                <RemoveMalwareState onCancel={() => setSubsection('panel')} />
+          <CleanerProvider>
+            <div
+              ref={rootRef}
+              style={{
+                minWidth: 600,
+                minHeight: subsection === 'list' ? 0 : 420,
+              }}
+            >
+              {subsection === 'list' && activeSection === 'BACKUPS' && (
+                <BackupFolderSelector onClose={() => setSubsection('panel')} />
               )}
-            {subsection === 'panel' && (
-              <div className="flex flex-grow flex-col">
-                <WindowTopBar
-                  title="Internxt"
-                  className="bg-surface dark:bg-gray-5"
-                />
-                <Header active={activeSection} onClick={setActiveSection} />
-                <div className="flex bg-gray-1 p-5" style={{ minHeight: 420 }}>
-                  <GeneralSection
-                    active={activeSection === 'GENERAL'}
-                    data-automation-id="itemSettingsGeneral"
+              {SHOW_ANTIVIRUS_TOOL &&
+                subsection === 'list' &&
+                activeSection === 'ANTIVIRUS' && (
+                  <RemoveMalwareState onCancel={() => setSubsection('panel')} />
+                )}
+              {subsection === 'panel' && (
+                <div className="flex flex-grow flex-col">
+                  <WindowTopBar
+                    title="Internxt"
+                    className="bg-surface dark:bg-gray-5"
                   />
-                  <AccountSection
-                    active={activeSection === 'ACCOUNT'}
-                    data-automation-id="itemSettingsAccount"
-                  />
-                  <BackupsSection
-                    active={activeSection === 'BACKUPS'}
-                    showBackedFolders={() => setSubsection('list')}
-                    showIssues={() => window.electron.openProcessIssuesWindow()}
-                    data-automation-id="itemSettingsBackups"
-                  />
-                  {SHOW_ANTIVIRUS_TOOL && (
-                    <AntivirusSection
-                      active={activeSection === 'ANTIVIRUS'}
-                      showItemsWithMalware={() => setSubsection('list')}
-                      data-automation-id="itemSettingsAntivirus"
+                  <Header active={activeSection} onClick={setActiveSection} />
+                  <div
+                    className="flex bg-gray-1 p-5"
+                    style={{ minHeight: 420 }}
+                  >
+                    <GeneralSection
+                      active={activeSection === 'GENERAL'}
+                      data-automation-id="itemSettingsGeneral"
                     />
-                  )}
-                  <CleanerSection
-                    active={activeSection === 'CLEANER'}
-                    data-automation-id="itemSettingsCleaner"
-                  />
+                    <AccountSection
+                      active={activeSection === 'ACCOUNT'}
+                      data-automation-id="itemSettingsAccount"
+                    />
+                    <BackupsSection
+                      active={activeSection === 'BACKUPS'}
+                      showBackedFolders={() => setSubsection('list')}
+                      showIssues={() =>
+                        window.electron.openProcessIssuesWindow()
+                      }
+                      data-automation-id="itemSettingsBackups"
+                    />
+                    {SHOW_ANTIVIRUS_TOOL && (
+                      <AntivirusSection
+                        active={activeSection === 'ANTIVIRUS'}
+                        showItemsWithMalware={() => setSubsection('list')}
+                        data-automation-id="itemSettingsAntivirus"
+                      />
+                    )}
+                    <CleanerSection
+                      active={activeSection === 'CLEANER'}
+                      data-automation-id="itemSettingsCleaner"
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </CleanerProvider>
         </AntivirusProvider>
       </BackupProvider>
     </DeviceProvider>
