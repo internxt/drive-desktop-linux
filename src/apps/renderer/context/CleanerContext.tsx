@@ -23,6 +23,7 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   };
+  // TODO: add product availability check
   return (
     <CleanerContext.Provider
       value={{

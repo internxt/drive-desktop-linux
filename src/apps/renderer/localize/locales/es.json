@@ -407,6 +407,20 @@
           "remove": "Eliminar"
         }
       }
+    },
+    "cleaner": {
+      "mainView": {
+        "cleanup": "Limpiar"
+      },
+      "generateReportView": {
+        "title": "No se ha encontrado ningún informe.",
+        "description": "Genere un informe para ver qué archivos se pueden limpiar.",
+        "generateReport": "Generar informe"
+      },
+      "loadingView": {
+        "title": "Espera un momento",
+        "description": "Estamos generando tu informe..."
+      }
     }
   },
   "issues": {

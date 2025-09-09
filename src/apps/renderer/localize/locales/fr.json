@@ -402,6 +402,20 @@
           "remove": "Supprimer"
         }
       }
+    },
+    "cleaner": {
+      "mainView": {
+        "cleanup": "Nettoyer"
+      },
+      "generateReportView": {
+        "title": "Aucun rapport trouvé",
+        "description": "Générer un rapport pour voir quels fichiers peuvent être nettoyés.",
+        "generateReport": "Générer un rapport"
+      },
+      "loadingView": {
+        "title": "Attendez un instant.",
+        "description": "Nous générons votre rapport..."
+      }
     }
   },
   "issues": {
