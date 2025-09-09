@@ -3,9 +3,10 @@ import { scanDirectory } from '../scan-directory';
 import { scanSingleFile } from '../scan-single-file';
 import { getWebStorageFilesPaths } from './get-web-storage-files-paths';
 import { webBrowserFileFilter } from '../utils/is-safe-web-browser-file';
+import { scanFirefoxProfiles } from './utils/scan-firefox-profiles';
 
 /**
- * Generates a report for Web Storage Files section by scanning Chrome storage locations
+ * Generates a report for Web Storage Files section by scanning Chrome, Firefox, and Brave storage locations
  * @returns Promise<CleanerSection> Report containing all web storage files
  */
 export async function generateWebStorageFilesReport(): Promise<CleanerSection> {
@@ -13,36 +14,44 @@ export async function generateWebStorageFilesReport(): Promise<CleanerSection> {
   const allItems: CleanableItem[] = [];
 
   const scanSubSectionPromises = [
-    /**
-     * Scan ~/.config/google-chrome/Default/Cookies
-     */
+    // Chrome storage files
     scanSingleFile(paths.chromeCookies),
-    /**
-     * Scan ~/.config/google-chrome/Default/Local Storage/
-     */
     scanDirectory({
       dirPath: paths.chromeLocalStorage,
       customFileFilter: webBrowserFileFilter,
     }),
-    /**
-     * Scan ~/.config/google-chrome/Default/Session Storage/
-     */
     scanDirectory({
       dirPath: paths.chromeSessionStorage,
       customFileFilter: webBrowserFileFilter,
     }),
-    /**
-     * Scan ~/.config/google-chrome/Default/IndexedDB/
-     */
     scanDirectory({
       dirPath: paths.chromeIndexedDB,
       customFileFilter: webBrowserFileFilter,
     }),
-    /**
-     * Scan ~/.config/google-chrome/Default/WebStorage/
-     */
     scanDirectory({
       dirPath: paths.chromeWebStorage,
+      customFileFilter: webBrowserFileFilter,
+    }),
+    
+    // Firefox storage files (requires profile scanning)
+    scanFirefoxProfiles(paths.firefoxProfile),
+    
+    // Brave storage files
+    scanSingleFile(paths.braveCookies),
+    scanDirectory({
+      dirPath: paths.braveLocalStorage,
+      customFileFilter: webBrowserFileFilter,
+    }),
+    scanDirectory({
+      dirPath: paths.braveSessionStorage,
+      customFileFilter: webBrowserFileFilter,
+    }),
+    scanDirectory({
+      dirPath: paths.braveIndexedDB,
+      customFileFilter: webBrowserFileFilter,
+    }),
+    scanDirectory({
+      dirPath: paths.braveWebStorage,
       customFileFilter: webBrowserFileFilter,
     }),
   ];
