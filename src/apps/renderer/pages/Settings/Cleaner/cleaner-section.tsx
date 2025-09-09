@@ -1,7 +1,6 @@
 import { useCleaner } from '../../../context/CleanerContext';
 import Button from '../../../components/Button';
 import { handleCleanup } from './cleaner.service';
-import { mockCleanerData } from './mocks';
 import { CleanerView } from './views/cleaner-view';
 import { GenerateReportView } from './views/generate-report-view';
 import { LoadingView } from './views/loading-view';
@@ -27,7 +26,7 @@ export function CleanerSection({ active }: Props) {
         {report && (
           <>
             <div className="flex-1">
-              <CleanerView report={mockCleanerData} onCleanUp={handleCleanup} />
+              <CleanerView report={report} onCleanUp={handleCleanup} />
             </div>
             <div className="flex justify-center">
               <Button
