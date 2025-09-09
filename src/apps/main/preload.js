@@ -428,4 +428,7 @@ contextBridge.exposeInMainWorld('electron', {
     warn: (rawBody) => logger.warn(rawBody),
     error: (rawBody) => logger.error(rawBody),
   },
+  cleaner: {
+    generateReport: () => ipcRenderer.invoke('cleaner:generate-report'),
+  }
 });

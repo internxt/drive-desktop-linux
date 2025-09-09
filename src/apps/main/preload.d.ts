@@ -1,5 +1,6 @@
 import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 import { AuthLoginResponseViewModel } from '../../infra/drive-server/services/auth/auth.types';
+import { CleanerReport } from '../../backend/features/cleaner/cleaner.types';
 
 declare interface Window {
   electron: {
@@ -278,12 +279,12 @@ declare interface Window {
     userAvailableProducts: {
       get: () => Promise<UserAvailableProducts | undefined>;
       subscribe: () => void;
-      onUpdated: (
-        callback: (products: UserAvailableProducts) => void
-      ) => void;
+      onUpdated: (callback: (products: UserAvailableProducts) => void) => void;
     };
 
     login(email: string): Promise<AuthLoginResponseViewModel>;
-
+    cleaner: {
+      generateReport: () => Promise<CleanerReport>
+    };
   };
 }
