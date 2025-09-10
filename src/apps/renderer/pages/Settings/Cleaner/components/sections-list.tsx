@@ -1,30 +1,27 @@
 import { CleanerReport } from '../mocks';
+import { CleanerViewModel } from '../types/cleaner-viewmodel';
 import { Separator } from './Separator';
 import SectionsListHeadertype from './sections-list-header';
 import { SectionItem } from './section-item';
 
 type Props = {
   report: CleanerReport;
-  selectedItems: { [sectionName: string]: string[] };
+  viewModel: CleanerViewModel;
   isAllSelected: boolean;
   isPartiallySelected: boolean;
   onSelectAll: () => void;
   onToggleSection: (sectionName: string) => void;
   onToggleSectionExpansion: (sectionName: string) => void;
-  onCleanUp: () => void;
-  selectedSize: number;
 };
 
 export function SectionsList({
   report,
-  selectedItems,
+  viewModel,
   isAllSelected,
   isPartiallySelected,
   onSelectAll,
   onToggleSection,
   onToggleSectionExpansion,
-  onCleanUp,
-  selectedSize,
 }: Props) {
   return (
     <div className="flex h-full w-1/2 flex-col p-6">
@@ -43,7 +40,7 @@ export function SectionsList({
             sectionName={sectionName}
             section={section}
             showSeparatorOnTop={index > 0}
-            selectedItems={selectedItems}
+            viewModel={viewModel}
             onToggleSection={onToggleSection}
             onToggleSectionExpansion={onToggleSectionExpansion}
           />

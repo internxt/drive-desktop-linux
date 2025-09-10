@@ -7,7 +7,7 @@ type SectionDetailMenuItemProps = {
   item: CleanableItem;
   sectionName: string;
   showSeparatorOnTop: boolean;
-  selectedItems: { [sectionKey: string]: string[] };
+  isSelected: boolean;
   onToggleItem: (sectionKey: string, itemPath: string) => void;
 };
 
@@ -15,10 +15,9 @@ export function SectionDetailMenuItem({
   item,
   sectionName,
   showSeparatorOnTop,
-  selectedItems,
+  isSelected,
   onToggleItem,
 }: SectionDetailMenuItemProps) {
-  const isSelected = (selectedItems[sectionName] || []).includes(item.fullPath);
 
   return (
     <div key={item.fullPath}>

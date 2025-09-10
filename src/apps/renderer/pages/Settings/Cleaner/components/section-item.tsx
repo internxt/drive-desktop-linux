@@ -1,14 +1,15 @@
 import { CaretRight } from '@phosphor-icons/react';
 import Checkbox from '../../../../components/Checkbox';
-import { formatFileSize, sectionConfig } from '../cleaner.service';
+import { formatFileSize, sectionConfig, getSectionStats } from '../cleaner.service';
 import { CleanerSection } from '../mocks';
+import { CleanerViewModel } from '../types/cleaner-viewmodel';
 import { Separator } from './Separator';
 
 type SectionItemProps = {
   sectionName: string;
   section: CleanerSection;
   showSeparatorOnTop: boolean;
-  selectedItems: { [sectionName: string]: string[] };
+  viewModel: CleanerViewModel;
   onToggleSection: (sectionName: string) => void;
   onToggleSectionExpansion: (sectionName: string) => void;
 };
@@ -17,17 +18,16 @@ export function SectionItem({
   sectionName,
   section,
   showSeparatorOnTop,
-  selectedItems,
+  viewModel,
   onToggleSection,
   onToggleSectionExpansion,
 }: SectionItemProps) {
   const config = sectionConfig[sectionName as keyof typeof sectionConfig];
-  const selectedInSection = selectedItems[sectionName] || [];
-  const isSectionAllSelected =
-    selectedInSection.length === section.items.length;
-  const isSectionPartiallySelected =
-    selectedInSection.length > 0 &&
-    selectedInSection.length < section.items.length;
+  const sectionViewModel = viewModel[sectionName];
+  const stats = getSectionStats(sectionViewModel, section.items);
+  
+  const isSectionAllSelected = stats.isAllSelected;
+  const isSectionPartiallySelected = stats.isPartiallySelected;
 
   return (
     <div key={sectionName}>

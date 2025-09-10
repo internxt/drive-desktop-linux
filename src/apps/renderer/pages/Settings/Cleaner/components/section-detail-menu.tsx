@@ -1,4 +1,8 @@
+import { useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { CleanerReport } from '../mocks';
+import { CleanerViewModel } from '../types/cleaner-viewmodel';
+import { getSectionStats, isItemSelected } from '../cleaner.service';
 import SectionDetailHeader from './section-detail-header';
 import { Separator } from './Separator';
 import { SectionDetailMenuItem } from './SectionDetailMenuItem';
@@ -6,7 +10,7 @@ import { SectionDetailMenuItem } from './SectionDetailMenuItem';
 type Props = {
   sectionName: string;
   report: CleanerReport;
-  selectedItems: { [sectionKey: string]: string[] };
+  viewModel: CleanerViewModel;
   onClose: () => void;
   onToggleSection: (sectionKey: string) => void;
   onToggleItem: (sectionKey: string, itemPath: string) => void;
@@ -15,22 +19,33 @@ type Props = {
 export default function SectionDetailMenu({
   sectionName,
   report,
-  selectedItems,
+  viewModel,
   onClose,
   onToggleSection,
   onToggleItem,
 }: Props) {
   if (!sectionName) return <></>;
-  
+
   const sectionData = report[sectionName as keyof CleanerReport];
-  const selectedInSection = selectedItems[sectionName] || [];
-  const isAllSelected = selectedInSection.length === sectionData.items.length;
-  const isPartiallySelected = selectedInSection.length > 0 && selectedInSection.length < sectionData.items.length;
-  
+  const sectionViewModel = viewModel[sectionName];
+  const stats = getSectionStats(sectionViewModel, sectionData.items);
+
+  const isAllSelected = stats.isAllSelected;
+  const isPartiallySelected = stats.isPartiallySelected;
+
   const handleSelectAll = () => {
     onToggleSection(sectionName);
   };
-  
+  const parentRef = useRef<HTMLDivElement>(null);
+  const items = sectionData.items;
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 80, // Estimated height of each item in pixels
+    overscan: 10, // Render extra items outside viewport for smooth scrolling
+  });
+
   return (
     <div
       className={
@@ -38,28 +53,57 @@ export default function SectionDetailMenu({
       }
       style={{ width: '75%' }}
     >
-      <SectionDetailHeader 
-        sectionName={sectionName} 
+      <SectionDetailHeader
+        sectionName={sectionName}
         onClose={onClose}
         isAllSelected={isAllSelected}
         isPartiallySelected={isPartiallySelected}
         onSelectAll={handleSelectAll}
       />
       <Separator classname="mx-2" />
-      <div className="flex h-full flex-1 flex-col overflow-y-auto p-4">
-        <div className="bg-space flex-1 overflow-y-auto rounded-lg dark:bg-gray-5">
-          {report[sectionName as keyof CleanerReport].items.map(
-            (item, index) => (
-              <SectionDetailMenuItem
-                key={item.fullPath}
-                item={item}
-                sectionName={sectionName}
-                showSeparatorOnTop={index > 0}
-                selectedItems={selectedItems}
-                onToggleItem={onToggleItem}
-              />
-            )
-          )}
+      <div className="flex h-full flex-1 flex-col p-4">
+        <div
+          ref={parentRef}
+          className="bg-space flex-1 overflow-auto rounded-lg dark:bg-gray-5"
+          style={{ height: '100%' }}
+        >
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualItem) => {
+              const item = items[virtualItem.index];
+              const isSelected = isItemSelected(
+                sectionViewModel,
+                item.fullPath
+              );
+
+              return (
+                <div
+                  key={virtualItem.key.toString()}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualItem.size}px`,
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                >
+                  <SectionDetailMenuItem
+                    item={item}
+                    sectionName={sectionName}
+                    showSeparatorOnTop={virtualItem.index > 0}
+                    isSelected={isSelected}
+                    onToggleItem={onToggleItem}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

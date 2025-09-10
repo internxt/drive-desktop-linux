@@ -1,19 +1,14 @@
-import { formatFileSize, sectionConfig } from '../cleaner.service';
-import { CleanerReport } from '../mocks';
+import { formatFileSize } from '../cleaner.service';
 
 type Props = {
   selectedSize: number;
   totalSize: number;
   segmentDetails: Array<{ color: string; percentage: number; size: number }>;
-  report: CleanerReport;
-  selectedItems: { [sectionName: string]: string[] };
 };
 export function CleanupSizeIndicator({
   selectedSize,
   totalSize,
   segmentDetails,
-  report,
-  selectedItems,
 }: Props) {
   return (
     <div className="flex w-1/2 flex-col items-center justify-center bg-surface p-6 dark:bg-gray-5">
@@ -78,7 +73,7 @@ export function CleanupSizeIndicator({
             {formatFileSize(selectedSize)}
           </div>
           <div className="text-gray-500 dark:text-gray-400 mt-1 text-center text-sm">
-            Save up to{' '}
+            Save up to
             {totalSize > 0 ? Math.round((selectedSize / totalSize) * 100) : 0}%
             <br />
             of your space
