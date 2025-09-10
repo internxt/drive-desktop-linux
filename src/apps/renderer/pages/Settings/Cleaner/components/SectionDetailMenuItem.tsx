@@ -1,6 +1,7 @@
+import { CleanableItem } from '../../../../../../backend/features/cleaner/cleaner.types';
 import Checkbox from '../../../../components/Checkbox';
 import { formatFileSize } from '../cleaner.service';
-import { CleanableItem } from '../mocks';
+
 import { Separator } from './Separator';
 
 type SectionDetailMenuItemProps = {

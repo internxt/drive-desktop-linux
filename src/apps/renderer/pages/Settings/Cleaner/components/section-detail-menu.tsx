@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { CleanerReport } from '../mocks';
+import { CleanerReport } from '../../../../../../backend/features/cleaner/cleaner.types';
 import { CleanerViewModel } from '../types/cleaner-viewmodel';
 import { getSectionStats, isItemSelected } from '../cleaner.service';
 import SectionDetailHeader from './section-detail-header';

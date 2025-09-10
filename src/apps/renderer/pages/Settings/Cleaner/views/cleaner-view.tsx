@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { CleanerReport } from '../mocks';
 import { calculateChartSegments } from '../cleaner.service';
 import SectionDetailMenu from '../components/section-detail-menu';
 import { CleanupSizeIndicator } from '../components/cleanup-size-indicator';
 import { SectionsList } from '../components/sections-list';
 import { CleanerViewModelHook } from '../hooks/useCleanerViewModel';
+import { CleanerReport } from '../../../../../../backend/features/cleaner/cleaner.types';
 
 type CleanerViewProps = {
   report: CleanerReport;

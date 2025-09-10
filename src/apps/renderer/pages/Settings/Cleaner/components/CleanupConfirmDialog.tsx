@@ -1,5 +1,6 @@
 import { X } from '@phosphor-icons/react';
 import Button from '../../../../../renderer/components/Button';
+import { useTranslationContext } from '../../../../context/LocalContext';
 
 interface CleanupConfirmDialogProps {
   isVisible: boolean;
@@ -13,6 +14,7 @@ export function CleanupConfirmDialog({
   onCancel,
 }: CleanupConfirmDialogProps) {
   if (!isVisible) return null;
+  const { translate } = useTranslationContext();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -28,7 +30,7 @@ export function CleanupConfirmDialog({
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <h3 className="text-gray-900 text-lg font-semibold dark:text-gray-100">
-              Confirm cleanup
+              {translate('settings.cleaner.cleanupConfirmDialogView.title')}
             </h3>
           </div>
           <button
@@ -42,26 +44,21 @@ export function CleanupConfirmDialog({
         {/* Content */}
         <div className="mb-6">
           <p className="text-gray-600 dark:text-gray-300">
-            This action will permanently delete the selected files from your
-            device. This cannot be undone. Please, confirm to continue.
+            {translate('settings.cleaner.cleanupConfirmDialogView.description')}
           </p>
         </div>
 
         {/* Actions */}
         <div className="flex justify-end space-x-3">
-          <Button
-            variant={'primaryLight'}
-            size="lg"
-            onClick={onCancel}
-          >
-            Cancel
+          <Button variant={'primaryLight'} size="lg" onClick={onCancel}>
+            {translate(
+              'settings.cleaner.cleanupConfirmDialogView.cancelButton'
+            )}
           </Button>
-          <Button
-            variant={'primary'}
-            size="lg"
-            onClick={onConfirm}
-          >
-            Delete files
+          <Button variant={'primary'} size="lg" onClick={onConfirm}>
+            {translate(
+              'settings.cleaner.cleanupConfirmDialogView.confirmButton'
+            )}
           </Button>
         </div>
       </div>

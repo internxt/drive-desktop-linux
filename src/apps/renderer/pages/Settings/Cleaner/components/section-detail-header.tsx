@@ -1,3 +1,4 @@
+import { useTranslationContext } from '../../../../context/LocalContext';
 import Checkbox from '../../../../components/Checkbox';
 import { sectionConfig } from '../cleaner.service';
 import { CaretDoubleRight } from '@phosphor-icons/react';
@@ -9,7 +10,14 @@ type Props = {
   onSelectAll: () => void;
 };
 
-export default function SectionDetailHeader({ sectionName, onClose, isAllSelected, isPartiallySelected, onSelectAll }: Props) {
+export default function SectionDetailHeader({
+  sectionName,
+  onClose,
+  isAllSelected,
+  isPartiallySelected,
+  onSelectAll,
+}: Props) {
+  const { translate } = useTranslationContext();
   return (
     <div className="flex items-center justify-between p-4 dark:bg-gray-5">
       <div className="flex items-center gap-3">
@@ -25,7 +33,7 @@ export default function SectionDetailHeader({ sectionName, onClose, isAllSelecte
       </div>
       <Checkbox
         checked={isAllSelected || isPartiallySelected}
-        label={'Select All'}
+        label={translate('settings.cleaner.selectAllCheckbox')}
         onClick={onSelectAll}
       />
     </div>

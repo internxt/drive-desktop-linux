@@ -1,7 +1,11 @@
 import { CaretRight } from '@phosphor-icons/react';
 import Checkbox from '../../../../components/Checkbox';
-import { formatFileSize, sectionConfig, getSectionStats } from '../cleaner.service';
-import { CleanerSection } from '../mocks';
+import {
+  formatFileSize,
+  sectionConfig,
+  getSectionStats,
+} from '../cleaner.service';
+import { CleanerSection } from '../../../../../../backend/features/cleaner/cleaner.types';
 import { CleanerViewModel } from '../types/cleaner-viewmodel';
 import { Separator } from './Separator';
 
@@ -25,7 +29,7 @@ export function SectionItem({
   const config = sectionConfig[sectionName as keyof typeof sectionConfig];
   const sectionViewModel = viewModel[sectionName];
   const stats = getSectionStats(sectionViewModel, section.items);
-  
+
   const isSectionAllSelected = stats.isAllSelected;
   const isSectionPartiallySelected = stats.isPartiallySelected;
 

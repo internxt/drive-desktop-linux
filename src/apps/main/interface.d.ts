@@ -9,7 +9,8 @@ import {
   LoginAccessRequest,
 } from '../../infra/drive-server/services/auth/auth.types';
 import { TLoggerBody } from '@internxt/drive-desktop-core/build/backend';
-import { CleanerReport } from '../renderer/pages/Settings/Cleaner/mocks';
+import { CleanerReport } from '../../backend/features/cleaner/cleaner.types';
+
 /** This interface and declare global will replace the preload.d.ts.
  * The thing is that instead of that, we will gradually will be declaring the interface here as we generate tests
  * And we need to mock the electron API.

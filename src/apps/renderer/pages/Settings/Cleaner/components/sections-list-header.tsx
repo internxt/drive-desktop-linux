@@ -1,4 +1,5 @@
 import Checkbox from '../../../../components/Checkbox';
+import { useTranslationContext } from '../../../../context/LocalContext';
 
 type Props = {
   isAllSelected: boolean;
@@ -11,11 +12,12 @@ export default function SectionsListHeadertype({
   isPartiallySelected,
   onSelectAll,
 }: Props) {
+  const { translate } = useTranslationContext();
   return (
-    <div className="ml-2 mb-4 flex flex-shrink-0 items-center justify-between">
+    <div className="mb-4 ml-2 flex flex-shrink-0 items-center justify-between">
       <Checkbox
         checked={isAllSelected || isPartiallySelected}
-        label={'Select All'}
+        label={translate('settings.cleaner.selectAllCheckbox')}
         onClick={onSelectAll}
       />
     </div>

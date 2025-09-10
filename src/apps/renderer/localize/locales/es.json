@@ -409,6 +409,7 @@
       }
     },
     "cleaner": {
+      "selectAllCheckbox": "Seleccionar todo",
       "mainView": {
         "cleanup": "Limpiar"
       },
@@ -420,6 +421,18 @@
       "loadingView": {
         "title": "Espera un momento",
         "description": "Estamos generando tu informe..."
+      },
+      "sizeIndicatorView": {
+        "selectCategory": "Seleccione una categoría para",
+        "previewContent": "obtener una vista previa del contenido",
+        "saveUpTo": "Ahorra hasta",
+        "ofYourSpace": "de tu espacio"
+      },
+      "cleanupConfirmDialog": {
+        "title": "Confirmar borrado",
+        "description": "Esta acción eliminará permanentemente los archivos seleccionados de tu dispositivo. Esta acción no se puede deshacer. Confirme para continuar.",
+        "cancelButton": "Cancelar",
+        "confirmButton": "Eliminar archivos"
       }
     }
   },

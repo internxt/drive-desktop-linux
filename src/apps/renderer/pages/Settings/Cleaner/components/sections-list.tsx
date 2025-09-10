@@ -1,8 +1,8 @@
-import { CleanerReport } from '../mocks';
 import { CleanerViewModel } from '../types/cleaner-viewmodel';
 import { Separator } from './Separator';
 import SectionsListHeadertype from './sections-list-header';
 import { SectionItem } from './section-item';
+import { CleanerReport } from '../../../../../../backend/features/cleaner/cleaner.types';
 
 type Props = {
   report: CleanerReport;

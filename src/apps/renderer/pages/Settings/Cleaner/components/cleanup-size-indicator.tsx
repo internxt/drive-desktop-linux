@@ -1,3 +1,4 @@
+import { useTranslationContext } from '../../../../context/LocalContext';
 import { formatFileSize } from '../cleaner.service';
 
 type Props = {
@@ -10,14 +11,15 @@ export function CleanupSizeIndicator({
   totalSize,
   segmentDetails,
 }: Props) {
+  const { translate } = useTranslationContext();
   return (
     <div className="flex w-1/2 flex-col items-center justify-center bg-surface p-6 dark:bg-gray-5">
       <div className="mb-8 text-center">
         <p className="text-gray-500 dark:text-gray-400 mb-1 text-sm">
-          Select a category to
+          {translate('settings.cleaner.sizeIndicatorView.selectCategory')}
         </p>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
-          preview content
+          {translate('settings.cleaner.sizeIndicatorView.previewContent')}
         </p>
       </div>
 
@@ -73,10 +75,10 @@ export function CleanupSizeIndicator({
             {formatFileSize(selectedSize)}
           </div>
           <div className="text-gray-500 dark:text-gray-400 mt-1 text-center text-sm">
-            Save up to
+            {translate('settings.cleaner.sizeIndicatorView.saveUpTo')}{' '}
             {totalSize > 0 ? Math.round((selectedSize / totalSize) * 100) : 0}%
             <br />
-            of your space
+            {translate('settings.cleaner.sizeIndicatorView.ofYourSpace')}
           </div>
         </div>
       </div>
