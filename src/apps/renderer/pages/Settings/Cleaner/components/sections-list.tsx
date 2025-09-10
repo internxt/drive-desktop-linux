@@ -26,7 +26,6 @@ export function SectionsList({
   return (
     <div className="flex h-full w-1/2 flex-col p-6">
       <SectionsListHeadertype
-        deviceName={'Device Name'}
         isAllSelected={isAllSelected}
         isPartiallySelected={isPartiallySelected}
         onSelectAll={onSelectAll}

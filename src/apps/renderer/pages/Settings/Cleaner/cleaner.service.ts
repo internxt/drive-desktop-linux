@@ -7,8 +7,13 @@ import {
   CleanerSectionViewModel,
 } from './types/cleaner-viewmodel';
 
-export function handleCleanup() {
-  // TODO: Implement
+export function handleCleanup(
+  viewModel: CleanerViewModel,
+  report: CleanerReport
+) {
+  console.log('Starting cleanup process...');
+  console.log('ViewModel:', viewModel);
+  console.log('Cleanup process completed');
 }
 
 export function formatFileSize(bytes: number): string {
@@ -122,16 +127,20 @@ export function calculateSelectedSize(
       if (sectionViewModel.selectedAll) {
         // All selected except exceptions - use total minus exceptions
         totalSize += section.totalSizeInBytes;
-        sectionViewModel.exceptions.forEach(exceptionPath => {
-          const item = section.items.find(item => item.fullPath === exceptionPath);
+        sectionViewModel.exceptions.forEach((exceptionPath) => {
+          const item = section.items.find(
+            (item) => item.fullPath === exceptionPath
+          );
           if (item) {
             totalSize -= item.sizeInBytes;
           }
         });
       } else {
         // Only exceptions selected - add only exception sizes
-        sectionViewModel.exceptions.forEach(exceptionPath => {
-          const item = section.items.find(item => item.fullPath === exceptionPath);
+        sectionViewModel.exceptions.forEach((exceptionPath) => {
+          const item = section.items.find(
+            (item) => item.fullPath === exceptionPath
+          );
           if (item) {
             totalSize += item.sizeInBytes;
           }
@@ -168,9 +177,13 @@ export function calculateChartSegments(
   viewModel: CleanerViewModel,
   report: CleanerReport,
   totalSize: number,
-  getSectionSelectionStats: (sectionKey: string, report: CleanerReport) => ReturnType<typeof getSectionStats>
+  getSectionSelectionStats: (
+    sectionKey: string,
+    report: CleanerReport
+  ) => ReturnType<typeof getSectionStats>
 ): Array<{ color: string; percentage: number; size: number }> {
-  const segments: Array<{ color: string; percentage: number; size: number }> = [];
+  const segments: Array<{ color: string; percentage: number; size: number }> =
+    [];
 
   Object.entries(report).forEach(([sectionKey, section]) => {
     const sectionStats = getSectionSelectionStats(sectionKey, report);
@@ -183,7 +196,9 @@ export function calculateChartSegments(
         // All selected except exceptions -> calculate total minus exceptions
         sectionSelectedSize = section.totalSizeInBytes;
         sectionViewModel.exceptions.forEach((exceptionPath) => {
-          const item = section.items.find((item) => item.fullPath === exceptionPath);
+          const item = section.items.find(
+            (item) => item.fullPath === exceptionPath
+          );
           if (item) {
             sectionSelectedSize -= item.sizeInBytes;
           }
@@ -191,7 +206,9 @@ export function calculateChartSegments(
       } else {
         // Only exceptions selected -> calculate only exception sizes
         sectionViewModel.exceptions.forEach((exceptionPath) => {
-          const item = section.items.find((item) => item.fullPath === exceptionPath);
+          const item = section.items.find(
+            (item) => item.fullPath === exceptionPath
+          );
           if (item) {
             sectionSelectedSize += item.sizeInBytes;
           }
@@ -202,7 +219,8 @@ export function calculateChartSegments(
       if (sectionSelectedSize > 0) {
         segments.push({
           color: sectionConfig[sectionKey as keyof typeof sectionConfig].color,
-          percentage: totalSize > 0 ? (sectionSelectedSize / totalSize) * 100 : 0,
+          percentage:
+            totalSize > 0 ? (sectionSelectedSize / totalSize) * 100 : 0,
           size: sectionSelectedSize,
         });
       }

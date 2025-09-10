@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { CleanerReport } from '../../../../../../backend/features/cleaner/cleaner.types';
 import { CleanerViewModel } from '../types/cleaner-viewmodel';
 import {
@@ -124,3 +124,5 @@ export function useCleanerViewModel() {
     getGlobalSelectionStats,
   };
 }
+
+export type CleanerViewModelHook = ReturnType<typeof useCleanerViewModel>;

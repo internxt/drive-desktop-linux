@@ -4,29 +4,26 @@ import { calculateChartSegments } from '../cleaner.service';
 import SectionDetailMenu from '../components/section-detail-menu';
 import { CleanupSizeIndicator } from '../components/cleanup-size-indicator';
 import { SectionsList } from '../components/sections-list';
-import { useCleanerViewModel } from '../hooks/useCleanerViewModel';
+import { CleanerViewModelHook } from '../hooks/useCleanerViewModel';
 
-interface CleanerViewProps {
+type CleanerViewProps = {
   report: CleanerReport;
-  onCleanUp: () => void;
-}
+} & CleanerViewModelHook;
 
-export function CleanerView({ report, onCleanUp }: CleanerViewProps) {
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+export function CleanerView({
+  report,
+  viewModel,
+  toggleSection,
+  toggleItemSelection,
+  selectAllSections,
+  deselectAllSections,
+  getSectionSelectionStats,
+  getTotalSelectedSize,
+  getGlobalSelectionStats,
+}: CleanerViewProps) {
   const [sectionDetailMenu, setSectionDetailMenu] = useState<string | null>(
     null
   );
-
-  const {
-    viewModel,
-    toggleSection,
-    toggleItemSelection,
-    selectAllSections,
-    deselectAllSections,
-    getSectionSelectionStats,
-    getTotalSelectedSize,
-    getGlobalSelectionStats,
-  } = useCleanerViewModel();
 
   const totalSize = useMemo(() => {
     return Object.values(report).reduce(
@@ -53,18 +50,6 @@ export function CleanerView({ report, onCleanUp }: CleanerViewProps) {
     } else {
       selectAllSections();
     }
-  };
-
-  const handleCleanUp = () => {
-    if (selectedSize > 0) {
-      setShowConfirmDialog(true);
-    }
-  };
-
-  const confirmCleanUp = () => {
-    // onCleanUp(selectedItems);
-    onCleanUp();
-    setShowConfirmDialog(false);
   };
 
   const segmentDetails = useMemo(() => {
@@ -108,8 +93,6 @@ export function CleanerView({ report, onCleanUp }: CleanerViewProps) {
           onToggleItem={toggleItemSelection}
         />
       )}
-      {/* TODO Dialog */}
-      {showConfirmDialog && <div>Todo implement confirm dialog</div>}
     </div>
   );
 }
