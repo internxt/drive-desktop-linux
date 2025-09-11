@@ -8,13 +8,21 @@ import { CleanupConfirmDialog } from './components/CleanupConfirmDialog';
 import { useTranslationContext } from '../../../context/LocalContext';
 import { useCleanerViewModel } from './hooks/useCleanerViewModel';
 import CleaningView from './views/cleaning-view';
+import { LockedState } from '../Antivirus/views/LockedState';
 
 type Props = {
   active: boolean;
 };
 export function CleanerSection({ active }: Props) {
   const { translate } = useTranslationContext();
-  const { loading, report, cleaningState, generateReport, startCleanup } = useCleaner();
+  const {
+    loading,
+    report,
+    cleaningState,
+    isCleanerAvailable,
+    generateReport,
+    startCleanup,
+  } = useCleaner();
   const useCleanerViewModelHook = useCleanerViewModel();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
@@ -39,7 +47,9 @@ export function CleanerSection({ active }: Props) {
     <section
       className={`${active ? 'block' : 'hidden'} relative h-full w-full`}
     >
-      {cleaningState.cleaning || cleaningState.cleaningCompleted ? (
+      {!isCleanerAvailable ? (
+        <LockedState />
+      ) : cleaningState.cleaning || cleaningState.cleaningCompleted ? (
         <CleaningView />
       ) : (
         <div className="flex h-full w-full flex-col gap-4">
