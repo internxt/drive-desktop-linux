@@ -32,6 +32,8 @@ export async function generateCleanerReport(
   if (!refreshReport && storedCleanerReport) return storedCleanerReport;
 
   try {
+    logger.debug({ msg: 'Starting cleaner report generation...' });
+
     const [appCache, logfiles, trash, webStorage, webCache] =
       await Promise.allSettled([
         generateAppCacheReport(),
@@ -40,13 +42,15 @@ export async function generateCleanerReport(
         generateWebStorageFilesReport(),
         generateWebCacheReport(),
       ]);
-    storedCleanerReport = {
+    const cleanerReport = {
       appCache: getCleanerSectionOrFallback(appCache),
       logFiles: getCleanerSectionOrFallback(logfiles),
       trash: getCleanerSectionOrFallback(trash),
       webStorage: getCleanerSectionOrFallback(webStorage),
       webCache: getCleanerSectionOrFallback(webCache),
     };
+    logger.debug({ msg: 'Cleaner report generation Finished' });
+    storedCleanerReport = cleanerReport;
     return storedCleanerReport;
   } catch (error) {
     logger.error({ msg: 'Error generating cleaner report:', error });

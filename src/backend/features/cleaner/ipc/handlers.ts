@@ -1,7 +1,16 @@
 import { ipcMain } from 'electron';
-import { CleanerReport } from '../cleaner.types';
+import { CleanerReport, CleanerViewModel } from '../cleaner.types';
 import { generateCleanerReport } from '../generate-cleaner-report';
+import { startCleanup, stopCleanup } from '../clean-service';
 
-ipcMain.handle('cleaner:generate-report', async (): Promise<CleanerReport> => {
-  return await generateCleanerReport();
+ipcMain.handle('cleaner:generate-report', async (_, force = false): Promise<CleanerReport> => {
+  return await generateCleanerReport(force);
+});
+
+ipcMain.handle('cleaner:start-cleanup', async (_, viewModel: CleanerViewModel): Promise<void> => {
+  await startCleanup(viewModel);
+});
+
+ipcMain.handle('cleaner:stop-cleanup', async (): Promise<void> => {
+  stopCleanup();
 });

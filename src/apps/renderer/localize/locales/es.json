@@ -433,6 +433,19 @@
         "description": "Esta acción eliminará permanentemente los archivos seleccionados de tu dispositivo. Esta acción no se puede deshacer. Confirme para continuar.",
         "cancelButton": "Cancelar",
         "confirmButton": "Eliminar archivos"
+      },
+      "cleaningView": {
+        "cleaningProcess": {
+          "title": "Limpiando...",
+          "stopCleanButton": "Detener limpieza",
+          "deletedFiles": "Archivos eliminados",
+          "freeSpaceGained": "Espacio libre ganado"
+        },
+        "cleaningFinished": {
+          "title": "Tu dispositivo está limpio",
+          "subtitle": "No es necesario realizar ninguna otra acción",
+          "finish": "Finalizar"
+        }
       }
     }
   },

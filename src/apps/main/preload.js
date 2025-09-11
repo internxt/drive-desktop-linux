@@ -429,6 +429,14 @@ contextBridge.exposeInMainWorld('electron', {
     error: (rawBody) => logger.error(rawBody),
   },
   cleaner: {
-    generateReport: () => ipcRenderer.invoke('cleaner:generate-report'),
+    generateReport: (force = false) => ipcRenderer.invoke('cleaner:generate-report', force),
+    startCleanup: (viewModel) => ipcRenderer.invoke('cleaner:start-cleanup', viewModel),
+    stopCleanup: () => ipcRenderer.invoke('cleaner:stop-cleanup'),
+    onCleanupProgress: (callback) => {
+      const eventName = 'cleaner:cleanup-progress';
+      const callbackWrapper = (_, progressData) => callback(progressData);
+      ipcRenderer.on(eventName, callbackWrapper);
+      return () => ipcRenderer.removeListener(eventName, callbackWrapper);
+    },
   }
 });

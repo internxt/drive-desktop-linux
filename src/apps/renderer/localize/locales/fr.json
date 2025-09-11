@@ -429,6 +429,19 @@
         "cancelButton": "Annuler",
         "confirmButton": "Supprimer les fichiers "
       },
+      "cleaningView": {
+        "cleaningProcess": {
+          "title": "Nettoyage...",
+          "stopCleanButton": "Arrêter le nettoyage",
+          "deletedFiles": "Fichiers supprimés",
+          "freeSpaceGained": "Espace libre gagné"
+        },
+        "cleaningFinished": {
+          "title": "Votre appareil est propre",
+          "subtitle": "Aucune autre action n'est nécessaire",
+          "finish": "Terminer"
+        }
+      }
     }
   },
   "issues": {
