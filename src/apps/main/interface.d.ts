@@ -52,7 +52,7 @@ export interface IElectronAPI {
   };
   getUsage(): Promise<Result<Usage, Error>>;
   cleaner: {
-    generateReport: () => Promise<CleanerReport>;
+    generateReport: (force?: boolean) => Promise<CleanerReport>;
   };
 }
 

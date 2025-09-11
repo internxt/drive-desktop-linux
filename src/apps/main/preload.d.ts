@@ -284,7 +284,7 @@ declare interface Window {
 
     login(email: string): Promise<AuthLoginResponseViewModel>;
     cleaner: {
-      generateReport: () => Promise<CleanerReport>
+      generateReport: (force?: boolean) => Promise<CleanerReport>
     };
   };
 }
