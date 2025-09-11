@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'danger' | 'secondary' | 'primaryLight';
+  variant?: 'primary' | 'danger' | 'secondary' | 'primaryLight' | 'dangerLight';
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   children: ReactNode;
   customClassName?: string;
@@ -22,6 +22,9 @@ export default function Button(props: ButtonProps) {
     danger: props.disabled
       ? 'bg-gray-30 dark:bg-gray-5 text-white dark:text-gray-30'
       : 'bg-red active:bg-red-dark text-white',
+    dangerLight: props.disabled
+      ? 'bg-gray-30 dark:bg-gray-5 text-white dark:text-gray-30'
+      : 'border border-red-dark bg-surface text-red-dark hover:cursor-pointer',
   };
 
   const sizes = {
