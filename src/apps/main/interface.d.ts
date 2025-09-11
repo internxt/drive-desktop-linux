@@ -9,7 +9,7 @@ import {
   LoginAccessRequest,
 } from '../../infra/drive-server/services/auth/auth.types';
 import { TLoggerBody } from '@internxt/drive-desktop-core/build/backend';
-import { CleanerReport } from '../../backend/features/cleaner/cleaner.types';
+import { CleanerReport, CleanerViewModel, CleanupProgress } from '../../backend/features/cleaner/cleaner.types';
 
 /** This interface and declare global will replace the preload.d.ts.
  * The thing is that instead of that, we will gradually will be declaring the interface here as we generate tests
@@ -53,6 +53,9 @@ export interface IElectronAPI {
   getUsage(): Promise<Result<Usage, Error>>;
   cleaner: {
     generateReport: (force?: boolean) => Promise<CleanerReport>;
+    startCleanup: (viewModel: CleanerViewModel) => Promise<void>;
+    stopCleanup: () => Promise<void>;
+    onCleanupProgress: (callback: (progressData: CleanupProgress) => void) => () => void;
   };
 }
 

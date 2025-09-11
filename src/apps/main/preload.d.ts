@@ -284,7 +284,10 @@ declare interface Window {
 
     login(email: string): Promise<AuthLoginResponseViewModel>;
     cleaner: {
-      generateReport: (force?: boolean) => Promise<CleanerReport>
+      generateReport: (force?: boolean) => Promise<CleanerReport>;
+      startCleanup: (viewModel: import('../../backend/features/cleaner/cleaner.types').CleanerViewModel) => Promise<void>;
+      stopCleanup: () => Promise<void>;
+      onCleanupProgress: (callback: (progressData: import('../../backend/features/cleaner/cleaner.types').CleanupProgress) => void) => () => void;
     };
   };
 }

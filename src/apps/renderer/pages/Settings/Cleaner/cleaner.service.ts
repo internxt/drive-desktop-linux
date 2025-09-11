@@ -7,14 +7,6 @@ import {
   CleanerSectionViewModel,
 } from './types/cleaner-viewmodel';
 
-export function handleCleanup(
-  viewModel: CleanerViewModel,
-  report: CleanerReport
-) {
-  console.log('Starting cleanup process...');
-  console.log('ViewModel:', viewModel);
-  console.log('Cleanup process completed');
-}
 
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';

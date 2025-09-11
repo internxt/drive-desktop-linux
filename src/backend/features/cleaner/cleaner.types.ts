@@ -30,7 +30,7 @@ export type CleanerSectionKey = keyof CleanerReport;
 
 export const CLEANER_SECTION_KEYS: readonly CleanerSectionKey[] = [
   'appCache',
-  'logFiles', 
+  'logFiles',
   'trash',
   'webStorage',
   'webCache'
@@ -73,4 +73,23 @@ export type WebCacheFilesPaths = {
   chromeCacheDir: string;
   firefoxCacheDir: string;
   braveCacheDir: string;
+};
+
+export type CleanerSectionViewModel = {
+  selectedAll: boolean;
+  /** item paths that are opposite of selectedAll */
+  exceptions: string[];
+};
+
+export type CleanerViewModel = {
+  [sectionKey: string]: CleanerSectionViewModel;
+};
+
+export type CleanupProgress = {
+  currentCleaningPath: string;
+  progress: number;
+  deletedFiles: number;
+  spaceGained: number;
+  cleaning: boolean;
+  cleaningCompleted: boolean;
 };
