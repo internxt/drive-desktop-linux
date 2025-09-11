@@ -3,9 +3,9 @@ import CleaningFinished from '../components/cleaning-finished';
 import CleaningProcess from '../components/cleaning-process';
 
 export default function CleaningView() {
-  const { cleaningState, generateReport } = useCleaner();
+  const { cleaningState, generateReport, stopCleanup } = useCleaner();
   function handleStopCleaning() {
-    /* TODO: Implement */
+    stopCleanup();
   }
 
   function handleFinishView() {

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useCleaner } from '../../../context/CleanerContext';
 import Button from '../../../components/Button';
-import { handleCleanup } from './cleaner.service';
 import { CleanerView } from './views/cleaner-view';
 import { GenerateReportView } from './views/generate-report-view';
 import { LoadingView } from './views/loading-view';
@@ -15,7 +14,7 @@ type Props = {
 };
 export function CleanerSection({ active }: Props) {
   const { translate } = useTranslationContext();
-  const { loading, report, cleaningState, generateReport } = useCleaner();
+  const { loading, report, cleaningState, generateReport, startCleanup } = useCleaner();
   const useCleanerViewModelHook = useCleanerViewModel();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
@@ -25,7 +24,7 @@ export function CleanerSection({ active }: Props) {
 
   const confirmCleanup = () => {
     if (report) {
-      handleCleanup(useCleanerViewModelHook.viewModel, report);
+      startCleanup(useCleanerViewModelHook.viewModel);
     }
     setShowConfirmDialog(false);
   };
