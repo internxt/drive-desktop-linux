@@ -55,6 +55,7 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
 
   const generateReport = async (force = false) => {
     if (loading) return;
+    setReport(null);
     setLoading(true);
     try {
       const result: CleanerReport =
