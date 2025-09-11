@@ -435,6 +435,19 @@
         "description": "This action will permanently delete the selected files from your device. This cannot be undone. Please, confirm to continue.",
         "cancelButton": "Cancel",
         "confirmButton": "Delete files"
+      },
+      "cleaningView": {
+        "cleaningProcess": {
+          "title": "Cleaning...",
+          "stopCleanButton": "Stop clean",
+          "deletedFiles": "Deleted files",
+          "freeSpaceGained": "Free space gained"
+        },
+        "cleaningFinished": {
+          "title": "Your device is clean",
+          "subtitle": "No further actions are necessary",
+          "finish": "Finish"
+        }
       }
     }
   },
