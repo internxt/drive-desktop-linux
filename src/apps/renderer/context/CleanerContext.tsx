@@ -4,7 +4,9 @@ import {
   useContext,
   useState,
   useEffect,
+  useMemo,
 } from 'react';
+import { useUserAvailableProducts } from '../hooks/useUserAvailableProducts/useUserAvailableProducts';
 import {
   CleanerReport,
   CleanerViewModel,
@@ -13,6 +15,7 @@ import {
 type CleanerContextType = {
   report: CleanerReport | null;
   loading: boolean;
+  isCleanerAvailable: boolean;
   cleaningState: {
     cleaning: boolean;
     cleaningCompleted: boolean;
@@ -32,6 +35,11 @@ const CleanerContext = createContext<CleanerContextType | undefined>(undefined);
 export function CleanerProvider({ children }: { children: ReactNode }) {
   const [report, setReport] = useState<CleanerReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const { products } = useUserAvailableProducts();
+
+  const isCleanerAvailable = useMemo(() => {
+    return Boolean(products?.cleaner);
+  }, [products]);
   const initialCleaningState = {
     cleaning: false,
     cleaningCompleted: false,
@@ -55,6 +63,7 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
 
   const generateReport = async (force = false) => {
     if (loading) return;
+    setReport(null);
     setLoading(true);
     try {
       const result: CleanerReport =
@@ -107,12 +116,12 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
     setCleaningState(initialCleaningState);
   }
 
-  // TODO: add product availability check
   return (
     <CleanerContext.Provider
       value={{
         report,
         loading,
+        isCleanerAvailable,
         cleaningState,
         generateReport,
         startCleanup,
