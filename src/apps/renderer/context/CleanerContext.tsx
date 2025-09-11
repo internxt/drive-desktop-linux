@@ -1,5 +1,15 @@
-import { createContext, ReactNode, useContext, useState, useEffect } from 'react';
-import { CleanerReport, CleanerViewModel, CleanupProgress } from '../../../backend/features/cleaner/cleaner.types';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useState,
+  useEffect,
+} from 'react';
+import {
+  CleanerReport,
+  CleanerViewModel,
+  CleanupProgress,
+} from '../../../backend/features/cleaner/cleaner.types';
 type CleanerContextType = {
   report: CleanerReport | null;
   loading: boolean;
@@ -14,6 +24,7 @@ type CleanerContextType = {
   generateReport: (force?: boolean) => Promise<void>;
   startCleanup: (viewModel: CleanerViewModel) => void;
   stopCleanup: () => void;
+  setInitialCleaningState: () => void;
 };
 
 const CleanerContext = createContext<CleanerContextType | undefined>(undefined);
@@ -21,14 +32,15 @@ const CleanerContext = createContext<CleanerContextType | undefined>(undefined);
 export function CleanerProvider({ children }: { children: ReactNode }) {
   const [report, setReport] = useState<CleanerReport | null>(null);
   const [loading, setLoading] = useState(false);
-  const [cleaningState, setCleaningState] = useState({
+  const initialCleaningState = {
     cleaning: false,
-    cleaningCompleted: true,
+    cleaningCompleted: false,
     currentCleaningPath: '',
     progress: 0,
     deletedFiles: 0,
     spaceGained: '0 B',
-  });
+  };
+  const [cleaningState, setCleaningState] = useState(initialCleaningState);
 
   // Helper function to format file size
   const formatFileSize = (bytes: number): string => {
@@ -83,11 +95,17 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
     };
 
     // Add listener for cleanup progress updates
-    const removeListener = window.electron.cleaner.onCleanupProgress(handleCleanupProgress);
+    const removeListener = window.electron.cleaner.onCleanupProgress(
+      handleCleanupProgress
+    );
 
     // Cleanup listener on unmount
     return removeListener;
   }, []);
+
+  function setInitialCleaningState() {
+    setCleaningState(initialCleaningState);
+  }
 
   // TODO: add product availability check
   return (
@@ -99,6 +117,7 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
         generateReport,
         startCleanup,
         stopCleanup,
+        setInitialCleaningState,
       }}
     >
       {children}

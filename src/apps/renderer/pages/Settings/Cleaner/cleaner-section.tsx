@@ -32,6 +32,9 @@ export function CleanerSection({ active }: Props) {
   const cancelCleanup = () => {
     setShowConfirmDialog(false);
   };
+  function handleGenerateReport() {
+    generateReport();
+  }
   return (
     <section
       className={`${active ? 'block' : 'hidden'} relative h-full w-full`}
@@ -43,7 +46,7 @@ export function CleanerSection({ active }: Props) {
           {!report && !loading && (
             <>
               <GenerateReportView
-                onGenerateReport={generateReport}
+                onGenerateReport={handleGenerateReport}
                 {...useCleanerViewModelHook}
               />
             </>
