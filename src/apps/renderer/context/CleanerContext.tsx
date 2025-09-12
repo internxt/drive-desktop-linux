@@ -39,7 +39,6 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
   const [diskSpace, setDiskSpace] = useState(0);
 
   const { products } = useUserAvailableProducts();
-
   const isCleanerAvailable = useMemo(() => {
     return Boolean(products?.cleaner);
   }, [products]);

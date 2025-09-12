@@ -16,7 +16,11 @@ function storeProductsAndEmitEvent(fetchedProducts: UserAvailableProducts) {
   eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', fetchedProducts);
 }
 
-export async function getUserAvailableProductsAndStore() {
+export async function getUserAvailableProductsAndStore({
+  forceStorage = false,
+}: {
+  forceStorage: boolean;
+}) {
   const storedProducts = getStoredUserProducts();
   const paymentsClientConfig = {
     paymentsUrl: process.env.PAYMENTS_URL!,
@@ -31,7 +35,8 @@ export async function getUserAvailableProductsAndStore() {
   });
   if (
     userProducts &&
-    areProductsEqual({ stored: storedProducts, fetched: userProducts })
+    (areProductsEqual({ stored: storedProducts, fetched: userProducts }) ||
+      forceStorage)
   ) {
     storeProductsAndEmitEvent(userProducts);
   }
