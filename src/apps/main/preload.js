@@ -429,8 +429,10 @@ contextBridge.exposeInMainWorld('electron', {
     error: (rawBody) => logger.error(rawBody),
   },
   cleaner: {
-    generateReport: (force = false) => ipcRenderer.invoke('cleaner:generate-report', force),
-    startCleanup: (viewModel) => ipcRenderer.invoke('cleaner:start-cleanup', viewModel),
+    generateReport: (force = false) =>
+      ipcRenderer.invoke('cleaner:generate-report', force),
+    startCleanup: (viewModel) =>
+      ipcRenderer.invoke('cleaner:start-cleanup', viewModel),
     stopCleanup: () => ipcRenderer.invoke('cleaner:stop-cleanup'),
     onCleanupProgress: (callback) => {
       const eventName = 'cleaner:cleanup-progress';
@@ -438,5 +440,6 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.on(eventName, callbackWrapper);
       return () => ipcRenderer.removeListener(eventName, callbackWrapper);
     },
-  }
+    getDiskSpace: () => ipcRenderer.invoke('cleaner:get-disk-space'),
+  },
 });

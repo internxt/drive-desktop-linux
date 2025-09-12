@@ -56,6 +56,7 @@ export interface IElectronAPI {
     startCleanup: (viewModel: CleanerViewModel) => Promise<void>;
     stopCleanup: () => Promise<void>;
     onCleanupProgress: (callback: (progressData: CleanupProgress) => void) => () => void;
+    getDiskSpace: () => Promise<number>;
   };
 }
 

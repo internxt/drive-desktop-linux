@@ -74,14 +74,33 @@ export function CleanupSizeIndicator({
           <div className="text-gray-900 text-3xl font-bold dark:text-gray-100">
             {formatFileSize(selectedSize)}
           </div>
-          <div className="text-gray-500 dark:text-gray-400 mt-1 text-center text-sm">
-            {translate('settings.cleaner.sizeIndicatorView.saveUpTo')}{' '}
-            {totalSize > 0 ? Math.round((selectedSize / totalSize) * 100) : 0}%
-            <br />
-            {translate('settings.cleaner.sizeIndicatorView.ofYourSpace')}
-          </div>
+          <SavedSpaceIndicator
+            totalSize={totalSize}
+            selectedSize={selectedSize}
+          />
         </div>
       </div>
+    </div>
+  );
+}
+
+function SavedSpaceIndicator({
+  totalSize,
+  selectedSize,
+}: {
+  totalSize: number;
+  selectedSize: number;
+}) {
+  const { translate } = useTranslationContext();
+  const savedSpacePercentage =
+    totalSize > 0 ? ((selectedSize / totalSize) * 100).toFixed(2) : '0.00';
+    
+  return (
+    <div className="text-gray-500 dark:text-gray-400 mt-1 text-center text-sm">
+      {translate('settings.cleaner.sizeIndicatorView.saveUpTo')}{' '}
+      {savedSpacePercentage}%
+      <br />
+      {translate('settings.cleaner.sizeIndicatorView.ofYourSpace')}
     </div>
   );
 }
