@@ -69,6 +69,10 @@
         "title": "Keep your computer safe from virus",
         "description": "Internxt's Desktop app now also features the brand new Internxt Antivirus, with which you can scan and remove any potential malware from your device."
       },
+      "cleaner": {
+        "title": "Free up space locally and optimize your device's performance.",
+        "description": "Our cleaner finds and removes unnecessary files, so your device runs smoothly."
+      },
       "onboarding-completed": {
         "title": "You're all set, enjoy your privacy!",
         "backups-completed": {
