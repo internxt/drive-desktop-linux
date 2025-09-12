@@ -5,6 +5,7 @@ import { CleanupSizeIndicator } from '../components/cleanup-size-indicator';
 import { SectionsList } from '../components/sections-list';
 import { CleanerViewModelHook } from '../hooks/useCleanerViewModel';
 import { CleanerReport } from '../../../../../../backend/features/cleaner/cleaner.types';
+import { useCleaner } from '../../../../../renderer/context/CleanerContext';
 
 type CleanerViewProps = {
   report: CleanerReport;
@@ -21,6 +22,7 @@ export function CleanerView({
   getTotalSelectedSize,
   getGlobalSelectionStats,
 }: CleanerViewProps) {
+  const { diskSpace } = useCleaner();
   const [sectionDetailMenu, setSectionDetailMenu] = useState<string | null>(
     null
   );
@@ -78,7 +80,7 @@ export function CleanerView({
         {/* Right Panel */}
         <CleanupSizeIndicator
           selectedSize={selectedSize}
-          totalSize={totalSize}
+          totalSize={diskSpace}
           segmentDetails={segmentDetails}
         />
       </div>

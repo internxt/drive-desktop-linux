@@ -288,6 +288,7 @@ declare interface Window {
       startCleanup: (viewModel: import('../../backend/features/cleaner/cleaner.types').CleanerViewModel) => Promise<void>;
       stopCleanup: () => Promise<void>;
       onCleanupProgress: (callback: (progressData: import('../../backend/features/cleaner/cleaner.types').CleanupProgress) => void) => () => void;
+      getDiskSpace: () => Promise<number>;
     };
   };
 }

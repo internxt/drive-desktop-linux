@@ -12,8 +12,7 @@ import { PATHS } from '../../core/electron/paths';
 import { setupElectronLog } from '@internxt/drive-desktop-core/build/backend';
 
 setupElectronLog({
-  logsPath: PATHS.ELECTRON_LOGS,
-  importantLogsPath: PATHS.ELECTRON_IMPORTANT_LOGS,
+  logsPath: PATHS.LOGS,
 });
 import './virtual-root-folder/handlers';
 import './auto-launch/handlers';

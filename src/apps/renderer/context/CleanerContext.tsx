@@ -24,6 +24,7 @@ type CleanerContextType = {
     deletedFiles: number;
     spaceGained: string;
   };
+  diskSpace: number;
   generateReport: (force?: boolean) => Promise<void>;
   startCleanup: (viewModel: CleanerViewModel) => void;
   stopCleanup: () => void;
@@ -35,6 +36,8 @@ const CleanerContext = createContext<CleanerContextType | undefined>(undefined);
 export function CleanerProvider({ children }: { children: ReactNode }) {
   const [report, setReport] = useState<CleanerReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const [diskSpace, setDiskSpace] = useState(0);
+
   const { products } = useUserAvailableProducts();
 
   const isCleanerAvailable = useMemo(() => {
@@ -66,9 +69,11 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
     setReport(null);
     setLoading(true);
     try {
-      const result: CleanerReport =
+      const report: CleanerReport =
         await window.electron.cleaner.generateReport(force);
-      setReport(result);
+      const diskSpace = await window.electron.cleaner.getDiskSpace();
+      setReport(report);
+      setDiskSpace(diskSpace);
     } finally {
       setLoading(false);
     }
@@ -123,6 +128,7 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
         loading,
         isCleanerAvailable,
         cleaningState,
+        diskSpace,
         generateReport,
         startCleanup,
         stopCleanup,
