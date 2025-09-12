@@ -70,6 +70,10 @@
         "description": "Protégez vos fichiers avec un antivirus pour éviter toute menace de virus ou de malware.",
         "description-2": "L'antivirus d'Internxt Drive vous permet de protéger vos fichiers et dossiers contre toute menace de virus ou de malware."
       },
+      "cleaner": {
+        "title": "Libérez de l'espace localement et optimisez les performances de votre appareil.",
+        "description": "Notre nettoyeur trouve et supprime les fichiers inutiles afin que votre appareil fonctionne correctement."
+      },
       "onboarding-completed": {
         "title": "Vous êtes prêt, profitez de votre vie privée !",
         "backups-completed": {
@@ -142,7 +146,9 @@
         "issues": "Liste d'erreurs",
         "support": "Aide",
         "logout": "Déconnecter",
-        "quit": "Fermer"
+        "quit": "Fermer",
+        "cleaner": "Cleaner",
+        "new": "Nouveau"
       }
     },
     "body": {

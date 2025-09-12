@@ -7,6 +7,7 @@ type Props = {
   onClose: () => void;
   isAllSelected: boolean;
   isPartiallySelected: boolean;
+  isEmpty?: boolean;
   onSelectAll: () => void;
 };
 
@@ -15,6 +16,7 @@ export default function SectionDetailHeader({
   onClose,
   isAllSelected,
   isPartiallySelected,
+  isEmpty = false,
   onSelectAll,
 }: Props) {
   const { translate } = useTranslationContext();
@@ -33,8 +35,9 @@ export default function SectionDetailHeader({
       </div>
       <Checkbox
         checked={isAllSelected || isPartiallySelected}
+        disabled={isEmpty}
         label={translate('settings.cleaner.selectAllCheckbox')}
-        onClick={onSelectAll}
+        onClick={() => !isEmpty && onSelectAll()}
       />
     </div>
   );

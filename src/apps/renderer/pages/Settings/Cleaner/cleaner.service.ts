@@ -98,6 +98,17 @@ export function getSectionStats(
   const selectedCount = selectedItems.length;
   const totalCount = allItems.length;
 
+  // For empty sections, treat as having no meaningful selection state
+  if (totalCount === 0) {
+    return {
+      selectedCount: 0,
+      totalCount: 0,
+      isAllSelected: false,
+      isPartiallySelected: false,
+      isNoneSelected: true,
+    };
+  }
+
   return {
     selectedCount,
     totalCount,

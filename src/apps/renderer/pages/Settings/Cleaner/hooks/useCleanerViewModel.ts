@@ -96,8 +96,20 @@ export function useCleanerViewModel() {
         getSectionSelectionStats(sectionKey, report)
       );
 
-      const allSelected = allSectionStats.every((stats) => stats.isAllSelected);
-      const noneSelected = allSectionStats.every(
+      // Only consider non-empty sections for global selection logic
+      const nonEmptySectionStats = allSectionStats.filter((stats) => stats.totalCount > 0);
+      
+      // If all sections are empty, treat as none selected
+      if (nonEmptySectionStats.length === 0) {
+        return {
+          isAllSelected: false,
+          isPartiallySelected: false,
+          isNoneSelected: true,
+        };
+      }
+
+      const allSelected = nonEmptySectionStats.every((stats) => stats.isAllSelected);
+      const noneSelected = nonEmptySectionStats.every(
         (stats) => stats.isNoneSelected
       );
       const partiallySelected = !allSelected && !noneSelected;
