@@ -32,9 +32,12 @@ export default function SectionDetailMenu({
 
   const isAllSelected = stats.isAllSelected;
   const isPartiallySelected = stats.isPartiallySelected;
+  const isEmpty = stats.totalCount === 0;
 
   const handleSelectAll = () => {
-    onToggleSection(sectionName);
+    if (!isEmpty) {
+      onToggleSection(sectionName);
+    }
   };
   const parentRef = useRef<HTMLDivElement>(null);
   const items = sectionData.items;
@@ -58,6 +61,7 @@ export default function SectionDetailMenu({
         onClose={onClose}
         isAllSelected={isAllSelected}
         isPartiallySelected={isPartiallySelected}
+        isEmpty={isEmpty}
         onSelectAll={handleSelectAll}
       />
       <Separator classname="mx-2" />

@@ -32,6 +32,7 @@ export function SectionItem({
 
   const isSectionAllSelected = stats.isAllSelected;
   const isSectionPartiallySelected = stats.isPartiallySelected;
+  const isEmpty = stats.totalCount === 0;
 
   return (
     <div key={sectionName}>
@@ -42,7 +43,8 @@ export function SectionItem({
           label={config.name}
           className="font-semibold hover:cursor-pointer"
           checked={isSectionAllSelected || isSectionPartiallySelected}
-          onClick={() => onToggleSection(sectionName)}
+          disabled={isEmpty}
+          onClick={() => !isEmpty && onToggleSection(sectionName)}
         />
 
         <div

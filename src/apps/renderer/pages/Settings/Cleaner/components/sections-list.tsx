@@ -23,11 +23,15 @@ export function SectionsList({
   onToggleSection,
   onToggleSectionExpansion,
 }: Props) {
+  // Check if any section has items
+  const hasAnyItems = Object.values(report).some((section) => section.items.length > 0);
+
   return (
     <div className="flex h-full w-1/2 flex-col p-6">
       <SectionsListHeadertype
         isAllSelected={isAllSelected}
         isPartiallySelected={isPartiallySelected}
+        hasAnyItems={hasAnyItems}
         onSelectAll={onSelectAll}
       />
       <Separator />
