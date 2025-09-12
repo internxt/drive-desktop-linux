@@ -146,7 +146,9 @@
         "issues": "Liste d'erreurs",
         "support": "Aide",
         "logout": "Déconnecter",
-        "quit": "Fermer"
+        "quit": "Fermer",
+        "cleaner": "Cleaner",
+        "new": "Nouveau"
       }
     },
     "body": {

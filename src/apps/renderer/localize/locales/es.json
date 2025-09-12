@@ -147,7 +147,9 @@
         "send-feedback": "Enviar feedback",
         "support": "Ayuda",
         "logout": "Cerrar sesión",
-        "quit": "Salir"
+        "quit": "Salir",
+        "cleaner": "Cleaner",
+        "new": "Nuevo"
       }
     },
     "body": {
