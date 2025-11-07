@@ -63,6 +63,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { trySetupAntivirusIpcAndInitialize } from './background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
 import { getUserAvailableProductsAndStore } from '../../backend/features/payments/services/get-user-available-products-and-store';
 import { handleDeeplink } from './auth/deeplink/handle-deeplink';
+import { version, release } from 'node:os';
 
 const gotTheLock = app.requestSingleInstanceLock();
 app.setAsDefaultProtocolClient('internxt');
@@ -73,7 +74,14 @@ if (!gotTheLock) {
 
 registerAuthIPCHandlers();
 
-logger.debug({ msg: `Running ${packageJson.version}` });
+logger.debug({
+  msg: 'Starting app',
+  version: packageJson.version,
+  isPackaged: app.isPackaged,
+  osVersion: version(),
+  osRelease: release(),
+});
+
 function checkForUpdates() {
   try {
     autoUpdater.logger = {
