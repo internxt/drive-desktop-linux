@@ -1,11 +1,8 @@
 import { ipcMain, shell } from 'electron';
-import log from 'electron-log';
 import path from 'node:path';
+import { PATHS } from '../../core/electron/paths';
 
 ipcMain.on('open-logs', () => {
-  const logfilePath = log.transports.file.getFile().path;
-  const logFolderPath = path.dirname(logfilePath);
+  const logFolderPath = path.dirname(PATHS.LOGS);
   shell.openPath(logFolderPath);
 });
-
-export default log;
