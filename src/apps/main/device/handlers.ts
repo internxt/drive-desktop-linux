@@ -1,7 +1,6 @@
 import { ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import {
-  addBackup,
   changeBackupPath,
   createBackupsFromLocalPaths,
   deleteBackup,
@@ -12,6 +11,7 @@ import {
   getPathFromDialog,
 } from './service';
 import { DeviceModule } from '../../../backend/features/device/device.module';
+import { addBackup } from '../backups/add-backup';
 
 ipcMain.handle('devices.get-all', () => getDevices());
 
@@ -23,7 +23,7 @@ ipcMain.handle('get-backups-from-device', (_, d, c?) => DeviceModule.getBackupsF
 
 ipcMain.handle('add-backup', () =>
   addBackup().catch((err) => {
-    logger.error({ tag: 'BACKUPS', msg: 'Error adding backup:', error: err });
+    throw logger.error({ tag: 'BACKUPS', msg: 'Error adding backup:', error: err });
   }),
 );
 ipcMain.handle('add-multiple-backups', (_, folderPaths) => createBackupsFromLocalPaths(folderPaths));
