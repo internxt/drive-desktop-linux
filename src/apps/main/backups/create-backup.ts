@@ -13,8 +13,9 @@ type Props = {
 export async function createBackup({ pathname, device }: Props) {
   const { base } = path.parse(pathname);
   const newBackup = await postBackup({ folderName: base, device });
-  const backupList = configStore.get('backupList');
+  if (!newBackup) return;
 
+  const backupList = configStore.get('backupList');
   backupList[pathname] = {
     enabled: true,
     folderId: newBackup.id,

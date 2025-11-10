@@ -56,16 +56,22 @@ export function useBackups(): BackupContextProps {
   }, [selected, devices]);
 
   async function addBackup() {
-    try {
-      const newBackup = await window.electron.addBackup();
-      if (newBackup) {
-        setBackupsState('LOADING');
-        setBackups(prevBackups => [...prevBackups, newBackup]);
-        setTimeout(() => setBackupsState('SUCCESS'), 1000);
+    const newBackup = await window.electron.addBackup();
+    if (!newBackup) return;
+
+    setBackups(prevBackups => {
+      const existingIndex = prevBackups.findIndex(
+        backup => backup.folderId === newBackup.folderId
+      );
+
+      if (existingIndex === -1) {
+        return [...prevBackups, newBackup];
       }
-    } catch {
-      setBackupsState('ERROR');
-    }
+
+      const updatedBackups = [...prevBackups];
+      updatedBackups[existingIndex] = newBackup;
+      return updatedBackups;
+    });
   }
 
   async function disableBackup(backup: BackupInfo) {
