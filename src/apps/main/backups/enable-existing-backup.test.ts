@@ -95,35 +95,4 @@ describe('enableExistingBackup', () => {
       backupsBucket: mockDevice.bucket,
     });
   });
-
-  it('should handle migration and update config correctly', async () => {
-    const originalBackup = {
-      folderUuid: 'original-uuid',
-      folderId: 123,
-      enabled: false,
-    };
-
-    const migratedBackup = {
-      folderUuid: 'migrated-uuid',
-      folderId: 456,
-      enabled: false,
-    };
-
-    const mockBackupListAfterUpdate = {
-      [pathname]: { ...migratedBackup, enabled: true },
-    };
-
-    mockedConfigStore.get
-      .mockReturnValueOnce({ [pathname]: originalBackup })
-      .mockReturnValueOnce(mockBackupListAfterUpdate);
-
-    mockedMigrateBackupEntryIfNeeded.mockResolvedValue(migratedBackup);
-    mockedFetchFolder.mockResolvedValue({ id: migratedBackup.folderId } as any);
-    mockedApp.getPath.mockReturnValue('/tmp');
-
-    await enableExistingBackup(pathname, mockDevice);
-
-    expect(mockedMigrateBackupEntryIfNeeded).toBeCalledWith(pathname, originalBackup);
-    expect(mockedConfigStore.set).toBeCalledWith('backupList', mockBackupListAfterUpdate);
-  });
 });

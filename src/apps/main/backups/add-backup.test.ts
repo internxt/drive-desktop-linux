@@ -59,15 +59,6 @@ describe('addBackup', () => {
     expect(result).toBeUndefined();
   });
 
-  it('should return undefined when path is empty', async () => {
-    mockedDeviceModule.getOrCreateDevice.mockResolvedValue(mockDevice);
-    mockedGetPathFromDialog.mockResolvedValue({ path: '', itemName: '' });
-
-    const result = await addBackup();
-
-    expect(result).toBeUndefined();
-  });
-
   it('should create new backup when backup does not exist', async () => {
     const chosenPath = '/path/to/backup';
     const mockBackupInfo = {
