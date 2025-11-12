@@ -1,9 +1,9 @@
-import { getPathFromDialog } from "../device/service";
-import configStore from "../config";
-import { createBackup } from "./create-backup";
-import { DeviceModule } from "../../../backend/features/device/device.module";
-import { logger } from "@internxt/drive-desktop-core/build/backend";
-import { enableExistingBackup } from "./enable-existing-backup";
+import { getPathFromDialog } from '../device/service';
+import configStore from '../config';
+import { createBackup } from './create-backup';
+import { DeviceModule } from '../../../backend/features/device/device.module';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { enableExistingBackup } from './enable-existing-backup';
 
 export async function addBackup() {
   const device = await DeviceModule.getOrCreateDevice();

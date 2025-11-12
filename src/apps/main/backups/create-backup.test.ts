@@ -1,12 +1,12 @@
-import { createBackup } from "./create-backup";
-import { postBackup } from "./post-backup";
-import configStore from "../config";
-import { app } from "electron";
-import path from "node:path";
+import { createBackup } from './create-backup';
+import { postBackup } from './post-backup';
+import configStore from '../config';
+import { app } from 'electron';
+import path from 'node:path';
 
-jest.mock("./post-backup");
-jest.mock("../config");
-jest.mock("node:path");
+jest.mock('./post-backup');
+jest.mock('../config');
+jest.mock('node:path');
 
 const mockPostBackup = jest.mocked(postBackup);
 const mockConfigStore = jest.mocked(configStore);
@@ -20,7 +20,7 @@ describe('createBackup', () => {
     bucket: 'test-bucket',
     name: 'Test Device',
     removed: false,
-    hasBackups: true
+    hasBackups: true,
   };
 
   beforeEach(() => {
@@ -31,7 +31,7 @@ describe('createBackup', () => {
       dir: '/home/user',
       base: 'TestFolder',
       ext: '',
-      name: 'TestFolder'
+      name: 'TestFolder',
     });
 
     mockApp.getPath.mockReturnValue('/tmp');
@@ -40,27 +40,29 @@ describe('createBackup', () => {
 
   it('should create backup successfully', async () => {
     mockPostBackup.mockResolvedValue({
-      id: 123,
-      name: 'TestFolder',
-      uuid: 'backup-uuid-456'
+      data: {
+        id: 123,
+        name: 'TestFolder',
+        uuid: 'backup-uuid-456',
+      },
     });
 
     const result = await createBackup({
       pathname: '/home/user/TestFolder',
-      device: mockDevice
+      device: mockDevice,
     });
 
     expect(mockPostBackup).toBeCalledWith({
       folderName: 'TestFolder',
-      device: mockDevice
+      device: mockDevice,
     });
 
     expect(mockConfigStore.set).toBeCalledWith('backupList', {
       '/home/user/TestFolder': {
         enabled: true,
         folderId: 123,
-        folderUuid: 'backup-uuid-456'
-      }
+        folderUuid: 'backup-uuid-456',
+      },
     });
 
     expect(result).toStrictEqual({
@@ -69,16 +71,18 @@ describe('createBackup', () => {
       pathname: '/home/user/TestFolder',
       name: 'TestFolder',
       tmpPath: '/tmp',
-      backupsBucket: 'test-bucket'
+      backupsBucket: 'test-bucket',
     });
   });
 
   it('should return undefined when postBackup fails', async () => {
-    mockPostBackup.mockResolvedValue(undefined);
+    mockPostBackup.mockResolvedValue({
+      error: new Error('Failed to create backup folder') as any,
+    });
 
     const result = await createBackup({
       pathname: '/home/user/FailedFolder',
-      device: mockDevice
+      device: mockDevice,
     });
 
     expect(result).toBeUndefined();

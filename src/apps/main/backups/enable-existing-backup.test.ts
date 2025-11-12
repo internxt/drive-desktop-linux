@@ -23,14 +23,14 @@ describe('enableExistingBackup', () => {
     uuid: 'device-uuid',
     name: 'Test Device',
     removed: false,
-    hasBackups: false
+    hasBackups: false,
   };
 
   const pathname = '/path/to/backup';
   const existingBackupData = {
     folderUuid: 'existing-uuid',
     folderId: 456,
-    enabled: false
+    enabled: false,
   };
 
   beforeEach(() => {
@@ -44,7 +44,7 @@ describe('enableExistingBackup', () => {
       pathname,
       name: 'backup',
       tmpPath: '/tmp',
-      backupsBucket: 'test-bucket'
+      backupsBucket: 'test-bucket',
     };
 
     mockedConfigStore.get.mockReturnValue({ [pathname]: existingBackupData });
@@ -64,11 +64,11 @@ describe('enableExistingBackup', () => {
     const migratedBackup = {
       folderUuid: 'migrated-uuid',
       folderId: 456,
-      enabled: false
+      enabled: false,
     };
 
     const updatedBackupList = {
-      [pathname]: { ...migratedBackup, enabled: true }
+      [pathname]: { ...migratedBackup, enabled: true },
     };
 
     mockedConfigStore.get
@@ -92,7 +92,7 @@ describe('enableExistingBackup', () => {
       pathname,
       name: 'backup',
       tmpPath: '/tmp',
-      backupsBucket: mockDevice.bucket
+      backupsBucket: mockDevice.bucket,
     });
   });
 
@@ -100,17 +100,17 @@ describe('enableExistingBackup', () => {
     const originalBackup = {
       folderUuid: 'original-uuid',
       folderId: 123,
-      enabled: false
+      enabled: false,
     };
 
     const migratedBackup = {
       folderUuid: 'migrated-uuid',
       folderId: 456,
-      enabled: false
+      enabled: false,
     };
 
     const mockBackupListAfterUpdate = {
-      [pathname]: { ...migratedBackup, enabled: true }
+      [pathname]: { ...migratedBackup, enabled: true },
     };
 
     mockedConfigStore.get

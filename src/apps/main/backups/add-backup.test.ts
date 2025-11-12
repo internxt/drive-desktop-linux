@@ -29,7 +29,7 @@ describe('addBackup', () => {
     uuid: 'device-uuid',
     name: 'Test Device',
     removed: false,
-    hasBackups: false
+    hasBackups: false,
   };
 
   beforeEach(() => {
@@ -44,9 +44,9 @@ describe('addBackup', () => {
     });
 
     await expect(addBackup()).rejects.toThrow('Error message');
-    expect(mockedLogger.error).toHaveBeenCalledWith({
+    expect(mockedLogger.error).toBeCalledWith({
       tag: 'BACKUPS',
-      msg: 'Error adding backup: No device found'
+      msg: 'Error adding backup: No device found',
     });
   });
 
@@ -76,7 +76,7 @@ describe('addBackup', () => {
       pathname: chosenPath,
       name: 'backup',
       tmpPath: '/tmp',
-      backupsBucket: 'test-bucket'
+      backupsBucket: 'test-bucket',
     };
 
     mockedDeviceModule.getOrCreateDevice.mockResolvedValue(mockDevice);
@@ -86,9 +86,9 @@ describe('addBackup', () => {
 
     const result = await addBackup();
 
-    expect(mockedCreateBackup).toHaveBeenCalledWith({
+    expect(mockedCreateBackup).toBeCalledWith({
       pathname: chosenPath,
-      device: mockDevice
+      device: mockDevice,
     });
     expect(result).toBe(mockBackupInfo);
   });
@@ -98,7 +98,7 @@ describe('addBackup', () => {
     const existingBackupData = {
       folderUuid: 'existing-uuid',
       folderId: 456,
-      enabled: false
+      enabled: false,
     };
     const mockBackupInfo = {
       folderUuid: 'existing-uuid',
@@ -106,7 +106,7 @@ describe('addBackup', () => {
       pathname: chosenPath,
       name: 'existing',
       tmpPath: '/tmp',
-      backupsBucket: 'test-bucket'
+      backupsBucket: 'test-bucket',
     };
 
     mockedDeviceModule.getOrCreateDevice.mockResolvedValue(mockDevice);
@@ -116,7 +116,7 @@ describe('addBackup', () => {
 
     const result = await addBackup();
 
-    expect(mockedEnableExistingBackup).toHaveBeenCalledWith(chosenPath, mockDevice);
+    expect(mockedEnableExistingBackup).toBeCalledWith(chosenPath, mockDevice);
     expect(result).toBe(mockBackupInfo);
   });
 });

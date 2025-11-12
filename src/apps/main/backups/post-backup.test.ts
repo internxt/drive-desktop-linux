@@ -1,11 +1,17 @@
-import { postBackup } from "./post-backup";
-import { BackupError } from "../../backups/BackupError";
+import { postBackup } from './post-backup';
+import { BackupError } from '../../backups/BackupError';
 import { createBackupFolder } from '../../../infra/drive-server/services/backup/services/create-backup-folder';
-import { logger } from "@internxt/drive-desktop-core/build/backend";
+import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { components } from '../../../infra/schemas';
 
 jest.mock('../../../infra/drive-server/services/backup/services/create-backup-folder');
 
-const mockCreateBackupFolder = jest.mocked(createBackupFolder);
+const mockCreateBackupFolder = createBackupFolder as jest.MockedFunction<
+  (
+    deviceUuid: string,
+    plainName: string,
+  ) => Promise<{ data: components['schemas']['FolderDto'] } | { error: BackupError }>
+>;
 const mockLogger = jest.mocked(logger);
 
 describe('postBackup', () => {
@@ -15,7 +21,7 @@ describe('postBackup', () => {
     bucket: 'test-bucket',
     name: 'Test Device',
     removed: false,
-    hasBackups: true
+    hasBackups: true,
   };
 
   beforeEach(() => {
@@ -23,35 +29,39 @@ describe('postBackup', () => {
   });
 
   it('should create backup successfully', async () => {
+    const mockFolderData = {
+      id: 456,
+      plainName: 'My Folder',
+      uuid: 'folder-uuid-789',
+    };
+
     mockCreateBackupFolder.mockResolvedValue({
-      data: {
-        id: 456,
-        plainName: 'My Folder',
-        uuid: 'folder-uuid-789'
-      }
-    } as any);
+      data: mockFolderData as components['schemas']['FolderDto'],
+    });
 
     const result = await postBackup({
       folderName: 'My Folder',
-      device: mockDevice
+      device: mockDevice,
     });
 
     expect(mockCreateBackupFolder).toBeCalledWith('device-123', 'My Folder');
     expect(result).toEqual({
-      id: 456,
-      name: 'My Folder',
-      uuid: 'folder-uuid-789'
+      data: {
+        id: 456,
+        name: 'My Folder',
+        uuid: 'folder-uuid-789',
+      },
     });
   });
 
   it('should handle errors and return undefined', async () => {
     mockCreateBackupFolder.mockResolvedValue({
-      error: new BackupError('NOT_EXISTS')
+      error: new BackupError('NOT_EXISTS'),
     });
 
     const result = await postBackup({
       folderName: 'Failed Folder',
-      device: mockDevice
+      device: mockDevice,
     });
 
     expect(mockLogger.error).toHaveBeenCalledWith({
@@ -60,6 +70,6 @@ describe('postBackup', () => {
       folderName: 'Failed Folder',
       error: expect.any(BackupError),
     });
-    expect(result).toBeUndefined();
+    expect(result).toStrictEqual({ error: expect.any(BackupError) });
   });
 });
