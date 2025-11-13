@@ -1,20 +1,21 @@
-import path from "node:path";
-import { Device } from "../device/service";
-import configStore from "../config";
-import { BackupInfo } from "src/apps/backups/BackupInfo";
-import { app } from "electron";
-import { postBackup } from "./post-backup";
+import path from 'node:path';
+import { Device } from '../device/service';
+import configStore from '../config';
+import { BackupInfo } from 'src/apps/backups/BackupInfo';
+import { app } from 'electron';
+import { postBackup } from './post-backup';
 
 type Props = {
-    pathname: string;
-    device: Device;
-}
+  pathname: string;
+  device: Device;
+};
 
 export async function createBackup({ pathname, device }: Props) {
   const { base } = path.parse(pathname);
-  const newBackup = await postBackup({ folderName: base, device });
-  const backupList = configStore.get('backupList');
+  const { error, data: newBackup } = await postBackup({ folderName: base, device });
+  if (error) return;
 
+  const backupList = configStore.get('backupList');
   backupList[pathname] = {
     enabled: true,
     folderId: newBackup.id,
@@ -32,5 +33,5 @@ export async function createBackup({ pathname, device }: Props) {
     backupsBucket: device.bucket,
   };
 
-	return createdBackup;
+  return createdBackup;
 }

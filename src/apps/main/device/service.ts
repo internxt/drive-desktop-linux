@@ -283,7 +283,7 @@ export async function changeBackupPath(currentPath: string): Promise<boolean> {
   const oldFolderName = path.basename(currentPath);
   const newFolderName = path.basename(chosenPath);
   if (oldFolderName !== newFolderName) {
-    logger.warn({ tag: 'BACKUPS', msg: 'Renaming backup', existingBackup });
+    logger.debug({ tag: 'BACKUPS', msg: 'Renaming backup', existingBackup });
     const getFolderUuidResponse = await getBackupFolderUuid(existingBackup);
     if (getFolderUuidResponse.error) {
       throw getFolderUuidResponse.error;
