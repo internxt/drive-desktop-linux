@@ -76,10 +76,8 @@ export function useBackups(): BackupContextProps {
 
   async function disableBackup(backup: BackupInfo) {
     await window.electron.disableBackup(backup);
-    setBackupsState('LOADING');
-    setTimeout(() => setBackupsState('SUCCESS'), 1000);
     setBackups(prevBackups =>
-      prevBackups.filter(b => b.folderId !== backup.folderId)
+      prevBackups.filter(b => b.folderUuid !== backup.folderUuid)
     );
   }
 
