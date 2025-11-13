@@ -57,7 +57,7 @@ describe('enableExistingBackup', () => {
     expect(mockedMigrateBackupEntryIfNeeded).toBeCalledWith(pathname, existingBackupData);
     expect(mockedFetchFolder).toBeCalledWith(existingBackupData.folderUuid);
     expect(mockedCreateBackup).toBeCalledWith({ pathname, device: mockDevice });
-    expect(result).toBe(mockNewBackupInfo);
+    expect(result).toStrictEqual(mockNewBackupInfo);
   });
 
   it('should enable existing backup when folder still exists', async () => {

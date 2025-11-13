@@ -81,7 +81,7 @@ describe('addBackup', () => {
       pathname: chosenPath,
       device: mockDevice,
     });
-    expect(result).toBe(mockBackupInfo);
+    expect(result).toStrictEqual(mockBackupInfo);
   });
 
   it('should enable existing backup when backup exists', async () => {
@@ -108,6 +108,6 @@ describe('addBackup', () => {
     const result = await addBackup();
 
     expect(mockedEnableExistingBackup).toBeCalledWith(chosenPath, mockDevice);
-    expect(result).toBe(mockBackupInfo);
+    expect(result).toStrictEqual(mockBackupInfo);
   });
 });
