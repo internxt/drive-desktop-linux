@@ -7,7 +7,7 @@ import { logger } from "@internxt/drive-desktop-core/build/backend";
 
 const execAsync = promisify(exec);
 
-const DESKTOP_FILE = join(homedir(), ".local/share/applications/internxt.desktop");
+const DESKTOP_FILE = join(homedir(), ".local/share/applications/internxt-appimage.desktop");
 
 export async function setupAppImageDeeplink() {
   const appImagePath = process.env.APPIMAGE;
@@ -55,7 +55,7 @@ async function installDesktopFile(appImagePath: string) {
 
 async function registerProtocol() {
   try {
-    await execAsync("xdg-mime default internxt.desktop x-scheme-handler/internxt");
+    await execAsync("xdg-mime default internxt-appimage.desktop x-scheme-handler/internxt");
   } catch (err) {
     logger.error({tag: "AUTH", msg: "Failed to register protocol:", err});
   }
