@@ -260,7 +260,7 @@
     "node-loader": "^2.0.0",
     "openapi-typescript": "^7.6.1",
     "opencollective-postinstall": "^2.0.3",
-    "playwright": "1.26.1",
+    "playwright": "1.55.1",
     "postcss": "^8.4.5",
     "postcss-loader": "^6.2.1",
     "prettier": "^3.6.2",
