@@ -28,16 +28,15 @@ async function ensureDotDesktopUpdated(currentPath: string) {
 async function extractExecPath() {
   try {
     await access(DESKTOP_FILE);
+    const content = await readFile(DESKTOP_FILE, "utf8");
+    const execLine = content.split("\n").find(line => line.startsWith("Exec="));
+
+    if (!execLine) return null;
+
+    return execLine.replace("Exec=", "").replace(" %u", "").trim();
   } catch {
     return null;
   }
-
-  const content = await readFile(DESKTOP_FILE, "utf8");
-  const execLine = content.split("\n").find(line => line.startsWith("Exec="));
-
-  if (!execLine) return null;
-
-  return execLine.replace("Exec=", "").replace(" %u", "").trim();
 }
 
 async function installDesktopFile(appImagePath: string) {
