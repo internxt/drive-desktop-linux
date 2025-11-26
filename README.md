@@ -1,10 +1,4 @@
-# Internxt Drive Desktop
-
-<p>
-  The official desktop application for Internxt Drive. Built with <a href="https://electron.atom.io/">Electron</a>, <a href="https://facebook.github.io/react/">React</a>, <a href="https://github.com/reactjs/react-router">React Router</a>, <a href="https://webpack.js.org/">Webpack</a> and <a href="https://www.npmjs.com/package/react-refresh">React Fast Refresh</a>.
-</p>
-
-<br>
+# Internxt Drive Desktop Linux
 
 ## Installation on Linux
 
@@ -32,6 +26,11 @@ For the best experience with SSO authentication, we recommend using the .deb pac
 
 ## Development
 
+### Prerequisites
+
+- [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager)
+- Node.js 18
+
 ### Install
 
 Clone the repo and install dependencies:
@@ -57,11 +56,3 @@ To package apps for the local platform:
 ```bash
 yarn package
 ```
-
-## License
-
-AGPL-3.0
-
-## Credits
-
-This project is built using Electron React Boilerplate, which can be found [here](https://electron-react-boilerplate.js.org).
