@@ -7,6 +7,7 @@
 Internxt Drive is available for Linux in two formats:
 
 ### .deb Package (Recommended)
+
 Download and install the `.deb` package for full compatibility:
 
 ```bash
@@ -14,6 +15,7 @@ sudo dpkg -i internxt_2.5.1_amd64.deb
 ```
 
 ### AppImage
+
 Alternatively, you can use the AppImage format:
 
 ```bash
@@ -28,6 +30,11 @@ Due to technical limitations of the AppImage format, the new SSO login flow is o
 For the best experience with SSO authentication, we recommend using the .deb package installation method.
 
 ## Development
+
+### Prerequisites
+
+- [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager)
+- Node.js 18
 
 ### Install
 
