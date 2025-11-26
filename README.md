@@ -1,6 +1,8 @@
-# Internxt Drive Desktop Linux
+# Internxt Drive Desktop for Linux
 
-## Installation on Linux
+[![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/internxt/drive-desktop-linux)
+
+## Installation
 
 Internxt Drive is available for Linux in two formats:
 
@@ -19,17 +21,13 @@ chmod +x Internxt-2.5.1.AppImage
 ./Internxt-2.5.1.AppImage
 ```
 
-**⚠️ Important Note about AppImage and SSO Login:**
+#### ⚠️ Important Note about AppImage and SSO Login:
+
 Due to technical limitations of the AppImage format, the new SSO login flow is only supported when using Chrome. The .deb version does not have this restriction and remains fully compatible with all browsers.
 
 For the best experience with SSO authentication, we recommend using the .deb package installation method.
 
 ## Development
-
-### Prerequisites
-
-- [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager)
-- Node.js 18
 
 ### Install
 
