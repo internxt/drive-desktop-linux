@@ -6,7 +6,7 @@ export default defineConfig({
     name: 'renderer',
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.renderer.ts'],
-    include: ['tests/**/*.test.{ts,tsx}', 'src/apps/renderer/**/*.test.{ts,tsx}'],
+    include: ['src/apps/renderer/**/*.test.{ts,tsx}'],
     watch: false,
     exclude: [
       '**/node_modules/**',
