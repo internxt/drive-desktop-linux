@@ -78,11 +78,7 @@ export NVM_DIR="$HOME/.nvm"
 
 cd "/your-project-path/drive-desktop-linux"
 nvm use 18
-<<<<<<< HEAD
-npm start:main "$@"
-=======
 npm run start:main "$@"
->>>>>>> main
 ```
 
 Use the following command to give the script execution permissions:
