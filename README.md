@@ -62,32 +62,32 @@ To package apps for the local platform:
 npm run package
 ```
 
-## Login configuration using deeplink
+## Login Configuration Using Deeplink
 
 To log in via deeplink in development mode, special configuration is required due to limitations in Electron 19.
 
-### Create entry-point script
+### Create Entry-Point Script
 
-Create a script in the root of the project named `enable-sso.sh` and add the following content
+Create a script in the root of the project named `enable-sso.sh` and add the following content:
 
 ```
 #!/bin/bash
 export NVM_DIR="$HOME/.nvm"
-# Carga nvm manualmente
+# Load nvm manually
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-cd "/your-proyect-path/drive-desktop-linux"
+cd "/your-project-path/drive-desktop-linux"
 nvm use 18
 yarn start:main "$@"
 ```
 
-Use the following command to give the script execution permissions
+Use the following command to give the script execution permissions:
 
 `chmod +x /your-project-location/drive-desktop-linux/enable-sso.sh`
 
-### Create linux handler protocol file
+### Create Linux Handler Protocol File
 
-Use de following command to create the file and add the next contect
+Use the following command to create the file and add the following content:
 
 ` vim ~/.local/share/applications/internxt-protocol.desktop`
 
@@ -101,19 +101,19 @@ Terminal=false
 MimeType=x-scheme-handler/internxt;
 ```
 
-Change the permissions of the newly created file
+Change the permissions of the newly created file:
 
 `chmod 644 ~/.local/share/applications/internxt-protocol.desktop`
 
-Register the internxt protocol handler
+Register the internxt protocol handler:
 
 `xdg-mime default internxt-protocol.desktop x-scheme-handler/internxt`
 
-Update the application database
+Update the application database:
 
 `update-desktop-database ~/.local/share/applications`
 
-Check internxt protocol is correctly registered
+Check that the internxt protocol is correctly registered:
 
 `gio mime x-scheme-handler/internxt`
 
