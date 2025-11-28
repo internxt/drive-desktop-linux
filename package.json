@@ -34,7 +34,8 @@
     "type-check": "tsc --noEmit --pretty --skipLibCheck",
     "prepare": "husky install",
     "generate_schema": "openapi-typescript http://localhost:3005/api-json -o ./src/infra/schemas.d.ts",
-    "generate_schema:prod": "openapi-typescript https://gateway.internxt.com/drive/api-json -o ./src/infra/schemas.d.ts"
+    "generate_schema:prod": "openapi-typescript https://gateway.internxt.com/drive/api-json -o ./src/infra/schemas.d.ts",
+    "find-deadcode": "ts-prune"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -273,6 +274,7 @@
     "ts-jest": "^29.1.2",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
+    "ts-prune": "^0.10.3",
     "typescript": "^5.2.2",
     "url-loader": "^4.1.1",
     "webpack": "^5.73.0",
