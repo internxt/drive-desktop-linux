@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { afterEach, vi } from 'vitest';
-import '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import type { IElectronAPI } from './src/apps/main/interface';
 
 // Type-safe deep mock creator that recursively mocks all properties
