@@ -19,6 +19,7 @@ describe('Onboarding Config', () => {
         'Available for Offline usage Slide',
         'Context Menu Slide',
         'Antivirus Slide',
+        'Cleaner Slide',
         'Onboarding Completed',
       ]);
     });

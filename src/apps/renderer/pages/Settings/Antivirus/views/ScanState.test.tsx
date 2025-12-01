@@ -92,7 +92,7 @@ describe('ScanState', () => {
     (useAntivirusContext as Mock).mockReturnValue({
       ...mockAntivirusContext,
       isScanning: false,
-      isScanCompleted: false,
+      isScanCompleted: true,
       showErrorState: true,
     });
 

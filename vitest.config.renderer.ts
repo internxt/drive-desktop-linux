@@ -1,7 +1,20 @@
 import { defineConfig } from 'vitest/config';
 import path from 'node:path';
+import react from '@vitejs/plugin-react';
+import svgr from 'vite-plugin-svgr';
 
 export default defineConfig({
+  plugins: [
+    react(),
+    svgr({
+      svgrOptions: {
+        exportType: 'default',
+        ref: true,
+        titleProp: true,
+      },
+      include: '**/*.svg',
+    }),
+  ],
   test: {
     name: 'renderer',
     environment: 'jsdom',
@@ -29,9 +42,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      // Mock file assets (images, fonts, etc.)
-      '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
-        path.resolve(__dirname, './.erb/mocks/fileMock.js'),
       // Mock CSS modules
       '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     },

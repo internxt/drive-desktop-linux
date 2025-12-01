@@ -48,6 +48,8 @@ describe('useUserAvailableProducts', () => {
   });
 
   it('should update products when listener is triggered', async () => {
+    vi.mocked(window.electron.userAvailableProducts.get).mockResolvedValue(mockProducts);
+
     const { result, waitForNextUpdate } = renderHook(() => useUserAvailableProducts());
 
     await waitForNextUpdate();
@@ -83,6 +85,11 @@ describe('useUserAvailableProducts', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const { result } = renderHook(() => useUserAvailableProducts());
+
+    // Wait for the promise to reject and be handled
+    await vi.waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to fetch user available products:', error);
+    });
 
     expect(result.current.products).toBeUndefined();
 

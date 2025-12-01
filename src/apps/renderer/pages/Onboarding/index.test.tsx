@@ -4,7 +4,7 @@ import Onboarding from './index';
 // Mock the platform hook
 vi.mock('../../hooks/ClientPlatform', () => ({
   __esModule: true,
-  default: () => 'windows',
+  default: () => 'linux',
 }));
 
 // Mock the translation context
