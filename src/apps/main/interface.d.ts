@@ -18,6 +18,7 @@ import { CleanerReport, CleanerViewModel, CleanupProgress } from '../../backend/
  **/
 
 export interface IElectronAPI {
+  finishOnboarding: () => void;
   getBackupsInterval(): Promise<number>;
 
   setBackupsInterval(value: number): Promise<void>;
@@ -45,10 +46,12 @@ export interface IElectronAPI {
 
   openUrl: (url: string) => Promise<void>;
 
+  checkInternetConnection(): Promise<boolean>;
+
   userAvailableProducts: {
     get: () => Promise<UserAvailableProducts | undefined>;
     subscribe: () => void;
-    onUpdate: (callback: (products: UserAvailableProducts) => void) => void;
+    onUpdate: (callback: (products: UserAvailableProducts) => void) => () => void;
   };
   login(email: string): Promise<AuthLoginResponseViewModel>;
   access(credentials: LoginAccessRequest): Promise<AuthAccessResponseViewModel>;

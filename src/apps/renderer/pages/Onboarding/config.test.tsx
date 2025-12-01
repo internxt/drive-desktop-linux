@@ -1,8 +1,7 @@
 import { SLIDES, getOnboardingSlideByName } from './config';
-import '@testing-library/jest-dom';
 
 // Mock the translation context
-jest.mock('../../context/LocalContext', () => ({
+vi.mock('../../context/LocalContext', () => ({
   useTranslationContext: () => ({
     translate: (key: string) => key,
     language: 'en',
