@@ -2,24 +2,53 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { afterEach, vi } from 'vitest';
 import '@testing-library/react';
-import './src/apps/main/interface';
+import type { IElectronAPI } from './src/apps/main/interface';
 
-// Helper to create deep mock proxies for nested objects
-const createDeepMock = (): any => {
-  return new Proxy({}, {
-    get: (target: any, prop: string) => {
+// Type-safe deep mock creator that recursively mocks all properties
+type DeepMock<T> = T extends (...args: any[]) => any
+  ? ReturnType<typeof vi.fn>
+  : T extends object
+  ? { [K in keyof T]: DeepMock<T[K]> }
+  : T;
+
+function createTypedMock<T extends object>(): DeepMock<T> {
+  return new Proxy({} as any, {
+    get: (target: any, prop: string | symbol) => {
+      if (typeof prop === 'symbol' || prop === 'then' || prop === 'catch') {
+        return undefined;
+      }
+
       if (!target[prop]) {
-        target[prop] = vi.fn(() => createDeepMock());
+        // All leaf properties should be mock functions
+        // Nested objects (like antivirus, devices) should be Proxies with mock function properties
+        target[prop] = vi.fn();
+
+        // Add a Proxy to support nested property access (e.g., antivirus.isAvailable)
+        const nestedProxy = new Proxy(target[prop], {
+          get: (fnTarget: any, nestedProp: string | symbol) => {
+            // Return existing properties of the function itself (like mockReturnValue, etc.)
+            if (nestedProp in fnTarget) {
+              return fnTarget[nestedProp];
+            }
+            // For nested API properties, create mock functions
+            if (!fnTarget[nestedProp]) {
+              fnTarget[nestedProp] = vi.fn();
+            }
+            return fnTarget[nestedProp];
+          },
+        });
+
+        target[prop] = nestedProxy;
       }
       return target[prop];
     },
-  });
-};
+  }) as DeepMock<T>;
+}
 
-// Setup global window.electron mock using Proxy for automatic mocking
-// Any property access will automatically return a mock function or nested mock object
+// Setup global window.electron mock with type safety
+// TypeScript will now enforce that only valid IElectronAPI properties are accessed
 global.window = global.window || {};
-global.window.electron = createDeepMock();
+global.window.electron = createTypedMock<IElectronAPI>();
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
