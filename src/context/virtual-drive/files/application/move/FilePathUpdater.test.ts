@@ -3,9 +3,9 @@ import { FilePath } from '../../domain/FilePath';
 import { ParentFolderFinder } from '../../../folders/application/ParentFolderFinder';
 import { ParentFolderFinderTestClass } from '../../../folders/__test-helpers__/ParentFolderFinderTestClass';
 
-import { FileRepositoryMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/FileRepositoryMock';
-import { RemoteFileSystemMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/RemoteFileSystemMock';
-import { SingleFileMatchingTestClass } from '../../../../../../tests/context/virtual-drive/files/__test-class__/SingleFileMatchingTestClass';
+import { FileRepositoryMock } from '../../__mocks__/FileRepositoryMock';
+import { RemoteFileSystemMock } from '../../__mocks__/RemoteFileSystemMock';
+import { SingleFileMatchingTestClass } from '../../__test-helpers__/SingleFileMatchingTestClass';
 import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { EventBusMock } from 'src/context/virtual-drive/shared/__mocks__/EventBusMock';
 

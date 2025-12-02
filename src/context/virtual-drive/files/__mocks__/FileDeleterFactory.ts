@@ -1,4 +1,4 @@
-import { FileTrasher } from '../../../../../src/context/virtual-drive/files/application/trash/FileTrasher';
+import { FileTrasher } from '../application/trash/FileTrasher';
 
 export class FileDeleterFactory {
   static deletionSuccess(): FileTrasher {

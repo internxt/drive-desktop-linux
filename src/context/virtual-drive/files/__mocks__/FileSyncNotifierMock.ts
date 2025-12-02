@@ -1,5 +1,5 @@
-import { SyncFileMessenger } from '../../../../../src/context/virtual-drive/files/domain/SyncFileMessenger';
-import { VirtualDriveFileIssue } from '../../../../../src/shared/issues/VirtualDriveIssue';
+import { SyncFileMessenger } from '../domain/SyncFileMessenger';
+import { VirtualDriveFileIssue } from '../../../../shared/issues/VirtualDriveIssue';
 
 export class FileSyncNotifierMock implements SyncFileMessenger {
   public createdMock = jest.fn();

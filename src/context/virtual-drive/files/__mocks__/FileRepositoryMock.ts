@@ -1,15 +1,15 @@
-import { File, FileAttributes } from '../../../../../src/context/virtual-drive/files/domain/File';
-import { FileRepository } from '../../../../../src/context/virtual-drive/files/domain/FileRepository';
+import { File, FileAttributes } from '../domain/File';
+import { FileRepository } from '../domain/FileRepository';
 
 export class FileRepositoryMock implements FileRepository {
-  public readonly allMock = jest.fn();
-  public readonly matchingPartialMock = jest.fn();
-  public readonly searchByUuidMock = jest.fn();
-  public readonly searchByContentsIdMock = jest.fn();
-  public readonly deleteMock = jest.fn();
-  public readonly addMock = jest.fn();
-  public readonly updateMock = jest.fn();
-  public readonly clearMock = jest.fn();
+  public readonly allMock = vi.fn();
+  public readonly matchingPartialMock = vi.fn();
+  public readonly searchByUuidMock = vi.fn();
+  public readonly searchByContentsIdMock = vi.fn();
+  public readonly deleteMock = vi.fn();
+  public readonly addMock = vi.fn();
+  public readonly updateMock = vi.fn();
+  public readonly clearMock = vi.fn();
 
   all(): Promise<File[]> {
     return this.allMock();
@@ -29,6 +29,10 @@ export class FileRepositoryMock implements FileRepository {
 
   delete(id: string): Promise<void> {
     return this.deleteMock(id);
+  }
+
+  searchByArrayOfContentsId(contentsIds: Array<File['contentsId']>): Promise<Array<File>> {
+    return this.searchByContentsIdMock(...contentsIds);
   }
 
   upsert(file: File): Promise<boolean> {

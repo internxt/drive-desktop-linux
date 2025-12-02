@@ -1,4 +1,4 @@
-import { Path } from '../../../../../src/context/shared/domain/value-objects/Path';
+import { Path } from './Path';
 
 class PathTestClass extends Path {
   constructor(value: string) {

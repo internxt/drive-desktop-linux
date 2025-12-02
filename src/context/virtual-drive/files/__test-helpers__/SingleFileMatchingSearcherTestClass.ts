@@ -1,6 +1,6 @@
 import { SingleFileMatchingSearcher } from '../application/search/SingleFileMatchingSearcher';
 import { FileAttributes, File } from '../domain/File';
-import { FileRepositoryMock } from '../../../../../tests/context/virtual-drive/files/__mocks__/FileRepositoryMock';
+import { FileRepositoryMock } from '../__mocks__/FileRepositoryMock';
 
 export class SingleFileMatchingSearcherTestClass extends SingleFileMatchingSearcher {
   private mock = vi.fn().mockReturnThis();
