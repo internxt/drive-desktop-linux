@@ -2,7 +2,7 @@ import path, { relative } from 'path';
 import { FolderStatus } from '../../../folders/domain/FolderStatus';
 import { RemoteTree } from '../RemoteTree';
 import { FileNameMother } from '../../../../../../tests/context/shared/domain/FileNameMother';
-import { FileMother } from '../../../../../../tests/context/virtual-drive/files/domain/FileMother';
+import { FileMother } from '../../../files/domain/__test-helpers__/FileMother';
 import { FolderMother } from '../../../../../../tests/context/virtual-drive/folders/domain/FolderMother';
 import { FolderNameMother } from '../../../../../../tests/context/shared/domain/FolderNameMother';
 import { LocalTree } from '../../../../local/localTree/domain/LocalTree';

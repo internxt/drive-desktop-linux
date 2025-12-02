@@ -1,4 +1,4 @@
-import { PlatformPathConverter } from '../../../../../src/context/virtual-drive/shared/application/PlatformPathConverter';
+import { PlatformPathConverter } from './PlatformPathConverter';
 
 describe('PlatformPathConverter', () => {
   describe('winToPosix', () => {

@@ -1,5 +1,5 @@
 import path from 'path';
-import { FolderPath } from '../../../../../src/context/virtual-drive/folders/domain/FolderPath';
+import { FolderPath } from './FolderPath';
 
 describe('Path', () => {
   describe('path instantiation', () => {

@@ -1,10 +1,10 @@
-import { FolderCreatorFromOfflineFolder } from '../../../../../src/context/virtual-drive/folders/application/create/FolderCreatorFromOfflineFolder';
-import { EventBusMock } from '../../shared/__mock__/EventBusMock';
-import { FolderRemoteFileSystemMock } from '../__mocks__/FolderRemoteFileSystemMock';
-import { FolderRepositoryMock } from '../__mocks__/FolderRepositoryMock';
-import { SyncFolderMessengerMock } from '../__mocks__/SyncFolderMessengerMock';
-import { FolderMother } from '../domain/FolderMother';
-import { OfflineFolderMother } from '../domain/OfflineFolderMother';
+import { FolderCreatorFromOfflineFolder } from './FolderCreatorFromOfflineFolder';
+import { FolderRemoteFileSystemMock } from '../../__mocks__/FolderRemoteFileSystemMock';
+import { FolderRepositoryMock } from '../../__mocks__/FolderRepositoryMock';
+import { SyncFolderMessengerMock } from '../../__mocks__/SyncFolderMessengerMock';
+import { OfflineFolderMother } from '../../domain/__test-helpers__/OfflineFolderMother';
+import { EventBusMock } from '../../../shared/__mocks__/EventBusMock';
+import { FolderMother } from '../../domain/__test-helpers__/FolderMother';
 
 const WITH_UUID = true;
 

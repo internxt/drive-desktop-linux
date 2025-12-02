@@ -1,10 +1,10 @@
-import { ParentFolderFinder } from '../../../../../src/context/virtual-drive/folders/application/ParentFolderFinder';
-import { FolderMover } from '../../../../../src/context/virtual-drive/folders/application/FolderMover';
-import { FolderPath } from '../../../../../src/context/virtual-drive/folders/domain/FolderPath';
+import { ParentFolderFinder } from './ParentFolderFinder';
+import { FolderMover } from './FolderMover';
+import { FolderPath } from '../domain/FolderPath';
 import { FolderRemoteFileSystemMock } from '../__mocks__/FolderRemoteFileSystemMock';
 import { FolderRepositoryMock } from '../__mocks__/FolderRepositoryMock';
-import { FolderMother } from '../domain/FolderMother';
 import path from 'path';
+import { FolderMother } from '../domain/__test-helpers__/FolderMother';
 
 describe('Folder Mover', () => {
   let repository: FolderRepositoryMock;

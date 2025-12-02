@@ -1,4 +1,4 @@
-import { AbsolutePathToRelativeConverter } from '../../../../../src/context/virtual-drive/shared/application/AbsolutePathToRelativeConverter';
+import { AbsolutePathToRelativeConverter } from './AbsolutePathToRelativeConverter';
 
 describe('AbsolutePathToRelativeConverter', () => {
   it('works', () => {

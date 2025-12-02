@@ -1,15 +1,15 @@
 import { FolderRepositoryMock } from '../__mocks__/FolderRepositoryMock';
 import { FolderMoverMock } from '../__mocks__/FolderMoverMock';
 import { FolderRenamerMock } from '../__mocks__/FolderRenamerMock';
-import { FolderPathUpdater } from '../../../../../src/context/virtual-drive/folders/application/FolderPathUpdater';
-import { FolderMother } from '../domain/FolderMother';
-import { FolderPathMother } from '../domain/FolderPathMother';
-import { Folder } from '../../../../../src/context/virtual-drive/folders/domain/Folder';
-import { FolderNotFoundError } from '../../../../../src/context/virtual-drive/folders/domain/errors/FolderNotFoundError';
-import { ActionNotPermittedError } from '../../../../../src/context/virtual-drive/folders/domain/errors/ActionNotPermittedError';
-import { FolderUuid } from '../../../../../src/context/virtual-drive/folders/domain/FolderUuid';
-import { FolderPath } from '../../../../../src/context/virtual-drive/folders/domain/FolderPath';
-import { PathHasNotChangedError } from '../../../../../src/context/virtual-drive/folders/domain/errors/PathHasNotChangedError';
+import { FolderPathUpdater } from './FolderPathUpdater';
+import { FolderPathMother } from '../domain/__test-helpers__/FolderPathMother';
+import { Folder } from '../domain/Folder';
+import { FolderNotFoundError } from '../domain/errors/FolderNotFoundError';
+import { ActionNotPermittedError } from '../domain/errors/ActionNotPermittedError';
+import { FolderUuid } from '../domain/FolderUuid';
+import { FolderPath } from '../domain/FolderPath';
+import { PathHasNotChangedError } from '../domain/errors/PathHasNotChangedError';
+import { FolderMother } from '../domain/__test-helpers__/FolderMother';
 
 describe('Folder Path Updater', () => {
   let repository: FolderRepositoryMock;

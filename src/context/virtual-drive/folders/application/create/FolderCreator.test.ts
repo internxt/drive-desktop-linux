@@ -1,14 +1,14 @@
-import { InvalidArgumentError } from '../../../../../src/context/shared/domain/errors/InvalidArgumentError';
-import { FolderCreator } from '../../../../../src/context/virtual-drive/folders/application/create/FolderCreator';
-import { ParentFolderFinder } from '../../../../../src/context/virtual-drive/folders/application/ParentFolderFinder';
-import { FolderStatuses } from '../../../../../src/context/virtual-drive/folders/domain/FolderStatus';
-import { FolderInPathAlreadyExistsError } from '../../../../../src/context/virtual-drive/folders/domain/errors/FolderInPathAlreadyExistsError';
-import { FolderNotFoundError } from '../../../../../src/context/virtual-drive/folders/domain/errors/FolderNotFoundError';
+import { InvalidArgumentError } from '../../../../shared/domain/errors/InvalidArgumentError';
+import { FolderCreator } from './FolderCreator';
+import { ParentFolderFinder } from '../ParentFolderFinder';
+import { FolderStatuses } from '../../domain/FolderStatus';
+import { FolderInPathAlreadyExistsError } from '../../domain/errors/FolderInPathAlreadyExistsError';
+import { FolderNotFoundError } from '../../domain/errors/FolderNotFoundError';
 import { EventBusMock } from '../../shared/__mock__/EventBusMock';
-import { FolderRemoteFileSystemMock } from '../__mocks__/FolderRemoteFileSystemMock';
-import { FolderRepositoryMock } from '../__mocks__/FolderRepositoryMock';
+import { FolderRemoteFileSystemMock } from '../../__mocks__/FolderRemoteFileSystemMock';
+import { FolderRepositoryMock } from '../../__mocks__/FolderRepositoryMock';
 import { FolderMother } from '../domain/FolderMother';
-import { FolderPathMother } from '../domain/FolderPathMother';
+import { FolderPathMother } from '../../domain/__test-helpers__/FolderPathMother';
 
 const WITH_NO_UUID = false;
 

@@ -1,16 +1,16 @@
-import { FolderRenamer } from '../../../../../src/context/virtual-drive/folders/application/FolderRenamer';
-import { SynchronizeOfflineModifications } from '../../../../../src/context/virtual-drive/folders/application/SynchronizeOfflineModifications';
-import { FolderPath } from '../../../../../src/context/virtual-drive/folders/domain/FolderPath';
-import { FolderUuid } from '../../../../../src/context/virtual-drive/folders/domain/FolderUuid';
-import { FolderRenamedDomainEvent } from '../../../../../src/context/virtual-drive/folders/domain/events/FolderRenamedDomainEvent';
-import { InMemoryOfflineFolderRepository } from '../../../../../src/context/virtual-drive/folders/infrastructure/InMemoryOfflineFolderRepository';
-import { EventBusMock } from '../../shared/__mock__/EventBusMock';
-import { EventRepositoryMock } from '../../shared/__mock__/EventRepositoryMock';
+import { FolderRenamer } from './FolderRenamer';
+import { SynchronizeOfflineModifications } from './SynchronizeOfflineModifications';
+import { FolderPath } from '../domain/FolderPath';
+import { FolderUuid } from '../domain/FolderUuid';
+import { FolderRenamedDomainEvent } from '../domain/events/FolderRenamedDomainEvent';
+import { InMemoryOfflineFolderRepository } from '../infrastructure/InMemoryOfflineFolderRepository';
 import { FolderRemoteFileSystemMock } from '../__mocks__/FolderRemoteFileSystemMock';
 import { FolderRepositoryMock } from '../__mocks__/FolderRepositoryMock';
 import { SyncFolderMessengerMock } from '../__mocks__/SyncFolderMessengerMock';
-import { FolderMother } from '../domain/FolderMother';
-import { OfflineFolderMother } from '../domain/OfflineFolderMother';
+import { FolderMother } from '../domain/__test-helpers__/FolderMother';
+import { OfflineFolderMother } from '../domain/__test-helpers__/OfflineFolderMother';
+import { EventRepositoryMock } from '../../shared/__mocks__/EventRepositoryMock';
+import { EventBusMock } from '../../shared/__mocks__/EventBusMock';
 
 describe('Synchronize Offline Modifications', () => {
   let offlineRepository: InMemoryOfflineFolderRepository;
@@ -35,7 +35,7 @@ describe('Synchronize Offline Modifications', () => {
   });
 
   it('does nothing if there is no offline folder with the given uuid', async () => {
-    jest.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(undefined);
+    vi.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(undefined);
 
     await SUT.run(FolderUuid.random().value);
 
@@ -43,16 +43,11 @@ describe('Synchronize Offline Modifications', () => {
   });
 
   it('throws an error if there is no folder with the given uuid', async () => {
-    jest.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(OfflineFolderMother.random());
+    vi.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(OfflineFolderMother.random());
 
     repository.matchingPartialMock.mockReturnValueOnce(undefined);
 
-    try {
-      await SUT.run(FolderUuid.random().value);
-      fail('Expected SUT.run to throw an error, but it did not.');
-    } catch (error) {
-      expect(error).toBeInstanceOf(Error);
-    }
+    await expect(SUT.run(FolderUuid.random().value)).rejects.toThrow();
   });
 
   it('does nothing if the name of the online folder is not the previous one on the event', async () => {
@@ -65,11 +60,11 @@ describe('Synchronize Offline Modifications', () => {
       path: offlineFolder.dirname + offlineFolder.name.repeat(1),
     });
 
-    const offlineRepositorySyp = jest.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(offlineFolder);
+    const offlineRepositorySyp = vi.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(offlineFolder);
 
     repository.matchingPartialMock.mockReturnValueOnce(folder);
 
-    const renamerSpy = jest.spyOn(renamer, 'run');
+    const renamerSpy = vi.spyOn(renamer, 'run');
 
     eventRepositoryMock.searchMock.mockResolvedValueOnce([]);
 
@@ -86,9 +81,9 @@ describe('Synchronize Offline Modifications', () => {
 
     offlineFolder.rename(FolderPath.fromParts(offlineFolder.dirname, offlineFolder.name + '!'));
 
-    jest.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(offlineFolder);
+    vi.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(offlineFolder);
 
-    const renamerSpy = jest.spyOn(renamer, 'run');
+    const renamerSpy = vi.spyOn(renamer, 'run');
 
     repository.matchingPartialMock.mockReturnValueOnce([folder]);
 
@@ -120,9 +115,9 @@ describe('Synchronize Offline Modifications', () => {
 
     eventRepositoryMock.searchMock.mockResolvedValueOnce([event]);
 
-    jest.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(offlineFolder);
+    vi.spyOn(offlineRepository, 'searchByPartial').mockReturnValueOnce(offlineFolder);
 
-    const renamerSpy = jest.spyOn(renamer, 'run');
+    const renamerSpy = vi.spyOn(renamer, 'run');
 
     repository.matchingPartialMock.mockReturnValueOnce([afterCreation]).mockReturnValueOnce([afterFirstRename]);
 
