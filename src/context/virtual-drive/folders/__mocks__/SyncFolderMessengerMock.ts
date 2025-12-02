@@ -1,12 +1,12 @@
-import { SyncFolderMessenger } from '../../../../../src/context/virtual-drive/folders/domain/SyncFolderMessenger';
-import { VirtualDriveFolderIssue } from '../../../../../src/shared/issues/VirtualDriveIssue';
+import { SyncFolderMessenger } from '../domain/SyncFolderMessenger';
+import { VirtualDriveFolderIssue } from '../../../../shared/issues/VirtualDriveIssue';
 
 export class SyncFolderMessengerMock implements SyncFolderMessenger {
-  public creatingMock = jest.fn();
-  public createdMock = jest.fn();
-  public renameMock = jest.fn();
-  public renamedMock = jest.fn();
-  public issuesMock = jest.fn();
+  public creatingMock = vi.fn();
+  public createdMock = vi.fn();
+  public renameMock = vi.fn();
+  public renamedMock = vi.fn();
+  public issuesMock = vi.fn();
 
   creating(name: string): Promise<void> {
     return this.creatingMock(name);

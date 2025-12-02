@@ -1,15 +1,17 @@
-import { Folder, FolderAttributes } from '../../../../../src/context/virtual-drive/folders/domain/Folder';
-import { FolderRepository } from '../../../../../src/context/virtual-drive/folders/domain/FolderRepository';
+import { vi } from 'vitest';
+import { Folder, FolderAttributes } from '../domain/Folder';
+import { FolderRepository } from '../domain/FolderRepository';
 
 export class FolderRepositoryMock implements FolderRepository {
-  public readonly allMock = jest.fn();
-  public readonly matchingPartialMock = jest.fn();
-  public readonly listByPartialMock = jest.fn();
-  public readonly addMock = jest.fn();
-  public readonly deleteMock = jest.fn();
-  public readonly updateMock = jest.fn();
-  public readonly searchByIdMock = jest.fn();
-  public readonly searchByUuidMock = jest.fn();
+  public readonly allMock = vi.fn();
+  public readonly matchingPartialMock = vi.fn();
+  public readonly listByPartialMock = vi.fn();
+  public readonly addMock = vi.fn();
+  public readonly deleteMock = vi.fn();
+  public readonly updateMock = vi.fn();
+  public readonly searchByIdMock = vi.fn();
+  public readonly searchByUuidMock = vi.fn();
+  public readonly clearMock = vi.fn();
 
   all(): Promise<Folder[]> {
     return this.allMock();
@@ -41,5 +43,9 @@ export class FolderRepositoryMock implements FolderRepository {
 
   update(folder: Folder): Promise<void> {
     return this.updateMock(folder);
+  }
+
+  clear(): Promise<void> {
+    return this.clearMock();
   }
 }

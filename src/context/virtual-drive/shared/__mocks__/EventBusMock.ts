@@ -1,10 +1,10 @@
-import { DomainEvent } from '../../../../../src/context/shared/domain/DomainEvent';
-import { DomainEventSubscriber } from '../../../../../src/context/shared/domain/DomainEventSubscriber';
-import { EventBus } from '../../../../../src/context/virtual-drive/shared/domain/EventBus';
+import { DomainEvent } from '../../../shared/domain/DomainEvent';
+import { DomainEventSubscriber } from '../../../shared/domain/DomainEventSubscriber';
+import { EventBus } from '../domain/EventBus';
 
 export class EventBusMock implements EventBus {
-  public publishMock = jest.fn();
-  public addSubscribersMock = jest.fn();
+  public publishMock = vi.fn();
+  public addSubscribersMock = vi.fn();
 
   async publish(events: DomainEvent[]) {
     this.publishMock(events);
@@ -29,6 +29,7 @@ export class EventBusMock implements EventBus {
   }
 
   private getDataFromDomainEvent(event: DomainEvent) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { eventId, ...attributes } = event;
 
     return attributes;
