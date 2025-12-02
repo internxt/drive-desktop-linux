@@ -1,7 +1,7 @@
-import { FileSizeMother } from '../FileSizeMother';
-import { FilePathMother } from '../FilePathMother';
-import { TemporalFileUploadedDomainEvent } from '../../../../../../src/context/storage/TemporalFiles/domain/upload/TemporalFileUploadedDomainEvent';
-import { BucketEntryIdMother } from '../../../shared/domain/BucketEntryIdMother';
+import { FileSizeMother } from '../../__test-helpers__/FileSizeMother';
+import { TemporalFileUploadedDomainEvent } from '../../../../../storage/TemporalFiles/domain/upload/TemporalFileUploadedDomainEvent';
+import { BucketEntryIdMother } from 'src/context/virtual-drive/shared/domain/__test-helpers__/BucketEntryIdMother';
+import { FilePathMother } from '../../__test-helpers__/FilePathMother';
 
 export class OfflineContentsUploadedDomainEventMother {
   static replacesContents(): TemporalFileUploadedDomainEvent {

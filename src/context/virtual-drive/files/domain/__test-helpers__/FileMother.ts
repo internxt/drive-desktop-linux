@@ -1,10 +1,11 @@
 import { FileAttributes } from '../File';
 import { FileStatuses } from '../FileStatus';
 import { File } from '../File';
+import { FilePathMother } from './FilePathMother';
 import Chance from 'chance';
-import { UuidMother } from 'tests/context/shared/domain/UuidMother';
+import { UuidMother } from '../../../../../../tests/context/shared/domain/UuidMother';
 import { BucketEntryIdMother } from 'src/context/virtual-drive/shared/domain/__test-helpers__/BucketEntryIdMother';
-import { FilePathMother } from 'tests/context/virtual-drive/files/domain/FilePathMother';
+
 const chance = new Chance();
 
 export class FileMother {

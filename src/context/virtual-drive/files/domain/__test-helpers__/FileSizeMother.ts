@@ -1,5 +1,5 @@
 import Chance from 'chance';
-import { FileSize } from '../../../../../src/context/virtual-drive/files/domain/FileSize';
+import { FileSize } from '../FileSize';
 const chance = new Chance();
 
 export class FileSizeMother {

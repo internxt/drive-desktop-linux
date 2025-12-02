@@ -1,4 +1,4 @@
-import { FilePath } from '../../../../../src/context/virtual-drive/files/domain/FilePath';
+import { FilePath } from './FilePath';
 
 describe('Path', () => {
   describe('extension handling', () => {
