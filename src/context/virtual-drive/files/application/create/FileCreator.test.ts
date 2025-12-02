@@ -1,17 +1,17 @@
-import { FileCreator } from '../../../../../src/context/virtual-drive/files/application/create/FileCreator';
-import { FileTrasher } from '../../../../../src/context/virtual-drive/files/application/trash/FileTrasher';
-import { FileContentsId } from '../../../../../src/context/virtual-drive/files/domain/FileContentsId';
-import { FilePath } from '../../../../../src/context/virtual-drive/files/domain/FilePath';
-import { FolderFinderFactory } from '../../folders/__mocks__/FolderFinderFactory';
+import { FileCreator } from './FileCreator';
+import { FileTrasher } from '../trash/FileTrasher';
+import { FileContentsId } from '../../domain/FileContentsId';
+import { FilePath } from '../../domain/FilePath';
+import { FolderFinderFactory } from '../../../folders/__mocks__/FolderFinderFactory';
 import { EventBusMock } from '../../shared/__mock__/EventBusMock';
-import { BucketEntryIdMother } from '../../shared/domain/BucketEntryIdMother';
-import { FileDeleterFactory } from '../__mocks__/FileDeleterFactory';
-import { FileRepositoryMock } from '../__mocks__/FileRepositoryMock';
-import { FileSyncNotifierMock } from '../__mocks__/FileSyncNotifierMock';
-import { RemoteFileSystemMock } from '../__mocks__/RemoteFileSystemMock';
-import { FileMother } from '../domain/FileMother';
-import { FileSizeMother } from '../domain/FileSizeMother';
-import { right } from '../../../../../src/context/shared/domain/Either';
+import { BucketEntryIdMother } from '../../../../../src/context/virtual-drive/shared/domain/__helpers__/BucketEntryIdMother';
+import { FileDeleterFactory } from '../../../../../../tests/context/virtual-drive/files/__mocks__/FileDeleterFactory';
+import { FileRepositoryMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/FileRepositoryMock';
+import { FileSyncNotifierMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/FileSyncNotifierMock';
+import { RemoteFileSystemMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/RemoteFileSystemMock';
+import { FileMother } from '../../domain/__test-helpers__/FileMother';
+import { FileSizeMother } from '../../domain/__test-helpers__/FileSizeMother';
+import { right } from '../../../../shared/domain/Either';
 
 describe('File Creator', () => {
   let remoteFileSystemMock: RemoteFileSystemMock;

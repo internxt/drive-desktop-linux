@@ -30,7 +30,7 @@ describe('StorageFileDownloader', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('registerEvents', () => {

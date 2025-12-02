@@ -1,12 +1,12 @@
-import { FileRepositoryMock } from '../__mocks__/FileRepositoryMock';
-import { FileMother } from '../domain/FileMother';
-import { RemoteFileSystemMock } from '../__mocks__/RemoteFileSystemMock';
-import { FileTrasher } from '../../../../../src/context/virtual-drive/files/application/trash/FileTrasher';
-import { FolderRepositoryMock } from '../../folders/__mocks__/FolderRepositoryMock';
-import { AllParentFoldersStatusIsExists } from '../../../../../src/context/virtual-drive/folders/application/AllParentFoldersStatusIsExists';
-import { FileSyncNotifierMock } from '../__mocks__/FileSyncNotifierMock';
-import { FileStatus } from '../../../../../src/context/virtual-drive/files/domain/FileStatus';
-import { BucketEntryIdMother } from '../../shared/domain/BucketEntryIdMother';
+import { FileRepositoryMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/FileRepositoryMock';
+import { FileMother } from '../../domain/__test-helpers__/FileMother';
+import { RemoteFileSystemMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/RemoteFileSystemMock';
+import { FileTrasher } from '../trash/FileTrasher';
+import { FolderRepositoryMock } from '../../../folders/__mocks__/FolderRepositoryMock';
+import { AllParentFoldersStatusIsExists } from '../../../folders/application/AllParentFoldersStatusIsExists';
+import { FileSyncNotifierMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/FileSyncNotifierMock';
+import { FileStatus } from '../../domain/FileStatus';
+import { BucketEntryIdMother } from '../../../../../src/context/virtual-drive/shared/domain/__helpers__/BucketEntryIdMother';
 
 describe('File Deleter', () => {
   let repository: FileRepositoryMock;

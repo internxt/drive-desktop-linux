@@ -3,7 +3,7 @@ import { FileAttributes, File } from '../../../../../../src/context/virtual-driv
 import { FileRepository } from '../../../../../../src/context/virtual-drive/files/domain/FileRepository';
 
 export class FilesByPartialSearcherTestClass extends FilesByPartialSearcher {
-  private readonly mock = jest.fn();
+  private readonly mock = vi.fn();
 
   constructor() {
     super({} as FileRepository);

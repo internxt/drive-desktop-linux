@@ -1,13 +1,13 @@
-import { FilePathUpdater } from '../../../../../src/context/virtual-drive/files/application/move/FilePathUpdater';
-import { FilePath } from '../../../../../src/context/virtual-drive/files/domain/FilePath';
-import { ParentFolderFinder } from '../../../../../src/context/virtual-drive/folders/application/ParentFolderFinder';
-import { ParentFolderFinderTestClass } from '../../folders/__test-class__/ParentFolderFinderTestClass';
-import { FolderMother } from '../../folders/domain/FolderMother';
-import { EventBusMock } from '../../shared/__mock__/EventBusMock';
-import { FileRepositoryMock } from '../__mocks__/FileRepositoryMock';
-import { RemoteFileSystemMock } from '../__mocks__/RemoteFileSystemMock';
-import { SingleFileMatchingTestClass } from '../__test-class__/SingleFileMatchingTestClass';
-import { FileMother } from '../domain/FileMother';
+import { FilePathUpdater } from './FilePathUpdater';
+import { FilePath } from '../../domain/FilePath';
+import { ParentFolderFinder } from '../../../folders/application/ParentFolderFinder';
+import { ParentFolderFinderTestClass } from '../../../folders/__test-helpers__/ParentFolderFinderTestClass';
+
+import { FileRepositoryMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/FileRepositoryMock';
+import { RemoteFileSystemMock } from '../../../../../../tests/context/virtual-drive/files/__mocks__/RemoteFileSystemMock';
+import { SingleFileMatchingTestClass } from '../../../../../../tests/context/virtual-drive/files/__test-class__/SingleFileMatchingTestClass';
+import { FileMother } from '../../domain/__test-helpers__/FileMother';
+import { EventBusMock } from 'src/context/virtual-drive/shared/__mocks__/EventBusMock';
 
 describe('File path updater', () => {
   let repository: FileRepositoryMock;

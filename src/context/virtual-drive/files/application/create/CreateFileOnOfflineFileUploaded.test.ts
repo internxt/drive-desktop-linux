@@ -1,7 +1,7 @@
-import { CreateFileOnTemporalFileUploaded } from '../../../../../../src/context/virtual-drive/files/application/create/CreateFileOnTemporalFileUploaded';
-import { FileCreatorTestClass } from '../../__test-class__/FileCreatorTestClass';
-import { FileOverriderTestClass } from '../../__test-class__/FileOverriderTestClass';
-import { OfflineContentsUploadedDomainEventMother } from '../../domain/events/OfflineContentsUploadedDomainEventMother';
+import { CreateFileOnTemporalFileUploaded } from './CreateFileOnTemporalFileUploaded';
+import { FileCreatorTestClass } from '../../../../../../tests/context/virtual-drive/files/__test-class__/FileCreatorTestClass';
+import { FileOverriderTestClass } from '../../../../../../tests/context/virtual-drive/files/__test-class__/FileOverriderTestClass';
+import { OfflineContentsUploadedDomainEventMother } from '../../domain/events/__test-helpers__/OfflineContentsUploadedDomainEventMother';
 
 describe('Create File On Offline File Uploaded', () => {
   it('creates a new file when event replaces field is undefined', async () => {

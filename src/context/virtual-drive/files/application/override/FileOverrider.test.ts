@@ -1,12 +1,12 @@
-import { FileOverrider } from '../../../../../../src/context/virtual-drive/files/application/override/FileOverrider';
-import { FileNotFoundError } from '../../../../../../src/context/virtual-drive/files/domain/errors/FileNotFoundError';
-import { FileOverriddenDomainEvent } from '../../../../../../src/context/virtual-drive/files/domain/events/FileOverriddenDomainEvent';
-import { EventBusMock } from '../../../shared/__mock__/EventBusMock';
-import { BucketEntryIdMother } from '../../../shared/domain/BucketEntryIdMother';
-import { FileRepositoryMock } from '../../__mocks__/FileRepositoryMock';
-import { RemoteFileSystemMock } from '../../__mocks__/RemoteFileSystemMock';
-import { FileMother } from '../../domain/FileMother';
-import { FileSizeMother } from '../../domain/FileSizeMother';
+import { FileOverrider } from './override/FileOverrider';
+import { FileNotFoundError } from '../domain/errors/FileNotFoundError';
+import { FileOverriddenDomainEvent } from '../domain/events/FileOverriddenDomainEvent';
+import { BucketEntryIdMother } from '../../../../../../src/context/virtual-drive/shared/domain/__helpers__/BucketEntryIdMother';
+import { FileRepositoryMock } from '../../../../../tests/context/virtual-drive/files/__mocks__/FileRepositoryMock';
+import { RemoteFileSystemMock } from '../../../../../tests/context/virtual-drive/files/__mocks__/RemoteFileSystemMock';
+import { FileMother } from '../domain/__test-helpers__/FileMother';
+import { FileSizeMother } from '../domain/__test-helpers__/FileSizeMother';
+import { EventBusMock } from 'src/context/virtual-drive/shared/__mocks__/EventBusMock';
 
 describe('File Overrider', () => {
   it('throws an error if no file is founded with the given fileId', async () => {
@@ -24,7 +24,7 @@ describe('File Overrider', () => {
 
     try {
       await overrider.run(file.path, updatedContentsId.value, updatedSize.value);
-      fail('it should have thrown an error');
+      expect.fail('it should have thrown an error');
     } catch (err: unknown) {
       expect(err).toBeInstanceOf(FileNotFoundError);
     }
