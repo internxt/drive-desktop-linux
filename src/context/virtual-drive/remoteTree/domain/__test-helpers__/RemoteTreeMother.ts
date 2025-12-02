@@ -1,11 +1,11 @@
 import path, { relative } from 'path';
-import { FolderStatus } from '../../../../../src/context/virtual-drive/folders/domain/FolderStatus';
-import { RemoteTree } from '../../../../../src/context/virtual-drive/remoteTree/domain/RemoteTree';
-import { FileNameMother } from '../../../shared/domain/FileNameMother';
-import { FileMother } from '../../files/domain/FileMother';
-import { FolderMother } from '../../folders/domain/FolderMother';
-import { FolderNameMother } from '../../../shared/domain/FolderNameMother';
-import { LocalTree } from '../../../../../src/context/local/localTree/domain/LocalTree';
+import { FolderStatus } from '../../../folders/domain/FolderStatus';
+import { RemoteTree } from '../RemoteTree';
+import { FileNameMother } from '../../../../../../tests/context/shared/domain/FileNameMother';
+import { FileMother } from '../../../../../../tests/context/virtual-drive/files/domain/FileMother';
+import { FolderMother } from '../../../../../../tests/context/virtual-drive/folders/domain/FolderMother';
+import { FolderNameMother } from '../../../../../../tests/context/shared/domain/FolderNameMother';
+import { LocalTree } from '../../../../local/localTree/domain/LocalTree';
 
 export class RemoteTreeMother {
   static onlyRoot(): RemoteTree {

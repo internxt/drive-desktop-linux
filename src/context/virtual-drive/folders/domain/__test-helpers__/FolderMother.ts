@@ -1,9 +1,9 @@
 import Chance from 'chance';
-import { File } from '../../../../../src/context/virtual-drive/files/domain/File';
-import { Folder, FolderAttributes } from '../../../../../src/context/virtual-drive/folders/domain/Folder';
-import { FolderPath } from '../../../../../src/context/virtual-drive/folders/domain/FolderPath';
-import { FolderStatuses } from '../../../../../src/context/virtual-drive/folders/domain/FolderStatus';
-import { FolderUuid } from '../../../../../src/context/virtual-drive/folders/domain/FolderUuid';
+import { File } from '../../../files/domain/File';
+import { Folder, FolderAttributes } from '../Folder';
+import { FolderPath } from '../FolderPath';
+import { FolderStatuses } from '../FolderStatus';
+import { FolderUuid } from '../FolderUuid';
 import { FolderIdMother } from './FolderIdMother';
 import { FolderPathMother } from './FolderPathMother';
 

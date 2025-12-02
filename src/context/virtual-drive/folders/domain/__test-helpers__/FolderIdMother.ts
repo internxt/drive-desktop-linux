@@ -1,5 +1,5 @@
 import Chance from 'chance';
-import { FolderId } from '../../../../../src/context/virtual-drive/folders/domain/FolderId';
+import { FolderId } from '../FolderId';
 
 const chance = new Chance();
 

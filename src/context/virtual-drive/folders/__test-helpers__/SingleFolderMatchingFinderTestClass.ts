@@ -1,9 +1,9 @@
-import { SingleFolderMatchingFinder } from '../../../../../src/context/virtual-drive/folders/application/SingleFolderMatchingFinder';
-import { Folder, FolderAttributes } from '../../../../../src/context/virtual-drive/folders/domain/Folder';
-import { FolderRepository } from '../../../../../src/context/virtual-drive/folders/domain/FolderRepository';
+import { SingleFolderMatchingFinder } from '../application/SingleFolderMatchingFinder';
+import { Folder, FolderAttributes } from '../domain/Folder';
+import { FolderRepository } from '../domain/FolderRepository';
 
 export class SingleFolderMatchingFinderTestClass extends SingleFolderMatchingFinder {
-  private readonly mock = jest.fn();
+  private readonly mock = vi.fn();
 
   constructor() {
     super({} as FolderRepository);
