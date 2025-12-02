@@ -141,7 +141,27 @@ export class FuseApp extends EventEmitter {
   }
 
   async stop(): Promise<void> {
-    /** no-op */
+    if (this.status === 'UNMOUNTED') {
+      logger.debug({ msg: '[FUSE] Already unmounted' });
+      return;
+    }
+
+    try {
+      logger.debug({ msg: '[FUSE] Starting unmount process' });
+
+      if (this._fuse) {
+        await unmountPromise(this._fuse);
+        logger.debug({ msg: '[FUSE] Unmounted successfully' });
+      }
+
+      this.status = 'UNMOUNTED';
+      logger.debug({ msg: '[FUSE] Stop completed' });
+    } catch (error) {
+      this.status = 'ERROR';
+      logger.error({ msg: '[FUSE] Error during stop:', error });
+      this.emit('unmount-error', error);
+      throw error;
+    }
   }
 
   async clearCache(): Promise<void> {
@@ -170,16 +190,20 @@ export class FuseApp extends EventEmitter {
   }
 
   async mount() {
+    if (this.status === 'MOUNTED') {
+      logger.debug({ msg: '[FUSE] Already mounted' });
+      return this.status;
+    }
+
     try {
       await unmountPromise(this._fuse);
       await mountPromise(this._fuse);
       this.status = 'MOUNTED';
+      this.emit('mounted');
     } catch (err) {
       this.status = 'ERROR';
       logger.error({ msg: '[FUSE] mount error:', error: err });
     }
-
-    this.emit('mounted');
 
     return this.status;
   }
