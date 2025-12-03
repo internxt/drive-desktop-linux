@@ -7,7 +7,8 @@ import { FileRepositoryMock } from '../../__mocks__/FileRepositoryMock';
 import { RemoteFileSystemMock } from '../../__mocks__/RemoteFileSystemMock';
 import { SingleFileMatchingTestClass } from '../../__test-helpers__/SingleFileMatchingTestClass';
 import { FileMother } from '../../domain/__test-helpers__/FileMother';
-import { EventBusMock } from 'src/context/virtual-drive/shared/__mocks__/EventBusMock';
+import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mocks__/EventBusMock';
+import { FolderMother } from '../../../../../context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
 
 describe('File path updater', () => {
   let repository: FileRepositoryMock;
@@ -85,9 +86,14 @@ describe('File path updater', () => {
     );
     expect(remoteFileSystemMock.moveMock).toBeCalledWith(
       expect.objectContaining({
-        folderId: destinationFolder.id,
-        path: destination.value,
+        _folderId: expect.objectContaining({
+          value: destinationFolder.id,
+        }),
+        _path: expect.objectContaining({
+          value: destination.value,
+        }),
       }),
+      destinationFolder.uuid,
     );
   });
 });

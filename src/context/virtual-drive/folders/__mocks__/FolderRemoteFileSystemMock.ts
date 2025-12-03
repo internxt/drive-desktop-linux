@@ -2,7 +2,6 @@ import { Either, right } from '../../../shared/domain/Either';
 import { Folder } from '../domain/Folder';
 import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
-import { FolderUuid } from '../domain/FolderUuid';
 import {
   FolderPersistedDto,
   RemoteFileSystem,
@@ -48,11 +47,11 @@ export class FolderRemoteFileSystemMock implements RemoteFileSystem {
   }
 
   shouldPersists(folder: Folder, includeUuid: boolean) {
-    this.persistMock(
-      new FolderPath(folder.path),
-      new FolderId(folder.parentId as number),
-      includeUuid ? new FolderUuid(folder.uuid) : undefined,
-    );
+    const folderPath = new FolderPath(folder.path);
+    const plainName = folderPath.name();
+    const parentFolderUuid = includeUuid ? folder.uuid : undefined;
+
+    this.persistMock(plainName, parentFolderUuid);
 
     this.persistMock.mockResolvedValueOnce(
       right({
