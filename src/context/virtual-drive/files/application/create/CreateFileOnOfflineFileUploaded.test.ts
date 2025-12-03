@@ -1,6 +1,6 @@
 import { CreateFileOnTemporalFileUploaded } from './CreateFileOnTemporalFileUploaded';
-import { FileCreatorTestClass } from '../../../../../../tests/context/virtual-drive/files/__test-class__/FileCreatorTestClass';
-import { FileOverriderTestClass } from '../../../../../../tests/context/virtual-drive/files/__test-class__/FileOverriderTestClass';
+import { FileCreatorTestClass } from '../../__test-helpers__/FileCreatorTestClass';
+import { FileOverriderTestClass } from '../../__test-helpers__/FileOverriderTestClass';
 import { OfflineContentsUploadedDomainEventMother } from '../../domain/events/__test-helpers__/OfflineContentsUploadedDomainEventMother';
 
 describe('Create File On Offline File Uploaded', () => {

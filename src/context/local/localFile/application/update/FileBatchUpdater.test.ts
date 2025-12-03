@@ -5,8 +5,8 @@ import { SimpleFileOverrider } from '../../../../virtual-drive/files/application
 import { RemoteFileSystem } from '../../../../virtual-drive/files/domain/file-systems/RemoteFileSystem';
 import { FileMother } from '../../../../virtual-drive/files/domain/__test-helpers__/FileMother';
 import { RemoteTreeMother } from '../../../../virtual-drive/remoteTree/domain/__test-helpers__/RemoteTreeMother';
-import { LocalFolderMother } from '../../../../../../tests/context/local/localFolder/domain/LocalFolderMother';
-import { LocalFileMother } from '../../../../../../tests/context/local/localFile/domain/LocalFileMother';
+import { LocalFolderMother } from '../../../localFolder/domain/__test-helpers__/LocalFolderMother';
+import { LocalFileMother } from '../../domain/__test-helpers__/LocalFileMother';
 import { LocalFileUploaderMock } from '../../../../../../tests/context/local/localFile/application/__mocks__/LocalFileUploaderMock';
 import { vi, MockInstance } from 'vitest';
 
