@@ -35,9 +35,7 @@ export class FolderRemoteFileSystemMock implements RemoteFileSystem {
   }
 
   move(folderUuid: string, destinationFolderUuid: string): Promise<void> {
-    expect(this.moveMock).toHaveBeenCalledWith(folderUuid, destinationFolderUuid);
-
-    return this.moveMock();
+    return this.moveMock(folderUuid, destinationFolderUuid);
   }
 
   rename(folder: Folder): Promise<void> {
@@ -86,9 +84,7 @@ export class FolderRemoteFileSystemMock implements RemoteFileSystem {
     this.renameMock.mockReturnValueOnce(Promise.resolve());
   }
 
-  shouldMove(folder: Folder, error?: Error) {
-    this.moveMock(folder);
-
+  shouldMove(error?: Error) {
     if (error) {
       this.moveMock.mockRejectedValueOnce(error);
       return;

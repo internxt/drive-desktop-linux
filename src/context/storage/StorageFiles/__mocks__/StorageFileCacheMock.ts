@@ -1,14 +1,14 @@
 import { Readable } from 'stream';
-import { StorageFileCache } from '../../../../../src/context/storage/StorageFiles/domain/StorageFileCache';
-import { StorageFileId } from '../../../../../src/context/storage/StorageFiles/domain/StorageFileId';
+import { StorageFileCache } from '../domain/StorageFileCache';
+import { StorageFileId } from '../domain/StorageFileId';
 
 export class StorageFileCacheMock implements StorageFileCache {
-  private readonly hasMock = jest.fn();
-  private readonly storeMock = jest.fn();
-  private readonly readMock = jest.fn();
-  private readonly deleteMock = jest.fn();
-  private readonly clearMock = jest.fn();
-  private readonly pipeMock = jest.fn();
+  private readonly hasMock = vi.fn();
+  private readonly storeMock = vi.fn();
+  private readonly readMock = vi.fn();
+  private readonly deleteMock = vi.fn();
+  private readonly clearMock = vi.fn();
+  private readonly pipeMock = vi.fn();
 
   has(id: StorageFileId): Promise<boolean> {
     return this.hasMock(id);

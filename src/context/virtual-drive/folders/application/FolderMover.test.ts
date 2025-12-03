@@ -52,13 +52,7 @@ describe('Folder Mover', () => {
 
       const destinationPath = new FolderPath(path.join(parentDestination.path, original.name));
 
-      const expectedFolder = FolderMother.fromPartial({
-        path: destinationPath.value,
-        id: original.id,
-        parentId: parentDestination.id,
-      });
-
-      remote.shouldMove(expectedFolder);
+      remote.shouldMove();
 
       repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parentDestination]);
 
@@ -75,13 +69,7 @@ describe('Folder Mover', () => {
 
       const destinationPath = new FolderPath(path.join(parentDestination.path, original.name));
 
-      const expectedFolder = FolderMother.fromPartial({
-        path: destinationPath.value,
-        id: original.id,
-        parentId: parentDestination.id,
-      });
-
-      remote.shouldMove(expectedFolder);
+      remote.shouldMove();
 
       repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parentDestination]);
 

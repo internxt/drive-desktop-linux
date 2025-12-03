@@ -1,16 +1,16 @@
-import { Readable } from 'stream';
-import { StorageFile } from '../../../../../src/context/storage/StorageFiles/domain/StorageFile';
-import { StorageFileId } from '../../../../../src/context/storage/StorageFiles/domain/StorageFileId';
-import { StorageFilesRepository } from '../../../../../src/context/storage/StorageFiles/domain/StorageFilesRepository';
+import { Readable } from 'node:stream';
+import { StorageFile } from '../domain/StorageFile';
+import { StorageFileId } from '../domain/StorageFileId';
+import { StorageFilesRepository } from '../domain/StorageFilesRepository';
 
 export class StorageFilesRepositoryMock implements StorageFilesRepository {
-  private existsMock = jest.fn();
-  private retrieveMock = jest.fn();
-  private storeMock = jest.fn();
-  private readMock = jest.fn();
-  private deleteMock = jest.fn();
-  private deleteAllMock = jest.fn();
-  private allMock = jest.fn();
+  private existsMock = vi.fn();
+  private retrieveMock = vi.fn();
+  private storeMock = vi.fn();
+  private readMock = vi.fn();
+  private deleteMock = vi.fn();
+  private deleteAllMock = vi.fn();
+  private allMock = vi.fn();
 
   async exists(id: StorageFileId): Promise<boolean> {
     return this.existsMock(id);

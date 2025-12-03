@@ -7,7 +7,7 @@ import { FileMother } from '../../../../virtual-drive/files/domain/__test-helper
 import { RemoteTreeMother } from '../../../../virtual-drive/remoteTree/domain/__test-helpers__/RemoteTreeMother';
 import { LocalFolderMother } from '../../../localFolder/domain/__test-helpers__/LocalFolderMother';
 import { LocalFileMother } from '../../domain/__test-helpers__/LocalFileMother';
-import { LocalFileUploaderMock } from '../../../../../../tests/context/local/localFile/application/__mocks__/LocalFileUploaderMock';
+import { LocalFileUploaderMock } from '../__mocks__/LocalFileUploaderMock';
 import { vi, MockInstance } from 'vitest';
 
 describe('File Batch Updater', () => {

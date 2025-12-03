@@ -1,10 +1,10 @@
-import { StorageFileDeleter } from '../../../../../../src/context/storage/StorageFiles/application/delete/StorageFileDeleter';
-import { StorageFileCache } from '../../../../../../src/context/storage/StorageFiles/domain/StorageFileCache';
-import { StorageFilesRepository } from '../../../../../../src/context/storage/StorageFiles/domain/StorageFilesRepository';
-import { SingleFileMatchingFinder } from '../../../../../../src/context/virtual-drive/files/application/SingleFileMatchingFinder';
+import { StorageFileDeleter } from '../application/delete/StorageFileDeleter';
+import { StorageFileCache } from '../domain/StorageFileCache';
+import { StorageFilesRepository } from '../domain/StorageFilesRepository';
+import { SingleFileMatchingFinder } from '../../../virtual-drive/files/application/SingleFileMatchingFinder';
 
 export class StorageFileDeleterTestClass extends StorageFileDeleter {
-  private readonly mock = jest.fn();
+  private readonly mock = vi.fn();
 
   constructor() {
     super({} as StorageFilesRepository, {} as SingleFileMatchingFinder, {} as StorageFileCache);

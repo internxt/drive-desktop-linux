@@ -1,10 +1,10 @@
-import { DownloadProgressTracker } from '../../../../../src/context/shared/domain/DownloadProgressTracker';
+import { DownloadProgressTracker } from '../../../shared/domain/DownloadProgressTracker';
 
 export class DownloadProgressTrackerMock implements DownloadProgressTracker {
-  private downloadStartedMock = jest.fn();
-  private downloadUpdateMock = jest.fn();
-  private downloadFinishedMock = jest.fn();
-  private errorMock = jest.fn();
+  private downloadStartedMock = vi.fn();
+  private downloadUpdateMock = vi.fn();
+  private downloadFinishedMock = vi.fn();
+  private errorMock = vi.fn();
 
   downloadStarted(name: string, extension: string, size: number): Promise<void> {
     return this.downloadStartedMock(name, extension, size);
