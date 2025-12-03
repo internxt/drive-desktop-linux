@@ -1,10 +1,13 @@
 import path from 'path';
-import { AbsolutePath } from '../../../../../src/context/local/localFile/infrastructure/AbsolutePath';
-import { LocalTree } from '../../../../../src/context/local/localTree/domain/LocalTree';
-import { FileNameMother } from '../../../shared/domain/FileNameMother';
-import { LocalFileMother } from '../../localFile/domain/LocalFileMother';
-import { LocalFolderMother } from '../../localFolder/domain/LocalFolderMother';
-import { FolderNameMother } from '../../../shared/domain/FolderNameMother';
+import { AbsolutePath } from '../../../localFile/infrastructure/AbsolutePath';
+import { LocalTree } from '../LocalTree';
+import { LocalFileMother } from '../../../localFile/domain/__test-helpers__/LocalFileMother';
+import { LocalFolderMother } from '../../../localFolder/domain/__test-helpers__/LocalFolderMother';
+import { FileNameMother } from '../../../../../context/shared/domain/__test-helpers__/FileNameMother';
+import { FolderNameMother } from '../../../../../context/shared/domain/__test-helpers__/FolderNameMother';
+
+
+
 
 export class LocalTreeMother {
   static onlyRoot(): LocalTree {

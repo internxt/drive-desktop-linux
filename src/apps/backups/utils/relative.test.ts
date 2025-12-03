@@ -1,4 +1,4 @@
-import { relative } from '../../../../src/apps/backups/utils/relative';
+import { relative } from './relative';
 
 describe('relative', () => {
   it('should return the relative path when the target is a subdirectory of the root', () => {

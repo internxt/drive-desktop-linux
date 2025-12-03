@@ -15,11 +15,13 @@ vi.mock('electron', () => ({
 
 // Mock electron-store
 vi.mock('electron-store', () => {
-  return vi.fn().mockImplementation(() => ({
-    get: vi.fn(),
-    set: vi.fn(),
-    clear: vi.fn(),
-  }));
+  return {
+    default: vi.fn().mockImplementation(() => ({
+      get: vi.fn(),
+      set: vi.fn(),
+      clear: vi.fn(),
+    })),
+  };
 });
 
 // Mock @internxt/drive-desktop-core backend logger

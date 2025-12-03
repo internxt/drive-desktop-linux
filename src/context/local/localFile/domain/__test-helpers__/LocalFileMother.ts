@@ -1,7 +1,7 @@
-import { LocalFile, LocalFileAttributes } from '../../../../../src/context/local/localFile/domain/LocalFile';
-import { DateMother } from '../../../shared/domain/DateMother';
-import { AbsolutePathMother } from '../../../shared/infrastructure/AbsolutePathMother';
-import Chance from '../../../shared/infrastructure/Chance';
+import { AbsolutePathMother } from './../../../../shared/infrastructure/__test-helpers__/AbsolutePathMother';
+import { LocalFile, LocalFileAttributes } from '../LocalFile';
+import { DateMother } from '../../../../shared/domain/__test-helpers__/DateMother';
+import Chance from '../../../../../context/shared/infrastructure/__test-helpers__/Chance';
 
 export class LocalFileMother {
   static any(): LocalFile {

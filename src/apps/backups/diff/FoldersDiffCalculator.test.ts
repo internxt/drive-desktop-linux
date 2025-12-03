@@ -1,9 +1,10 @@
-import { FoldersDiffCalculator } from '../../../../src/apps/backups/diff/FoldersDiffCalculator';
-import { LocalTreeMother } from '../../../context/local/tree/domain/LocalTreeMother';
-import { RemoteTreeMother } from '../../../context/virtual-drive/tree/domain/RemoteTreeMother';
-import { LocalFolderMother } from '../../../context/local/localFolder/domain/LocalFolderMother';
-import { AbsolutePathMother } from '../../../context/shared/infrastructure/AbsolutePathMother';
-import { DateMother } from '../../../context/shared/domain/DateMother';
+import { DateMother } from '../../../context/shared/domain/__test-helpers__/DateMother';
+import { AbsolutePathMother } from './../../../context/shared/infrastructure/__test-helpers__/AbsolutePathMother';
+import { RemoteTreeMother } from './../../../context/virtual-drive/remoteTree/domain/__test-helpers__/RemoteTreeMother';
+import { FoldersDiffCalculator } from './FoldersDiffCalculator';
+import { LocalTreeMother } from '../../../context/local/localTree/domain/__test-helpers__/LocalTreeMother';
+import { LocalFolderMother } from '../../../context/local/localFolder/domain/__test-helpers__/LocalFolderMother';
+
 
 describe('FoldersDiffCalculator', () => {
   it('groups folders as added when not found on the remote tree', () => {

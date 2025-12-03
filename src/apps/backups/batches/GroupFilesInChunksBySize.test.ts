@@ -1,6 +1,6 @@
-import { GroupFilesInChunksBySize } from '../../../../src/apps/backups/batches/GroupFilesInChunksBySize';
-import { LocalFile } from '../../../../src/context/local/localFile/domain/LocalFile';
-import { LocalFileMother } from '../../../context/local/localFile/domain/LocalFileMother';
+import { GroupFilesInChunksBySize } from './GroupFilesInChunksBySize';
+import { LocalFile } from '../../../context/local/localFile/domain/LocalFile';
+import { LocalFileMother } from '../../../context/local/localFile/domain/__test-helpers__/LocalFileMother';
 
 describe('GroupFilesInChunksBySize', () => {
   const generateFiles = (count: number): Array<LocalFile> => {

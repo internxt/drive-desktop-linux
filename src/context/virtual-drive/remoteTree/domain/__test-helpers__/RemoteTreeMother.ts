@@ -1,11 +1,11 @@
 import path, { relative } from 'path';
 import { FolderStatus } from '../../../folders/domain/FolderStatus';
 import { RemoteTree } from '../RemoteTree';
-import { FileNameMother } from '../../../../../../tests/context/shared/domain/FileNameMother';
 import { FileMother } from '../../../files/domain/__test-helpers__/FileMother';
-import { FolderMother } from '../../../../../../tests/context/virtual-drive/folders/domain/FolderMother';
-import { FolderNameMother } from '../../../../../../tests/context/shared/domain/FolderNameMother';
 import { LocalTree } from '../../../../local/localTree/domain/LocalTree';
+import { FolderMother } from '../../../folders/domain/__test-helpers__/FolderMother';
+import { FileNameMother } from '../../../../../context/shared/domain/__test-helpers__/FileNameMother';
+import { FolderNameMother } from '../../../../../context/shared/domain/__test-helpers__/FolderNameMother';
 
 export class RemoteTreeMother {
   static onlyRoot(): RemoteTree {

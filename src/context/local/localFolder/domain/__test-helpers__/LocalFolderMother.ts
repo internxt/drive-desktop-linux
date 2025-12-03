@@ -1,8 +1,6 @@
-import { LocalFolder, LocalFolderAttributes } from '../../../../../src/context/local/localFolder/domain/LocalFolder';
-import { AbsolutePathMother } from '../../../shared/infrastructure/AbsolutePathMother';
-
-import Chance from '../../../shared/infrastructure/Chance';
-
+import { AbsolutePathMother } from './../../../../shared/infrastructure/__test-helpers__/AbsolutePathMother';
+import { LocalFolder, LocalFolderAttributes } from '../LocalFolder';
+import Chance from '../../../../../context/shared/infrastructure/__test-helpers__/Chance';
 export class LocalFolderMother {
   static any(): LocalFolder {
     return LocalFolder.from({

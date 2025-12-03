@@ -1,6 +1,6 @@
-import { AddedFilesBatchCreator } from '../../../../src/apps/backups/batches/AddedFilesBatchCreator';
-import { LocalFileSize } from '../../../../src/context/local/localFile/domain/LocalFileSize';
-import { LocalFileMother } from '../../../context/local/localFile/domain/LocalFileMother';
+import { AddedFilesBatchCreator } from './AddedFilesBatchCreator';
+import { LocalFileSize } from '../../../context/local/localFile/domain/LocalFileSize';
+import { LocalFileMother } from '../../../context/local/localFile/domain/__test-helpers__/LocalFileMother';
 
 describe('AddedFilesBatchCreator', () => {
   it('should create batches of added files grouped by size', () => {

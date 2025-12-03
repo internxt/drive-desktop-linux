@@ -1,9 +1,9 @@
-import { ModifiedFilesBatchCreator } from '../../../../src/apps/backups/batches/ModifiedFilesBatchCreator';
-import { LocalFile } from '../../../../src/context/local/localFile/domain/LocalFile';
-import { LocalFileSize } from '../../../../src/context/local/localFile/domain/LocalFileSize';
-import { File } from '../../../../src/context/virtual-drive/files/domain/File';
-import { LocalFileMother } from '../../../context/local/localFile/domain/LocalFileMother';
-import { FileMother } from '../../../context/virtual-drive/files/domain/FileMother';
+import { ModifiedFilesBatchCreator } from './ModifiedFilesBatchCreator';
+import { LocalFile } from '../../../context/local/localFile/domain/LocalFile';
+import { LocalFileSize } from '../../../context/local/localFile/domain/LocalFileSize';
+import { File } from '../../../context/virtual-drive/files/domain/File';
+import { LocalFileMother } from '../../../context/local/localFile/domain/__test-helpers__/LocalFileMother';
+import { FileMother } from '../../../context/virtual-drive/files/domain/__test-helpers__/FileMother';
 describe('ModifiedFilesBatchCreator', () => {
   it('should create batches of modified files grouped by size', () => {
     const localFileSmall = LocalFileMother.fromPartial({
