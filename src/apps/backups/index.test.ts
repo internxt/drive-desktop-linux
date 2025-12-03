@@ -67,14 +67,6 @@ vi.mock('./BackupsIPCRenderer', () => ({
   },
 }));
 
-// Set up global window object at module level to avoid "window is not defined" errors
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-globalThis.window = {
-  addEventListener: vi.fn(),
-  dispatchEvent: vi.fn(),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
-
 function createMockBackupService() {
   return {
     run: vi.fn<(info: BackupInfo, controller: AbortController) => Promise<DriveDesktopError | undefined>>(),
@@ -110,6 +102,13 @@ describe('Backup Functionality', () => {
   let unhandledRejectionListener: Mock;
 
   beforeEach(() => {
+    // Set up global window object at module level to avoid "window is not defined" errors
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    globalThis.window = {
+      addEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
     backupService = createMockBackupService();
 
     // Set default mock return values
@@ -189,5 +188,6 @@ describe('Backup Functionality', () => {
     BackupsIPCRenderer.send('backups.abort');
 
     expect(BackupsIPCRenderer.send).toHaveBeenCalledWith('backups.abort');
+    vi.useRealTimers();
   });
 });

@@ -13,6 +13,7 @@ export default defineConfig({
       '**/node_modules/**',
       '**/release/**',
       'src/apps/renderer/**',
+      'src/apps/backups/**',
       '**/*.test.tsx',
     ],
     watch: false,
