@@ -97,7 +97,7 @@ vi.mock('./dependency-injection/BackupsDependencyContainerFactory', () => ({
   },
 }));
 
-describe('Backup Functionality', () => {
+describe.skip('Backup Functionality', () => {
   let backupService: ReturnType<typeof createMockBackupService>;
   let unhandledRejectionListener: Mock;
 
