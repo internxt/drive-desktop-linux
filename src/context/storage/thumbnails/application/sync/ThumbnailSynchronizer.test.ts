@@ -1,10 +1,10 @@
-import { ThumbnailSynchronizer } from '../../../../../../src/context/storage/thumbnails/application/sync/ThumbnailSynchronizer';
-import { ThumbnailCollection } from '../../../../../../src/context/storage/thumbnails/domain/ThumbnailCollection';
-import { DateMother } from '../../../../shared/domain/DateMother';
-import { FileMother } from '../../../../virtual-drive/files/domain/FileMother';
-import { FilePathMother } from '../../../../virtual-drive/files/domain/FilePathMother';
+import { ThumbnailMother } from './../../../thumbnails/__test-helpers__/ThumbnailMother';
+import { ThumbnailSynchronizer } from './ThumbnailSynchronizer';
+import { ThumbnailCollection } from '../../domain/ThumbnailCollection';
+import { DateMother } from '../../../../shared/domain/__test-helpers__/DateMother';
+import { FileMother } from '../../../../virtual-drive/files/domain/__test-helpers__/FileMother';
 import { ThumbnailsRepositoryMock } from '../../__mock__/ThumbnailsRepositoryMock';
-import { ThumbnailMother } from '../../domain/ThumbnailMother';
+import { FilePathMother } from '../../../../../context/virtual-drive/files/domain/__test-helpers__/FilePathMother';
 
 describe('Thumbnail Synchronizer', () => {
   let SUT: ThumbnailSynchronizer;
@@ -20,7 +20,7 @@ describe('Thumbnail Synchronizer', () => {
   });
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('tries to get all the remote and local thumbnails for the given files', async () => {

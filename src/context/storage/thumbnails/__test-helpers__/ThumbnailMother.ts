@@ -1,7 +1,6 @@
-import { Thumbnail, ThumbnailAttributes } from '../../../../../src/context/storage/thumbnails/domain/Thumbnail';
-import Chance from '../../../shared/infrastructure/Chance';
-import { BucketEntryIdMother } from '../../../virtual-drive/shared/domain/BucketEntryIdMother';
-
+import { BucketEntryIdMother } from 'src/context/virtual-drive/shared/domain/__test-helpers__/BucketEntryIdMother';
+import { Thumbnail, ThumbnailAttributes } from '../domain/Thumbnail';
+import Chance from '../../../shared/infrastructure/__test-helpers__/Chance';
 export class ThumbnailMother {
   static any(): Thumbnail {
     return Thumbnail.from({

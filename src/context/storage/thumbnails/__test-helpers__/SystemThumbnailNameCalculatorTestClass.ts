@@ -1,7 +1,7 @@
-import { SystemThumbnailNameCalculator } from '../../../../../src/context/storage/thumbnails/infrastructrue/local/SystemThumbnailNameCalculator';
+import { SystemThumbnailNameCalculator } from '../infrastructrue/local/SystemThumbnailNameCalculator';
 
 export class SystemThumbnailNameCalculatorTestClass extends SystemThumbnailNameCalculator {
-  private thumbnailNameMock = jest.fn();
+  private thumbnailNameMock = vi.fn();
 
   thumbnailName(original: string): string {
     return this.thumbnailNameMock(original);

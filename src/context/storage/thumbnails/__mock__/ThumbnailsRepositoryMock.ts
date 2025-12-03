@@ -1,15 +1,15 @@
-import { Readable } from 'stream';
-import { Thumbnail } from '../../../../../src/context/storage/thumbnails/domain/Thumbnail';
-import { ThumbnailsRepository } from '../../../../../src/context/storage/thumbnails/domain/ThumbnailsRepository';
-import { File } from '../../../../../src/context/virtual-drive/files/domain/File';
-import { ThumbnailCollection } from '../../../../../src/context/storage/thumbnails/domain/ThumbnailCollection';
+import { Readable } from 'node:stream';
+import { Thumbnail } from '../domain/Thumbnail';
+import { ThumbnailsRepository } from '../domain/ThumbnailsRepository';
+import { File } from '../../../virtual-drive/files/domain/File';
+import { ThumbnailCollection } from '../domain/ThumbnailCollection';
 
 export class ThumbnailsRepositoryMock implements ThumbnailsRepository {
-  private readonly retrieveMock = jest.fn();
-  private readonly pullMock = jest.fn();
-  private readonly pushMock = jest.fn();
-  private readonly hasMock = jest.fn();
-  private readonly defaultMock = jest.fn();
+  private readonly retrieveMock = vi.fn();
+  private readonly pullMock = vi.fn();
+  private readonly pushMock = vi.fn();
+  private readonly hasMock = vi.fn();
+  private readonly defaultMock = vi.fn();
 
   has(file: File): Promise<boolean> {
     return this.hasMock(file);

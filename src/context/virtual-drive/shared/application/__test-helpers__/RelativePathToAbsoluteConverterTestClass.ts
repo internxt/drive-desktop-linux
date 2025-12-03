@@ -1,7 +1,7 @@
-import { RelativePathToAbsoluteConverter } from '../../../../src/context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
+import { RelativePathToAbsoluteConverter } from '../RelativePathToAbsoluteConverter';
 
 export class RelativePathToAbsoluteConverterTestClass extends RelativePathToAbsoluteConverter {
-  private readonly mock = jest.fn();
+  private readonly mock = vi.fn();
 
   constructor() {
     super('');

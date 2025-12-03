@@ -1,5 +1,5 @@
-import { StorageFileSize } from '../../../../../src/context/storage/StorageFiles/domain/StorageFileSize';
-import Chance from '../../../shared/infrastructure/Chance';
+import { StorageFileSize } from '../StorageFiles/domain/StorageFileSize';
+import Chance from '../../../context/shared/infrastructure/__test-helpers__/Chance';
 
 export class StorageFileSizeMother {
   static random() {

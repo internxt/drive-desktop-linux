@@ -1,16 +1,16 @@
-import fs from 'fs';
-import path from 'path';
-import { LocalThumbnailRepository } from '../../../../../../src/context/storage/thumbnails/infrastructrue/local/LocalThumbnsailsRepository';
-import { SystemThumbnailNameCalculator } from '../../../../../../src/context/storage/thumbnails/infrastructrue/local/SystemThumbnailNameCalculator';
-import { RelativePathToAbsoluteConverterTestClass } from '../../../../shared/__test-class__/RelativePathToAbsoluteConverterTestClass';
-import { FileMother } from '../../../../virtual-drive/files/domain/FileMother';
-import { WriteReadableToFile } from '../../../../../../src/apps/shared/fs/write-readable-to-file';
-import { ThumbnailMother } from '../../domain/ThumbnailMother';
-import { Readable } from 'stream';
+import fs from 'node:fs';
+import path from 'node:path';
+import { LocalThumbnailRepository } from './LocalThumbnsailsRepository';
+import { SystemThumbnailNameCalculator } from './SystemThumbnailNameCalculator';
+import { RelativePathToAbsoluteConverterTestClass } from '../../../../virtual-drive/shared/application/__test-helpers__/RelativePathToAbsoluteConverterTestClass';
+import { FileMother } from '../../../../virtual-drive/files/domain/__test-helpers__/FileMother';
+import { WriteReadableToFile } from '../../../../../apps/shared/fs/write-readable-to-file';
+import { ThumbnailMother } from '../../../thumbnails/__test-helpers__/ThumbnailMother';
+import { Readable } from 'node:stream';
 
-jest.mock('fs');
+vi.mock('fs');
 
-const mockedFS = jest.mocked(fs, true);
+const mockedFS = vi.mocked(fs, true);
 
 describe('Local Thumbnail Repository', () => {
   let SUT: LocalThumbnailRepository;
@@ -28,7 +28,7 @@ describe('Local Thumbnail Repository', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('retrieve', () => {
@@ -42,7 +42,7 @@ describe('Local Thumbnail Repository', () => {
       mockedFS.statSync.mockReturnValueOnce({ mtime: new Date() } as fs.Stats);
       pathConverter.convertTo(absolutePath);
 
-      const thumbnailNameCalculator = jest.spyOn(nameCalculator, 'thumbnailName');
+      const thumbnailNameCalculator = vi.spyOn(nameCalculator, 'thumbnailName');
 
       await SUT.retrieve(file);
 
@@ -79,7 +79,7 @@ describe('Local Thumbnail Repository', () => {
       });
       const absolutePath = '/home/jens/photos/me.png';
 
-      const writeSpy = jest.spyOn(WriteReadableToFile, 'write');
+      const writeSpy = vi.spyOn(WriteReadableToFile, 'write');
 
       writeSpy.mockImplementation((readable: Readable) => {
         return new Promise((resolve) => {

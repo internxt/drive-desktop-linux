@@ -1,4 +1,4 @@
-import { SystemThumbnailNameCalculator } from '../../../../../../src/context/storage/thumbnails/infrastructrue/local/SystemThumbnailNameCalculator';
+import { SystemThumbnailNameCalculator } from './SystemThumbnailNameCalculator';
 
 describe('System Thumbnail Name Calculator', () => {
   const SUT = new SystemThumbnailNameCalculator();
