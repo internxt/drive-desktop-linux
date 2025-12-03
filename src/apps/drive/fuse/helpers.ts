@@ -1,9 +1,9 @@
 import { exec } from 'child_process';
-import Fuse from 'fuse-native';
+import type Fuse from '@gcas/fuse';
 
 export function unmountFusedDirectory(mountPoint: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    exec(`umount ${mountPoint}`, (error, stdout: string, stderr: string) => {
+    exec(`fusermount -uz ${mountPoint}`, (error, stdout: string, stderr: string) => {
       if (error) {
         reject(error);
         return;

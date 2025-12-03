@@ -25,15 +25,15 @@ import { EventEmitter } from 'stream';
 import { getExistingFiles } from '../../main/remote-sync/service';
 import configStore from '../../main/config';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const fuse = require('@gcas/fuse');
+import Fuse from '@gcas/fuse';
+
 const STORAGE_MIGRATION_DATE = new Date(configStore.get('storageMigrationDate'));
 const FIX_DEPLOYMENT_DATE = new Date(configStore.get('fixDeploymentDate'));
 
 export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';
   private static readonly MAX_INT_32 = 2147483647;
-  private _fuse: any;
+  private _fuse: Fuse | undefined;
 
   constructor(
     private readonly virtualDrive: VirtualDrive,
@@ -107,7 +107,7 @@ export class FuseApp extends EventEmitter {
 
     await this.update();
 
-    this._fuse = new fuse(this.localRoot, ops, {
+    this._fuse = new Fuse(this.localRoot, ops, {
       debug: false,
       force: true,
       maxRead: FuseApp.MAX_INT_32,
@@ -192,6 +192,11 @@ export class FuseApp extends EventEmitter {
   async mount() {
     if (this.status === 'MOUNTED') {
       logger.debug({ msg: '[FUSE] Already mounted' });
+      return this.status;
+    }
+
+    if (!this._fuse) {
+      logger.error({ msg: '[FUSE] Cannot mount: FUSE instance not initialized' });
       return this.status;
     }
 
