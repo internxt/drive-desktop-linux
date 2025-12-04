@@ -18,7 +18,7 @@ import { RenameMoveOrTrashCallback } from './callbacks/RenameOrMoveCallback';
 import { TrashFileCallback } from './callbacks/TrashFileCallback';
 import { TrashFolderCallback } from './callbacks/TrashFolderCallback';
 import { WriteCallback } from './callbacks/WriteCallback';
-import { mountPromise, unmountPromise } from './helpers';
+import { mountPromise, unmountFusedDirectory } from './helpers';
 import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import { ThumbnailSynchronizer } from '../../../context/storage/thumbnails/application/sync/ThumbnailSynchronizer';
 import { EventEmitter } from 'stream';
@@ -33,6 +33,7 @@ const FIX_DEPLOYMENT_DATE = new Date(configStore.get('fixDeploymentDate'));
 export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';
   private static readonly MAX_INT_32 = 2147483647;
+  private static readonly MAX_RETRIES = 5;
   private _fuse: Fuse | undefined;
 
   constructor(
@@ -102,7 +103,7 @@ export class FuseApp extends EventEmitter {
     };
   }
 
-  async start(): Promise<void> {
+  async start() {
     const ops = this.getOpt();
 
     await this.update();
@@ -113,31 +114,16 @@ export class FuseApp extends EventEmitter {
       maxRead: FuseApp.MAX_INT_32,
     });
 
-    try {
-      await mountPromise(this._fuse);
-      this.status = 'MOUNTED';
-      logger.debug({ msg: '[FUSE] mounted' });
-      this.emit('mounted');
-
-      // Run after mount is complete
-      await this.fixDanglingFiles(STORAGE_MIGRATION_DATE, FIX_DEPLOYMENT_DATE);
-    } catch (firstMountError) {
-      logger.error({ msg: '[FUSE] mount error first try:', error: firstMountError });
-      try {
-        await unmountPromise(this._fuse);
-        await mountPromise(this._fuse);
-        this.status = 'MOUNTED';
-        logger.debug({ msg: '[FUSE] mounted' });
-        this.emit('mounted');
-
-        // Run after mount is complete (retry)
-        await this.fixDanglingFiles(STORAGE_MIGRATION_DATE, FIX_DEPLOYMENT_DATE);
-      } catch (err) {
-        this.status = 'ERROR';
-        logger.error({ msg: '[FUSE] mount error final try:', error: err });
-        this.emit('mount-error');
-      }
+    const mountSuccessful = await this.mountWithRetries();
+    if (!mountSuccessful) {
+      logger.error({ msg: '[FUSE] mount error after max retries' });
+      this.emit('mount-error');
+      return;
     }
+
+    this.fixDanglingFiles(STORAGE_MIGRATION_DATE, FIX_DEPLOYMENT_DATE).catch((error) => {
+      logger.error({ msg: '[FUSE] Error fixing dangling files:', error });
+    });
   }
 
   async stop(): Promise<void> {
@@ -150,7 +136,7 @@ export class FuseApp extends EventEmitter {
       logger.debug({ msg: '[FUSE] Starting unmount process' });
 
       if (this._fuse) {
-        await unmountPromise(this._fuse);
+        await unmountFusedDirectory(this.localRoot);
         logger.debug({ msg: '[FUSE] Unmounted successfully' });
       }
 
@@ -201,7 +187,6 @@ export class FuseApp extends EventEmitter {
     }
 
     try {
-      await unmountPromise(this._fuse);
       await mountPromise(this._fuse);
       this.status = 'MOUNTED';
       this.emit('mounted');
@@ -211,5 +196,20 @@ export class FuseApp extends EventEmitter {
     }
 
     return this.status;
+  }
+
+  private async mountWithRetries(): Promise<boolean> {
+    for (let attempt = 1; attempt <= FuseApp.MAX_RETRIES; attempt++) {
+      const status = await this.mount();
+
+      if (status === 'MOUNTED') return true;
+
+      if (attempt < FuseApp.MAX_RETRIES) {
+        const delay = Math.min(1000 * attempt, 3000);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    return false;
   }
 }
