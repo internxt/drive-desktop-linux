@@ -3,7 +3,7 @@ import { FileStatuses } from '../FileStatus';
 import { File } from '../File';
 import { FilePathMother } from './FilePathMother';
 import Chance from 'chance';
-import { UuidMother } from '../../../../../../tests/context/shared/domain/UuidMother';
+import { UuidMother } from '../../../../shared/domain/__test-helpers__/UuidMother';
 import { BucketEntryIdMother } from 'src/context/virtual-drive/shared/domain/__test-helpers__/BucketEntryIdMother';
 
 const chance = new Chance();

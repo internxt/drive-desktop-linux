@@ -1,7 +1,7 @@
 import { ServerFile, ServerFileStatus } from '../../../shared/domain/ServerFile';
 import { ServerFolderStatus, ServerFolder } from '../../../shared/domain/ServerFolder';
 import { Traverser } from './Traverser';
-import { UuidMother } from '../../../../../tests/context/shared/domain/UuidMother';
+import { UuidMother } from '../../../shared/domain/__test-helpers__/UuidMother';
 import { BucketEntryIdMother } from '../../shared/domain/__test-helpers__/BucketEntryIdMother';
 import { NameDecrypt } from '../domain/NameDecrypt';
 class FakeNameDecryptMock implements NameDecrypt {

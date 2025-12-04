@@ -26,4 +26,13 @@ describe('Path', () => {
       expect(() => new PathTestClass(path)).not.toThrowError();
     },
   );
+  it('does not mark a path with ":" in the middle as malicious', () => {
+    const path = '/My Folder:/file.txt';
+
+    try {
+      new PathTestClass(path);
+    } catch (err) {
+      expect(err).not.toBeDefined();
+    }
+  });
 });

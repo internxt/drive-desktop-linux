@@ -1,9 +1,9 @@
-import { CacheStorageFile } from '../../../../../../src/context/storage/StorageFiles/application/offline/CacheStorageFile';
-import { StorageFileId } from '../../../../../../src/context/storage/StorageFiles/domain/StorageFileId';
-import { SingleFileMatchingFinderTestClass } from '../../../../virtual-drive/files/__test-class__/SingleFileMatchingFinderTestClass';
-import { FileMother } from '../../../../virtual-drive/files/domain/FileMother';
+import { CacheStorageFile } from './CacheStorageFile';
+import { StorageFileId } from '../../domain/StorageFileId';
+import { SingleFileMatchingFinderTestClass } from '../../../../virtual-drive/files/__test-helpers__/SingleFileMatchingFinderTestClass';
+import { FileMother } from '../../../../virtual-drive/files/domain/__test-helpers__/FileMother';
 import { StorageFileCacheMock } from '../../__mocks__/StorageFileCacheMock';
-import { StorageFileDownloaderTestClass } from '../download/StorageFileDownloaderTestClass';
+import { StorageFileDownloaderTestClass } from '../download/__test-helpers__/StorageFileDownloaderTestClass';
 
 describe('Cache Storage File', () => {
   let SUT: CacheStorageFile;
@@ -21,7 +21,7 @@ describe('Cache Storage File', () => {
   });
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('does nothing when the cache already has the file', async () => {

@@ -1,6 +1,6 @@
-import { FilesByPartialSearcher } from '../../../../../../src/context/virtual-drive/files/application/search/FilesByPartialSearcher';
-import { FileAttributes, File } from '../../../../../../src/context/virtual-drive/files/domain/File';
-import { FileRepository } from '../../../../../../src/context/virtual-drive/files/domain/FileRepository';
+import { FilesByPartialSearcher } from '../application/search/FilesByPartialSearcher';
+import { FileAttributes, File } from '../domain/File';
+import { FileRepository } from '../domain/FileRepository';
 
 export class FilesByPartialSearcherTestClass extends FilesByPartialSearcher {
   private readonly mock = vi.fn();
@@ -10,7 +10,7 @@ export class FilesByPartialSearcherTestClass extends FilesByPartialSearcher {
     this.mock.mockReturnValue([]);
   }
 
-  run(partial: Partial<FileAttributes>): Promise<File[]> {
+  run(partial: Partial<FileAttributes>): Promise<Array<File>> {
     return this.mock(partial);
   }
 

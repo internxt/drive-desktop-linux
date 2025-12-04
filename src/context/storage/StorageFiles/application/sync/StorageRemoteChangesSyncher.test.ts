@@ -1,11 +1,11 @@
-import { StorageRemoteChangesSyncher } from '../../../../../src/context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
-import { StorageFile } from '../../../../../src/context/storage/StorageFiles/domain/StorageFile';
-import { FileStatuses } from '../../../../../src/context/virtual-drive/files/domain/FileStatus';
-import { SingleFileMatchingSearcherTestClass } from '../../../virtual-drive/files/__test-class__/SingleFileMatchingSearcherTestClass';
-import { FileMother } from '../../../virtual-drive/files/domain/FileMother';
-import { StorageFilesRepositoryMock } from '../__mocks__/StorageFilesRepositoryMock';
-import { StorageFileMother } from '../domain/StorageFileMother';
-import { StorageFileDownloaderTestClass } from './download/StorageFileDownloaderTestClass';
+import { StorageRemoteChangesSyncher } from './StorageRemoteChangesSyncher';
+import { StorageFile } from '../../domain/StorageFile';
+import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';
+import { SingleFileMatchingSearcherTestClass } from '../../../../virtual-drive/files/__test-helpers__/SingleFileMatchingSearcherTestClass';
+import { FileMother } from '../../../../virtual-drive/files/domain/__test-helpers__/FileMother';
+import { StorageFilesRepositoryMock } from '../../__mocks__/StorageFilesRepositoryMock';
+import { StorageFileMother } from '../../../__test-helpers__/StorageFileMother';
+import { StorageFileDownloaderTestClass } from '../download/__test-helpers__/StorageFileDownloaderTestClass';
 
 describe('Storage Remote Changes Syncher', () => {
   let SUT: StorageRemoteChangesSyncher;
@@ -23,7 +23,7 @@ describe('Storage Remote Changes Syncher', () => {
   });
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('deletes all files that are not present in virtual representation', async () => {

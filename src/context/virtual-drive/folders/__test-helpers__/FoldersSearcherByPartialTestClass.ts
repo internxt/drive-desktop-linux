@@ -1,13 +1,13 @@
-import { FoldersSearcherByPartial } from '../../../../../../src/context/virtual-drive/folders/application/search/FoldersSearcherByPartial';
-import { FolderAttributes, Folder } from '../../../../../../src/context/virtual-drive/folders/domain/Folder';
-import { FolderRepository } from '../../../../../../src/context/virtual-drive/folders/domain/FolderRepository';
+import { FoldersSearcherByPartial } from '../application/search/FoldersSearcherByPartial';
+import { Folder, FolderAttributes } from '../domain/Folder';
+import { FolderRepository } from '../domain/FolderRepository';
 
 export class FoldersSearcherByPartialTestClass extends FoldersSearcherByPartial {
   private readonly mock;
 
   constructor() {
     super({} as FolderRepository);
-    this.mock = jest.fn();
+    this.mock = vi.fn();
   }
 
   run(partial: Partial<FolderAttributes>): Promise<Folder[]> {
