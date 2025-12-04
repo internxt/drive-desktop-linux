@@ -6,7 +6,7 @@ import { SingleFolderMatchingFinderTestClass } from '../../../../virtual-drive/f
 
 import { StorageFilesRepositoryMock } from '../../../StorageFiles/__mocks__/StorageFilesRepositoryMock';
 import { FilesByPartialSearcherTestClass } from 'src/context/virtual-drive/files/__test-helpers__/FilesByPartialSearcherTestClass';
-import { FolderMother } from 'src/context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
+import { FolderMother } from '../../../../../context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
 
 describe('All Files In Folder Are Available Offline', () => {
   let SUT: AllFilesInFolderAreAvailableOffline;
