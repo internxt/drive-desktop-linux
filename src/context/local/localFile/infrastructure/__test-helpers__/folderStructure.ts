@@ -1,5 +1,5 @@
-import path from 'path';
-import { AbsolutePath } from '../../../../../../src/context/local/localFile/infrastructure/AbsolutePath';
+import path from 'node:path';
+import { AbsolutePath } from '../AbsolutePath';
 import fs from 'fs/promises';
 
 export const tree = {

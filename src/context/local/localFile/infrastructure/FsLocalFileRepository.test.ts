@@ -1,7 +1,7 @@
 import path from 'path';
-import { FsLocalFileRepository } from '../../../../../src/context/local/localFile/infrastructure/FsLocalFileRepository';
-import { AbsolutePath } from '../../../../../src/context/local/localFile/infrastructure/AbsolutePath';
-import { createFolderStructure, removeFolderStructure } from './fixtures/folderStructure';
+import { FsLocalFileRepository } from './FsLocalFileRepository';
+import { AbsolutePath } from './AbsolutePath';
+import { createFolderStructure, removeFolderStructure } from './__test-helpers__/folderStructure';
 
 const TEST_FOLDER = path.join(__dirname, 'FsLocalFileRepositoryTestFolder') as AbsolutePath;
 
