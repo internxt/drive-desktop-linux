@@ -1,10 +1,10 @@
-jest.mock('@internxt/drive-desktop-core/build/backend');
-jest.mock('electron');
-jest.mock('electron-store');
-jest.mock('axios');
-jest.mock('./RemoteSyncErrorHandler/RemoteSyncErrorHandler', () => ({
-  RemoteSyncErrorHandler: jest.fn().mockImplementation(() => ({
-    handleSyncError: jest.fn(),
+vi.mock('@internxt/drive-desktop-core/build/backend');
+vi.mock('electron');
+vi.mock('electron-store');
+vi.mock('axios');
+vi.mock('./RemoteSyncErrorHandler/RemoteSyncErrorHandler', () => ({
+  RemoteSyncErrorHandler: vi.fn().mockImplementation(() => ({
+    handleSyncError: vi.fn(),
   })),
 }));
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
@@ -16,24 +16,24 @@ import { DatabaseCollectionAdapter } from '../database/adapters/base';
 import { DriveFile } from '../database/entities/DriveFile';
 import { DriveFolder } from '../database/entities/DriveFolder';
 
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+const mockedAxios = vi.mocked(axios);
 
 const inMemorySyncedFilesCollection: DatabaseCollectionAdapter<DriveFile> = {
-  get: jest.fn(),
-  connect: jest.fn(),
-  update: jest.fn(),
-  create: jest.fn(),
-  remove: jest.fn(),
-  getLastUpdated: jest.fn(),
+  get: vi.fn(),
+  connect: vi.fn(),
+  update: vi.fn(),
+  create: vi.fn(),
+  remove: vi.fn(),
+  getLastUpdated: vi.fn(),
 };
 
 const inMemorySyncedFoldersCollection: DatabaseCollectionAdapter<DriveFolder> = {
-  get: jest.fn(),
-  connect: jest.fn(),
-  update: jest.fn(),
-  create: jest.fn(),
-  remove: jest.fn(),
-  getLastUpdated: jest.fn(),
+  get: vi.fn(),
+  connect: vi.fn(),
+  update: vi.fn(),
+  create: vi.fn(),
+  remove: vi.fn(),
+  getLastUpdated: vi.fn(),
 };
 
 const createRemoteSyncedFileFixture = (payload: Partial<RemoteSyncedFile>): RemoteSyncedFile => {
@@ -268,7 +268,7 @@ describe('RemoteSyncManager', () => {
       );
       mockedAxios.get.mockRejectedValueOnce('Fail on purpose');
       const errorHandlerInstance = sut['errorHandler'];
-      const errorHandlerSpy = jest.spyOn(errorHandlerInstance, 'handleSyncError');
+      const errorHandlerSpy = vi.spyOn(errorHandlerInstance, 'handleSyncError');
 
       await sut.startRemoteSync();
 
@@ -294,7 +294,7 @@ describe('RemoteSyncManager', () => {
 
       mockedAxios.get.mockRejectedValueOnce('Fail on purpose');
       const errorHandlerInstance = sut['errorHandler'];
-      const errorHandlerSpy = jest.spyOn(errorHandlerInstance, 'handleSyncError');
+      const errorHandlerSpy = vi.spyOn(errorHandlerInstance, 'handleSyncError');
 
       await sut.startRemoteSync();
 
