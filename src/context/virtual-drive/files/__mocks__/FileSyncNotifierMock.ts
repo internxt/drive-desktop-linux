@@ -2,12 +2,12 @@ import { SyncFileMessenger } from '../domain/SyncFileMessenger';
 import { VirtualDriveFileIssue } from '../../../../shared/issues/VirtualDriveIssue';
 
 export class FileSyncNotifierMock implements SyncFileMessenger {
-  public createdMock = jest.fn();
-  public trashingMock = jest.fn();
-  public trashedMock = jest.fn();
-  public renamingMock = jest.fn();
-  public renamedMock = jest.fn();
-  public issueMock = jest.fn();
+  public createdMock = vi.fn();
+  public trashingMock = vi.fn();
+  public trashedMock = vi.fn();
+  public renamingMock = vi.fn();
+  public renamedMock = vi.fn();
+  public issueMock = vi.fn();
 
   created(name: string, extension: string): Promise<void> {
     return this.createdMock(name, extension);

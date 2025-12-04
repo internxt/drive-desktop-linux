@@ -1,3 +1,4 @@
+import { BucketEntryIdMother } from 'src/context/virtual-drive/shared/domain/__test-helpers__/BucketEntryIdMother';
 import { FileRepositoryMock } from '../../__mocks__/FileRepositoryMock';
 import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { RemoteFileSystemMock } from '../../__mocks__/RemoteFileSystemMock';
@@ -6,7 +7,6 @@ import { FolderRepositoryMock } from '../../../folders/__mocks__/FolderRepositor
 import { AllParentFoldersStatusIsExists } from '../../../folders/application/AllParentFoldersStatusIsExists';
 import { FileSyncNotifierMock } from '../../__mocks__/FileSyncNotifierMock';
 import { FileStatus } from '../../domain/FileStatus';
-import { BucketEntryIdMother } from '../../../../../src/context/virtual-drive/shared/domain/__helpers__/BucketEntryIdMother';
 
 describe('File Deleter', () => {
   let repository: FileRepositoryMock;
@@ -30,7 +30,7 @@ describe('File Deleter', () => {
     const contentsId = BucketEntryIdMother.primitive();
 
     repository.matchingPartialMock.mockReturnValueOnce([]);
-    jest.spyOn(allParentFoldersStatusIsExists, 'run').mockResolvedValueOnce(false);
+    vi.spyOn(allParentFoldersStatusIsExists, 'run').mockResolvedValueOnce(false);
 
     await SUT.run(contentsId);
 
@@ -41,7 +41,7 @@ describe('File Deleter', () => {
     const file = FileMother.any();
 
     repository.matchingPartialMock.mockReturnValueOnce([file]);
-    jest.spyOn(allParentFoldersStatusIsExists, 'run').mockResolvedValueOnce(false);
+    vi.spyOn(allParentFoldersStatusIsExists, 'run').mockResolvedValueOnce(false);
 
     await SUT.run(file.contentsId);
 
@@ -52,7 +52,7 @@ describe('File Deleter', () => {
     const file = FileMother.any();
 
     repository.matchingPartialMock.mockReturnValueOnce([file]);
-    jest.spyOn(allParentFoldersStatusIsExists, 'run').mockResolvedValueOnce(true);
+    vi.spyOn(allParentFoldersStatusIsExists, 'run').mockResolvedValueOnce(true);
 
     await SUT.run(file.contentsId);
 
@@ -63,7 +63,7 @@ describe('File Deleter', () => {
     const file = FileMother.any();
 
     repository.matchingPartialMock.mockReturnValueOnce([file]);
-    jest.spyOn(allParentFoldersStatusIsExists, 'run').mockResolvedValueOnce(true);
+    vi.spyOn(allParentFoldersStatusIsExists, 'run').mockResolvedValueOnce(true);
 
     await SUT.run(file.contentsId);
 

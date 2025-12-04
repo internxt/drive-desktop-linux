@@ -1,6 +1,6 @@
 import { ParentFolderFinder } from '../application/ParentFolderFinder';
+import { FolderMother } from '../domain/__test-helpers__/FolderMother';
 import { Folder } from '../domain/Folder';
-import { FolderMother } from '../../../../../tests/context/virtual-drive/folders/domain/FolderMother';
 import { FolderRepositoryMock } from './FolderRepositoryMock';
 
 export class FolderFinderFactory {

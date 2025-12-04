@@ -56,7 +56,7 @@ describe('File path updater', () => {
 
     const destination = new FilePath(`${fileToRename.dirname}/_${fileToRename.nameWithExtension}n`);
 
-    expect(async () => {
+    await expect(async () => {
       await SUT.run(fileToRename.contentsId, destination.value);
     }).rejects.toThrow();
   });

@@ -1,10 +1,9 @@
+import { BucketEntryIdMother } from '../../../../../context/virtual-drive/shared/domain/__test-helpers__/BucketEntryIdMother';
 import { FileCreator } from './FileCreator';
 import { FileTrasher } from '../trash/FileTrasher';
 import { FileContentsId } from '../../domain/FileContentsId';
 import { FilePath } from '../../domain/FilePath';
 import { FolderFinderFactory } from '../../../folders/__mocks__/FolderFinderFactory';
-import { EventBusMock } from '../../shared/__mock__/EventBusMock';
-import { BucketEntryIdMother } from '../../../../../src/context/virtual-drive/shared/domain/__helpers__/BucketEntryIdMother';
 import { FileDeleterFactory } from '../../__mocks__/FileDeleterFactory';
 import { FileRepositoryMock } from '../../__mocks__/FileRepositoryMock';
 import { FileSyncNotifierMock } from '../../__mocks__/FileSyncNotifierMock';
@@ -12,6 +11,7 @@ import { RemoteFileSystemMock } from '../../__mocks__/RemoteFileSystemMock';
 import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { FileSizeMother } from '../../domain/__test-helpers__/FileSizeMother';
 import { right } from '../../../../shared/domain/Either';
+import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mocks__/EventBusMock';
 
 describe('File Creator', () => {
   let remoteFileSystemMock: RemoteFileSystemMock;
@@ -87,7 +87,7 @@ describe('File Creator', () => {
 
     fileRepository.matchingPartialMock.mockReturnValueOnce([existingFile]).mockReturnValueOnce([existingFile]);
 
-    const deleterSpy = jest.spyOn(fileDeleter, 'run').mockResolvedValueOnce(Promise.resolve());
+    const deleterSpy = vi.spyOn(fileDeleter, 'run').mockResolvedValueOnce();
 
     remoteFileSystemMock.persistMock.mockResolvedValueOnce(right(fileAttributes));
 
