@@ -107,7 +107,7 @@ export class FuseApp extends EventEmitter {
   async start() {
     const ops = this.getOpt();
 
-    await this.update()
+    await this.update();
 
     this._fuse = new Fuse(this.localRoot, ops, {
       debug: false,
