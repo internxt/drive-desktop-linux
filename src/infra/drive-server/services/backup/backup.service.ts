@@ -31,7 +31,7 @@ export class BackupService {
       logger.error({
         tag: 'BACKUPS',
         msg: 'Get devices as folder request request threw an exception',
-        error: error,
+        error: error.message,
         attributes: {
           endpoint: '/backup/deviceAsFolder',
         },
@@ -85,7 +85,7 @@ export class BackupService {
       logger.error({
         tag: 'BACKUPS',
         msg: 'Get device as folder request threw an exception',
-        error: error,
+        error: error.message,
         attributes: {
           endpoint: '/backup/deviceAsFolder/{uuid}',
         },
@@ -141,7 +141,7 @@ export class BackupService {
       logger.error({
         tag: 'BACKUPS',
         msg: 'Get device as folder by id request threw an exception',
-        error: error,
+        error: error.message,
         attributes: {
           endpoint: '/backup/deviceAsFolderById/{id}',
         },
@@ -183,7 +183,7 @@ export class BackupService {
       logger.error({
         tag: 'BACKUPS',
         msg: 'Create device as folder request threw an exception',
-        error: error,
+        error: error.message,
         attributes: {
           endpoint: '/backup/deviceAsFolder',
         },
@@ -214,7 +214,7 @@ export class BackupService {
       logger.error({
         tag: 'BACKUPS',
         msg: 'Update device as folder request threw an exception',
-        error: error,
+        error: error.message,
         attributes: {
           endpoint: '/backup/deviceAsFolder/{uuid}',
         },
@@ -243,7 +243,7 @@ export class BackupService {
       logger.error({
         tag: 'BACKUPS',
         msg: 'Get devices by identifier request threw an exception',
-        error: error,
+        error: error.message,
         attributes: { endpoint: '/backup/v2/devices' },
       });
       return left(error);
@@ -323,7 +323,7 @@ export class BackupService {
       logger.error({
         tag: 'BACKUPS',
         msg: 'Create device as folder request threw an exception',
-        error: error,
+        error: error.message,
         attributes: {
           endpoint: '/backup/v2/devices',
         },
@@ -356,7 +356,7 @@ export class BackupService {
       logger.error({
         tag: 'BACKUPS',
         msg: 'Update device by identifier request threw an exception',
-        error: error,
+        error: error.message,
       });
       return left(error);
     }

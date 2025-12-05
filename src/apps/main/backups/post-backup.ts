@@ -15,7 +15,7 @@ export async function postBackup({ folderName, device }: Props) {
       tag: 'BACKUPS',
       msg: 'Error creating backup folder',
       folderName,
-      error: error,
+      error: error.message,
     });
     return { error: error };
   }
