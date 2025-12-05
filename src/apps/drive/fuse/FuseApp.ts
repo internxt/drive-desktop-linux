@@ -107,9 +107,7 @@ export class FuseApp extends EventEmitter {
   async start() {
     const ops = this.getOpt();
 
-    this.update().catch((error) => {
-      logger.error({ msg: '[FUSE] Error during initial update:', error });
-    });
+    await this.update()
 
     this._fuse = new Fuse(this.localRoot, ops, {
       debug: false,
@@ -129,8 +127,9 @@ export class FuseApp extends EventEmitter {
     });
   }
 
-  async stop(): Promise<void> {
-    /** no-op */
+  async stop() {
+    // It is not possible to implement this method while still using @gcas/fuse.
+    // For more information, see this ticket. https://inxt.atlassian.net/browse/PB-5389
   }
 
   async clearCache(): Promise<void> {
