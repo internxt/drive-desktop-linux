@@ -279,13 +279,13 @@ export class BackupService {
         });
         return left(alreadyExistsError);
       }
-      const error = mapError(err);
+      const mappedError = mapError(err);
       logger.error({
         tag: 'BACKUPS',
         msg: 'Add device identifier request threw an exception',
-        error,
+        error: mappedError.message,
       });
-      return left(error);
+      return left(mappedError);
     }
   }
 
