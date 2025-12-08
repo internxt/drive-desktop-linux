@@ -29,13 +29,8 @@ export class RemoteSyncInvalidResponseError extends RemoteSyncError {
  * Error thrown when a network error occurs (example:, socket hang up or TLS connection error).
  */
 export class RemoteSyncNetworkError extends RemoteSyncError {
-  constructor(originalError: any) {
-    const errorInfo = {
-      message: originalError.message || String(originalError),
-      code: originalError.code,
-      status: originalError.status
-    };
-    super(`Network error occurred during sync: ${errorInfo.message}`, 'NETWORK_ERROR', errorInfo);
+  constructor(message: string, code?: string, status?: number) {
+    super(`Network error occurred during sync: ${message}`, 'NETWORK_ERROR', { message, code, status });
     this.name = 'RemoteSyncNetworkError';
   }
 }
@@ -45,11 +40,7 @@ export class RemoteSyncNetworkError extends RemoteSyncError {
  */
 export class RemoteSyncServerError extends RemoteSyncError {
   constructor(status: number, data: any) {
-    const errorMessage = data?.message || data?.error || 'Unknown server error';
-    super(`Server error: request failed with status code ${status} while sync`, 'SERVER_ERROR', { 
-      status, 
-      message: errorMessage 
-    });
+    super(`Server error: request failed with status code ${status} while sync`, 'SERVER_ERROR', { status, data });
     this.name = 'RemoteSyncServerError';
   }
 }
