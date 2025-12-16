@@ -1,5 +1,3 @@
-import 'reflect-metadata';
-
 vi.mock('@internxt/drive-desktop-core/build/backend');
 vi.mock('axios');
 vi.mock('./RemoteSyncErrorHandler/RemoteSyncErrorHandler', () => ({

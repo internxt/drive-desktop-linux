@@ -1,4 +1,15 @@
+import 'reflect-metadata';
 import { vi } from 'vitest';
+
+// Mock native modules that require system libraries
+vi.mock('@gcas/fuse', () => ({
+  default: vi.fn(),
+  Fuse: vi.fn().mockImplementation(() => ({
+    mount: vi.fn(),
+    unmount: vi.fn(),
+    ops: {},
+  })),
+}));
 
 // Mock electron
 vi.mock('electron', () => ({
