@@ -1,6 +1,20 @@
 import 'reflect-metadata';
 import { vi } from 'vitest';
 
+// Mock electron-log (must be before electron mock)
+vi.mock('electron-log', () => ({
+  default: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    transports: {
+      file: { level: 'info' },
+      console: { level: 'info' },
+    },
+  },
+}));
+
 // Mock native modules that require system libraries
 vi.mock('@gcas/fuse', () => ({
   default: vi.fn(),
