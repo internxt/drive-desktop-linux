@@ -46,7 +46,7 @@ export class UserService {
       const error = mapError(err);
       const loggerError = logger.error({
         msg: 'Get limit request threw an exception',
-        attributes: { endpoint: '/users/usage' },
+        attributes: { endpoint: '/users/limit' },
         error,
       });
       return left(loggerError);

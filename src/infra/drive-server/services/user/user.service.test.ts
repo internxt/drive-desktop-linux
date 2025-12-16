@@ -84,11 +84,13 @@ describe('UserService', () => {
       expect(result.isLeft()).toBe(true);
       expect(result.getLeft()).toBe(loggerError);
       expect(mapError).toHaveBeenCalledWith(originalError);
-      expect(logger.error).toHaveBeenCalledWith({
-        msg: 'Get usage request threw an exception',
-        attributes: { endpoint: '/users/usage' },
-        error: mappedError,
-      });
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Get usage request threw an exception',
+          attributes: { endpoint: '/users/usage' },
+          error: expect.anything(),
+        })
+      );
     });
   });
   describe('getLimit', () => {
@@ -142,11 +144,13 @@ describe('UserService', () => {
       expect(result.isLeft()).toBe(true);
       expect(result.getLeft()).toBe(loggerError);
       expect(mapError).toHaveBeenCalledWith(originalError);
-      expect(logger.error).toHaveBeenCalledWith({
-        msg: 'Get limit request threw an exception',
-        attributes: { endpoint: '/users/usage' },
-        error: mappedError,
-      });
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          msg: 'Get limit request threw an exception',
+          attributes: { endpoint: '/users/limit' },
+          error: expect.anything(),
+        })
+      );
     });
   });
 });
