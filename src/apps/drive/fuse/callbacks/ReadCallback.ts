@@ -6,7 +6,7 @@ import { Optional } from '../../../../shared/types/Optional';
 import { TemporalFileChunkReader } from '../../../../context/storage/TemporalFiles/application/read/TemporalFileChunkReader';
 import { StorageFileChunkReader } from '../../../../context/storage/StorageFiles/application/read/StorageFileChunkReader';
 import { CacheStorageFile } from '../../../../context/storage/StorageFiles/application/offline/CacheStorageFile';
-import { shouldDownload } from './open-flags-traker';
+import { shouldDownload } from './open-flags-tracker';
 
 import Fuse from '@gcas/fuse';
 

@@ -5,7 +5,7 @@ import { NotifyFuseCallback } from './FuseCallback';
 import { FuseIOError } from './FuseErrors';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { TemporalFileDeleter } from '../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
-import { onRelease } from './open-flags-traker';
+import { onRelease } from './open-flags-tracker';
 
 export class ReleaseCallback extends NotifyFuseCallback {
   constructor(private readonly container: Container) {

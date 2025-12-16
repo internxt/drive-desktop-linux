@@ -4,7 +4,7 @@ import { FuseCallback } from './FuseCallback';
 import { FuseFileOrDirectoryAlreadyExistsError, FuseIOError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
 import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { Container } from 'diod';
-import { trackOpen } from './open-flags-traker';
+import { trackOpen } from './open-flags-tracker';
 
 export class OpenCallback extends FuseCallback<number> {
   constructor(
@@ -23,7 +23,7 @@ export class OpenCallback extends FuseCallback<number> {
       if (!virtualFile) {
         const temporalFileExists = await this.virtualDrive.temporalFileExists(path);
 
-        if (!temporalFileExists.isRight() || !temporalFileExists.getRight()) {
+        if (temporalFileExists.isLeft() || temporalFileExists.getLeft()) {
           return this.left(new FuseNoSuchFileOrDirectoryError(path));
         }
       }
