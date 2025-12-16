@@ -88,7 +88,7 @@ describe('UserService', () => {
         expect.objectContaining({
           msg: 'Get usage request threw an exception',
           attributes: { endpoint: '/users/usage' },
-          error: expect.anything(),
+          error: 'Mapped network error',
         })
       );
     });
@@ -148,7 +148,7 @@ describe('UserService', () => {
         expect.objectContaining({
           msg: 'Get limit request threw an exception',
           attributes: { endpoint: '/users/limit' },
-          error: expect.anything(),
+          error: 'Mapped network error',
         })
       );
     });

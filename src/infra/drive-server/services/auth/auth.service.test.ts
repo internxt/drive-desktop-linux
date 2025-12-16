@@ -98,7 +98,7 @@ describe('AuthService', () => {
         expect.objectContaining({
           msg: 'Login request threw an exception',
           tag: 'AUTH',
-          error: expect.anything(),
+          error: 'Request failed',
           attributes: expect.objectContaining({
             endpoint: '/auth/login',
           }),
@@ -175,7 +175,7 @@ describe('AuthService', () => {
         expect.objectContaining({
           msg: 'Login request threw an exception',
           tag: 'AUTH',
-          error: error,
+          error: 'Network error',
           attributes: {
             endpoint: '/auth/login',
           },
@@ -272,7 +272,7 @@ describe('AuthService', () => {
         expect.objectContaining({
           msg: 'Access request threw an exception',
           tag: 'AUTH',
-          error: expect.anything(),
+          error: 'Network error',
           attributes: expect.objectContaining({
             endpoint: '/auth/login/access',
           }),
