@@ -1,13 +1,13 @@
-import { RemoteSyncErrorHandler, syncItemType } from './RemoteSyncErrorHandler';
-import { RemoteSyncError, RemoteSyncNetworkError, RemoteSyncServerError } from '../errors';
-import { addVirtualDriveIssue } from '../../issues/virtual-drive';
-import { VirtualDriveIssue } from '../../../../shared/issues/VirtualDriveIssue';
-
 vi.mock('@internxt/drive-desktop-core/build/backend');
 
 vi.mock('../../issues/virtual-drive', () => ({
   addVirtualDriveIssue: vi.fn(),
 }));
+
+import { RemoteSyncErrorHandler, syncItemType } from './RemoteSyncErrorHandler';
+import { RemoteSyncError, RemoteSyncNetworkError, RemoteSyncServerError } from '../errors';
+import { addVirtualDriveIssue } from '../../issues/virtual-drive';
+import { VirtualDriveIssue } from '../../../../shared/issues/VirtualDriveIssue';
 
 describe('RemoteSyncErrorHandler', () => {
   let sut: RemoteSyncErrorHandler;

@@ -1,11 +1,11 @@
-import { FuseApp } from './FuseApp';
-import { FileRepositorySynchronizer } from '../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { Container } from 'diod';
-import { VirtualDrive } from '../virtual-drive/VirtualDrive';
-import configStore from '../../main/config';
-import { getExistingFiles } from '../../main/remote-sync/service';
-import { Mock } from 'vitest';
+vi.mock('@gcas/fuse', () => ({
+  default: vi.fn(),
+  Fuse: vi.fn().mockImplementation(() => ({
+    mount: vi.fn(),
+    unmount: vi.fn(),
+    ops: {},
+  })),
+}));
 
 vi.mock('../../main/remote-sync/service', () => ({
   getExistingFiles: vi.fn(),
@@ -18,6 +18,15 @@ vi.mock('../../main/config', () => ({
     set: vi.fn(),
   },
 }));
+
+import { FuseApp } from './FuseApp';
+import { FileRepositorySynchronizer } from '../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { Container } from 'diod';
+import { VirtualDrive } from '../virtual-drive/VirtualDrive';
+import configStore from '../../main/config';
+import { getExistingFiles } from '../../main/remote-sync/service';
+import { Mock } from 'vitest';
 
 describe('FuseApp', () => {
   let fuseApp: FuseApp;
