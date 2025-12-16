@@ -18,6 +18,9 @@ export default defineConfig({
     ],
     watch: false,
     globals: true,
+    env: {
+      NEW_CRYPTO_KEY: 'test-crypto-key-for-vitest',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
