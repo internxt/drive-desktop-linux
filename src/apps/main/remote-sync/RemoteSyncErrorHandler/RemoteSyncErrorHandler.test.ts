@@ -9,7 +9,7 @@ import { RemoteSyncError, RemoteSyncNetworkError, RemoteSyncServerError } from '
 import { addVirtualDriveIssue } from '../../issues/virtual-drive';
 import { VirtualDriveIssue } from '../../../../shared/issues/VirtualDriveIssue';
 
-describe.skip('RemoteSyncErrorHandler', () => {
+describe('RemoteSyncErrorHandler', () => {
   let sut: RemoteSyncErrorHandler;
 
   beforeEach(() => {

@@ -86,7 +86,7 @@ const createRemoteSyncedFolderFixture = (payload: Partial<RemoteSyncedFolder>): 
   return result;
 };
 
-describe.skip('RemoteSyncManager', () => {
+describe('RemoteSyncManager', () => {
   let errorHandler: RemoteSyncErrorHandler;
   let sut: RemoteSyncManager;
   inMemorySyncedFilesCollection.getLastUpdated = () => Promise.resolve({ success: false, result: null });
