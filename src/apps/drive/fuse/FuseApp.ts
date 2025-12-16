@@ -77,7 +77,7 @@ export class FuseApp extends EventEmitter {
   private getOpt() {
     const readdir = new ReaddirCallback(this.container);
     const getattr = new GetAttributesCallback(this.container);
-    const open = new OpenCallback(this.virtualDrive);
+    const open = new OpenCallback(this.virtualDrive, this.container);
     const read = new ReadCallback(this.container);
     const renameOrMove = new RenameMoveOrTrashCallback(this.container);
     const create = new CreateCallback(this.container);
