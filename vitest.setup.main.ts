@@ -1,7 +1,20 @@
 import 'reflect-metadata';
 import { vi } from 'vitest';
 
-// Mock electron-log (must be before electron mock)
+// CRITICAL: Mock electron FIRST before anything else can import it
+vi.mock('electron', () => ({
+  app: {
+    getPath: vi.fn().mockReturnValue('/mock/home'),
+    getName: vi.fn().mockReturnValue('DriveDesktop'),
+    getVersion: vi.fn().mockReturnValue('1.0.0'),
+  },
+  ipcMain: {
+    on: vi.fn(),
+    handle: vi.fn()
+  },
+}));
+
+// Mock electron-log (depends on electron)
 vi.mock('electron-log', () => ({
   default: {
     error: vi.fn(),
@@ -15,6 +28,25 @@ vi.mock('electron-log', () => ({
   },
 }));
 
+// Mock @internxt/drive-desktop-core backend to prevent it from loading electron
+vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
+  logger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+vi.mock('@internxt/drive-desktop-core/src/backend', () => ({
+  logger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 // Mock native modules that require system libraries
 vi.mock('@gcas/fuse', () => ({
   default: vi.fn(),
@@ -23,19 +55,6 @@ vi.mock('@gcas/fuse', () => ({
     unmount: vi.fn(),
     ops: {},
   })),
-}));
-
-// Mock electron
-vi.mock('electron', () => ({
-  app: {
-    getPath: vi.fn().mockReturnValue('/mock/home'),
-    getName: vi.fn().mockReturnValue('DriveDesktop'),
-    getVersion: vi.fn().mockReturnValue('1.0.0'),
-  },
-  ipcMain: {
-    on: vi.fn(),
-    handle: vi.fn()
-  },
 }));
 
 // Mock electron-store
@@ -48,16 +67,6 @@ vi.mock('electron-store', () => {
     })),
   };
 });
-
-// Mock @internxt/drive-desktop-core backend logger
-vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
-  logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
 
 // Mock axios
 vi.mock('axios', () => {
