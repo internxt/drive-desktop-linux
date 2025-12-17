@@ -29,7 +29,7 @@ async function extractExecPath() {
   try {
     await access(DESKTOP_FILE);
     const content = await readFile(DESKTOP_FILE, 'utf8');
-    const execLine = content.split('\n').find(line => line.startsWith('Exec='));
+    const execLine = content.split('\n').find((line) => line.startsWith('Exec='));
 
     if (!execLine) return null;
 
@@ -56,6 +56,6 @@ async function registerProtocol() {
   try {
     await execAsync('xdg-mime default internxt-appimage.desktop x-scheme-handler/internxt');
   } catch (err) {
-    logger.error({tag: 'AUTH', msg: 'Failed to register protocol:', err});
+    logger.error({ tag: 'AUTH', msg: 'Failed to register protocol:', err });
   }
 }
