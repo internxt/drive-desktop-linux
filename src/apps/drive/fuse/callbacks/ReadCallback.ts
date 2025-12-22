@@ -13,13 +13,7 @@ import Fuse from '@gcas/fuse';
 export class ReadCallback {
   constructor(private readonly container: Container) {}
 
-  private async read(
-    path: string,
-    contentsId: string,
-    buffer: Buffer,
-    length: number,
-    position: number,
-  ) {
+  private async read(path: string, contentsId: string, buffer: Buffer, length: number, position: number) {
     try {
       const readResult = await this.container.get(StorageFileChunkReader).run(contentsId, length, position);
 

@@ -21,7 +21,6 @@ export class ReleaseCallback extends NotifyFuseCallback {
         return await this.handleDocument(document, path);
       }
 
-
       this.logDebugMessage(`File with ${path} not found`);
       return this.right();
     } catch (err: unknown) {

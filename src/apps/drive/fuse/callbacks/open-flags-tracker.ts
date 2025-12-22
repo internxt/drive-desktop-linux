@@ -6,7 +6,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
  * Flag patterns observed:
  * - 294912 (0x48000): System opening file (thumbnails, directory browsing)
  * - 32768 (0x8000): User opening file (actual file access)
-*/
+ */
 
 const SYSTEM_OPEN_FLAG = 294912;
 const USER_OPEN_FLAG = 32768;
@@ -24,16 +24,13 @@ export function trackOpen(path: string, flag: number): void {
   });
 }
 
-
 export function isSystemOpen(flag: number): boolean {
   return flag === SYSTEM_OPEN_FLAG;
 }
 
-
 export function isUserOpen(flag: number): boolean {
   return flag === USER_OPEN_FLAG;
 }
-
 
 export function shouldDownload(path: string): boolean {
   const flag = fileFlags.get(path);
