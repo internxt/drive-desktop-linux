@@ -26,6 +26,7 @@ import { getExistingFiles } from '../../main/remote-sync/service';
 import configStore from '../../main/config';
 
 import Fuse from '@gcas/fuse';
+import { DriveFile } from 'src/apps/main/database/entities/DriveFile';
 
 const STORAGE_MIGRATION_DATE = new Date(configStore.get('storageMigrationDate'));
 const FIX_DEPLOYMENT_DATE = new Date(configStore.get('fixDeploymentDate'));
@@ -56,8 +57,8 @@ export class FuseApp extends EventEmitter {
       const existingFiles = await getExistingFiles();
 
       const affectedFilesIds = existingFiles
-        .filter((file) => new Date(file.createdAt) >= startDate && new Date(file.createdAt) < endDate)
-        .map((file) => file.fileId);
+        .filter((file: DriveFile) => new Date(file.createdAt) >= startDate && new Date(file.createdAt) < endDate)
+        .map((file: DriveFile) => file.fileId);
 
       if (affectedFilesIds.length > 0) {
         logger.debug({ msg: '[FUSE] Dangling files found:', count: affectedFilesIds.length });
