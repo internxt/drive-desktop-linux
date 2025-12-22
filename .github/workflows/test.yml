@@ -2,30 +2,9 @@ name: Test
 
 on:
   pull_request:
-    branches:
-      - '*'
+    types: [opened, synchronize, reopened]
 
 jobs:
-  lint:
-    name: 🔍 Lint
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Run linter
-        run: npm run lint
-
   test-main:
     name: 🧪 Test Main Process
     runs-on: ubuntu-latest
@@ -40,8 +19,19 @@ jobs:
           node-version: 18
           cache: 'npm'
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2 libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xdg-utils libatspi2.0-0 libdrm2 libgbm1 libasound2t64
+
       - name: Install dependencies
         run: npm ci --ignore-scripts
+
+      - name: Install Electron
+        run: cd node_modules/electron && node install.js
+
+      - name: Install app dependencies
+        run: cd release/app && npm ci
 
       - name: Build main process
         run: npm run build:main

@@ -1,26 +1,40 @@
 import { BackupService } from './backup.service';
 import { driveServerClient } from '../../client/drive-server.client.instance';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { Mock } from 'vitest';
+import { mapError } from '../utils/mapError';
 
-jest.mock('@internxt/drive-desktop-core/build/backend', () => ({
+vi.mock('axios', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('axios')>();
+  return {
+    ...actual,
+    isAxiosError: vi.fn(),
+  };
+});
+
+vi.mock('../utils/mapError', () => ({
+  mapError: vi.fn(),
+}));
+
+vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
   logger: {
-    error: jest.fn(),
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
   },
 }));
 
-jest.mock('../../client/drive-server.client.instance', () => ({
+vi.mock('../../client/drive-server.client.instance', () => ({
   driveServerClient: {
-    GET: jest.fn(),
-    POST: jest.fn(),
-    PATCH: jest.fn(),
+    GET: vi.fn(),
+    POST: vi.fn(),
+    PATCH: vi.fn(),
   },
 }));
 
-jest.mock('../../../../apps/main/auth/service', () => ({
-  getNewApiHeaders: jest.fn(() => ({})),
+vi.mock('../../../../apps/main/auth/service', () => ({
+  getNewApiHeaders: vi.fn(() => ({})),
 }));
 
 describe('BackupService', () => {
@@ -28,13 +42,15 @@ describe('BackupService', () => {
 
   beforeEach(() => {
     sut = new BackupService();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
+    // Default mock behavior: mapError returns the error as an Error instance
+    vi.mocked(mapError).mockImplementation((error) => (error instanceof Error ? error : new Error(String(error))));
   });
 
   describe('getDevices', () => {
     it('should return a list of devices when the response is successful', async () => {
       const data = [{ uuid: '123', name: 'Device 1' }];
-      (driveServerClient.GET as jest.Mock).mockResolvedValue({ data });
+      (driveServerClient.GET as Mock).mockResolvedValue({ data });
 
       const result = await sut.getDevices();
 
@@ -43,7 +59,7 @@ describe('BackupService', () => {
     });
 
     it('should return an error when response is not successful', async () => {
-      (driveServerClient.GET as jest.Mock).mockResolvedValue({ data: undefined });
+      (driveServerClient.GET as Mock).mockResolvedValue({ data: undefined });
 
       const result = await sut.getDevices();
 
@@ -54,7 +70,7 @@ describe('BackupService', () => {
 
     it('should return an error when the request throws an exception', async () => {
       const error = new Error('Request failed');
-      (driveServerClient.GET as jest.Mock).mockRejectedValue(error);
+      (driveServerClient.GET as Mock).mockRejectedValue(error);
 
       const result = await sut.getDevices();
 
@@ -67,7 +83,7 @@ describe('BackupService', () => {
   describe('getDevice', () => {
     it('should return a device when the response is successful', async () => {
       const data = { uuid: '123', name: 'Device A' };
-      (driveServerClient.GET as jest.Mock).mockResolvedValue({ data });
+      (driveServerClient.GET as Mock).mockResolvedValue({ data });
 
       const result = await sut.getDevice('123');
 
@@ -76,7 +92,7 @@ describe('BackupService', () => {
     });
 
     it('should return an error when response is not successful', async () => {
-      (driveServerClient.GET as jest.Mock).mockResolvedValue({ data: undefined });
+      (driveServerClient.GET as Mock).mockResolvedValue({ data: undefined });
 
       const result = await sut.getDevice('123');
 
@@ -86,7 +102,7 @@ describe('BackupService', () => {
 
     it('should return an error when the request throws an exception', async () => {
       const error = new Error('Error fetching device');
-      (driveServerClient.GET as jest.Mock).mockRejectedValue(error);
+      (driveServerClient.GET as Mock).mockRejectedValue(error);
 
       const result = await sut.getDevice('123');
 
@@ -98,7 +114,7 @@ describe('BackupService', () => {
   describe('getDeviceById', () => {
     it('should get a device by id and return it when the response is successful', async () => {
       const data = { uuid: 'id-123', name: 'Device B' };
-      (driveServerClient.GET as jest.Mock).mockResolvedValue({ data });
+      (driveServerClient.GET as Mock).mockResolvedValue({ data });
 
       const result = await sut.getDeviceById('id-123');
 
@@ -107,7 +123,7 @@ describe('BackupService', () => {
     });
 
     it('should return an error when response is not successful', async () => {
-      (driveServerClient.GET as jest.Mock).mockResolvedValue({ data: undefined });
+      (driveServerClient.GET as Mock).mockResolvedValue({ data: undefined });
 
       const result = await sut.getDeviceById('id-123');
 
@@ -117,7 +133,7 @@ describe('BackupService', () => {
 
     it('should return an error when the request throws an exception', async () => {
       const error = new Error('Exception occurred');
-      (driveServerClient.GET as jest.Mock).mockRejectedValue(error);
+      (driveServerClient.GET as Mock).mockRejectedValue(error);
 
       const result = await sut.getDeviceById('id-123');
 
@@ -129,7 +145,7 @@ describe('BackupService', () => {
   describe('createDevice', () => {
     it('should create a device and return it when the response is successful', async () => {
       const data = { uuid: 'new-123', name: 'New Device' };
-      (driveServerClient.POST as jest.Mock).mockResolvedValue({ data });
+      (driveServerClient.POST as Mock).mockResolvedValue({ data });
 
       const result = await sut.createDevice('New Device');
 
@@ -138,7 +154,7 @@ describe('BackupService', () => {
     });
 
     it('should return an error when response is not successful', async () => {
-      (driveServerClient.POST as jest.Mock).mockResolvedValue({ data: undefined });
+      (driveServerClient.POST as Mock).mockResolvedValue({ data: undefined });
 
       const result = await sut.createDevice('New Device');
 
@@ -148,7 +164,7 @@ describe('BackupService', () => {
 
     it('should return an error when the request throws an exception', async () => {
       const error = new Error('Create failed');
-      (driveServerClient.POST as jest.Mock).mockRejectedValue(error);
+      (driveServerClient.POST as Mock).mockRejectedValue(error);
 
       const result = await sut.createDevice('New Device');
 
@@ -160,7 +176,7 @@ describe('BackupService', () => {
   describe('updateDevice', () => {
     it('should update a device and return it when the response is successful', async () => {
       const data = { uuid: 'device-123', name: 'Updated Device' };
-      (driveServerClient.PATCH as jest.Mock).mockResolvedValue({ data });
+      (driveServerClient.PATCH as Mock).mockResolvedValue({ data });
 
       const result = await sut.updateDevice('device-123', 'Updated Device');
 
@@ -169,7 +185,7 @@ describe('BackupService', () => {
     });
 
     it('should return an error when response is not successful', async () => {
-      (driveServerClient.PATCH as jest.Mock).mockResolvedValue({ data: undefined });
+      (driveServerClient.PATCH as Mock).mockResolvedValue({ data: undefined });
 
       const result = await sut.updateDevice('device-123', 'Updated Device');
 
@@ -179,7 +195,7 @@ describe('BackupService', () => {
 
     it('should return an error when the request throws an exception', async () => {
       const error = new Error('Update failed');
-      (driveServerClient.PATCH as jest.Mock).mockRejectedValue(error);
+      (driveServerClient.PATCH as Mock).mockRejectedValue(error);
 
       const result = await sut.updateDevice('device-123', 'Updated Device');
 
