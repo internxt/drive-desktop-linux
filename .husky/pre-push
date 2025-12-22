@@ -1,9 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# Load nvm or use full npm path
-export PATH="$HOME/.nvm/versions/node/$(node -v)/bin:$PATH"
-
 npm run lint
 npm run type-check
 npm run format
