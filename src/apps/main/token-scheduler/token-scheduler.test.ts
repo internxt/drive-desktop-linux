@@ -5,8 +5,8 @@ import { TokenScheduler } from './TokenScheduler';
 
 function calculateDayFromToday(t: string): Date {
   const today = new Date();
-  const milliseconds = ms(t as '25 days' | '29 day' | '20 days' | '26 days');
-  return new Date(today.getTime() + (milliseconds as unknown as number));
+
+  return new Date(today.getTime() + ms(t));
 }
 
 const dataSet = [
@@ -17,8 +17,8 @@ const dataSet = [
 
 function createToken(expiresIn: string) {
   const email = 'test@inxternxt.com';
-  const milliseconds = ms(expiresIn as '30 days' | '31 day');
-  return jwt.sign({ email }, 'JWT_SECRET', { expiresIn: (milliseconds as unknown as number) / 1000 });
+
+  return jwt.sign({ email }, 'JWT_SECRET', { expiresIn });
 }
 
 describe('Token Scheduler', () => {
