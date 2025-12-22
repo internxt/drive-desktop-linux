@@ -34,7 +34,7 @@ export async function refreshToken(): Promise<Either<Error, Array<string>>> {
 
   updateCredentials(token, newToken);
 
-  return right([token, newToken]);
+  return right([token ?? '', newToken]);
 }
 
 export async function createTokenSchedule(refreshedTokens?: Array<string>): Promise<void> {
