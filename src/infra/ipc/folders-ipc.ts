@@ -1,4 +1,4 @@
-import { components } from '../schemas.d';
+import { FolderDto } from '../drive-server/out/dto';
 import { Result } from '../../context/shared/domain/Result';
 import { FolderError } from '../drive-server/services/folder/folder.error';
 
@@ -13,7 +13,7 @@ const isMainProcess = process.type === 'browser';
 export async function createFolderIPC(
   deviceUuid: string,
   plainName: string,
-): Promise<Result<components['schemas']['FolderDto'], FolderError>> {
+): Promise<Result<FolderDto, FolderError>> {
   if (isMainProcess) {
     const { createFolder } = await import('../drive-server/services/folder/services/create-folder');
     return await createFolder(deviceUuid, plainName);
@@ -32,7 +32,7 @@ export async function createFolderIPC(
 export async function moveFolderIPC(
   uuid: string,
   destinationFolderUuid: string,
-): Promise<Result<components['schemas']['FolderDto'], Error>> {
+): Promise<Result<FolderDto, Error>> {
   if (isMainProcess) {
     const { moveFolder } = await import('../drive-server/services/folder/services/move-folder');
     return await moveFolder(uuid, destinationFolderUuid);
@@ -51,7 +51,7 @@ export async function moveFolderIPC(
 export async function renameFolderIPC(
   folderUuid: string,
   newFolderName: string,
-): Promise<Result<components['schemas']['FolderDto'], Error>> {
+): Promise<Result<FolderDto, Error>> {
   if (isMainProcess) {
     const { renameFolder } = await import('../drive-server/services/folder/services/rename-folder');
     return await renameFolder(folderUuid, newFolderName);
