@@ -9,7 +9,7 @@ const isMainProcess = process.type === 'browser';
  * @param body - The file creation data including bucket, fileId, folderUuid, etc.
  * @returns Promise resolving to the created file data or error
  */
-export async function createFileIPC( body: CreateFileDto ): Promise<Result<FileDto, FileError>> {
+export async function createFileIPC(body: CreateFileDto): Promise<Result<FileDto, FileError>> {
   if (isMainProcess) {
     const { createFile } = await import('../drive-server/services/files/services/create-file');
     return await createFile(body);

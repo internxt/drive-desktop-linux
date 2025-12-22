@@ -11,7 +11,7 @@ type Props = {
   plainName: string;
   type: string;
   fileUuid: string;
-}
+};
 
 export async function renameFile({ plainName, type, fileUuid }: Props): Promise<Result<FileDto, FileError>> {
   try {

@@ -5,10 +5,7 @@ import fetch from 'electron-fetch';
 import { getNewApiHeadersIPC } from '../../../../ipc/get-new-api-headers-ipc';
 import { mapError } from '../../utils/mapError';
 
-export async function moveFolder(
-  uuid: string,
-  destinationFolderUuid: string,
-): Promise<Result<FolderDto, Error>> {
+export async function moveFolder(uuid: string, destinationFolderUuid: string): Promise<Result<FolderDto, Error>> {
   try {
     const headers = await getNewApiHeadersIPC();
 

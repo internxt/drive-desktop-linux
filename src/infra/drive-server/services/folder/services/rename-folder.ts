@@ -5,10 +5,7 @@ import fetch from 'electron-fetch';
 import { getNewApiHeadersIPC } from '../../../../ipc/get-new-api-headers-ipc';
 import { mapError } from '../../utils/mapError';
 
-export async function renameFolder(
-  folderUuid: string,
-  newFolderName: string,
-): Promise<Result<FolderDto, Error>> {
+export async function renameFolder(folderUuid: string, newFolderName: string): Promise<Result<FolderDto, Error>> {
   try {
     const headers = await getNewApiHeadersIPC();
     const response = await fetch(`${process.env.NEW_DRIVE_URL}/folders/${folderUuid}/meta`, {

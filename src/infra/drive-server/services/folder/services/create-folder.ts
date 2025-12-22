@@ -30,10 +30,7 @@ function errorHandler(response: Response): { error: FolderError } {
   return { error: new FolderError('UNKNOWN') };
 }
 
-export async function createFolder(
-  deviceUuid: string,
-  plainName: string,
-): Promise<Result<FolderDto, FolderError>> {
+export async function createFolder(deviceUuid: string, plainName: string): Promise<Result<FolderDto, FolderError>> {
   try {
     const headers = await getNewApiHeadersIPC();
     const response = await fetch(`${process.env.NEW_DRIVE_URL}/folders`, {
