@@ -52,18 +52,18 @@ describe('StorageFileIsAvailableOffline', () => {
     });
 
     it('should return true when file exist in repository', async () => {
-      const file = FileMother.fromPartial({ size: 500, path: '/another/file.doc' });
+      const file = FileMother.fromPartial({ size: 1024, path: '/test/file.txt' });
       virtualFileFinder.finds(file);
-      repository.shouldBeEmpty();
+      repository.shouldExists([{ id: new StorageFileId(file.contentsId), value: true }]);
 
       const result = await sut.run(file.path);
 
-			expect(result).toBe(true);
+      expect(result).toBe(true);
       expect(virtualFileFinder['mock']).toBeCalledWith({
         path: file.path,
         status: FileStatuses.EXISTS,
       });
-			expect(repository['existsMock']).toBeCalledWith(new StorageFileId(file.contentsId));
+      expect(repository['existsMock']).toBeCalledWith(new StorageFileId(file.contentsId));
     });
   });
 });

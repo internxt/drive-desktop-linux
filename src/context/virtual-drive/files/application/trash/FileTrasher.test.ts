@@ -7,7 +7,6 @@ import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { FileStatus, FileStatuses } from '../../domain/FileStatus';
 import { BucketEntryIdMother } from 'src/context/virtual-drive/shared/domain/__test-helpers__/BucketEntryIdMother';
 import { Mocked } from 'vitest';
-import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 
 describe('FileTrasher', () => {
   let sut: FileTrasher;
@@ -97,9 +96,7 @@ describe('FileTrasher', () => {
 
       expect(syncFileMessengerMock.trashing).toBeCalledWith(file.name, file.type, file.size);
       expect(remoteFileSystemMock.trash).toBeCalledWith(file.contentsId);
-      expect(fileRepositoryMock.update).toBeCalledWith(
-        expect.objectContaining({ status: FileStatus.Trashed }),
-      );
+      expect(fileRepositoryMock.update).toBeCalledWith(expect.objectContaining({ status: FileStatus.Trashed }));
       expect(syncFileMessengerMock.trashed).toBeCalledWith(file.name, file.type, file.size);
     });
 
@@ -112,9 +109,7 @@ describe('FileTrasher', () => {
 
       expect(syncFileMessengerMock.trashing).toBeCalledWith(file.name, file.type, file.size);
       expect(remoteFileSystemMock.trash).not.toBeCalled();
-      expect(fileRepositoryMock.update).toBeCalledWith(
-        expect.objectContaining({ status: FileStatus.Trashed }),
-      );
+      expect(fileRepositoryMock.update).toBeCalledWith(expect.objectContaining({ status: FileStatus.Trashed }));
       expect(syncFileMessengerMock.trashed).toBeCalledWith(file.name, file.type, file.size);
     });
 
