@@ -21,7 +21,6 @@ export class CacheStorageFile {
       status: FileStatuses.EXISTS,
     });
 
-    // Files with size 0 don't need to be downloaded (no content in bucket)
     if (virtual.size === 0) {
       logger.debug({
         msg: `File "${virtual.nameWithExtension}" has size 0, skipping download`,
