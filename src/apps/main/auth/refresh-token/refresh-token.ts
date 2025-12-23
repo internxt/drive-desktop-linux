@@ -23,7 +23,7 @@ export async function obtainTokens(): Promise<Either<Error, RefreshTokenResponse
   }
 }
 
-export async function refreshToken(): Promise<Either<Error, Array<string>>> {
+export async function refreshToken(): Promise<Either<Error, Array<string | undefined>>> {
   const response = await obtainTokens();
 
   if (response.isLeft()) {
@@ -34,10 +34,10 @@ export async function refreshToken(): Promise<Either<Error, Array<string>>> {
 
   updateCredentials(token, newToken);
 
-  return right([token ?? '', newToken]);
+  return right([token, newToken]);
 }
 
-export async function createTokenSchedule(refreshedTokens?: Array<string>): Promise<void> {
+export async function createTokenSchedule(refreshedTokens?: Array<string | undefined>): Promise<void> {
   const tokens = refreshedTokens || obtainStoredTokens();
 
   const tokenScheduler = new TokenScheduler(5, tokens, onUserUnauthorized);

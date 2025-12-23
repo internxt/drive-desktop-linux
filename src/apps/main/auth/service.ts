@@ -66,10 +66,12 @@ export async function setCredentials(mnemonic: string, bearerToken: string, newT
 export function updateCredentials(bearerToken?: string, newBearerToken?: string) {
   const isSafeStorageAvailable = safeStorage.isEncryptionAvailable();
 
-  const token = isSafeStorageAvailable && bearerToken ? ecnryptToken(bearerToken) : bearerToken;
+  if (bearerToken) {
+    const token = isSafeStorageAvailable ? ecnryptToken(bearerToken) : bearerToken;
 
-  ConfigStore.set('bearerToken', token);
-  ConfigStore.set('bearerTokenEncrypted', isSafeStorageAvailable);
+    ConfigStore.set('bearerToken', token);
+    ConfigStore.set('bearerTokenEncrypted', isSafeStorageAvailable);
+  }
 
   if (!newBearerToken) {
     return;
