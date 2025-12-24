@@ -192,7 +192,6 @@ export class Antivirus {
       throw AntivirusError.fileAccessError(filePath);
     }
 
-    // Race between scan and timeout
     const scanPromise = this.clamAv.isInfected(filePath);
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
