@@ -37,34 +37,32 @@ export async function refreshToken(): Promise<Either<Error, Array<string | undef
   return right([token, newToken]);
 }
 
+async function attemptRefreshAndRecreate(): Promise<void> {
+  const result = await refreshToken();
+
+  if (result.isRight()) {
+    await createTokenSchedule(result.getRight());
+  } else {
+    logger.error({
+      tag: 'AUTH',
+      msg: `[TOKEN] Failed to refresh tokens`,
+      error: result.getLeft(),
+    });
+  }
+}
+
 export async function createTokenSchedule(refreshedTokens?: Array<string | undefined>): Promise<void> {
   const tokens = refreshedTokens || obtainStoredTokens();
 
   const tokenScheduler = new TokenScheduler(5, tokens, onUserUnauthorized);
-  const schedule = tokenScheduler.schedule(() => {
-    refreshToken().catch((err) => {
-      logger.error({
-        msg: '[TOKEN] Unexpected error during refresh',
-        error: err,
-      });
-    });
-  });
+  const schedule = tokenScheduler.schedule(() => attemptRefreshAndRecreate());
 
-  if (!schedule && !refreshedTokens) {
+  if (!schedule) {
     logger.debug({
       msg: '[TOKEN] Failed to create token schedule',
       tag: 'AUTH',
     });
 
-    const result = await refreshToken();
-
-    if (result.isRight()) {
-      await createTokenSchedule(result.getRight());
-    } else {
-      logger.error({
-        msg: '[TOKEN] Failed to refresh tokens after schedule failure',
-        error: result.getLeft(),
-      });
-    }
+    await attemptRefreshAndRecreate();
   }
 }
