@@ -45,7 +45,7 @@ async function attemptRefreshAndRecreate(): Promise<void> {
   } else {
     logger.error({
       tag: 'AUTH',
-      msg: `[TOKEN] Failed to refresh tokens`,
+      msg: '[TOKEN] Failed to refresh tokens',
       error: result.getLeft(),
     });
   }
