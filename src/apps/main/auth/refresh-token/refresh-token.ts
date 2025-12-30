@@ -48,7 +48,7 @@ export async function createTokenSchedule(refreshedTokens?: Array<string | undef
     const schedule = tokenScheduler.schedule(() => refreshToken());
     if (schedule) break;
 
-    attempt ++;
+    attempt++;
     logger.debug({
       tag: 'AUTH',
       msg: '[TOKEN] Failed to create token schedule, retrying...',
