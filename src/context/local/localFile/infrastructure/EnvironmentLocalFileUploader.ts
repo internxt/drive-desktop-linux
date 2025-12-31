@@ -13,7 +13,6 @@ import { MULTIPART_UPLOAD_SIZE_THRESHOLD } from '../../../shared/domain/UploadCo
 
 @Service()
 export class EnvironmentLocalFileUploader implements LocalFileHandler {
-
   constructor(
     private readonly environment: Environment,
     private readonly bucket: string,
