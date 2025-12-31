@@ -5,15 +5,7 @@ import { applicationOpened } from '../analytics/service';
 import eventBus from '../event-bus';
 import { getWidget } from '../windows/widget';
 import { createTokenScheduleWithRetry } from './refresh-token/refresh-token';
-import {
-  encryptToken,
-  getHeaders,
-  getNewApiHeaders,
-  getUser,
-  logout,
-  obtainToken,
-  tokensArePresent,
-} from './service';
+import { encryptToken, getHeaders, getNewApiHeaders, getUser, logout, obtainToken, tokensArePresent } from './service';
 
 let isLoggedIn = false;
 
