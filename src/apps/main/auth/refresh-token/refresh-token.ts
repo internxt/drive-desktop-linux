@@ -6,6 +6,8 @@ import { Either, left, right } from '../../../../context/shared/domain/Either';
 import { RefreshTokenResponse } from '../../../../infra/drive-server/services/auth/auth.types';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
+const CREATE_SCHEDULE_RETRY_LIMIT = 3;
+
 export async function obtainTokens(): Promise<Either<Error, RefreshTokenResponse>> {
   try {
     const result = await driveServerModule.auth.refresh();
@@ -37,34 +39,19 @@ export async function refreshToken(): Promise<Either<Error, Array<string | undef
   return right([token, newToken]);
 }
 
-export async function createTokenSchedule(refreshedTokens?: Array<string | undefined>): Promise<void> {
+export async function createTokenScheduleWithRetry(refreshedTokens?: Array<string | undefined>) {
   const tokens = refreshedTokens || obtainStoredTokens();
-
   const tokenScheduler = new TokenScheduler(5, tokens, onUserUnauthorized);
-  const schedule = tokenScheduler.schedule(() => {
-    refreshToken().catch((err) => {
-      logger.error({
-        msg: '[TOKEN] Unexpected error during refresh',
-        error: err,
-      });
-    });
-  });
 
-  if (!schedule && !refreshedTokens) {
+  let attempt = 0;
+  while (attempt < CREATE_SCHEDULE_RETRY_LIMIT) {
+    const schedule = tokenScheduler.schedule(() => refreshToken());
+    if (schedule) break;
+
+    attempt++;
     logger.debug({
-      msg: '[TOKEN] Failed to create token schedule',
       tag: 'AUTH',
+      msg: '[TOKEN] Failed to create token schedule, retrying...',
     });
-
-    const result = await refreshToken();
-
-    if (result.isRight()) {
-      await createTokenSchedule(result.getRight());
-    } else {
-      logger.error({
-        msg: '[TOKEN] Failed to refresh tokens after schedule failure',
-        error: result.getLeft(),
-      });
-    }
   }
 }
