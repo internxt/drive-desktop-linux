@@ -39,7 +39,7 @@ export async function refreshToken(): Promise<Either<Error, Array<string | undef
   return right([token, newToken]);
 }
 
-export async function createTokenSchedule(refreshedTokens?: Array<string | undefined>) {
+export async function createTokenScheduleWithRetry(refreshedTokens?: Array<string | undefined>) {
   const tokens = refreshedTokens || obtainStoredTokens();
   const tokenScheduler = new TokenScheduler(5, tokens, onUserUnauthorized);
 

@@ -1,21 +1,17 @@
 import { ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
-import { AccessResponse } from '../../renderer/pages/Login/service';
 import { applicationOpened } from '../analytics/service';
 import eventBus from '../event-bus';
-import { setupRootFolder } from '../virtual-root-folder/service';
 import { getWidget } from '../windows/widget';
-import { createTokenSchedule } from './refresh-token/refresh-token';
+import { createTokenScheduleWithRetry } from './refresh-token/refresh-token';
 import {
-  canHisConfigBeRestored,
   encryptToken,
   getHeaders,
   getNewApiHeaders,
   getUser,
   logout,
   obtainToken,
-  setCredentials,
   tokensArePresent,
 } from './service';
 
@@ -73,7 +69,7 @@ eventBus.on('APP_IS_READY', async (): Promise<void> => {
   if (isLoggedIn) {
     encryptToken();
     applicationOpened();
-    await createTokenSchedule();
+    await createTokenScheduleWithRetry();
     eventBus.emit('USER_LOGGED_IN');
   }
 });
