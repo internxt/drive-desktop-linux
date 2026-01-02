@@ -15,7 +15,6 @@ export class FolderDescendantsPathUpdater {
     private readonly fileRepository: FileRepository,
   ) {}
 
-
   async run(folder: Folder, oldPath: string): Promise<void> {
     const startTime = Date.now();
 
@@ -47,16 +46,10 @@ export class FolderDescendantsPathUpdater {
     }
   }
 
-  private async updateDescendantFolders(
-    oldPath: string,
-    newPath: string,
-  ): Promise<number> {
+  private async updateDescendantFolders(oldPath: string, newPath: string): Promise<number> {
     const pathPrefix = oldPath + '/';
 
-    const descendants = this.folderRepository.searchByPathPrefix(
-      pathPrefix,
-      FolderStatuses.EXISTS
-    );
+    const descendants = this.folderRepository.searchByPathPrefix(pathPrefix, FolderStatuses.EXISTS);
 
     if (descendants.length === 0) return 0;
 
@@ -67,22 +60,16 @@ export class FolderDescendantsPathUpdater {
 
     for (let i = 0; i < descendants.length; i += FolderDescendantsPathUpdater.BATCH_SIZE) {
       const batch = descendants.slice(i, i + FolderDescendantsPathUpdater.BATCH_SIZE);
-      await Promise.all(batch.map((folder) => this.folderRepository.update(folder)));
+      Promise.all(batch.map((folder) => this.folderRepository.update(folder)));
     }
 
     return descendants.length;
   }
 
-  private async updateDescendantFiles(
-    oldPath: string,
-    newPath: string,
-  ): Promise<number> {
+  private async updateDescendantFiles(oldPath: string, newPath: string): Promise<number> {
     const pathPrefix = oldPath + '/';
 
-    const descendants = this.fileRepository.searchByPathPrefix(
-      pathPrefix,
-      FileStatuses.EXISTS
-    );
+    const descendants = this.fileRepository.searchByPathPrefix(pathPrefix, FileStatuses.EXISTS);
 
     if (descendants.length === 0) return 0;
 
@@ -93,7 +80,7 @@ export class FolderDescendantsPathUpdater {
 
     for (let i = 0; i < descendants.length; i += FolderDescendantsPathUpdater.BATCH_SIZE) {
       const batch = descendants.slice(i, i + FolderDescendantsPathUpdater.BATCH_SIZE);
-      await Promise.all(batch.map((file) => this.fileRepository.update(file)));
+      Promise.all(batch.map((file) => this.fileRepository.update(file)));
     }
 
     return descendants.length;

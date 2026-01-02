@@ -118,19 +118,6 @@ describe('FolderDescendantsPathUpdater', () => {
       path: '/folderA',
     });
 
-    const folderB = FolderMother.fromPartial({
-      id: 2,
-      uuid: '550e8400-e29b-41d4-a716-446655440021',
-      path: '/folderB',
-    });
-
-    const childOfB = FolderMother.fromPartial({
-      id: 3,
-      uuid: '550e8400-e29b-41d4-a716-446655440022',
-      path: '/folderB/child',
-      parentId: 2,
-    });
-
     folderRepository.searchByPathPrefixMock.mockReturnValue([]);
     fileRepository.searchByPathPrefixMock.mockReturnValue([]);
 
