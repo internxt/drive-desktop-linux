@@ -54,9 +54,9 @@ export async function registerFolderServices(builder: ContainerBuilder): Promise
 
   builder.registerAndUse(FoldersByParentPathLister);
 
-  builder.registerAndUse(FolderMover);
-
   builder.registerAndUse(FolderDescendantsPathUpdater);
+
+  builder.registerAndUse(FolderMover);
 
   builder.registerAndUse(FolderRenamer);
 
