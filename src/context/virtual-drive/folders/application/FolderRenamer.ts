@@ -1,10 +1,12 @@
 import { Service } from 'diod';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { EventBus } from '../../shared/domain/EventBus';
 import { Folder } from '../domain/Folder';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderRepository } from '../domain/FolderRepository';
 import { SyncFolderMessenger } from '../domain/SyncFolderMessenger';
 import { RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
+import { FolderDescendantsPathUpdater } from './FolderDescendantsPathUpdater';
 
 @Service()
 export class FolderRenamer {
@@ -13,11 +15,12 @@ export class FolderRenamer {
     private readonly remote: RemoteFileSystem,
     private readonly eventBus: EventBus,
     private readonly syncFolderMessenger: SyncFolderMessenger,
+    private readonly descendantsPathUpdater: FolderDescendantsPathUpdater,
   ) {}
 
   async run(folder: Folder, destination: FolderPath) {
     this.syncFolderMessenger.rename(folder.name, destination.name());
-
+    const oldPath = folder.path;
     const nameBeforeRename = folder.name;
 
     folder.rename(destination);
@@ -27,5 +30,17 @@ export class FolderRenamer {
 
     this.eventBus.publish(folder.pullDomainEvents());
     this.syncFolderMessenger.renamed(nameBeforeRename, folder.name);
+
+    try {
+      void this.descendantsPathUpdater.run(folder, oldPath);
+    } catch (error) {
+      logger.error({
+        msg: '[FolderRenamer] Error updating descendants paths',
+        error,
+        folderUuid: folder.uuid,
+        oldPath,
+        newPath: folder.path,
+      });
+    }
   }
 }

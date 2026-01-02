@@ -1,4 +1,5 @@
 import { Service } from 'diod';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Folder } from '../domain/Folder';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderRepository } from '../domain/FolderRepository';
@@ -6,6 +7,7 @@ import { FolderStatuses } from '../domain/FolderStatus';
 import { ActionNotPermittedError } from '../domain/errors/ActionNotPermittedError';
 import { RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { ParentFolderFinder } from './ParentFolderFinder';
+import { FolderDescendantsPathUpdater } from './FolderDescendantsPathUpdater';
 
 @Service()
 export class FolderMover {
@@ -13,13 +15,27 @@ export class FolderMover {
     private readonly repository: FolderRepository,
     private readonly remote: RemoteFileSystem,
     private readonly fileParentFolderFinder: ParentFolderFinder,
+    private readonly descendantsPathUpdater: FolderDescendantsPathUpdater,
   ) {}
 
   private async move(folder: Folder, parentFolder: Folder) {
+    const oldPath = folder.path;
     folder.moveTo(parentFolder);
 
     await this.remote.move(folder.uuid, parentFolder.uuid);
     await this.repository.update(folder);
+
+    try {
+      void this.descendantsPathUpdater.run(folder, oldPath);
+    } catch (error) {
+      logger.error({
+        msg: '[FolderMover] Error updating descendants paths',
+        error,
+        folderUuid: folder.uuid,
+        oldPath,
+        newPath: folder.path,
+      });
+    }
   }
 
   async run(folder: Folder, destination: FolderPath): Promise<void> {
