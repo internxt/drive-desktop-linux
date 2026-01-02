@@ -25,17 +25,7 @@ export class FolderMover {
     await this.remote.move(folder.uuid, parentFolder.uuid);
     await this.repository.update(folder);
 
-    try {
-      void this.descendantsPathUpdater.run(folder, oldPath);
-    } catch (error) {
-      logger.error({
-        msg: '[FolderMover] Error updating descendants paths',
-        error,
-        folderUuid: folder.uuid,
-        oldPath,
-        newPath: folder.path,
-      });
-    }
+    void this.descendantsPathUpdater.run(folder, oldPath)
   }
 
   async run(folder: Folder, destination: FolderPath): Promise<void> {

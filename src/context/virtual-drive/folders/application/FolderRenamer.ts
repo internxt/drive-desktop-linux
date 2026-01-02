@@ -31,16 +31,6 @@ export class FolderRenamer {
     this.eventBus.publish(folder.pullDomainEvents());
     this.syncFolderMessenger.renamed(nameBeforeRename, folder.name);
 
-    try {
-      void this.descendantsPathUpdater.run(folder, oldPath);
-    } catch (error) {
-      logger.error({
-        msg: '[FolderRenamer] Error updating descendants paths',
-        error,
-        folderUuid: folder.uuid,
-        oldPath,
-        newPath: folder.path,
-      });
-    }
+    void this.descendantsPathUpdater.run(folder, oldPath);
   }
 }
