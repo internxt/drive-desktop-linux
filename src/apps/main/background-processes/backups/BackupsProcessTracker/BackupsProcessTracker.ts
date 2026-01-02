@@ -1,14 +1,10 @@
-import { ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { BackupInfo } from '../../../../backups/BackupInfo';
 import { broadcastToWindows } from '../../../windows';
-import { BackupsIPCMain } from '../BackupsIpc';
 import { BackupCompleted, ForcedByUser } from '../BackupsStopController/BackupsStopController';
 import { BackupsProgress } from '../types/BackupsProgress';
 import { IndividualBackupProgress } from '../types/IndividualBackupProgress';
 import { ProcessFatalErrorName } from '../BackupFatalErrors/BackupFatalErrors';
-import { isSyncError } from '../../../../../shared/issues/SyncErrorCause';
-
 export type WorkerExitCause = ForcedByUser | BackupCompleted | ProcessFatalErrorName;
 
 export class BackupsProcessTracker {
@@ -22,8 +18,6 @@ export class BackupsProcessTracker {
 
   private lastExistReason: WorkerExitCause | undefined;
   public exitReasons: Map<number, WorkerExitCause> = new Map();
-
-  constructor(private readonly notify: (progress: BackupsProgress) => void) {}
 
   progress(): BackupsProgress {
     return {
@@ -44,7 +38,7 @@ export class BackupsProcessTracker {
   currentProcessed(processed: number) {
     this.current.processed = processed;
 
-    this.notify(this.progress());
+    this.updateProgress(this.progress());
   }
 
   getLastExistReason() {
@@ -59,7 +53,7 @@ export class BackupsProcessTracker {
       processed: 0,
     };
 
-    this.notify(this.progress());
+    this.updateProgress(this.progress());
   }
 
   currentIndex(): number {
@@ -89,38 +83,10 @@ export class BackupsProcessTracker {
       processed: 0,
     };
   }
-}
 
-export function initiateBackupsProcessTracker(): BackupsProcessTracker {
-  const notifyUI = (progress: BackupsProgress) => {
+  updateProgress (progress: BackupsProgress){
     logger.debug({ tag: 'BACKUPS', msg: 'Progress update', progress });
     broadcastToWindows('backup-progress', progress);
   };
-
-  const tracker = new BackupsProcessTracker(notifyUI);
-
-  ipcMain.handle('get-last-backup-exit-reason', () => {
-    return tracker.getLastExistReason();
-  });
-
-  BackupsIPCMain.handle('backups.get-backup-issues', (_, id: number) => {
-    const reason = tracker.getExitReason(id);
-
-    if (reason !== undefined && isSyncError(reason)) {
-      return reason;
-    }
-
-    return undefined;
-  });
-
-  BackupsIPCMain.on('backups.total-items-calculated', (_, total: number, processed: number) => {
-    tracker.currentTotal(total);
-    tracker.currentProcessed(processed);
-  });
-
-  BackupsIPCMain.on('backups.progress-update', (_, processed: number) => {
-    tracker.currentProcessed(processed);
-  });
-
-  return tracker;
 }
+

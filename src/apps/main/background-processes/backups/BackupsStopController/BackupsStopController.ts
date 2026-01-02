@@ -39,21 +39,8 @@ export class BackupsStopController {
   reset() {
     this.stopReason = undefined;
     this.controller = new AbortController();
-
-    this.controller.signal.addEventListener('abort', () => {
-      const { reason, payload } = this.controller.signal.reason as {
-        reason: StopReason;
-        payload: { errorName: ProcessFatalErrorName };
-      };
-
-      const handlersForReason = this.handlers[reason];
-
-      handlersForReason.forEach((handler: (a: any) => void) => {
-        handler(payload);
-      });
-
-      this.end.forEach((fn) => fn(reason));
-    });
+    this.resetHandlers();
+    this.resetAbortListener();
   }
 
   hasStopped(): boolean {
@@ -88,5 +75,30 @@ export class BackupsStopController {
 
   onFinished(handler: (reason: StopReason) => void) {
     this.end.push(handler);
+  }
+  private resetHandlers() {
+    this.end = [];
+    this.handlers = {
+      'forced-by-user': [() => listenerNotSet()],
+      'backup-completed': [() => listenerNotSet()],
+      failed: [() => listenerNotSet()],
+    };
+  }
+
+  private resetAbortListener() {
+    this.controller.signal.addEventListener('abort', () => {
+      const { reason, payload } = this.controller.signal.reason as {
+        reason: StopReason;
+        payload: { errorName: ProcessFatalErrorName };
+      };
+
+      const handlersForReason = this.handlers[reason];
+
+      handlersForReason.forEach((handler: (a: any) => void) => {
+        handler(payload);
+      });
+
+      this.end.forEach((fn) => fn(reason));
+    });
   }
 }
