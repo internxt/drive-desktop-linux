@@ -3,7 +3,7 @@ import { ipcMain } from 'electron';
 import { registerBackupConfigurationIpcHandlers } from './register-backup-configuration-ipc-handlers';
 import { BACKUP_MANUAL_INTERVAL, backupsConfig } from '..';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import type { BackupScheduler } from '../../../../apps/main/background-processes/backups/BackupScheduler/BackupScheduler';
+import type { BackupManager } from '../backup-manager';
 import { getIpcHandler } from './__test-helpers__/ipc-test-utils';
 
 vi.mock('..', () => ({
@@ -19,17 +19,17 @@ vi.mock('..', () => ({
 }));
 
 describe('registerBackupConfigurationIpcHandlers', () => {
-  const mockScheduler = {
-    stop: vi.fn(),
-    reschedule: vi.fn(),
-  } as unknown as BackupScheduler;
+  const mockManager = {
+    stopScheduler: vi.fn(),
+    rescheduleBackups: vi.fn(),
+  } as unknown as BackupManager;
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should register all IPC handlers', () => {
-    registerBackupConfigurationIpcHandlers(mockScheduler);
+    registerBackupConfigurationIpcHandlers(mockManager);
 
     expect(ipcMain.handle).toHaveBeenCalledWith('get-backups-interval', expect.any(Function));
     expect(ipcMain.handle).toHaveBeenCalledWith('set-backups-interval', expect.any(Function));
@@ -42,7 +42,7 @@ describe('registerBackupConfigurationIpcHandlers', () => {
 
   describe('get-backups-interval', () => {
     it('should return the current backup interval', async () => {
-      registerBackupConfigurationIpcHandlers(mockScheduler);
+      registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('get-backups-interval')!;
       const result = await handler();
 
@@ -52,13 +52,13 @@ describe('registerBackupConfigurationIpcHandlers', () => {
 
   describe('set-backups-interval', () => {
      it('should stop the scheduler when interval is set to BACKUP_MANUAL_INTERVAL', async () => {
-      registerBackupConfigurationIpcHandlers(mockScheduler);
+      registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('set-backups-interval')!;
 
       await handler({}, BACKUP_MANUAL_INTERVAL);
 
-      expect(mockScheduler.stop).toHaveBeenCalled();
-      expect(mockScheduler.reschedule).not.toHaveBeenCalled();
+      expect(mockManager.stopScheduler).toHaveBeenCalled();
+      expect(mockManager.rescheduleBackups).not.toHaveBeenCalled();
       expect(logger.debug).toHaveBeenCalledWith({
         tag: 'BACKUPS',
         msg: 'The backups schedule stopped',
@@ -66,12 +66,12 @@ describe('registerBackupConfigurationIpcHandlers', () => {
     });
 
     it('should reschedule the scheduler when interval is set to a valid interval', async () => {
-      registerBackupConfigurationIpcHandlers(mockScheduler);
+      registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('set-backups-interval')!;
       await handler({}, 7200000);
 
-      expect(mockScheduler.stop).not.toHaveBeenCalled();
-      expect(mockScheduler.reschedule).toHaveBeenCalled();
+      expect(mockManager.stopScheduler).not.toHaveBeenCalled();
+      expect(mockManager.rescheduleBackups).toHaveBeenCalled();
       expect(logger.debug).toHaveBeenCalledWith({
         tag: 'BACKUPS',
         msg: 'The backups has been rescheduled',
@@ -82,7 +82,7 @@ describe('registerBackupConfigurationIpcHandlers', () => {
       const mockConfig = backupsConfig satisfies typeof backupsConfig;
       mockConfig.backupInterval = 3600000;
 
-      registerBackupConfigurationIpcHandlers(mockScheduler);
+      registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('set-backups-interval')!;
 
       await handler({}, 7200000);
@@ -93,7 +93,7 @@ describe('registerBackupConfigurationIpcHandlers', () => {
 
   describe('get-last-backup-timestamp', () => {
     it('should return the last backup timestamp', async () => {
-      registerBackupConfigurationIpcHandlers(mockScheduler);
+      registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('get-last-backup-timestamp')!;
 
       const result = await handler();
@@ -104,7 +104,7 @@ describe('registerBackupConfigurationIpcHandlers', () => {
 
   describe('get-backups-enabled', () => {
     it('should return the enabled status', async () => {
-      registerBackupConfigurationIpcHandlers(mockScheduler);
+      registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('get-backups-enabled')!;
 
       const result = await handler();
@@ -115,7 +115,7 @@ describe('registerBackupConfigurationIpcHandlers', () => {
 
   describe('toggle-backups-enabled', () => {
     it('should call toggleEnabled on backupsConfig', async () => {
-      registerBackupConfigurationIpcHandlers(mockScheduler);
+      registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('toggle-backups-enabled')!;
 
       await handler();
@@ -129,7 +129,7 @@ describe('registerBackupConfigurationIpcHandlers', () => {
       const mockFn = backupsConfig.hasDiscoveredBackups as unknown as ReturnType<typeof vi.fn>;
       mockFn.mockReturnValue(true);
 
-      registerBackupConfigurationIpcHandlers(mockScheduler);
+      registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('user.get-has-discovered-backups')!;
 
       const result = await handler();
@@ -141,7 +141,7 @@ describe('registerBackupConfigurationIpcHandlers', () => {
 
   describe('user.set-has-discovered-backups', () => {
     it('should call backupsDiscovered on backupsConfig', async () => {
-      registerBackupConfigurationIpcHandlers(mockScheduler);
+      registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('user.set-has-discovered-backups', true)!;
       await handler();
 

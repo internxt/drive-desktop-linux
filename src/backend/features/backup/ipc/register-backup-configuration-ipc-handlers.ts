@@ -1,9 +1,9 @@
 import { ipcMain } from 'electron';
 import { BACKUP_MANUAL_INTERVAL, backupsConfig } from '..';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { BackupScheduler } from '../../../../apps/main/background-processes/backups/BackupScheduler/BackupScheduler';
+import { BackupManager } from '../backup-manager';
 
-export function registerBackupConfigurationIpcHandlers(scheduler: BackupScheduler) {
+export function registerBackupConfigurationIpcHandlers(manager: BackupManager) {
   ipcMain.handle('get-backups-interval', () => {
     return backupsConfig.backupInterval;
   });
@@ -11,11 +11,11 @@ export function registerBackupConfigurationIpcHandlers(scheduler: BackupSchedule
   ipcMain.handle('set-backups-interval', (_, interval: number) => {
     backupsConfig.backupInterval = interval;
     if (interval === BACKUP_MANUAL_INTERVAL) {
-      scheduler.stop();
+      manager.stopScheduler();
       logger.debug({ tag: 'BACKUPS', msg: 'The backups schedule stopped' });
       return;
     } else {
-      scheduler.reschedule();
+      manager.rescheduleBackups();
       logger.debug({ tag: 'BACKUPS', msg: 'The backups has been rescheduled' });
     }
   });
