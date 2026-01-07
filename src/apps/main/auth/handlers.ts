@@ -4,7 +4,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { applicationOpened } from '../analytics/service';
 import eventBus from '../event-bus';
 import { getWidget } from '../windows/widget';
-import { createTokenScheduleWithRetry } from './refresh-token/refresh-token';
+import { createTokenScheduleWithRetry } from './refresh-token/create-token-schedule-with-retry';
 import { encryptToken, getHeaders, getNewApiHeaders, getUser, logout, obtainToken, tokensArePresent } from './service';
 
 let isLoggedIn = false;
