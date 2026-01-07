@@ -6,7 +6,7 @@ import { BackupScheduler } from './BackupScheduler/BackupScheduler';
 import { handleBackupsStatusMessages } from './BackupsProcessStatus/handlers';
 import { initiateBackupsProcessTracker } from './BackupsProcessTracker/BackupsProcessTracker';
 import { BackupsStopController } from './BackupsStopController/BackupsStopController';
-import { launchBackupProcesses } from './launchBackupProcesses';
+import { launchBackupProcesses } from '../../../../backend/features/backup/launch-backup-processes';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import configStore from '../../config';
 import { BACKUP_MANUAL_INTERVAL } from './types/types';

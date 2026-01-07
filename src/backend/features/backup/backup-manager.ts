@@ -4,7 +4,7 @@ import { BackupScheduler } from '../../../apps/main/background-processes/backups
 import { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
 import { BackupsProcessTracker } from '../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
 import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
-import { launchBackupProcesses } from '../../../apps/main/background-processes/backups/launchBackupProcesses';
+import { launchBackupProcesses } from './launch-backup-processes';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { BackupsStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsStatus';
 

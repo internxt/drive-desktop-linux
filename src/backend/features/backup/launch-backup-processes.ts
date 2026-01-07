@@ -1,12 +1,12 @@
 import { powerSaveBlocker } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { executeBackupWorker } from './BackukpWorker/executeBackupWorker';
-import { BackupFatalErrors } from './BackupFatalErrors/BackupFatalErrors';
-import { BackupsProcessTracker } from './BackupsProcessTracker/BackupsProcessTracker';
-import { BackupsStopController } from './BackupsStopController/BackupsStopController';
+import { executeBackupWorker } from '../../../apps/main/background-processes/backups/BackukpWorker/executeBackupWorker';
+import { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
+import { BackupsProcessTracker } from '../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
+import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 
-import { isSyncError } from '../../../../shared/issues/SyncErrorCause';
-import { backupsConfig } from '../../../../backend/features/backup';
+import { isSyncError } from '../../../shared/issues/SyncErrorCause';
+import { backupsConfig } from '.';
 
 export async function launchBackupProcesses(
   tracker: BackupsProcessTracker,

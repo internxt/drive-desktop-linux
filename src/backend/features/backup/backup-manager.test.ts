@@ -6,7 +6,7 @@ import { BackupsProcessTracker } from '../../../apps/main/background-processes/b
 import { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
 import { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { launchBackupProcesses } from '../../../apps/main/background-processes/backups/launchBackupProcesses';
+import { launchBackupProcesses } from './launch-backup-processes';
 
 vi.mock('../../../apps/main/background-processes/backups/launchBackupProcesses', () => ({
   launchBackupProcesses: vi.fn(),
