@@ -3,6 +3,6 @@ import { BackupsProcessTracker } from '../../../../apps/main/background-processe
 
 export function registerBackupProcessTrackerIpcHandlers(tracker: BackupsProcessTracker) {
     ipcMain.handle('get-last-backup-exit-reason', () => {
-    return tracker.getLastExistReason();
+    return tracker.getLastExitReason();
   });
 }

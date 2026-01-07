@@ -17,10 +17,10 @@ export async function launchBackupProcesses(
   const suspensionBlockId = powerSaveBlocker.start('prevent-display-sleep');
 
   const backups = await backupsConfig.obtainBackupsInfo();
-  tracker.track(backups);
+  tracker.track(backups.length);
 
   for (const backupInfo of backups) {
-    tracker.backing(backupInfo);
+    tracker.backing();
 
     if (stopController.hasStopped()) {
       logger.debug({ tag: 'BACKUPS', msg: 'Stop controller stopped' });

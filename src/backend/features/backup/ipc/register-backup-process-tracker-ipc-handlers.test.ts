@@ -22,7 +22,7 @@ describe('registerBackupProcessTrackerIpcHandlers', () => {
   describe('get-last-backup-exit-reason', () => {
     it('should return the last exit reason from the tracker', async () => {
       const mockExitReason = 'BACKUP_COMPLETED';
-      const mockFn = mockTracker.getLastExistReason as unknown as ReturnType<typeof vi.fn>;
+      const mockFn = mockTracker.getLastExitReason as unknown as ReturnType<typeof vi.fn>;
       mockFn.mockReturnValue(mockExitReason);
 
       registerBackupProcessTrackerIpcHandlers(mockTracker);
@@ -31,7 +31,7 @@ describe('registerBackupProcessTrackerIpcHandlers', () => {
       const result = await handler();
 
       expect(result).toBe(mockExitReason);
-      expect(mockTracker.getLastExistReason).toHaveBeenCalled();
+      expect(mockTracker.getLastExitReason).toHaveBeenCalled();
     });
   });
 });

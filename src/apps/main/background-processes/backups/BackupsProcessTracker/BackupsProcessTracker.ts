@@ -16,36 +16,25 @@ export class BackupsProcessTracker {
     processed: 0,
   };
 
-  private lastExistReason: WorkerExitCause | undefined;
-  public exitReasons: Map<number, WorkerExitCause> = new Map();
+  private lastExitReason: WorkerExitCause | undefined;
 
   progress(): BackupsProgress {
     return {
-      currentFolder: this.currentIndex(),
-      totalFolders: this.totalBackups(),
+      currentFolder: this.processed,
+      totalFolders: this.total,
       partial: this.current,
     };
   }
 
-  track(backups: Array<BackupInfo>): void {
-    this.total = backups.length;
+  track(totalBackups: number): void {
+    this.total = totalBackups;
   }
 
-  currentTotal(total: number) {
-    this.current.total = total;
+  getLastExitReason() {
+    return this.lastExitReason;
   }
 
-  currentProcessed(processed: number) {
-    this.current.processed = processed;
-
-    this.updateProgress(this.progress());
-  }
-
-  getLastExistReason() {
-    return this.lastExistReason;
-  }
-
-  backing(_: BackupInfo) {
+  backing() {
     this.processed++;
 
     this.current = {
@@ -56,22 +45,8 @@ export class BackupsProcessTracker {
     this.updateProgress(this.progress());
   }
 
-  currentIndex(): number {
-    return this.processed;
-  }
-
-  totalBackups(): number {
-    return this.total;
-  }
-
   backupFinished(id: number, reason: WorkerExitCause) {
-    this.exitReasons.set(id, reason);
-    this.lastExistReason = reason;
-  }
-
-  getExitReason(id: number): WorkerExitCause | undefined {
-    logger.debug({ tag: 'BACKUPS', msg: 'Getting exit reason', exitReasons: Array.from(this.exitReasons.keys()), id });
-    return this.exitReasons.get(id);
+    this.lastExitReason = reason;
   }
 
   reset() {
@@ -86,6 +61,10 @@ export class BackupsProcessTracker {
 
   updateProgress (progress: BackupsProgress){
     logger.debug({ tag: 'BACKUPS', msg: 'Progress update', progress });
+    /**
+     * TODO: Emit a percentage progress so that we move the whole calculation to the backend
+     * instead of the useBackupProgress.calculatePercentualProgress() in the renderer.
+     */
     broadcastToWindows('backup-progress', progress);
   };
 }
