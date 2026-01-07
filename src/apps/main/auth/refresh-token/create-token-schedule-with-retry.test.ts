@@ -19,7 +19,7 @@ describe('createTokenScheduleWithRetry', () => {
   });
 
   it('should create token schedule with provided refreshedTokens parameter', async () => {
-    await createTokenScheduleWithRetry({refreshedTokens: validTokens});
+    await createTokenScheduleWithRetry({ refreshedTokens: validTokens });
 
     calls(scheduleMock).toHaveLength(1);
     calls(obtainTokensMock).toHaveLength(0);
@@ -37,7 +37,7 @@ describe('createTokenScheduleWithRetry', () => {
   it('should attempt to schedule only once when schedule() succeeds immediately', async () => {
     scheduleMock.mockReturnValue(jobMock);
 
-    await createTokenScheduleWithRetry({refreshedTokens: validTokens});
+    await createTokenScheduleWithRetry({ refreshedTokens: validTokens });
 
     calls(scheduleMock).toHaveLength(1);
     calls(loggerMock.debug).toHaveLength(0);
@@ -46,7 +46,7 @@ describe('createTokenScheduleWithRetry', () => {
   it('should retry when schedule() fails and succeed on second attempt', async () => {
     scheduleMock.mockReturnValueOnce(undefined).mockReturnValueOnce(jobMock);
 
-    await createTokenScheduleWithRetry({refreshedTokens: validTokens});
+    await createTokenScheduleWithRetry({ refreshedTokens: validTokens });
 
     calls(scheduleMock).toHaveLength(2);
     calls(loggerMock.debug).toHaveLength(1);

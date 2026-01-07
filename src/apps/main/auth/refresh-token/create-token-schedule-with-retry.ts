@@ -10,7 +10,7 @@ type Props = {
   refreshedTokens?: Array<string | undefined>;
 };
 
-export async function createTokenScheduleWithRetry({refreshedTokens}: Props = {}) {
+export async function createTokenScheduleWithRetry({ refreshedTokens }: Props = {}) {
   const tokens = refreshedTokens || obtainStoredTokens();
   const tokenScheduler = new TokenScheduler(5, tokens, onUserUnauthorized);
 
