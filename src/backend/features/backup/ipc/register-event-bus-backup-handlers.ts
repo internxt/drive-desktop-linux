@@ -1,7 +1,7 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { backupManager } from '..';
 import eventBus from '../../../../apps/main/event-bus';
-import { setUpBackups } from '../setup-backupts';
+import { setUpBackups } from '../setup-backups';
 
 export function registerEventBusBackupHandlers(userHasBackupFeatureAvailable: boolean) {
   eventBus.on('USER_LOGGED_OUT', backupManager.stopAndClearBackups);

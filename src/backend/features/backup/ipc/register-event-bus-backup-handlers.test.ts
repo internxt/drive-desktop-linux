@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerEventBusBackupHandlers } from './register-event-bus-backup-handlers';
 import eventBus from '../../../../apps/main/event-bus';
 import { backupManager } from '..';
-import { setUpBackups } from '../setup-backupts';
+import { setUpBackups } from '../setup-backups';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import type { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 
