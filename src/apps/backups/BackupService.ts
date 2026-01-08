@@ -12,7 +12,6 @@ import { SimpleFolderCreator } from '../../context/virtual-drive/folders/applica
 import { RemoteTreeBuilder } from '../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
 import { RemoteTree } from '../../context/virtual-drive/remoteTree/domain/RemoteTree';
 import { BackupInfo } from './BackupInfo';
-import { BackupsIPCRenderer } from './BackupsIPCRenderer';
 import { AddedFilesBatchCreator } from './batches/AddedFilesBatchCreator';
 import { ModifiedFilesBatchCreator } from './batches/ModifiedFilesBatchCreator';
 import { DiffFilesCalculatorService, FilesDiff } from './diff/DiffFilesCalculatorService';
@@ -86,11 +85,10 @@ export class BackupService {
       logger.debug({ tag: 'BACKUPS', msg: 'Space check completed' });
 
       const itemsAlreadyBacked = filesDiff.unmodified.length + foldersDiff.unmodified.length;
-      tracker.updateCurrentProcessed(tracker.getCurrentProcessed() +itemsAlreadyBacked);
-      BackupsIPCRenderer.send(
-        'backups.total-items-calculated',
+
+      tracker.initializeCurrentBackup(
         filesDiff.total + foldersDiff.total,
-        itemsAlreadyBacked,
+        tracker.getCurrentProcessed() + itemsAlreadyBacked
       );
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting folder backup' });

@@ -28,13 +28,22 @@ export class BackupsProcessTracker {
   track(totalBackups: number): void {
     this.total = totalBackups;
   }
+
   public getCurrentProcessed(): number {
     return this.current.processed;
   }
+
   public updateCurrentProcessed(newProcessedCount: number): void {
     this.current.processed = newProcessedCount;
     this.updateProgress(this.progress());
   }
+
+  public initializeCurrentBackup(total: number, processed: number): void {
+  this.current.total = total;
+  this.current.processed = processed;
+  this.updateProgress(this.progress());
+}
+
   getLastExitReason() {
     return this.lastExitReason;
   }
