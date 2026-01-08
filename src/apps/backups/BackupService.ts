@@ -1,4 +1,3 @@
-import { stopController } from './../../backend/features/backup/index';
 import { BackupsStopController } from './../main/background-processes/backups/BackupsStopController/BackupsStopController';
 import { Service } from 'diod';
 import { FileBatchUpdater } from '../../context/local/localFile/application/update/FileBatchUpdater';
@@ -25,6 +24,7 @@ import { RetryHandler } from '../shared/retry/RetryHandler';
 import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
 import { UsageModule } from '../../backend/features/usage/usage.module';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { BackupsProcessTracker } from '../main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
 
 @Service()
 export class BackupService {
@@ -38,10 +38,12 @@ export class BackupService {
     private readonly backupsDanglingFilesService: BackupsDanglingFilesService,
   ) {}
 
-  private backed = 0;
-
   // TODO: PB-3897 - Change Signature of this method for a better error handling
-  async run(info: BackupInfo, stopController: BackupsStopController): Promise<DriveDesktopError | undefined> {
+  async run(
+    info: BackupInfo,
+    stopController: BackupsStopController,
+    tracker: BackupsProcessTracker,
+  ): Promise<DriveDesktopError | undefined> {
     logger.debug({ tag: 'BACKUPS', msg: 'Starting backup for:', pathname: info.pathname });
 
     try {
@@ -84,8 +86,7 @@ export class BackupService {
       logger.debug({ tag: 'BACKUPS', msg: 'Space check completed' });
 
       const itemsAlreadyBacked = filesDiff.unmodified.length + foldersDiff.unmodified.length;
-      this.backed = itemsAlreadyBacked;
-
+      tracker.updateCurrentProcessed(tracker.getCurrentProcessed() +itemsAlreadyBacked);
       BackupsIPCRenderer.send(
         'backups.total-items-calculated',
         filesDiff.total + foldersDiff.total,
@@ -93,11 +94,11 @@ export class BackupService {
       );
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting folder backup' });
-      await this.backupFolders(foldersDiff, local, remote);
+      await this.backupFolders(foldersDiff, local, remote, tracker);
       logger.debug({ tag: 'BACKUPS', msg: 'Folder backup completed' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting file backup' });
-      await this.backupFiles(filesDiff, local, remote, stopController);
+      await this.backupFiles(filesDiff, local, remote, stopController, tracker);
       logger.debug({ tag: 'BACKUPS', msg: 'File backup completed' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Backup process completed successfully' });
@@ -115,7 +116,7 @@ export class BackupService {
   /**
    * Executes the backup process with retry logic.
    */
-  async runWithRetry(info: BackupInfo, stopController: BackupsStopController) {
+  async runWithRetry(info: BackupInfo, stopController: BackupsStopController, tracker: BackupsProcessTracker) {
     const options: RetryOptions = {
       maxRetries: 3,
       initialDelay: 5000,
@@ -123,7 +124,7 @@ export class BackupService {
       jitter: true,
       signal: stopController.signal,
     };
-    const run = () => this.run(info, stopController);
+    const run = () => this.run(info, stopController, tracker);
     return await RetryHandler.execute(run, options);
   }
 
@@ -154,7 +155,7 @@ export class BackupService {
     }
   }
 
-  private async backupFolders(diff: FoldersDiff, local: LocalTree, remote: RemoteTree) {
+  private async backupFolders(diff: FoldersDiff, local: LocalTree, remote: RemoteTree, tracker: BackupsProcessTracker) {
     logger.debug({ tag: 'BACKUPS', msg: 'Backing folders' });
 
     logger.debug({ tag: 'BACKUPS', msg: 'Folders added', count: diff.added.length });
@@ -178,9 +179,7 @@ export class BackupService {
       );
 
       remote.addFolder(parent, folder);
-
-      this.backed++;
-      BackupsIPCRenderer.send('backups.progress-update', this.backed);
+      tracker.updateCurrentProcessed(tracker.getCurrentProcessed() + 1);
     }
   }
 
@@ -189,19 +188,20 @@ export class BackupService {
     local: LocalTree,
     remote: RemoteTree,
     stopController: BackupsStopController,
+    tracker: BackupsProcessTracker,
   ) {
     logger.debug({ tag: 'BACKUPS', msg: 'Backing files' });
 
     const { added, modified, deleted } = filesDiff;
 
     logger.debug({ tag: 'BACKUPS', msg: 'Files added', count: added.length });
-    await this.uploadAndCreate(local.root.path, added, remote, stopController);
+    await this.uploadAndCreate(local.root.path, added, remote, stopController, tracker);
 
     logger.debug({ tag: 'BACKUPS', msg: 'Files modified', count: modified.size });
-    await this.uploadAndUpdate(modified, local, remote, stopController);
+    await this.uploadAndUpdate(modified, local, remote, stopController, tracker);
 
     logger.debug({ tag: 'BACKUPS', msg: 'Files deleted', count: deleted.length });
-    await this.deleteRemoteFiles(deleted, stopController);
+    await this.deleteRemoteFiles(deleted, stopController, tracker);
   }
 
   private async uploadAndCreate(
@@ -209,6 +209,7 @@ export class BackupService {
     added: Array<LocalFile>,
     tree: RemoteTree,
     stopController: BackupsStopController,
+    tracker: BackupsProcessTracker,
   ): Promise<void> {
     const batches = AddedFilesBatchCreator.run(added);
 
@@ -218,8 +219,7 @@ export class BackupService {
       }
       // eslint-disable-next-line no-await-in-loop
       await this.fileBatchUploader.run(localRootPath, tree, batch, stopController.signal);
-      this.backed += batch.length;
-      BackupsIPCRenderer.send('backups.progress-update', this.backed);
+      tracker.updateCurrentProcessed(tracker.getCurrentProcessed() + batch.length);
     }
   }
 
@@ -228,6 +228,7 @@ export class BackupService {
     localTree: LocalTree,
     remoteTree: RemoteTree,
     stopController: BackupsStopController,
+    tracker: BackupsProcessTracker,
   ): Promise<void> {
     const batches = ModifiedFilesBatchCreator.run(modified);
 
@@ -239,12 +240,15 @@ export class BackupService {
       // eslint-disable-next-line no-await-in-loop
       await this.fileBatchUpdater.run(localTree.root, remoteTree, Array.from(batch.keys()), stopController.signal);
 
-      this.backed += batch.size;
-      BackupsIPCRenderer.send('backups.progress-update', this.backed);
+      tracker.updateCurrentProcessed(tracker.getCurrentProcessed() + batch.size);
     }
   }
 
-  private async deleteRemoteFiles(deleted: Array<File>, stopController: BackupsStopController): Promise<void> {
+  private async deleteRemoteFiles(
+    deleted: Array<File>,
+    stopController: BackupsStopController,
+    tracker: BackupsProcessTracker
+  ): Promise<void> {
     for (const file of deleted) {
       if (stopController.signal.aborted) {
         return;
@@ -253,8 +257,6 @@ export class BackupService {
       // eslint-disable-next-line no-await-in-loop
       await this.remoteFileDeleter.run(file);
     }
-
-    this.backed += deleted.length;
-    BackupsIPCRenderer.send('backups.progress-update', this.backed);
+    tracker.updateCurrentProcessed(tracker.getCurrentProcessed() + deleted.length);
   }
 }

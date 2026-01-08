@@ -16,22 +16,18 @@ type StopReasonPayloadHandlers = {
   [Property in keyof StopReasonPayload]: Array<StopReasonPayload[Property]>;
 };
 
-const listenerNotSet = () => {
-  // no-op
-};
-
 export class BackupsStopController {
   private controller = new AbortController();
   private stopReason: StopReason | undefined = undefined;
 
   private end: Array<(reason: StopReason) => void> = [];
-
-  private handlers: StopReasonPayloadHandlers = {
-    'forced-by-user': [() => listenerNotSet()],
-    'backup-completed': [() => listenerNotSet()],
-    failed: [() => listenerNotSet()],
+  private baseEmptyHandler: StopReasonPayloadHandlers = {
+    'forced-by-user': [() => {}],
+    'backup-completed': [() => {}],
+    failed: [() => {}],
   };
 
+  private handlers = this.baseEmptyHandler;
   constructor() {
     this.reset();
   }
@@ -51,8 +47,8 @@ export class BackupsStopController {
     this.stop('forced-by-user');
   }
 
-  backupCompleted() {
-    this.stop('backup-completed');
+  get signal(): AbortSignal {
+  return this.controller.signal;
   }
 
   private stop(reason: StopReason) {
@@ -69,20 +65,9 @@ export class BackupsStopController {
     });
   }
 
-  on<Reason extends StopReason>(reason: Reason, handler: StopReasonPayload[Reason]) {
-    this.handlers[reason].push(handler);
-  }
-
-  onFinished(handler: (reason: StopReason) => void) {
-    this.end.push(handler);
-  }
   private resetHandlers() {
     this.end = [];
-    this.handlers = {
-      'forced-by-user': [() => listenerNotSet()],
-      'backup-completed': [() => listenerNotSet()],
-      failed: [() => listenerNotSet()],
-    };
+    this.handlers = this.baseEmptyHandler;
   }
 
   private resetAbortListener() {

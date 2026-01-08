@@ -1,5 +1,4 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { BackupInfo } from '../../../../backups/BackupInfo';
 import { broadcastToWindows } from '../../../windows';
 import { BackupCompleted, ForcedByUser } from '../BackupsStopController/BackupsStopController';
 import { BackupsProgress } from '../types/BackupsProgress';
@@ -29,7 +28,13 @@ export class BackupsProcessTracker {
   track(totalBackups: number): void {
     this.total = totalBackups;
   }
-
+  public getCurrentProcessed(): number {
+    return this.current.processed;
+  }
+  public updateCurrentProcessed(newProcessedCount: number): void {
+    this.current.processed = newProcessedCount;
+    this.updateProgress(this.progress());
+  }
   getLastExitReason() {
     return this.lastExitReason;
   }
