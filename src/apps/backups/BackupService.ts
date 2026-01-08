@@ -1,3 +1,4 @@
+import { stopController } from './../../backend/features/backup/index';
 import { BackupsStopController } from './../main/background-processes/backups/BackupsStopController/BackupsStopController';
 import { Service } from 'diod';
 import { FileBatchUpdater } from '../../context/local/localFile/application/update/FileBatchUpdater';
@@ -19,7 +20,6 @@ import { DiffFilesCalculatorService, FilesDiff } from './diff/DiffFilesCalculato
 import { FoldersDiff, FoldersDiffCalculator } from './diff/FoldersDiffCalculator';
 import { relative } from './utils/relative';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
-import { Either, left, right } from '../../context/shared/domain/Either';
 import { RetryOptions } from '../shared/retry/types';
 import { RetryHandler } from '../shared/retry/RetryHandler';
 import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
@@ -256,11 +256,5 @@ export class BackupService {
 
     this.backed += deleted.length;
     BackupsIPCRenderer.send('backups.progress-update', this.backed);
-  }
-
-  private logAndReportError(error: unknown) {
-    logger.error({ tag: 'BACKUPS', msg: 'Error occurred', error });
-    const message = error instanceof Error ? error.message : 'unknown';
-    BackupsIPCRenderer.send('backups.process-error', message);
   }
 }
