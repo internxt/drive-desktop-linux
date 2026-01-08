@@ -1,3 +1,4 @@
+import { BackupsStopController } from './../main/background-processes/backups/BackupsStopController/BackupsStopController';
 import { Service } from 'diod';
 import { FileBatchUpdater } from '../../context/local/localFile/application/update/FileBatchUpdater';
 import { FileBatchUploader } from '../../context/local/localFile/application/upload/FileBatchUploader';
@@ -40,7 +41,7 @@ export class BackupService {
   private backed = 0;
 
   // TODO: PB-3897 - Change Signature of this method for a better error handling
-  async run(info: BackupInfo, abortController: AbortController): Promise<DriveDesktopError | undefined> {
+  async run(info: BackupInfo, stopController: BackupsStopController): Promise<DriveDesktopError | undefined> {
     logger.debug({ tag: 'BACKUPS', msg: 'Starting backup for:', pathname: info.pathname });
 
     try {
@@ -96,7 +97,7 @@ export class BackupService {
       logger.debug({ tag: 'BACKUPS', msg: 'Folder backup completed' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting file backup' });
-      await this.backupFiles(filesDiff, local, remote, abortController);
+      await this.backupFiles(filesDiff, local, remote, stopController);
       logger.debug({ tag: 'BACKUPS', msg: 'File backup completed' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Backup process completed successfully' });
@@ -114,26 +115,16 @@ export class BackupService {
   /**
    * Executes the backup process with retry logic.
    */
-  async runWithRetry(info: BackupInfo, abortController: AbortController) {
+  async runWithRetry(info: BackupInfo, stopController: BackupsStopController) {
     const options: RetryOptions = {
       maxRetries: 3,
       initialDelay: 5000,
       backoffFactor: 2,
       jitter: true,
-      signal: abortController.signal,
+      signal: stopController.signal,
     };
-    const run = () => this.run(info, abortController);
+    const run = () => this.run(info, stopController);
     return await RetryHandler.execute(run, options);
-  }
-
-  async getBackupInfo(): Promise<Either<Error, BackupInfo>> {
-    try {
-      const backupInfo = await BackupsIPCRenderer.invoke('backups.get-backup');
-      return right(backupInfo);
-    } catch (error: unknown) {
-      this.logAndReportError(error);
-      return left(error instanceof Error ? error : new Error('Uncontrolled error while getting backup info'));
-    }
   }
 
   private async isThereEnoughSpace(filesDiff: FilesDiff): Promise<void> {
@@ -197,37 +188,36 @@ export class BackupService {
     filesDiff: FilesDiff,
     local: LocalTree,
     remote: RemoteTree,
-    abortController: AbortController,
+    stopController: BackupsStopController,
   ) {
     logger.debug({ tag: 'BACKUPS', msg: 'Backing files' });
 
     const { added, modified, deleted } = filesDiff;
 
     logger.debug({ tag: 'BACKUPS', msg: 'Files added', count: added.length });
-    await this.uploadAndCreate(local.root.path, added, remote, abortController);
+    await this.uploadAndCreate(local.root.path, added, remote, stopController);
 
     logger.debug({ tag: 'BACKUPS', msg: 'Files modified', count: modified.size });
-    await this.uploadAndUpdate(modified, local, remote, abortController);
+    await this.uploadAndUpdate(modified, local, remote, stopController);
 
     logger.debug({ tag: 'BACKUPS', msg: 'Files deleted', count: deleted.length });
-    await this.deleteRemoteFiles(deleted, abortController);
+    await this.deleteRemoteFiles(deleted, stopController);
   }
 
   private async uploadAndCreate(
     localRootPath: string,
     added: Array<LocalFile>,
     tree: RemoteTree,
-    abortController: AbortController,
+    stopController: BackupsStopController,
   ): Promise<void> {
     const batches = AddedFilesBatchCreator.run(added);
 
     for (const batch of batches) {
-      if (abortController.signal.aborted) {
+      if (stopController.signal.aborted) {
         return;
       }
       // eslint-disable-next-line no-await-in-loop
-      await this.fileBatchUploader.run(localRootPath, tree, batch, abortController.signal);
-
+      await this.fileBatchUploader.run(localRootPath, tree, batch, stopController.signal);
       this.backed += batch.length;
       BackupsIPCRenderer.send('backups.progress-update', this.backed);
     }
@@ -237,26 +227,26 @@ export class BackupService {
     modified: Map<LocalFile, File>,
     localTree: LocalTree,
     remoteTree: RemoteTree,
-    abortController: AbortController,
+    stopController: BackupsStopController,
   ): Promise<void> {
     const batches = ModifiedFilesBatchCreator.run(modified);
 
     for (const batch of batches) {
-      logger.debug({ tag: 'BACKUPS', msg: 'Signal aborted', aborted: abortController.signal.aborted });
-      if (abortController.signal.aborted) {
+      logger.debug({ tag: 'BACKUPS', msg: 'Signal aborted', aborted: stopController.signal.aborted });
+      if (stopController.signal.aborted) {
         return;
       }
       // eslint-disable-next-line no-await-in-loop
-      await this.fileBatchUpdater.run(localTree.root, remoteTree, Array.from(batch.keys()), abortController.signal);
+      await this.fileBatchUpdater.run(localTree.root, remoteTree, Array.from(batch.keys()), stopController.signal);
 
       this.backed += batch.size;
       BackupsIPCRenderer.send('backups.progress-update', this.backed);
     }
   }
 
-  private async deleteRemoteFiles(deleted: Array<File>, abortController: AbortController) {
+  private async deleteRemoteFiles(deleted: Array<File>, stopController: BackupsStopController): Promise<void> {
     for (const file of deleted) {
-      if (abortController.signal.aborted) {
+      if (stopController.signal.aborted) {
         return;
       }
 
