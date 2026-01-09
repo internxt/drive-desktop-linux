@@ -1,7 +1,7 @@
-import configStore from 'src/apps/main/config';
+import configStore from '../../../../apps/main/config';
 import { userHasBackupsEnabled } from './user-has-backups-enabled';
 
-vi.mock('src/apps/main/config', () => ({
+vi.mock('../../../../apps/main/config', () => ({
   default: {
     get: vi.fn(),
   },
