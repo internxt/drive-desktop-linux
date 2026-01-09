@@ -31,7 +31,7 @@ export class BackupFatalErrors {
   get(): BackupErrorsCollection {
     return this.errors;
   }
-  onBackupFatalErrorsChanged (errors: BackupErrorsCollection)  {
+  onBackupFatalErrorsChanged(errors: BackupErrorsCollection) {
     broadcastToWindows('backup-fatal-errors-changed', errors);
   }
 }

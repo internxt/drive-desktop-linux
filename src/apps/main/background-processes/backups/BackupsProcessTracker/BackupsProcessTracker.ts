@@ -40,10 +40,10 @@ export class BackupsProcessTracker {
   }
 
   public initializeCurrentBackup(total: number, processed: number): void {
-  this.current.total = total;
-  this.current.processed = processed;
-  this.updateProgress(this.progress());
-}
+    this.current.total = total;
+    this.current.processed = processed;
+    this.updateProgress(this.progress());
+  }
 
   getLastExitReason() {
     return this.lastExitReason;
@@ -75,16 +75,15 @@ export class BackupsProcessTracker {
     };
   }
 
-  updateProgress (progress: BackupsProgress){
+  updateProgress(progress: BackupsProgress) {
     logger.debug({ tag: 'BACKUPS', msg: 'Progress update', progress });
     /**
      * TODO: Emit a percentage progress so that we move the whole calculation to the backend
      * instead of the useBackupProgress.calculatePercentualProgress() in the renderer.
      */
     broadcastToWindows('backup-progress', progress);
-  };
+  }
   getExitReason(id: number): WorkerExitCause | undefined {
     return this.exitReasons.get(id);
   }
 }
-

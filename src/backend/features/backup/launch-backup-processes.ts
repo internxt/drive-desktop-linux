@@ -15,7 +15,6 @@ export async function launchBackupProcesses(
   errors: BackupFatalErrors,
   stopController: BackupsStopController,
 ): Promise<void> {
-
   const suspensionBlockId = powerSaveBlocker.start('prevent-display-sleep');
 
   const backups = await backupsConfig.obtainBackupsInfo();
@@ -34,18 +33,16 @@ export async function launchBackupProcesses(
 
     // eslint-disable-next-line no-await-in-loop
     const result = await backupService.runWithRetry(backupInfo, stopController, tracker);
-    if(result.isLeft()) {
+    if (result.isLeft()) {
       const error = result.getLeft();
-       logger.debug({ tag: 'BACKUPS', msg: 'failed', error: error.cause });
-       // TODO: Make retryError extend DriveDesktopError to avoid this check
+      logger.debug({ tag: 'BACKUPS', msg: 'failed', error: error.cause });
+      // TODO: Make retryError extend DriveDesktopError to avoid this check
       if (error instanceof DriveDesktopError && 'cause' in error && error.cause && isSyncError(error.cause)) {
         errors.add({ name: backupInfo.name, error: error.cause });
       }
     }
     logger.debug({ tag: 'BACKUPS', msg: `Backup of folder ${backupInfo.pathname} completed successfully` });
-    tracker.backupFinished(backupInfo.folderId,
-      'backup-completed'
-    );
+    tracker.backupFinished(backupInfo.folderId, 'backup-completed');
   }
   powerSaveBlocker.stop(suspensionBlockId);
 }

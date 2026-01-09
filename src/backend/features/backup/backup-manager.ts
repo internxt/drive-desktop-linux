@@ -15,12 +15,12 @@ export class BackupManager {
     private status: BackupsProcessStatus,
     private tracker: BackupsProcessTracker,
     private errors: BackupFatalErrors,
-    private config: BackupConfiguration
+    private config: BackupConfiguration,
   ) {
-   this.scheduler = new BackupScheduler(
+    this.scheduler = new BackupScheduler(
       () => config.lastBackup,
       () => config.backupInterval,
-      () => this.startBackup()
+      () => this.startBackup(),
     );
   }
 
@@ -39,13 +39,8 @@ export class BackupManager {
     this.errors.clear();
     this.changeBackupStatus('RUNNING');
 
-
     try {
-      await launchBackupProcesses(
-        this.tracker,
-        this.errors,
-        this.stopController
-      );
+      await launchBackupProcesses(this.tracker, this.errors, this.stopController);
     } finally {
       this.changeBackupStatus('STANDBY');
       this.tracker.reset();

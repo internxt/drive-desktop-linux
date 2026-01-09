@@ -53,7 +53,7 @@ export class BackupsStopController {
   }
 
   get signal(): AbortSignal {
-  return this.controller.signal;
+    return this.controller.signal;
   }
 
   private stop(reason: StopReason) {

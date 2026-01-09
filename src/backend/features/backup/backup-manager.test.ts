@@ -49,11 +49,21 @@ describe('BackupManager', () => {
     };
 
     mockConfig = {
-      get enabled() { return configValues.enabled; },
-      set enabled(value) { configValues.enabled = value; },
-      get lastBackup() { return configValues.lastBackup; },
-      get backupInterval() { return configValues.backupInterval; },
-      set backupInterval(value) { configValues.backupInterval = value; },
+      get enabled() {
+        return configValues.enabled;
+      },
+      set enabled(value) {
+        configValues.enabled = value;
+      },
+      get lastBackup() {
+        return configValues.lastBackup;
+      },
+      get backupInterval() {
+        return configValues.backupInterval;
+      },
+      set backupInterval(value) {
+        configValues.backupInterval = value;
+      },
       toggleEnabled: vi.fn(),
       hasDiscoveredBackups: vi.fn(),
       backupsDiscovered: vi.fn(),
@@ -61,13 +71,7 @@ describe('BackupManager', () => {
 
     vi.mocked(mockStatus.isIn).mockReturnValue(false);
 
-    backupManager = new BackupManager(
-      mockStopController,
-      mockStatus,
-      mockTracker,
-      mockErrors,
-      mockConfig
-    );
+    backupManager = new BackupManager(mockStopController, mockStatus, mockTracker, mockErrors, mockConfig);
   });
 
   describe('startBackup', () => {
@@ -117,11 +121,7 @@ describe('BackupManager', () => {
 
       await backupManager.startBackup();
 
-      expect(launchBackupProcesses).toHaveBeenCalledWith(
-        mockTracker,
-        mockErrors,
-        mockStopController
-      );
+      expect(launchBackupProcesses).toHaveBeenCalledWith(mockTracker, mockErrors, mockStopController);
     });
 
     it('should change status to STANDBY and reset tracker after backup completes', async () => {

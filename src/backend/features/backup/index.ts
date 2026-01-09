@@ -10,10 +10,4 @@ export const tracker = new BackupsProcessTracker();
 export const backupErrorsTracker = new BackupFatalErrors();
 export const status = new BackupsProcessStatus('STANDBY');
 export const stopController = new BackupsStopController();
-export const backupManager = new BackupManager(
-  stopController,
-  status,
-  tracker,
-  backupErrorsTracker,
-  backupsConfig
-);
+export const backupManager = new BackupManager(stopController, status, tracker, backupErrorsTracker, backupsConfig);

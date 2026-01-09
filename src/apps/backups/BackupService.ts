@@ -90,7 +90,7 @@ export class BackupService {
 
       tracker.initializeCurrentBackup(
         filesDiff.total + foldersDiff.total,
-        tracker.getCurrentProcessed() + itemsAlreadyBacked
+        tracker.getCurrentProcessed() + itemsAlreadyBacked,
       );
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting folder backup' });
@@ -119,8 +119,8 @@ export class BackupService {
   async runWithRetry(
     info: BackupInfo,
     stopController: BackupsStopController,
-    tracker: BackupsProcessTracker
-  ): Promise<Either<RetryError| DriveDesktopError, undefined>> {
+    tracker: BackupsProcessTracker,
+  ): Promise<Either<RetryError | DriveDesktopError, undefined>> {
     const options: RetryOptions = {
       maxRetries: 3,
       initialDelay: 5000,
@@ -133,10 +133,10 @@ export class BackupService {
     if (result.isLeft()) {
       return left(result.getLeft());
     }
-    if(result.getRight()) {
+    if (result.getRight()) {
       const resultRight = result.getRight();
       if (resultRight !== undefined) {
-         return left(resultRight);
+        return left(resultRight);
       }
     }
     return right(undefined);
@@ -261,7 +261,7 @@ export class BackupService {
   private async deleteRemoteFiles(
     deleted: Array<File>,
     stopController: BackupsStopController,
-    tracker: BackupsProcessTracker
+    tracker: BackupsProcessTracker,
   ): Promise<void> {
     for (const file of deleted) {
       if (stopController.signal.aborted) {

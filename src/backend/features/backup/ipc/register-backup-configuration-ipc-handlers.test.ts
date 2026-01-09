@@ -51,7 +51,7 @@ describe('registerBackupConfigurationIpcHandlers', () => {
   });
 
   describe('set-backups-interval', () => {
-     it('should stop the scheduler when interval is set to BACKUP_MANUAL_INTERVAL', async () => {
+    it('should stop the scheduler when interval is set to BACKUP_MANUAL_INTERVAL', async () => {
       registerBackupConfigurationIpcHandlers(mockManager);
       const handler = getIpcHandler('set-backups-interval')!;
 
