@@ -19,6 +19,7 @@ type StopReasonPayloadHandlers = {
 export class BackupsStopController {
   private controller = new AbortController();
   private stopReason: StopReason | undefined = undefined;
+  private abortListener: ((event: Event) => void) | null = null;
 
   private end: Array<(reason: StopReason) => void> = [];
   private baseEmptyHandler: StopReasonPayloadHandlers = {
@@ -34,6 +35,10 @@ export class BackupsStopController {
 
   reset() {
     this.stopReason = undefined;
+    // Remove listener from old controller before creating new one
+    if (this.abortListener && this.controller.signal) {
+      this.controller.signal.removeEventListener('abort', this.abortListener);
+    }
     this.controller = new AbortController();
     this.resetHandlers();
     this.resetAbortListener();
@@ -71,7 +76,8 @@ export class BackupsStopController {
   }
 
   private resetAbortListener() {
-    this.controller.signal.addEventListener('abort', () => {
+    // Create and store new listener
+    this.abortListener = () => {
       const { reason, payload } = this.controller.signal.reason as {
         reason: StopReason;
         payload: { errorName: ProcessFatalErrorName };
@@ -84,6 +90,8 @@ export class BackupsStopController {
       });
 
       this.end.forEach((fn) => fn(reason));
-    });
+    };
+
+    this.controller.signal.addEventListener('abort', this.abortListener);
   }
 }
