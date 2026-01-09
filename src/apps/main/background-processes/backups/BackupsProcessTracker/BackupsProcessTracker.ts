@@ -16,6 +16,7 @@ export class BackupsProcessTracker {
   };
 
   private lastExitReason: WorkerExitCause | undefined;
+  public exitReasons: Map<number, WorkerExitCause> = new Map();
 
   progress(): BackupsProgress {
     return {
@@ -60,6 +61,7 @@ export class BackupsProcessTracker {
   }
 
   backupFinished(id: number, reason: WorkerExitCause) {
+    this.exitReasons.set(id, reason);
     this.lastExitReason = reason;
   }
 
@@ -81,5 +83,8 @@ export class BackupsProcessTracker {
      */
     broadcastToWindows('backup-progress', progress);
   };
+  getExitReason(id: number): WorkerExitCause | undefined {
+    return this.exitReasons.get(id);
+  }
 }
 
