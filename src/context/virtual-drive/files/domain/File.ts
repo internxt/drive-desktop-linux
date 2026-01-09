@@ -197,7 +197,7 @@ export class File extends AggregateRoot {
     );
   }
 
-  public update(attributes: Partial<FileAttributes>) {
+  update(attributes: Partial<FileAttributes>) {
     if (attributes.path) {
       this._path = new FilePath(attributes.path);
     }

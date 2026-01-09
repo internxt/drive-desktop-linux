@@ -26,7 +26,7 @@ describe('Folder Renamer', () => {
     syncFolderMessenger = new SyncFolderMessengerMock();
 
     descendantsPathUpdater = {
-      run: vi.fn().mockResolvedValue(undefined),
+      syncDescendants: vi.fn().mockResolvedValue(undefined),
     } as unknown as FolderDescendantsPathUpdater;
 
     renamer = new FolderRenamer(repository, remote, eventBus, syncFolderMessenger, descendantsPathUpdater);
@@ -100,7 +100,7 @@ describe('Folder Renamer', () => {
       const oldPath = folder.path;
 
       const runMock = vi.fn().mockResolvedValue(undefined);
-      descendantsPathUpdater.run = runMock;
+      descendantsPathUpdater.syncDescendants = runMock;
 
       await renamer.run(folder, destination);
 
@@ -112,7 +112,7 @@ describe('Folder Renamer', () => {
       const { folder, destination } = setUpHappyPath();
 
       const runMock = vi.fn().mockRejectedValue(new Error('Update failed'));
-      descendantsPathUpdater.run = runMock;
+      descendantsPathUpdater.syncDescendants = runMock;
 
       await expect(renamer.run(folder, destination)).resolves.not.toThrow();
 

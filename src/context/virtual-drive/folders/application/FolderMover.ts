@@ -1,5 +1,4 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Folder } from '../domain/Folder';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderRepository } from '../domain/FolderRepository';
@@ -25,7 +24,7 @@ export class FolderMover {
     await this.remote.move(folder.uuid, parentFolder.uuid);
     await this.repository.update(folder);
 
-    void this.descendantsPathUpdater.run(folder, oldPath);
+    void this.descendantsPathUpdater.syncDescendants(folder, oldPath);
   }
 
   async run(folder: Folder, destination: FolderPath): Promise<void> {

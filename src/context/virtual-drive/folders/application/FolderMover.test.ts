@@ -22,7 +22,7 @@ describe('Folder Mover', () => {
     remote = new FolderRemoteFileSystemMock();
 
     descendantsPathUpdater = {
-      run: vi.fn().mockResolvedValue(undefined),
+      syncDescendants: vi.fn().mockResolvedValue(undefined),
     } as unknown as FolderDescendantsPathUpdater;
 
     SUT = new FolderMover(repository, remote, folderFinder, descendantsPathUpdater);

@@ -1,5 +1,4 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { EventBus } from '../../shared/domain/EventBus';
 import { Folder } from '../domain/Folder';
 import { FolderPath } from '../domain/FolderPath';
@@ -31,6 +30,6 @@ export class FolderRenamer {
     this.eventBus.publish(folder.pullDomainEvents());
     this.syncFolderMessenger.renamed(nameBeforeRename, folder.name);
 
-    void this.descendantsPathUpdater.run(folder, oldPath);
+    void this.descendantsPathUpdater.syncDescendants(folder, oldPath);
   }
 }

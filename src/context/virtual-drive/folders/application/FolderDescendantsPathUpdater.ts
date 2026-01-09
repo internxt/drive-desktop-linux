@@ -15,7 +15,7 @@ export class FolderDescendantsPathUpdater {
     private readonly fileRepository: FileRepository,
   ) {}
 
-  async run(folder: Folder, oldPath: string): Promise<void> {
+  async syncDescendants(folder: Folder, oldPath: string) {
     const startTime = Date.now();
 
     const [foldersUpdated, filesUpdated] = await Promise.all([
@@ -35,7 +35,7 @@ export class FolderDescendantsPathUpdater {
     });
   }
 
-  private async updateDescendantFolders(oldPath: string, newPath: string): Promise<number> {
+  private async updateDescendantFolders(oldPath: string, newPath: string) {
     const pathPrefix = oldPath + '/';
 
     const descendants = this.folderRepository.searchByPathPrefix(pathPrefix, FolderStatuses.EXISTS);
@@ -55,7 +55,7 @@ export class FolderDescendantsPathUpdater {
     return descendants.length;
   }
 
-  private async updateDescendantFiles(oldPath: string, newPath: string): Promise<number> {
+  private async updateDescendantFiles(oldPath: string, newPath: string) {
     const pathPrefix = oldPath + '/';
 
     const descendants = this.fileRepository.searchByPathPrefix(pathPrefix, FileStatuses.EXISTS);

@@ -45,7 +45,7 @@ describe('FolderDescendantsPathUpdater', () => {
       path: '/parentB',
     });
 
-    await SUT.run(renamedParent, '/parentA');
+    await SUT.syncDescendants(renamedParent, '/parentA');
 
     expect(folderRepository.updateMock).toHaveBeenCalledTimes(2);
 
@@ -96,7 +96,7 @@ describe('FolderDescendantsPathUpdater', () => {
       path: '/folderB',
     });
 
-    await SUT.run(renamedParent, '/folderA');
+    await SUT.syncDescendants(renamedParent, '/folderA');
 
     expect(fileRepository.updateMock).toHaveBeenCalledTimes(2);
 
@@ -126,7 +126,7 @@ describe('FolderDescendantsPathUpdater', () => {
       path: '/renamedA',
     });
 
-    await SUT.run(renamedFolderA, '/folderA');
+    await SUT.syncDescendants(renamedFolderA, '/folderA');
 
     expect(folderRepository.updateMock).toHaveBeenCalledTimes(0);
 
@@ -171,7 +171,7 @@ describe('FolderDescendantsPathUpdater', () => {
       path: '/newLevel1',
     });
 
-    await SUT.run(renamedLevel1, '/level1');
+    await SUT.syncDescendants(renamedLevel1, '/level1');
 
     expect(folderRepository.updateMock).toHaveBeenCalledTimes(3);
 
