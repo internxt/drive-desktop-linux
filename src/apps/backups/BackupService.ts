@@ -24,6 +24,8 @@ import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
 import { UsageModule } from '../../backend/features/usage/usage.module';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { BackupsProcessTracker } from '../main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
+import { RetryError } from '../shared/retry/RetryError';
+import { Either, left, right } from '../../context/shared/domain/Either';
 
 @Service()
 export class BackupService {
@@ -114,7 +116,11 @@ export class BackupService {
   /**
    * Executes the backup process with retry logic.
    */
-  async runWithRetry(info: BackupInfo, stopController: BackupsStopController, tracker: BackupsProcessTracker) {
+  async runWithRetry(
+    info: BackupInfo,
+    stopController: BackupsStopController,
+    tracker: BackupsProcessTracker
+  ): Promise<Either<RetryError| DriveDesktopError, undefined>> {
     const options: RetryOptions = {
       maxRetries: 3,
       initialDelay: 5000,
@@ -123,7 +129,17 @@ export class BackupService {
       signal: stopController.signal,
     };
     const run = () => this.run(info, stopController, tracker);
-    return await RetryHandler.execute(run, options);
+    const result = await RetryHandler.execute(run, options);
+    if (result.isLeft()) {
+      return left(result.getLeft());
+    }
+    if(result.getRight()) {
+      const resultRight = result.getRight();
+      if (resultRight !== undefined) {
+         return left(resultRight);
+      }
+    }
+    return right(undefined);
   }
 
   private async isThereEnoughSpace(filesDiff: FilesDiff): Promise<void> {
