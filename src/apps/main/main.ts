@@ -152,7 +152,6 @@ app.on('second-instance', async (_, argv) => {
 });
 
 eventBus.on('WIDGET_IS_READY', () => {
-  /** ? Since we are moving to the main proces, maybe this is not necessary anymore */
   setUpBackups();
 });
 

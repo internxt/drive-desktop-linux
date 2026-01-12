@@ -35,7 +35,6 @@ export class BackupsStopController {
 
   reset() {
     this.stopReason = undefined;
-    // Remove listener from old controller before creating new one
     if (this.abortListener && this.controller.signal) {
       this.controller.signal.removeEventListener('abort', this.abortListener);
     }
@@ -76,7 +75,6 @@ export class BackupsStopController {
   }
 
   private resetAbortListener() {
-    // Create and store new listener
     this.abortListener = () => {
       const { reason, payload } = this.controller.signal.reason as {
         reason: StopReason;
