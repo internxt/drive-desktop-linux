@@ -87,7 +87,7 @@ describe('validateSpace', () => {
     expect(result.error).toBeUndefined();
   });
 
-  it('should return error when account.get-usage event returns an error', async () => {
+  it('should return error when getRawUsageAndLimit returns an error', async () => {
     const mockError = new Error('Failed to get usage');
     const mockResult: Result<RawUsage, Error> = { error: mockError };
     mockGetRawUsageAndLimit.mockResolvedValue(mockResult);
