@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ipcMain } from 'electron';
-import { registerBackupProcessStatusIpcHandler } from './register-backu-process-status-ipc-handler';
 import { getIpcHandler } from './__test-helpers__/ipc-test-utils';
 import type { BackupsProcessStatus } from '../../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
+import { registerBackupProcessStatusIpcHandler } from './register-backup-process-status-ipc-handler';
 
 describe('registerBackupProcessStatusIpcHandler', () => {
   const mockStatus = {

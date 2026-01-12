@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockDeep } from 'vitest-mock-extended';
 import { ipcMain } from 'electron';
 import { registerBackupProcessTrackerIpcHandlers } from './register-backup-process-tracker-ipc-handlers';
 import { getIpcHandler } from './__test-helpers__/ipc-test-utils';
 import type { BackupsProcessTracker } from '../../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
 
 describe('registerBackupProcessTrackerIpcHandlers', () => {
-  const mockTracker = {
-    getLastExistReason: vi.fn(),
-  } as unknown as BackupsProcessTracker;
+  const mockTracker = mockDeep<BackupsProcessTracker>();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,9 +20,8 @@ describe('registerBackupProcessTrackerIpcHandlers', () => {
 
   describe('get-last-backup-exit-reason', () => {
     it('should return the last exit reason from the tracker', async () => {
-      const mockExitReason = 'BACKUP_COMPLETED';
-      const mockFn = mockTracker.getLastExitReason as unknown as ReturnType<typeof vi.fn>;
-      mockFn.mockReturnValue(mockExitReason);
+      const mockExitReason = 'backup-completed';
+      vi.mocked(mockTracker.getLastExitReason).mockReturnValue(mockExitReason);
 
       registerBackupProcessTrackerIpcHandlers(mockTracker);
       const handler = getIpcHandler('get-last-backup-exit-reason')!;

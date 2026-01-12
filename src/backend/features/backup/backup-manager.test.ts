@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockDeep } from 'vitest-mock-extended';
 import { BackupManager } from './backup-manager';
-import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
-import { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
-import { BackupsProcessTracker } from '../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
-import { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
-import { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
+import type { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
+import type { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
+import type { BackupsProcessTracker } from '../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
+import type { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
+import type { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { launchBackupProcesses } from './launch-backup-processes';
 
-vi.mock('../../../apps/main/background-processes/backups/launchBackupProcesses', () => ({
+vi.mock('./launch-backup-processes', () => ({
   launchBackupProcesses: vi.fn(),
 }));
 
@@ -21,11 +22,6 @@ vi.mock('../../../apps/main/background-processes/backups/BackupScheduler/BackupS
   })),
 }));
 
-vi.mock('../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController');
-vi.mock('../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus');
-vi.mock('../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker');
-vi.mock('../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors');
-
 describe('BackupManager', () => {
   let backupManager: BackupManager;
   let mockStopController: BackupsStopController;
@@ -37,37 +33,28 @@ describe('BackupManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockStopController = new BackupsStopController();
-    mockStatus = new BackupsProcessStatus('STANDBY');
-    mockTracker = new BackupsProcessTracker();
-    mockErrors = new BackupFatalErrors();
+    mockStopController = mockDeep<BackupsStopController>();
+    mockStatus = mockDeep<BackupsProcessStatus>();
+    mockTracker = mockDeep<BackupsProcessTracker>();
+    mockErrors = mockDeep<BackupFatalErrors>();
 
-    const configValues = {
-      enabled: true,
-      lastBackup: 1234567890,
-      backupInterval: 3600000,
-    };
+    mockConfig = mockDeep<BackupConfiguration>();
 
-    mockConfig = {
-      get enabled() {
-        return configValues.enabled;
-      },
-      set enabled(value) {
-        configValues.enabled = value;
-      },
-      get lastBackup() {
-        return configValues.lastBackup;
-      },
-      get backupInterval() {
-        return configValues.backupInterval;
-      },
-      set backupInterval(value) {
-        configValues.backupInterval = value;
-      },
-      toggleEnabled: vi.fn(),
-      hasDiscoveredBackups: vi.fn(),
-      backupsDiscovered: vi.fn(),
-    } as unknown as BackupConfiguration;
+    // Setup default config values
+    Object.defineProperty(mockConfig, 'enabled', {
+      get: vi.fn(() => true),
+      set: vi.fn(),
+      configurable: true,
+    });
+    Object.defineProperty(mockConfig, 'lastBackup', {
+      get: vi.fn(() => 1234567890),
+      configurable: true,
+    });
+    Object.defineProperty(mockConfig, 'backupInterval', {
+      get: vi.fn(() => 3600000),
+      set: vi.fn(),
+      configurable: true,
+    });
 
     vi.mocked(mockStatus.isIn).mockReturnValue(false);
 
@@ -76,7 +63,10 @@ describe('BackupManager', () => {
 
   describe('startBackup', () => {
     it('should not start backup if backups are disabled', async () => {
-      mockConfig.enabled = false;
+      Object.defineProperty(mockConfig, 'enabled', {
+        get: vi.fn(() => false),
+        configurable: true,
+      });
 
       await backupManager.startBackup();
 

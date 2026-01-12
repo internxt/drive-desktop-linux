@@ -12,8 +12,17 @@ vi.mock('..', () => ({
   },
 }));
 
-vi.mock('../setup-backupts', () => ({
+vi.mock('../setup-backups', () => ({
   setUpBackups: vi.fn(),
+}));
+
+vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
+  logger: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
 }));
 
 describe('registerEventBusBackupHandlers', () => {
