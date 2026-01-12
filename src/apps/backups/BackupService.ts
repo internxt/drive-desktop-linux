@@ -133,11 +133,9 @@ export class BackupService {
     if (result.isLeft()) {
       return left(result.getLeft());
     }
-    if (result.getRight()) {
-      const resultRight = result.getRight();
-      if (resultRight !== undefined) {
-        return left(resultRight);
-      }
+    const value = result.getRight();
+    if (value !== undefined) {
+      return left(value);
     }
     return right(undefined);
   }
