@@ -19,7 +19,7 @@
     "format:fix": "prettier src --write",
     "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never",
     "publish": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish always",
-    "postinstall": "ts-node electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts && opencollective-postinstall",
+    "postinstall": "electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts && opencollective-postinstall",
     "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ts-node/register/transpile-only ./src/apps/main/main.ts",
     "start:main:debug": "cross-env NODE_ENV=development electron --inspect=5858 -r ts-node/register/transpile-only ./src/apps/main/main.ts",
@@ -61,44 +61,6 @@
       }
     ],
     "afterSign": ".erb/scripts/notarize.js",
-    "mac": {
-      "target": {
-        "target": "default",
-        "arch": [
-          "arm64",
-          "x64"
-        ]
-      },
-      "type": "distribution",
-      "hardenedRuntime": true,
-      "entitlements": "assets/entitlements.mac.plist",
-      "entitlementsInherit": "assets/entitlements.mac.plist",
-      "gatekeeperAssess": false
-    },
-    "dmg": {
-      "contents": [
-        {
-          "x": 137,
-          "y": 152
-        },
-        {
-          "x": 337,
-          "y": 152,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ],
-      "window": {
-        "width": 470,
-        "height": 370
-      }
-    },
-    "win": {
-      "target": [
-        "nsis"
-      ],
-      "certificateSubjectName": "Internxt Universal Technologies SL"
-    },
     "linux": {
       "target": [
         "AppImage",
@@ -114,7 +76,7 @@
     },
     "directories": {
       "buildResources": "assets",
-      "output": "release/build"
+      "output": "build"
     },
     "extraResources": [
       "./assets/**",
