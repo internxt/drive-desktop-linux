@@ -3,6 +3,7 @@
   "version": "2.5.2",
   "author": "Internxt <hello@internxt.com>",
   "description": "Internxt Drive client UI",
+  "main": "./dist/main/main.js",
   "license": "AGPL-3.0",
   "repository": {
     "url": "https://github.com/internxt/drive-desktop-linux"
