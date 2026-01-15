@@ -60,7 +60,6 @@
         ]
       }
     ],
-    "afterSign": ".erb/scripts/notarize.js",
     "linux": {
       "target": [
         "AppImage",
