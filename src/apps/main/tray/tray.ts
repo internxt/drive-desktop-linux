@@ -136,7 +136,7 @@ export function setupTrayIcon() {
   }
 
   async function onQuitClick() {
-     app.quit();
+    app.quit();
   }
 
   tray = new TrayMenu(iconsPath, onTrayClick, onQuitClick);
