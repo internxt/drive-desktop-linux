@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { BackupErrorsCollection } from '../../../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
+import { BackupError } from '../../../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
 
 export default function useBackupErrors() {
-  const [errors, setErrors] = useState<BackupErrorsCollection>([]);
+  const [errors, setErrors] = useState<BackupError[]>([]);
 
   useEffect(() => {
     window.electron.getBackupFatalErrors().then(setErrors);

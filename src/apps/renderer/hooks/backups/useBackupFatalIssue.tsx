@@ -17,7 +17,8 @@ export function useBackupFatalIssue(backup: BackupInfo) {
   const { translate } = useTranslationContext();
 
   useEffect(() => {
-    window.electron.getBackupFatalIssue(backup.folderId).then(setIssue);
+    window.electron.getBackupErrorByFolder(backup.folderId)
+      .then((backupError) => setIssue(backupError?.error));
   }, []);
 
   useEffect(() => {

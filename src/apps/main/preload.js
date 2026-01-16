@@ -252,8 +252,8 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.on(eventName, callback);
     return () => ipcRenderer.removeListener(eventName, callback);
   },
-  getLastBackupExitReason() {
-    return ipcRenderer.invoke('get-last-backup-exit-reason');
+  getLastBackupHadIssues() {
+    return ipcRenderer.invoke('get-last-backup-had-issues');
   },
   changeBackupPath(currentPath) {
     return ipcRenderer.invoke('change-backup-path', currentPath);
