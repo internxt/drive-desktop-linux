@@ -39,25 +39,8 @@ export async function getDevices(): Promise<Array<Device>> {
     const devices = response.getRight();
     return devices
       .filter(({ removed, hasBackups }) => !removed && hasBackups)
-      .map((device) => decryptDeviceName(device));
+      .map((device) => device);
   }
-}
-
-export function decryptDeviceName({ name, ...rest }: Device): Device {
-  let nameDevice;
-  let key;
-  try {
-    key = `${process.env.NEW_CRYPTO_KEY}-${rest.bucket}`;
-    nameDevice = aes.decrypt(name, key);
-  } catch (error) {
-    key = `${process.env.NEW_CRYPTO_KEY}-${null}`;
-    nameDevice = aes.decrypt(name, key);
-  }
-  logger.debug({ tag: 'BACKUPS', msg: 'Decrypted device', nameDevice });
-  return {
-    name: nameDevice,
-    ...rest,
-  };
 }
 
 export async function fetchFolderTree(folderUuid: string): Promise<{
