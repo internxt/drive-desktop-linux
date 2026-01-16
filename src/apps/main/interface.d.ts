@@ -10,7 +10,7 @@ import {
 } from '../../infra/drive-server/services/auth/auth.types';
 import { TLoggerBody } from '@internxt/drive-desktop-core/build/backend';
 import { CleanerReport, CleanerViewModel, CleanupProgress } from '../../backend/features/cleaner/cleaner.types';
-
+import { BackupError } from '../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
 /** This interface and declare global will replace the preload.d.ts.
  * The thing is that instead of that, we will gradually will be declaring the interface here as we generate tests
  * And we need to mock the electron API.
@@ -96,6 +96,7 @@ export interface IElectronAPI {
     removeInfectedFiles: (infectedFiles: string[]) => Promise<void>;
     cancelScan: () => Promise<void>;
   };
+  getBackupErrorByFolder(folderId: number): Promise<BackupError>;
 }
 
 declare global {

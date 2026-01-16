@@ -149,9 +149,6 @@ contextBridge.exposeInMainWorld('electron', {
   getBackupsStatus() {
     return ipcRenderer.invoke('get-backups-status');
   },
-  getBackupFatalIssue(id) {
-    return ipcRenderer.invoke('backups.get-backup-issues', id);
-  },
   openVirtualDrive() {
     return ipcRenderer.invoke('open-virtual-drive');
   },
@@ -242,6 +239,9 @@ contextBridge.exposeInMainWorld('electron', {
   },
   getBackupFatalErrors() {
     return ipcRenderer.invoke('get-backup-fatal-errors');
+  },
+  getBackupErrorByFolder(folderId) {
+    return ipcRenderer.invoke('get-backup-error-by-folder', folderId);
   },
   deleteBackupError(folderId) {
     return ipcRenderer.invoke('delete-backup-error', folderId);
