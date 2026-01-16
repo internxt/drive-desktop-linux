@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { BackupsProcessTracker } from '../../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
+import { BackupsProcessTracker } from '../BackupsProcessTracker';
 import { isSyncError } from '../../../../shared/issues/SyncErrorCause';
 
 export function registerBackupProcessTrackerIpcHandlers(tracker: BackupsProcessTracker) {

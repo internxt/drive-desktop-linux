@@ -1,9 +1,9 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { broadcastToWindows } from '../../../windows';
-import { BackupCompleted, ForcedByUser } from '../BackupsStopController/BackupsStopController';
-import { BackupsProgress } from '../types/BackupsProgress';
-import { IndividualBackupProgress } from '../types/IndividualBackupProgress';
-import { ProcessFatalErrorName } from '../BackupFatalErrors/BackupFatalErrors';
+import { broadcastToWindows } from '../../../apps/main/windows';
+import { BackupCompleted, ForcedByUser } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
+import { BackupsProgress } from '../../../apps/main/background-processes/backups/types/BackupsProgress';
+import { IndividualBackupProgress } from '../../../apps/main/background-processes/backups/types/IndividualBackupProgress';
+import { ProcessFatalErrorName } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
 export type WorkerExitCause = ForcedByUser | BackupCompleted | ProcessFatalErrorName;
 
 export class BackupsProcessTracker {

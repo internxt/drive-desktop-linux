@@ -3,7 +3,7 @@ import { mockDeep } from 'vitest-mock-extended';
 import { ipcMain } from 'electron';
 import { registerBackupProcessTrackerIpcHandlers } from './register-backup-process-tracker-ipc-handlers';
 import { getIpcHandler } from './__test-helpers__/ipc-test-utils';
-import type { BackupsProcessTracker } from '../../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
+import type { BackupsProcessTracker } from '../BackupsProcessTracker';
 
 describe('registerBackupProcessTrackerIpcHandlers', () => {
   const mockTracker = mockDeep<BackupsProcessTracker>();

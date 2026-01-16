@@ -2,7 +2,7 @@ import { BackupConfiguration } from '../../../apps/main/background-processes/bac
 import { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
 import { BackupScheduler } from '../../../apps/main/background-processes/backups/BackupScheduler/BackupScheduler';
 import { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
-import { BackupsProcessTracker } from '../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
+import { BackupsProcessTracker } from './BackupsProcessTracker';
 import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 import { launchBackupProcesses } from './launch-backup-processes';
 import { logger } from '@internxt/drive-desktop-core/build/backend';

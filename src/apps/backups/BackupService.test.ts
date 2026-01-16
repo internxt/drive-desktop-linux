@@ -18,7 +18,7 @@ import { DiffFilesCalculatorService } from './diff/DiffFilesCalculatorService';
 import { UsageModule } from '../../backend/features/usage/usage.module';
 import { FolderMother } from '../../context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
 import { BackupsStopController } from '../main/background-processes/backups/BackupsStopController/BackupsStopController';
-import { BackupsProcessTracker } from '../main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
+import { BackupsProcessTracker } from '../../backend/features/backup/BackupsProcessTracker';
 
 // Mock the UsageModule
 vi.mock('../../backend/features/usage/usage.module', () => ({
