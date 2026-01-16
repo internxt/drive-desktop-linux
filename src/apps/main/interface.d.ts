@@ -97,6 +97,7 @@ export interface IElectronAPI {
     cancelScan: () => Promise<void>;
   };
   getBackupErrorByFolder(folderId: number): Promise<BackupError>;
+  getLastBackupHadIssues(): Promise<boolean>;
 }
 
 declare global {
