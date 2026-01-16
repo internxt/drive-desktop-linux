@@ -1,7 +1,7 @@
 import { powerSaveBlocker } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
-import { BackupsProcessTracker } from './BackupsProcessTracker';
+import { BackupsProcessTracker } from './backup-process-tracker';
 import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 
 import { isSyncError } from '../../../shared/issues/SyncErrorCause';

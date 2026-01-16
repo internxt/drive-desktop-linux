@@ -23,7 +23,7 @@ import { RetryHandler } from '../shared/retry/RetryHandler';
 import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
 import { UsageModule } from '../../backend/features/usage/usage.module';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { BackupsProcessTracker } from '../../backend/features/backup/BackupsProcessTracker';
+import { BackupsProcessTracker } from '../../backend/features/backup/backup-process-tracker';
 import { RetryError } from '../shared/retry/RetryError';
 import { Either, left, right } from '../../context/shared/domain/Either';
 

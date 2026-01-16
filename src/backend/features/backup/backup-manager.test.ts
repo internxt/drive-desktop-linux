@@ -3,7 +3,7 @@ import { mockDeep } from 'vitest-mock-extended';
 import { BackupManager } from './backup-manager';
 import type { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 import type { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
-import type { BackupsProcessTracker } from './BackupsProcessTracker';
+import type { BackupsProcessTracker } from './backup-process-tracker';
 import type { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
 import type { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
 import { logger } from '@internxt/drive-desktop-core/build/backend';

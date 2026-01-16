@@ -143,7 +143,7 @@ declare interface Window {
     getLastBackupTimestamp: () => Promise<number>;
 
     getLastBackupExitReason: () => Promise<
-      import('../../backend/features/backup/BackupsProcessTracker').WorkerExitCause
+      import('../../backend/features/backup/backup-process-tracker').WorkerExitCause
     >;
 
     deleteBackupError(folderId: number): Promise<void>;
