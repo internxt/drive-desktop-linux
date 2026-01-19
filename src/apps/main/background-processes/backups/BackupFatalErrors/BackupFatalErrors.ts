@@ -1,37 +1,40 @@
-import { SyncError } from '../../../../../shared/issues/SyncErrorCause';
+import { isFatalError, SyncError } from '../../../../../shared/issues/SyncErrorCause';
 import { broadcastToWindows } from '../../../windows';
-
-export type ProcessFatalErrorName = SyncError;
-
-export type BackupFatalError = {
-  path: string;
-  folderId: number;
-  errorName: ProcessFatalErrorName;
-};
 
 export type BackupError = {
   name: string;
   error: SyncError;
 };
-export type BackupErrorsCollection = Array<BackupError>;
+
+export type BackupErrorsCollection = Map<number, BackupError>;
 
 export class BackupFatalErrors {
-  private errors: BackupErrorsCollection = [];
+  private errors: BackupErrorsCollection = new Map();
 
   clear() {
-    this.errors = [];
-    this.onBackupFatalErrorsChanged(this.errors);
+    this.errors = new Map();
+    this.broadcast();
   }
 
-  add(error: BackupError) {
-    this.errors.push(error);
-    this.onBackupFatalErrorsChanged(this.errors);
+  add(folderId: number, error: BackupError) {
+    this.errors.set(folderId, error);
+    this.broadcast();
   }
 
-  get(): BackupErrorsCollection {
-    return this.errors;
+  get(folderId: number): BackupError | undefined {
+    return this.errors.get(folderId);
   }
-  onBackupFatalErrorsChanged(errors: BackupErrorsCollection) {
-    broadcastToWindows('backup-fatal-errors-changed', errors);
+
+  getAll(): BackupError[] {
+    return Array.from(this.errors.values());
+  }
+
+  lastBackupHadFatalIssue(): boolean {
+    const lastError = this.getAll().at(-1);
+    return lastError !== undefined && isFatalError(lastError.error);
+  }
+
+  private broadcast() {
+    broadcastToWindows('backup-fatal-errors-changed', this.getAll());
   }
 }

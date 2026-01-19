@@ -3,8 +3,8 @@ import { broadcastToWindows } from '../../../apps/main/windows';
 import { BackupCompleted, ForcedByUser } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 import { BackupsProgress } from '../../../apps/main/background-processes/backups/types/BackupsProgress';
 import { IndividualBackupProgress } from '../../../apps/main/background-processes/backups/types/IndividualBackupProgress';
-import { ProcessFatalErrorName } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
-export type WorkerExitCause = ForcedByUser | BackupCompleted | ProcessFatalErrorName;
+import { SyncError } from '../../../shared/issues/SyncErrorCause';
+export type WorkerExitCause = ForcedByUser | BackupCompleted | SyncError;
 
 export class BackupsProcessTracker {
   private processed = 0;
@@ -15,8 +15,6 @@ export class BackupsProcessTracker {
     processed: 0,
   };
 
-  private lastExitReason: WorkerExitCause | undefined;
-  public exitReasons: Map<number, WorkerExitCause> = new Map();
 
   progress(): BackupsProgress {
     return {
@@ -45,9 +43,6 @@ export class BackupsProcessTracker {
     this.updateProgress(this.progress());
   }
 
-  getLastExitReason() {
-    return this.lastExitReason;
-  }
 
   backing() {
     this.processed++;
@@ -60,10 +55,6 @@ export class BackupsProcessTracker {
     this.updateProgress(this.progress());
   }
 
-  backupFinished(id: number, reason: WorkerExitCause) {
-    this.exitReasons.set(id, reason);
-    this.lastExitReason = reason;
-  }
 
   reset() {
     this.processed = 0;
@@ -82,8 +73,5 @@ export class BackupsProcessTracker {
      * instead of the useBackupProgress.calculatePercentualProgress() in the renderer.
      */
     broadcastToWindows('backup-progress', progress);
-  }
-  getExitReason(id: number): WorkerExitCause | undefined {
-    return this.exitReasons.get(id);
   }
 }

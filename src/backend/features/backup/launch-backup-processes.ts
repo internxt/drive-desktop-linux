@@ -38,11 +38,10 @@ export async function launchBackupProcesses(
       logger.debug({ tag: 'BACKUPS', msg: 'failed', error: error.cause });
       // TODO: Make retryError extend DriveDesktopError to avoid this check
       if (error instanceof DriveDesktopError && 'cause' in error && error.cause && isSyncError(error.cause)) {
-        errors.add({ name: backupInfo.name, error: error.cause });
+        errors.add(backupInfo.folderId,{ name: backupInfo.name, error: error.cause });
       }
     }
     logger.debug({ tag: 'BACKUPS', msg: `Backup of folder ${backupInfo.pathname} completed successfully` });
-    tracker.backupFinished(backupInfo.folderId, 'backup-completed');
   }
   powerSaveBlocker.stop(suspensionBlockId);
 }
