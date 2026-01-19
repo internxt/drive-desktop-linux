@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ipcMain } from 'electron';
 import { registerBackupFatalErrorsIpcHandler } from './register-backup-fatal-errors-ipc-handler';
 import { getIpcHandler } from './__test-helpers__/ipc-test-utils';
-import type { BackupFatalErrors } from '../BackupFatalErrors';
+import type { BackupErrorsTracker } from '../backup-errors-tracker';
 
 describe('resgisterBackupFatalErrorsIpcHandler', () => {
   const mockBackupErrors = {
     get: vi.fn(),
-  } as unknown as BackupFatalErrors;
+  } as unknown as BackupErrorsTracker;
 
   beforeEach(() => {
     vi.clearAllMocks();

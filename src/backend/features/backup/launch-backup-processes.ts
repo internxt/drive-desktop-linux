@@ -1,6 +1,6 @@
 import { powerSaveBlocker } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { BackupFatalErrors } from './BackupFatalErrors';
+import { BackupErrorsTracker } from './backup-errors-tracker';
 import { BackupsProcessTracker } from './backup-process-tracker';
 import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 
@@ -12,7 +12,7 @@ import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDe
 
 export async function launchBackupProcesses(
   tracker: BackupsProcessTracker,
-  errors: BackupFatalErrors,
+  errors: BackupErrorsTracker,
   stopController: BackupsStopController,
 ): Promise<void> {
   const suspensionBlockId = powerSaveBlocker.start('prevent-display-sleep');

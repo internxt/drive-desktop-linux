@@ -2,8 +2,7 @@ import { isFatalError } from '../../../shared/issues/SyncErrorCause';
 import { broadcastToWindows } from '../../../apps/main/windows';
 import { BackupErrorRecord } from './backup.types';
 
-
-export class BackupFatalErrors {
+export class BackupErrorsTracker {
   private errors: Map<number, BackupErrorRecord> = new Map();
 
   clear() {

@@ -1,5 +1,5 @@
 import { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
-import { BackupFatalErrors } from './BackupFatalErrors';
+import { BackupErrorsTracker } from './backup-errors-tracker';
 import { BackupScheduler } from '../../../apps/main/background-processes/backups/BackupScheduler/BackupScheduler';
 import { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
 import { BackupsProcessTracker } from './backup-process-tracker';
@@ -14,7 +14,7 @@ export class BackupManager {
     private stopController: BackupsStopController,
     private status: BackupsProcessStatus,
     private tracker: BackupsProcessTracker,
-    private errors: BackupFatalErrors,
+    private errors: BackupErrorsTracker,
     private config: BackupConfiguration,
   ) {
     this.scheduler = new BackupScheduler(

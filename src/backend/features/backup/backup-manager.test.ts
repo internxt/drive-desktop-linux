@@ -4,7 +4,7 @@ import { BackupManager } from './backup-manager';
 import type { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 import type { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
 import type { BackupsProcessTracker } from './backup-process-tracker';
-import type { BackupFatalErrors } from './BackupFatalErrors';
+import type { BackupErrorsTracker } from './backup-errors-tracker';
 import type { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { launchBackupProcesses } from './launch-backup-processes';
@@ -27,7 +27,7 @@ describe('BackupManager', () => {
   let mockStopController: BackupsStopController;
   let mockStatus: BackupsProcessStatus;
   let mockTracker: BackupsProcessTracker;
-  let mockErrors: BackupFatalErrors;
+  let mockErrors: BackupErrorsTracker;
   let mockConfig: BackupConfiguration;
 
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('BackupManager', () => {
     mockStopController = mockDeep<BackupsStopController>();
     mockStatus = mockDeep<BackupsProcessStatus>();
     mockTracker = mockDeep<BackupsProcessTracker>();
-    mockErrors = mockDeep<BackupFatalErrors>();
+    mockErrors = mockDeep<BackupErrorsTracker>();
 
     mockConfig = mockDeep<BackupConfiguration>();
 
