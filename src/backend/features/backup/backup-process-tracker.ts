@@ -1,6 +1,9 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { broadcastToWindows } from '../../../apps/main/windows';
-import { BackupCompleted, ForcedByUser } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
+import {
+  BackupCompleted,
+  ForcedByUser,
+} from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 import { BackupsProgress } from '../../../apps/main/background-processes/backups/types/BackupsProgress';
 import { IndividualBackupProgress } from '../../../apps/main/background-processes/backups/types/IndividualBackupProgress';
 import { SyncError } from '../../../shared/issues/SyncErrorCause';
@@ -14,7 +17,6 @@ export class BackupsProcessTracker {
     total: 0,
     processed: 0,
   };
-
 
   progress(): BackupsProgress {
     return {
@@ -43,7 +45,6 @@ export class BackupsProcessTracker {
     this.updateProgress(this.progress());
   }
 
-
   backing() {
     this.processed++;
 
@@ -54,7 +55,6 @@ export class BackupsProcessTracker {
 
     this.updateProgress(this.progress());
   }
-
 
   reset() {
     this.processed = 0;

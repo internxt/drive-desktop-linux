@@ -3,7 +3,6 @@ import { AuthLoginResponseViewModel } from '../../infra/drive-server/services/au
 import { CleanerReport } from '../../backend/features/cleaner/cleaner.types';
 import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
 
-
 declare interface Window {
   electron: {
     getConfigKey(key: import('./config/service').StoredValues): Promise<any>;
@@ -102,9 +101,7 @@ declare interface Window {
 
     getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
 
-    getBackupErrorByFolder(
-      folderId: number,
-    ): Promise<BackupErrorRecord | undefined>;
+    getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
 
     getVirtualDriveRoot(): Promise<string>;
 

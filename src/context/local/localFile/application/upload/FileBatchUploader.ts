@@ -64,7 +64,7 @@ export class FileBatchUploader {
         }
 
         if (error.cause === 'BAD_RESPONSE') {
-          backupErrorsTracker.add(parent.id,{ name: localFile.nameWithExtension(), error: error.cause });
+          backupErrorsTracker.add(parent.id, { name: localFile.nameWithExtension(), error: error.cause });
           continue;
         }
 
