@@ -1,5 +1,5 @@
-import { isFatalError, SyncError } from '../../../../../shared/issues/SyncErrorCause';
-import { broadcastToWindows } from '../../../windows';
+import { isFatalError, SyncError } from '../../../shared/issues/SyncErrorCause';
+import { broadcastToWindows } from '../../../apps/main/windows';
 
 export type BackupError = {
   name: string;

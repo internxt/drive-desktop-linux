@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ipcMain } from 'electron';
 import { registerBackupFatalErrorsIpcHandler } from './register-backup-fatal-errors-ipc-handler';
 import { getIpcHandler } from './__test-helpers__/ipc-test-utils';
-import type { BackupFatalErrors } from '../../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
+import type { BackupFatalErrors } from '../BackupFatalErrors';
 
 describe('resgisterBackupFatalErrorsIpcHandler', () => {
   const mockBackupErrors = {

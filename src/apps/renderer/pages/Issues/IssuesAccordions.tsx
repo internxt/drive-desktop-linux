@@ -1,6 +1,6 @@
 import { AppIssue } from '../../../../shared/issues/AppIssue';
 import { VirtualDriveIssue } from '../../../../shared/issues/VirtualDriveIssue';
-import { BackupErrorsCollection } from '../../../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
+import { BackupErrorsCollection } from '../../../../backend/features/backup/BackupFatalErrors';
 import { BackupsIssues } from './BackupErrors';
 import { GeneralIssuesByErrorAccordion } from './GeneralIssuesByErrorAccordion';
 import { NoIssues } from './NoIssues';

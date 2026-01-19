@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BackupErrorsCollection } from '../../../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
+import { BackupErrorsCollection } from '../../../../backend/features/backup/BackupFatalErrors';
 import { useTranslationContext } from '../../context/LocalContext';
 import { shortMessages } from '../../messages/virtual-drive-error';
 import { Accordion } from './Accordion';

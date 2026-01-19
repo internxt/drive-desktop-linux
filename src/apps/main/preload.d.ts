@@ -98,11 +98,11 @@ declare interface Window {
 
     onBackupDownloadProgress(func: (value: { id: string; progress: number }) => void): () => void;
 
-    getBackupFatalErrors(): Promise<
-      import('../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors').BackupErrorsCollection
-    >;
+    getBackupFatalErrors(): Promise<import('../../backend/features/backup/BackupFatalErrors').BackupErrorsCollection>;
 
-    getBackupErrorByFolder(folderId: number): Promise<import('../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors').BackupError>;
+    getBackupErrorByFolder(
+      folderId: number,
+    ): Promise<import('../../backend/features/backup/BackupFatalErrors').BackupError>;
 
     getVirtualDriveRoot(): Promise<string>;
 
@@ -147,9 +147,7 @@ declare interface Window {
     deleteBackupError(folderId: number): Promise<void>;
 
     onBackupFatalErrorsChanged(
-      fn: (
-        value: import('../main/background-processes/backups/BackupFatalErrors/BackupFatalErrors').BackupErrorsCollection,
-      ) => void,
+      fn: (value: import('../../backend/features/backup/BackupFatalErrors').BackupErrorsCollection) => void,
     ): () => void;
 
     changeBackupPath: typeof import('../main/device/service').changeBackupPath;

@@ -1,5 +1,5 @@
 import { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
-import { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
+import { BackupFatalErrors } from './BackupFatalErrors';
 import { BackupScheduler } from '../../../apps/main/background-processes/backups/BackupScheduler/BackupScheduler';
 import { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
 import { BackupsProcessTracker } from './backup-process-tracker';

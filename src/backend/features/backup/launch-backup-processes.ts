@@ -1,6 +1,6 @@
 import { powerSaveBlocker } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
+import { BackupFatalErrors } from './BackupFatalErrors';
 import { BackupsProcessTracker } from './backup-process-tracker';
 import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 
@@ -38,7 +38,7 @@ export async function launchBackupProcesses(
       logger.debug({ tag: 'BACKUPS', msg: 'failed', error: error.cause });
       // TODO: Make retryError extend DriveDesktopError to avoid this check
       if (error instanceof DriveDesktopError && 'cause' in error && error.cause && isSyncError(error.cause)) {
-        errors.add(backupInfo.folderId,{ name: backupInfo.name, error: error.cause });
+        errors.add(backupInfo.folderId, { name: backupInfo.name, error: error.cause });
       }
     }
     logger.debug({ tag: 'BACKUPS', msg: `Backup of folder ${backupInfo.pathname} completed successfully` });
