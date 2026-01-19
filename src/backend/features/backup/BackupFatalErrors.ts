@@ -6,10 +6,8 @@ export type BackupError = {
   error: SyncError;
 };
 
-export type BackupErrorsCollection = Map<number, BackupError>;
-
 export class BackupFatalErrors {
-  private errors: BackupErrorsCollection = new Map();
+  private errors: Map<number, BackupError> = new Map();
 
   clear() {
     this.errors = new Map();

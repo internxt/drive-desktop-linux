@@ -1,6 +1,6 @@
 import { AppIssue } from '../../../../shared/issues/AppIssue';
 import { VirtualDriveIssue } from '../../../../shared/issues/VirtualDriveIssue';
-import { BackupErrorsCollection } from '../../../../backend/features/backup/BackupFatalErrors';
+import { BackupError } from '../../../../backend/features/backup/BackupFatalErrors';
 import { BackupsIssues } from './BackupErrors';
 import { GeneralIssuesByErrorAccordion } from './GeneralIssuesByErrorAccordion';
 import { NoIssues } from './NoIssues';
@@ -12,7 +12,7 @@ type IssuesAccordionsProps = {
   issues: {
     app: AppIssue[];
     virtualDrive: VirtualDriveIssue[];
-    backups: BackupErrorsCollection;
+    backups: BackupError[];
   };
 };
 
