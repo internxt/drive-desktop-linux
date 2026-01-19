@@ -98,6 +98,8 @@ export interface IElectronAPI {
   };
   getBackupErrorByFolder(folderId: number): Promise<BackupError>;
   getLastBackupHadIssues(): Promise<boolean>;
+  onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupError>) => void): () => void;
+  getBackupFatalErrors(): Promise<Array<BackupError>>;
 }
 
 declare global {

@@ -1,6 +1,8 @@
 import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 import { AuthLoginResponseViewModel } from '../../infra/drive-server/services/auth/auth.types';
 import { CleanerReport } from '../../backend/features/cleaner/cleaner.types';
+import { BackupError } from '../../backend/features/backup/BackupFatalErrors';
+
 
 declare interface Window {
   electron: {
@@ -98,7 +100,7 @@ declare interface Window {
 
     onBackupDownloadProgress(func: (value: { id: string; progress: number }) => void): () => void;
 
-    getBackupFatalErrors(): Promise<import('../../backend/features/backup/BackupFatalErrors').BackupErrorsCollection>;
+    getBackupFatalErrors(): Array<BackupError>;
 
     getBackupErrorByFolder(
       folderId: number,
@@ -147,7 +149,7 @@ declare interface Window {
     deleteBackupError(folderId: number): Promise<void>;
 
     onBackupFatalErrorsChanged(
-      fn: (value: import('../../backend/features/backup/BackupFatalErrors').BackupErrorsCollection) => void,
+      fn: (backupErrors: Array<BackupError>) => void,
     ): () => void;
 
     changeBackupPath: typeof import('../main/device/service').changeBackupPath;
