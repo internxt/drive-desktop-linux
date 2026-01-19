@@ -1,7 +1,7 @@
 import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 import { AuthLoginResponseViewModel } from '../../infra/drive-server/services/auth/auth.types';
 import { CleanerReport } from '../../backend/features/cleaner/cleaner.types';
-import { BackupError } from '../../backend/features/backup/BackupFatalErrors';
+import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
 
 
 declare interface Window {
@@ -100,11 +100,11 @@ declare interface Window {
 
     onBackupDownloadProgress(func: (value: { id: string; progress: number }) => void): () => void;
 
-    getBackupFatalErrors(): Array<BackupError>;
+    getBackupFatalErrors(): Array<BackupErrorRecord>;
 
     getBackupErrorByFolder(
       folderId: number,
-    ): Promise<import('../../backend/features/backup/BackupFatalErrors').BackupError>;
+    ): Promise<BackupErrorRecord>;
 
     getVirtualDriveRoot(): Promise<string>;
 
@@ -148,9 +148,7 @@ declare interface Window {
 
     deleteBackupError(folderId: number): Promise<void>;
 
-    onBackupFatalErrorsChanged(
-      fn: (backupErrors: Array<BackupError>) => void,
-    ): () => void;
+    onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
 
     changeBackupPath: typeof import('../main/device/service').changeBackupPath;
 

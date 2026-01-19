@@ -1,29 +1,26 @@
-import { isFatalError, SyncError } from '../../../shared/issues/SyncErrorCause';
+import { isFatalError } from '../../../shared/issues/SyncErrorCause';
 import { broadcastToWindows } from '../../../apps/main/windows';
+import { BackupErrorRecord } from './backup.types';
 
-export type BackupError = {
-  name: string;
-  error: SyncError;
-};
 
 export class BackupFatalErrors {
-  private errors: Map<number, BackupError> = new Map();
+  private errors: Map<number, BackupErrorRecord> = new Map();
 
   clear() {
     this.errors = new Map();
     this.broadcast();
   }
 
-  add(folderId: number, error: BackupError) {
+  add(folderId: number, error: BackupErrorRecord) {
     this.errors.set(folderId, error);
     this.broadcast();
   }
 
-  get(folderId: number): BackupError | undefined {
+  get(folderId: number): BackupErrorRecord | undefined {
     return this.errors.get(folderId);
   }
 
-  getAll(): BackupError[] {
+  getAll(): BackupErrorRecord[] {
     return Array.from(this.errors.values());
   }
 

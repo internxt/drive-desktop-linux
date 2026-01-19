@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { BackupError } from '../../../../backend/features/backup/BackupFatalErrors';
 import { useTranslationContext } from '../../context/LocalContext';
 import { shortMessages } from '../../messages/virtual-drive-error';
 import { Accordion } from './Accordion';
 import { SyncError } from '../../../../shared/issues/SyncErrorCause';
+import { BackupErrorRecord } from '../../../../backend/features/backup/backup.types';
 
 interface BackupsErrorsProps {
-  errors: BackupError[];
+  errors: BackupErrorRecord[];
 }
 
 export function BackupsIssues({ errors }: BackupsErrorsProps) {
