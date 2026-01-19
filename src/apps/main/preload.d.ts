@@ -100,11 +100,11 @@ declare interface Window {
 
     onBackupDownloadProgress(func: (value: { id: string; progress: number }) => void): () => void;
 
-    getBackupFatalErrors(): Array<BackupErrorRecord>;
+    getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
 
     getBackupErrorByFolder(
       folderId: number,
-    ): Promise<BackupErrorRecord>;
+    ): Promise<BackupErrorRecord | undefined>;
 
     getVirtualDriveRoot(): Promise<string>;
 

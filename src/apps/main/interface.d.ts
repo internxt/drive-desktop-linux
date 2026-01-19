@@ -97,7 +97,7 @@ export interface IElectronAPI {
     removeInfectedFiles: (infectedFiles: string[]) => Promise<void>;
     cancelScan: () => Promise<void>;
   };
-  getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord>;
+  getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
