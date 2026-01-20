@@ -78,10 +78,7 @@ describe('UploadOnRename', () => {
       size: 1024,
       contentsId,
     });
-    const temporalFile = TemporalFile.create(
-      new TemporalFilePath(src),
-      new TemporalFileSize(1024)
-    );
+    const temporalFile = TemporalFile.create(new TemporalFilePath(src), new TemporalFileSize(1024));
 
     firstsFileSearcherMock.run.mockResolvedValue(virtualFile);
     temporalFileByPathFinderMock.run.mockResolvedValue(temporalFile);
@@ -106,10 +103,7 @@ describe('UploadOnRename', () => {
       size: 1024,
       contentsId,
     });
-    const temporalFile = TemporalFile.create(
-      new TemporalFilePath(src),
-      new TemporalFileSize(2048)
-    );
+    const temporalFile = TemporalFile.create(new TemporalFilePath(src), new TemporalFileSize(2048));
 
     firstsFileSearcherMock.run.mockResolvedValue(virtualFile);
     temporalFileByPathFinderMock.run.mockResolvedValue(temporalFile);
@@ -133,13 +127,13 @@ describe('UploadOnRename', () => {
     });
     const temporalFile = TemporalFile.create(
       new TemporalFilePath(src),
-      new TemporalFileSize(1024) // Same size
+      new TemporalFileSize(1024),
     );
 
     firstsFileSearcherMock.run.mockResolvedValue(virtualFile);
     temporalFileByPathFinderMock.run.mockResolvedValue(temporalFile);
     relativePathToAbsoluteConverterMock.run.mockReturnValue('/absolute/path/to/file');
-    temporalFileByteByByteComparatorMock.run.mockResolvedValue(false); // Different content
+    temporalFileByteByByteComparatorMock.run.mockResolvedValue(false);
     temporalFileUploaderMock.run.mockResolvedValue(undefined);
     temporalFileDeleterMock.run.mockResolvedValue(undefined);
 
@@ -149,7 +143,7 @@ describe('UploadOnRename', () => {
     expect(result.getRight()).toBe('success');
     call(relativePathToAbsoluteConverterMock.run).toBe(contentsId);
     calls(temporalFileByteByByteComparatorMock.run).toHaveLength(1);
-    call(temporalFileUploaderMock.run).toMatchObject([src, {contentsId}]);
+    call(temporalFileUploaderMock.run).toMatchObject([src, { contentsId }]);
     call(temporalFileDeleterMock.run).toBe(src);
   });
 
@@ -160,10 +154,7 @@ describe('UploadOnRename', () => {
       size: 1024,
       contentsId,
     });
-    const temporalFile = TemporalFile.create(
-      new TemporalFilePath(src),
-      new TemporalFileSize(1024)
-    );
+    const temporalFile = TemporalFile.create(new TemporalFilePath(src), new TemporalFileSize(1024));
 
     firstsFileSearcherMock.run.mockResolvedValue(virtualFile);
     temporalFileByPathFinderMock.run.mockResolvedValue(temporalFile);
