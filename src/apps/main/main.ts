@@ -228,7 +228,7 @@ process.on('uncaughtException', (error) => {
    * Esteban Galvis Triana
    * EPIPE errors close stdout, so they must be handled specially to avoid infinite logging loops.
    */
-  if (('code' in error && error.code === 'EPIPE')) return;
+  if ('code' in error && error.code === 'EPIPE') return;
 
   if (error.name === 'AbortError') {
     logger.debug({ msg: 'Fetch request was aborted' });
