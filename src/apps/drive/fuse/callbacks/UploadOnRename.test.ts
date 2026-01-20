@@ -125,10 +125,7 @@ describe('UploadOnRename', () => {
       size: 1024,
       contentsId,
     });
-    const temporalFile = TemporalFile.create(
-      new TemporalFilePath(src),
-      new TemporalFileSize(1024),
-    );
+    const temporalFile = TemporalFile.create(new TemporalFilePath(src), new TemporalFileSize(1024));
 
     firstsFileSearcherMock.run.mockResolvedValue(virtualFile);
     temporalFileByPathFinderMock.run.mockResolvedValue(temporalFile);
