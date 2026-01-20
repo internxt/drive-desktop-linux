@@ -235,7 +235,9 @@ process.on('uncaughtException', (error) => {
   } else {
     try {
       logger.error({ msg: 'Uncaught exception in main process: ', error });
-    } catch {}
+    } catch {
+      return;
+    }
   }
 });
 
