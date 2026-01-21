@@ -1,12 +1,12 @@
 import { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
 import { BackupErrorsTracker } from './backup-errors-tracker';
 import { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
-import { BackupsProcessTracker } from './backup-process-tracker';
+import { BackupProgressTracker } from './backup-progress-tracker';
 import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 import { BackupManager } from './backup-manager';
 export const BACKUP_MANUAL_INTERVAL = -1;
 export const backupsConfig = new BackupConfiguration();
-export const tracker = new BackupsProcessTracker();
+export const tracker = new BackupProgressTracker();
 export const backupErrorsTracker = new BackupErrorsTracker();
 export const status = new BackupsProcessStatus('STANDBY');
 export const stopController = new BackupsStopController();
