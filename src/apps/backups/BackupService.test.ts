@@ -62,7 +62,6 @@ describe('BackupService', () => {
 
     // Setup default mock implementations
     vi.mocked(simpleFolderCreator.run).mockResolvedValue(FolderMother.any());
-    vi.mocked(tracker.getCurrentProcessed).mockReturnValue(0);
 
     backupService = new BackupService(
       localTreeBuilder,
@@ -98,7 +97,8 @@ describe('BackupService', () => {
     expect(result).toBeUndefined();
     expect(localTreeBuilder.run).toHaveBeenCalledWith(info.pathname);
     expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderId, info.folderUuid);
-    expect(tracker.initializeCurrentBackup).toHaveBeenCalled();
+    expect(tracker.addToTotal).toHaveBeenCalled();
+    expect(tracker.incrementProcessed).toHaveBeenCalled();
   });
 
   it('should return an error if local tree generation fails', async () => {
