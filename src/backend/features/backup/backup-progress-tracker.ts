@@ -29,5 +29,4 @@ export class BackupProgressTracker {
     logger.debug({ tag: 'BACKUPS', msg: 'Progress update', percentage });
     broadcastToWindows('backup-progress', percentage);
   }
-
 }

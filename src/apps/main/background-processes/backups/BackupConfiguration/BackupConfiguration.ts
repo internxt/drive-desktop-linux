@@ -4,7 +4,6 @@ import configStore from '../../../config';
 import { BackupInfo } from '../../../../backups/BackupInfo';
 
 export class BackupConfiguration {
-
   get backupInterval(): number {
     return configStore.get('backupInterval');
   }
