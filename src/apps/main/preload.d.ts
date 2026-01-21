@@ -94,7 +94,7 @@ declare interface Window {
     ): () => void;
 
     onBackupProgress(
-      func: (value: import('./background-processes/backups/types/BackupsProgress').BackupsProgress) => void,
+      func: (value: number) => void,
     ): () => void;
 
     onBackupDownloadProgress(func: (value: { id: string; progress: number }) => void): () => void;
