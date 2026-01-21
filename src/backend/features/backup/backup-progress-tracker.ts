@@ -1,11 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { broadcastToWindows } from '../../../apps/main/windows';
-import {
-  BackupCompleted,
-  ForcedByUser,
-} from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
-import { SyncError } from '../../../shared/issues/SyncErrorCause';
-export type WorkerExitCause = ForcedByUser | BackupCompleted | SyncError;
 
 export class BackupProgressTracker {
   private totalItems = 0;
