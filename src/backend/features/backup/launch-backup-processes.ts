@@ -1,7 +1,7 @@
 import { powerSaveBlocker } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { BackupErrorsTracker } from './backup-errors-tracker';
-import { BackupsProcessTracker } from './backup-process-tracker';
+import { BackupProgressTracker } from './backup-progress-tracker';
 import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 
 import { isSyncError } from '../../../shared/issues/SyncErrorCause';
@@ -11,20 +11,17 @@ import { BackupsDependencyContainerFactory } from '../../../apps/backups/depende
 import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
 
 export async function launchBackupProcesses(
-  tracker: BackupsProcessTracker,
+  tracker: BackupProgressTracker,
   errors: BackupErrorsTracker,
   stopController: BackupsStopController,
 ): Promise<void> {
   const suspensionBlockId = powerSaveBlocker.start('prevent-display-sleep');
 
   const backups = await backupsConfig.obtainBackupsInfo();
-  tracker.track(backups.length);
-
   const container = await BackupsDependencyContainerFactory.build();
   const backupService = container.get(BackupService);
 
   for (const backupInfo of backups) {
-    tracker.backing();
     logger.debug({ tag: 'BACKUPS', msg: 'Backup info obtained:', backupInfo });
     if (stopController.hasStopped()) {
       logger.debug({ tag: 'BACKUPS', msg: 'Stop controller stopped' });

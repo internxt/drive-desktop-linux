@@ -4,8 +4,6 @@ import {
   BackupCompleted,
   ForcedByUser,
 } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
-// import { BackupsProgress } from '../../../apps/main/background-processes/backups/types/BackupsProgress';
-// import { IndividualBackupProgress } from '../../../apps/main/background-processes/backups/types/IndividualBackupProgress';
 import { SyncError } from '../../../shared/issues/SyncErrorCause';
 export type WorkerExitCause = ForcedByUser | BackupCompleted | SyncError;
 
@@ -43,21 +41,4 @@ export class BackupProgressTracker {
     broadcastToWindows('backup-progress', percentage);
   }
 
-  /* Deprecated */
-  public getCurrentProcessed(): number {
-    return this.current.processed;
-  }
-
-  /* Deprecated */
-  public updateCurrentProcessed(newProcessedCount: number): void {
-    this.current.processed = newProcessedCount;
-    this.updateProgress(this.progress());
-  }
-
-  /* Deprecated */
-  public initializeCurrentBackup(total: number, processed: number): void {
-    this.current.total = total;
-    this.current.processed = processed;
-    this.updateProgress(this.progress());
-  }
 }
