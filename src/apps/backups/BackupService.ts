@@ -1,4 +1,3 @@
-import { BackupsStopController } from './../main/background-processes/backups/BackupsStopController/BackupsStopController';
 import { Service } from 'diod';
 import { FileBatchUpdater } from '../../context/local/localFile/application/update/FileBatchUpdater';
 import { FileBatchUploader } from '../../context/local/localFile/application/upload/FileBatchUploader';
@@ -42,7 +41,7 @@ export class BackupService {
   // TODO: PB-3897 - Change Signature of this method for a better error handling
   async run(
     info: BackupInfo,
-    stopController: BackupsStopController,
+    signal: AbortSignal,
     tracker: BackupsProcessTracker,
   ): Promise<DriveDesktopError | undefined> {
     logger.debug({ tag: 'BACKUPS', msg: 'Starting backup for:', pathname: info.pathname });
@@ -98,7 +97,7 @@ export class BackupService {
       logger.debug({ tag: 'BACKUPS', msg: 'Folder backup completed' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting file backup' });
-      await this.backupFiles(filesDiff, local, remote, stopController, tracker);
+      await this.backupFiles(filesDiff, local, remote, signal, tracker);
       logger.debug({ tag: 'BACKUPS', msg: 'File backup completed' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Backup process completed successfully' });
@@ -118,7 +117,7 @@ export class BackupService {
    */
   async runWithRetry(
     info: BackupInfo,
-    stopController: BackupsStopController,
+    signal: AbortSignal,
     tracker: BackupsProcessTracker,
   ): Promise<Either<RetryError | DriveDesktopError, undefined>> {
     const options: RetryOptions = {
@@ -126,9 +125,9 @@ export class BackupService {
       initialDelay: 5000,
       backoffFactor: 2,
       jitter: true,
-      signal: stopController.signal,
+      signal,
     };
-    const run = () => this.run(info, stopController, tracker);
+    const run = () => this.run(info, signal, tracker);
     const result = await RetryHandler.execute(run, options);
     if (result.isLeft()) {
       return left(result.getLeft());
@@ -199,7 +198,7 @@ export class BackupService {
     filesDiff: FilesDiff,
     local: LocalTree,
     remote: RemoteTree,
-    stopController: BackupsStopController,
+    signal: AbortSignal,
     tracker: BackupsProcessTracker,
   ) {
     logger.debug({ tag: 'BACKUPS', msg: 'Backing files' });
@@ -207,30 +206,30 @@ export class BackupService {
     const { added, modified, deleted } = filesDiff;
 
     logger.debug({ tag: 'BACKUPS', msg: 'Files added', count: added.length });
-    await this.uploadAndCreate(local.root.path, added, remote, stopController, tracker);
+    await this.uploadAndCreate(local.root.path, added, remote, signal, tracker);
 
     logger.debug({ tag: 'BACKUPS', msg: 'Files modified', count: modified.size });
-    await this.uploadAndUpdate(modified, local, remote, stopController, tracker);
+    await this.uploadAndUpdate(modified, local, remote, signal, tracker);
 
     logger.debug({ tag: 'BACKUPS', msg: 'Files deleted', count: deleted.length });
-    await this.deleteRemoteFiles(deleted, stopController, tracker);
+    await this.deleteRemoteFiles(deleted, signal, tracker);
   }
 
   private async uploadAndCreate(
     localRootPath: string,
     added: Array<LocalFile>,
     tree: RemoteTree,
-    stopController: BackupsStopController,
+    signal: AbortSignal,
     tracker: BackupsProcessTracker,
   ): Promise<void> {
     const batches = AddedFilesBatchCreator.run(added);
 
     for (const batch of batches) {
-      if (stopController.signal.aborted) {
+      if (signal.aborted) {
         return;
       }
       // eslint-disable-next-line no-await-in-loop
-      await this.fileBatchUploader.run(localRootPath, tree, batch, stopController.signal);
+      await this.fileBatchUploader.run(localRootPath, tree, batch, signal);
       tracker.updateCurrentProcessed(tracker.getCurrentProcessed() + batch.length);
     }
   }
@@ -239,18 +238,18 @@ export class BackupService {
     modified: Map<LocalFile, File>,
     localTree: LocalTree,
     remoteTree: RemoteTree,
-    stopController: BackupsStopController,
+    signal: AbortSignal,
     tracker: BackupsProcessTracker,
   ): Promise<void> {
     const batches = ModifiedFilesBatchCreator.run(modified);
 
     for (const batch of batches) {
-      logger.debug({ tag: 'BACKUPS', msg: 'Signal aborted', aborted: stopController.signal.aborted });
-      if (stopController.signal.aborted) {
+      logger.debug({ tag: 'BACKUPS', msg: 'Signal aborted', aborted: signal.aborted });
+      if (signal.aborted) {
         return;
       }
       // eslint-disable-next-line no-await-in-loop
-      await this.fileBatchUpdater.run(localTree.root, remoteTree, Array.from(batch.keys()), stopController.signal);
+      await this.fileBatchUpdater.run(localTree.root, remoteTree, Array.from(batch.keys()), signal);
 
       tracker.updateCurrentProcessed(tracker.getCurrentProcessed() + batch.size);
     }
@@ -258,11 +257,11 @@ export class BackupService {
 
   private async deleteRemoteFiles(
     deleted: Array<File>,
-    stopController: BackupsStopController,
+    signal: AbortSignal,
     tracker: BackupsProcessTracker,
   ): Promise<void> {
     for (const file of deleted) {
-      if (stopController.signal.aborted) {
+      if (signal.aborted) {
         return;
       }
 
