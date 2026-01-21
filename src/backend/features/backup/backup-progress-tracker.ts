@@ -11,11 +11,6 @@ export class BackupProgressTracker {
   private totalItems = 0;
   private processedItems = 0;
 
-  // private current: IndividualBackupProgress = {
-  //   total: 0,
-  //   processed: 0,
-  // };
-
   addToTotal(totalBackups: number): void {
     this.totalItems += totalBackups;
   }
