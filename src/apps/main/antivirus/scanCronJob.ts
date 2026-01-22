@@ -19,9 +19,12 @@ export function scheduleDailyScan() {
     await scanInBackground();
   }
 
-  startBackgroundScan().catch((err) => {
-    logger.error({ tag: 'ANTIVIRUS', msg: 'Error in initial background scan:', err });
-  });
+  // TEMPORARILY DISABLED: Initial scan commented out to avoid log noise during development
+  // startBackgroundScan().catch((err) => {
+  //   logger.error({ tag: 'ANTIVIRUS', msg: 'Error in initial background scan:', err });
+  // });
+
+  logger.debug({ tag: 'ANTIVIRUS', msg: 'Daily scan scheduled (initial scan disabled)' });
 
   dailyScanInterval = setInterval(() => {
     startBackgroundScan().catch((err) => {
