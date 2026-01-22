@@ -3,7 +3,7 @@ import { mockDeep } from 'vitest-mock-extended';
 import { BackupManager } from './backup-manager';
 import type { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 import type { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
-import type { BackupsProcessTracker } from './backup-process-tracker';
+import type { BackupProgressTracker } from './backup-progress-tracker';
 import type { BackupErrorsTracker } from './backup-errors-tracker';
 import type { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
@@ -26,7 +26,7 @@ describe('BackupManager', () => {
   let backupManager: BackupManager;
   let mockStopController: BackupsStopController;
   let mockStatus: BackupsProcessStatus;
-  let mockTracker: BackupsProcessTracker;
+  let mockTracker: BackupProgressTracker;
   let mockErrors: BackupErrorsTracker;
   let mockConfig: BackupConfiguration;
 
@@ -35,7 +35,7 @@ describe('BackupManager', () => {
 
     mockStopController = mockDeep<BackupsStopController>();
     mockStatus = mockDeep<BackupsProcessStatus>();
-    mockTracker = mockDeep<BackupsProcessTracker>();
+    mockTracker = mockDeep<BackupProgressTracker>();
     mockErrors = mockDeep<BackupErrorsTracker>();
 
     mockConfig = mockDeep<BackupConfiguration>();

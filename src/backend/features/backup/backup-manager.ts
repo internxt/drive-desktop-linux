@@ -2,7 +2,7 @@ import { BackupConfiguration } from '../../../apps/main/background-processes/bac
 import { BackupErrorsTracker } from './backup-errors-tracker';
 import { BackupScheduler } from '../../../apps/main/background-processes/backups/BackupScheduler/BackupScheduler';
 import { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
-import { BackupsProcessTracker } from './backup-process-tracker';
+import { BackupProgressTracker } from './backup-progress-tracker';
 import { BackupsStopController } from '../../../apps/main/background-processes/backups/BackupsStopController/BackupsStopController';
 import { launchBackupProcesses } from './launch-backup-processes';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
@@ -13,7 +13,7 @@ export class BackupManager {
   constructor(
     private stopController: BackupsStopController,
     private status: BackupsProcessStatus,
-    private tracker: BackupsProcessTracker,
+    private tracker: BackupProgressTracker,
     private errors: BackupErrorsTracker,
     private config: BackupConfiguration,
   ) {

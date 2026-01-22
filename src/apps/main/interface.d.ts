@@ -101,6 +101,7 @@ export interface IElectronAPI {
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
+  onBackupProgress(func: (value: number) => void): () => void;
 }
 
 declare global {
