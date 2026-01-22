@@ -155,12 +155,8 @@ declare interface Window {
 
     getPlatform: () => Promise<import('../main/platform/DesktopPlatform').DesktopPlatform>;
 
-    userLogginFailed: (email: string) => void;
-
     startMigration: () => Promise<void>;
     openMigrationFailedFolder: () => Promise<void>;
-    sendFeedback: (feedback: string) => Promise<void>;
-    openFeedbackWindow(): void;
     onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
     getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
     getVirtualDriveStatus(): Promise<import('../drive/fuse/FuseDriveStatus').FuseDriveStatus>;

@@ -32,9 +32,6 @@ contextBridge.exposeInMainWorld('electron', {
   onUserLoggedInChanged(func) {
     return ipcRenderer.on('user-logged-in-changed', (_, v) => func(v));
   },
-  userLogginFailed(email) {
-    ipcRenderer.send('USER_LOGIN_FAILED', email);
-  },
   logout() {
     return ipcRenderer.send('user-logged-out');
   },
@@ -282,12 +279,6 @@ contextBridge.exposeInMainWorld('electron', {
   },
   addFakeIssues(errorsName, process) {
     return ipcRenderer.invoke('add-fake-sync-issues', { errorsName, process });
-  },
-  sendFeedback(feedback) {
-    return ipcRenderer.invoke('send-feedback', feedback);
-  },
-  openFeedbackWindow() {
-    return ipcRenderer.invoke('open-feedback-window');
   },
   onRemoteSyncStatusChange(callback) {
     const eventName = 'remote-sync-status-change';
