@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
 import { BackupManager } from './backup-manager';
 import type { BackupsProcessStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsProcessStatus';
-import type { BackupsProcessTracker } from '../../../apps/main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
-import type { BackupFatalErrors } from '../../../apps/main/background-processes/backups/BackupFatalErrors/BackupFatalErrors';
+import type { BackupProgressTracker } from './backup-progress-tracker';
+import type { BackupErrorsTracker } from './backup-errors-tracker';
 import type { BackupConfiguration } from '../../../apps/main/background-processes/backups/BackupConfiguration/BackupConfiguration';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { launchBackupProcesses } from './launch-backup-processes';
@@ -24,16 +24,16 @@ vi.mock('../../../apps/main/background-processes/backups/BackupScheduler/BackupS
 describe('BackupManager', () => {
   let backupManager: BackupManager;
   let mockStatus: BackupsProcessStatus;
-  let mockTracker: BackupsProcessTracker;
-  let mockErrors: BackupFatalErrors;
+  let mockTracker: BackupProgressTracker;
+  let mockErrors: BackupErrorsTracker;
   let mockConfig: BackupConfiguration;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     mockStatus = mockDeep<BackupsProcessStatus>();
-    mockTracker = mockDeep<BackupsProcessTracker>();
-    mockErrors = mockDeep<BackupFatalErrors>();
+    mockTracker = mockDeep<BackupProgressTracker>();
+    mockErrors = mockDeep<BackupErrorsTracker>();
 
     mockConfig = mockDeep<BackupConfiguration>();
 

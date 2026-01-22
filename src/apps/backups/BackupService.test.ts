@@ -17,7 +17,7 @@ import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
 import { DiffFilesCalculatorService } from './diff/DiffFilesCalculatorService';
 import { UsageModule } from '../../backend/features/usage/usage.module';
 import { FolderMother } from '../../context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
-import { BackupsProcessTracker } from '../main/background-processes/backups/BackupsProcessTracker/BackupsProcessTracker';
+import { BackupProgressTracker } from '../../backend/features/backup/backup-progress-tracker';
 
 // Mock the UsageModule
 vi.mock('../../backend/features/usage/usage.module', () => ({
@@ -44,7 +44,7 @@ describe('BackupService', () => {
   let backupsDanglingFilesService: BackupsDanglingFilesService;
   let mockValidateSpace: Mock;
   let abortController: AbortController;
-  let tracker: BackupsProcessTracker;
+  let tracker: BackupProgressTracker;
 
   beforeEach(() => {
     localTreeBuilder = mockDeep<LocalTreeBuilder>();
@@ -54,14 +54,13 @@ describe('BackupService', () => {
     remoteFileDeleter = mockDeep<FileDeleter>();
     backupsDanglingFilesService = mockDeep<BackupsDanglingFilesService>();
     simpleFolderCreator = mockDeep<SimpleFolderCreator>();
-    tracker = mockDeep<BackupsProcessTracker>();
+    tracker = mockDeep<BackupProgressTracker>();
 
     mockValidateSpace = UsageModule.validateSpace as Mock;
     abortController = new AbortController();
 
     // Setup default mock implementations
     vi.mocked(simpleFolderCreator.run).mockResolvedValue(FolderMother.any());
-    vi.mocked(tracker.getCurrentProcessed).mockReturnValue(0);
 
     backupService = new BackupService(
       localTreeBuilder,
@@ -97,7 +96,8 @@ describe('BackupService', () => {
     expect(result).toBeUndefined();
     expect(localTreeBuilder.run).toHaveBeenCalledWith(info.pathname);
     expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderId, info.folderUuid);
-    expect(tracker.initializeCurrentBackup).toHaveBeenCalled();
+    expect(tracker.addToTotal).toHaveBeenCalled();
+    expect(tracker.incrementProcessed).toHaveBeenCalled();
   });
 
   it('should return an error if local tree generation fails', async () => {
