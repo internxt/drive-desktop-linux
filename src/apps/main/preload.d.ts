@@ -61,8 +61,6 @@ declare interface Window {
 
     stopSyncProcess(): void;
 
-    moveSyncFolderToDesktop(): Promise<typeof import('../main/migration/service').moveSyncFolderToDesktop>;
-
     openProcessIssuesWindow(): void;
 
     openLogs(): void;
@@ -154,9 +152,6 @@ declare interface Window {
     getUsage: () => Promise<import('../../backend/features/usage/usage.types').Usage>;
 
     getPlatform: () => Promise<import('../main/platform/DesktopPlatform').DesktopPlatform>;
-
-    startMigration: () => Promise<void>;
-    openMigrationFailedFolder: () => Promise<void>;
     onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
     getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
     getVirtualDriveStatus(): Promise<import('../drive/fuse/FuseDriveStatus').FuseDriveStatus>;
