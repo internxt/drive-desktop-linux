@@ -81,7 +81,7 @@ export function scheduleDailyScan() {
     logger.debug({
       tag: 'ANTIVIRUS',
       msg: 'User system scan completed in seconds',
-      time
+      time,
     });
   }
 
@@ -97,7 +97,7 @@ export function scheduleDailyScan() {
     logger.debug({
       tag: 'ANTIVIRUS',
       msg: 'User system scan completed in seconds',
-      time
+      time,
     });
   }, ONE_DAY_MS);
 }
