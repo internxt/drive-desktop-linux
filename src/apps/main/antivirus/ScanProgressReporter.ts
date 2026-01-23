@@ -20,7 +20,7 @@ export class ScanProgressReporter {
     this.totalFiles = totalFiles;
   }
 
-  reportFileScanned(filePath: string, isInfected: boolean): void {
+  reportFileScanned(filePath: string, isInfected: boolean) {
     this.scannedCount++;
     this.currentPath = filePath;
 
@@ -42,7 +42,7 @@ export class ScanProgressReporter {
     this.emit();
   }
 
-  reportCompleted(): void {
+  reportCompleted() {
     this.emit(true);
   }
 
@@ -56,7 +56,7 @@ export class ScanProgressReporter {
     };
   }
 
-  private emit(forceCompleted = false): void {
+  private emit(forceCompleted = false) {
     const progress = this.getProgress();
 
     const progressData: ProgressData = {
@@ -71,7 +71,7 @@ export class ScanProgressReporter {
     eventBus.emit('ANTIVIRUS_SCAN_PROGRESS', progressData);
   }
 
-  private calculateProgressPercentage(): number {
+  private calculateProgressPercentage() {
     if (this.totalFiles === 0) return 0;
     if (this.scannedCount >= this.totalFiles) return 100;
     return Math.min(Math.floor((this.scannedCount / this.totalFiles) * 100), 99);

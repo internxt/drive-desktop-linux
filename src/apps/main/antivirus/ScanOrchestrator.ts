@@ -7,6 +7,7 @@ import { ScannedItemCollection } from '../database/collections/ScannedItemCollec
 import { countSystemFiles, getFilesFromDirectory } from './utils/getFilesFromDirectory';
 import { transformItem } from './utils/transformItem';
 import { isPermissionError } from './utils/isPermissionError';
+import { ScannedItem } from '../database/entities/ScannedItem';
 
 export class ScanOrchestrator {
   private antivirus: Antivirus | null = null;
@@ -20,7 +21,7 @@ export class ScanOrchestrator {
     this.dbConnection = new DBScannerConnection(scannedItemsAdapter);
   }
 
-  async scanPaths(paths: string[]): Promise<void> {
+  async scanPaths(paths: string[]) {
     if (paths.length === 0) {
       logger.warn({ tag: 'ANTIVIRUS', msg: 'No paths provided for scanning' });
       return;
@@ -91,7 +92,7 @@ export class ScanOrchestrator {
     }
   }
 
-  async cancel(): Promise<void> {
+  async cancel() {
     logger.debug({ tag: 'ANTIVIRUS', msg: 'Cancelling scan...' });
     this.cancelled = true;
 
@@ -99,7 +100,7 @@ export class ScanOrchestrator {
     await this.cleanup();
   }
 
-  private async countTotalFiles(paths: string[]): Promise<number> {
+  private async countTotalFiles(paths: string[]) {
     let total = 0;
 
     for (const path of paths) {
@@ -119,7 +120,7 @@ export class ScanOrchestrator {
     return total;
   }
 
-  private async queueFilesForScanning(paths: string[]): Promise<void> {
+  private async queueFilesForScanning(paths: string[]) {
     let queuedCount = 0;
 
     for (const path of paths) {
@@ -154,7 +155,7 @@ export class ScanOrchestrator {
     });
   }
 
-  private async scanFile(filePath: string): Promise<void> {
+  private async scanFile(filePath: string) {
     if (this.cancelled || !this.antivirus || !this.progressReporter) {
       logger.warn({
         tag: 'ANTIVIRUS',
@@ -204,16 +205,16 @@ export class ScanOrchestrator {
     }
   }
 
-  private isFileUnchanged(current: any, cached: any): boolean {
+  private isFileUnchanged(current: ScannedItem, cached: ScannedItem) {
     return current.updatedAtW === cached.updatedAtW || current.hash === cached.hash;
   }
 
-  private emitEmptyResult(): void {
+  private emitEmptyResult() {
     const reporter = new ScanProgressReporter(0);
     reporter.reportCompleted();
   }
 
-  private async cleanup(): Promise<void> {
+  private async cleanup() {
     if (this.antivirus) {
       try {
         await this.antivirus.stopClamAv();
