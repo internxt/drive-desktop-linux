@@ -9,6 +9,8 @@ import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { MULTIPART_UPLOAD_SIZE_THRESHOLD } from '../../../shared/domain/UploadConstants';
+
+// TODO: THIS WHOLE FILE IS GOING TO BE REPLACED
 @Service()
 export class EnvironmentLocalFileUploader implements LocalFileHandler {
   constructor(

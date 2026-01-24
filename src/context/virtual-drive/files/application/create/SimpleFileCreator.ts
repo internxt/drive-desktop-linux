@@ -7,6 +7,7 @@ import { FileFolderId } from '../../domain/FileFolderId';
 import { File } from '../../domain/File';
 import { Either, left, right } from '../../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
+// TODO: THIS WHOLE FILE IS GOING TO BE REPLACED
 @Service()
 export class SimpleFileCreator {
   constructor(private readonly remote: RemoteFileSystem) {}

@@ -9,6 +9,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { backupErrorsTracker } from '../../../../../backend/features/backup';
 import { deleteFileFromStorageByFileId } from '../../../../../infra/drive-server/services/files/services/delete-file-content-from-bucket';
 
+// TODO: THIS WHOLE FILE IS GOING TO BE REPLACED
 @Service()
 export class FileBatchUploader {
   constructor(
