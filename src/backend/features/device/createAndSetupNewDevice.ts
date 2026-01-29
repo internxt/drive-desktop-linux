@@ -1,17 +1,13 @@
 import { DependencyInjectionUserProvider } from './../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
-import { Device } from './../../../apps/main/device/service';
 import { createNewDevice } from './createNewDevice';
 import { BrowserWindow } from 'electron';
 import { broadcastToWindows } from '../../../apps/main/windows';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { getDeviceIdentifier } from './getDeviceIdentifier';
 
-export async function createAndSetupNewDevice(): Promise<Device | Error> {
-  const getDeviceIdentifierResult = getDeviceIdentifier();
-  if (getDeviceIdentifierResult.isLeft()) {
-    return getDeviceIdentifierResult.getLeft();
-  }
-  const deviceIdentifier = getDeviceIdentifierResult.getRight();
+export async function createAndSetupNewDevice() {
+  const { error, data: deviceIdentifier } = getDeviceIdentifier();
+  if (error) return { error };
 
   const createNewDeviceEither = await createNewDevice(deviceIdentifier);
   if (createNewDeviceEither.isRight()) {
