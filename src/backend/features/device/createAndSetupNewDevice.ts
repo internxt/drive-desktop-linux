@@ -10,22 +10,28 @@ export async function createAndSetupNewDevice() {
   if (error) return { error };
 
   const createNewDeviceEither = await createNewDevice(deviceIdentifier);
-  if (createNewDeviceEither.isRight()) {
-    const device = createNewDeviceEither.getRight();
-    const user = DependencyInjectionUserProvider.get();
-    user.backupsBucket = device.bucket;
-
-    const mainWindow = BrowserWindow.getAllWindows()[0];
-    if (mainWindow) {
-      mainWindow.webContents.send('reinitialize-backups');
-    }
-    broadcastToWindows('device-created', device);
-    logger.debug({
+  if (createNewDeviceEither.isLeft()) {
+    logger.error({
       tag: 'BACKUPS',
-      msg: '[DEVICE] Created new device',
-      deviceUUID: device.uuid,
+      msg: '[DEVICE] Error creating new device',
+      error: createNewDeviceEither.getLeft(),
     });
-    return device;
+    return { error: createNewDeviceEither.getLeft() };
   }
-  return createNewDeviceEither.getLeft();
+
+  const device = createNewDeviceEither.getRight();
+  const user = DependencyInjectionUserProvider.get();
+  user.backupsBucket = device.bucket;
+
+  const mainWindow = BrowserWindow.getAllWindows()[0];
+  if (mainWindow) {
+    mainWindow.webContents.send('reinitialize-backups');
+  }
+  broadcastToWindows('device-created', device);
+  logger.debug({
+    tag: 'BACKUPS',
+    msg: '[DEVICE] Created new device',
+    deviceUUID: device.uuid,
+  });
+  return { data: device };
 }

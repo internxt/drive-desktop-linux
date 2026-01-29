@@ -13,10 +13,10 @@ async function handleFetchDeviceResult(deviceResult: Result<Device, Error>) {
     return await createAndSetupNewDevice();
   }
 
-  return deviceResult.data;
+  return { data: deviceResult.data };
 }
 
-export async function getOrCreateDevice() {
+export async function getOrCreateDevice(): Promise<Result<Device, Error>> {
   const { error, data } = getDeviceIdentifier();
   if (error) return { error };
 
@@ -27,7 +27,7 @@ export async function getOrCreateDevice() {
   const hasUuid = savedUUID !== '';
   if (!hasLegacyId && !hasUuid) {
     const result = await fetchDevice({ deviceIdentifier: data });
-    return handleFetchDeviceResult(result);
+    return await handleFetchDeviceResult(result);
   }
 
   /* eventually, this whole if section is going to be replaced
@@ -35,5 +35,5 @@ export async function getOrCreateDevice() {
   const prop = hasUuid ? { uuid: savedUUID } : { legacyId: legacyId.toString() };
 
   const deviceResult = await fetchDeviceLegacyAndMigrate(prop);
-  return handleFetchDeviceResult(deviceResult);
+  return await handleFetchDeviceResult(deviceResult);
 }
