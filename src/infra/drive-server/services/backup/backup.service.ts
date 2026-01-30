@@ -249,7 +249,7 @@ export class BackupService {
         error: error.message,
         attributes: { endpoint: '/backup/v2/devices' },
       });
-      return { error: error };
+      return { error };
     }
   }
 

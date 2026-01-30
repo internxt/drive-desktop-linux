@@ -22,6 +22,12 @@ export async function getOrCreateDevice(): Promise<Result<Device, Error>> {
 
   const legacyId = configStore.get('deviceId');
   const savedUUID = configStore.get('deviceUUID');
+  logger.debug({
+    tag: 'BACKUPS',
+    msg: '[DEVICE] Checking saved device identifiers',
+    legacyId,
+    savedUUID,
+  });
 
   const hasLegacyId = legacyId !== -1;
   const hasUuid = savedUUID !== '';
