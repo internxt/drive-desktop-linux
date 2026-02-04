@@ -16,10 +16,12 @@ export class BackupScheduler {
       return;
     }
 
-    if (!this.lastBackupIsSet() || this.shouldDoBackup()) {
+    const delay = this.lastBackupIsSet() ? this.millisecondsToNextBackup() : this.interval();
+
+    if (delay <= 0) {
       await this.runAndScheduleNext();
     } else {
-      BackupScheduler.schedule = setTimeout(() => this.runAndScheduleNext(), this.millisecondsToNextBackup());
+      BackupScheduler.schedule = setTimeout(() => this.runAndScheduleNext(), delay);
     }
   }
 
