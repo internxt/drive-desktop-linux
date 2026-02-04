@@ -12,12 +12,14 @@ export class BackupScheduler {
   ) {}
 
   async start(): Promise<void> {
-    if (this.lastBackupIsSet() && this.intervalIsSet()) {
-      if (this.shouldDoBackup()) {
-        await this.runAndScheduleNext();
-      } else {
-        BackupScheduler.schedule = setTimeout(() => this.runAndScheduleNext(), this.millisecondsToNextBackup());
-      }
+    if (!this.intervalIsSet()) {
+      return;
+    }
+
+    if (!this.lastBackupIsSet() || this.shouldDoBackup()) {
+      await this.runAndScheduleNext();
+    } else {
+      BackupScheduler.schedule = setTimeout(() => this.runAndScheduleNext(), this.millisecondsToNextBackup());
     }
   }
 
@@ -35,8 +37,8 @@ export class BackupScheduler {
     await this.task();
     this.updateLastBackup();
 
-    if (getIsLoggedIn() && this.lastBackupIsSet() && this.intervalIsSet()) {
-      BackupScheduler.schedule = setTimeout(() => this.task(), this.interval());
+    if (getIsLoggedIn() && this.intervalIsSet()) {
+      BackupScheduler.schedule = setTimeout(() => this.runAndScheduleNext(), this.interval());
     }
   }
 
