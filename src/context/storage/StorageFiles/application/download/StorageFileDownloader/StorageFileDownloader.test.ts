@@ -84,8 +84,6 @@ describe('StorageFileDownloader', () => {
     const result = await sut.run(file, metadata);
     sut.notifyDownloadFinished(result.metadata, result.handler);
 
-    expect(tracker.downloadFinished).toHaveBeenCalledWith(metadata.name, metadata.type, metadata.size, {
-      elapsedTime: 1500,
-    });
+    expect(tracker.downloadFinished).toHaveBeenCalledWith(metadata.name, metadata.type);
   });
 });
