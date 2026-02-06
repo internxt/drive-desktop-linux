@@ -9,9 +9,6 @@ export abstract class DownloadProgressTracker {
       percentage: number;
     },
   ): Promise<void>;
-  abstract downloadFinished(
-    name: string,
-    extension: string,
-  ): Promise<void>;
+  abstract downloadFinished(name: string, extension: string): Promise<void>;
   abstract error(name: string, extension: string): Promise<void>;
 }
