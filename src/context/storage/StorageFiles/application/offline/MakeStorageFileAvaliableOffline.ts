@@ -35,8 +35,20 @@ export class MakeStorageFileAvaliableOffline {
       size: virtual.size,
     });
 
-    const readable = await this.downloader.run(storage, virtual);
-    await this.repository.store(storage, readable);
+    const { stream, metadata, handler } = await this.downloader.run(storage, virtual, {
+      disableProgressTracking: true,
+    });
+
+    this.downloader.notifyDownloadStarted(metadata);
+
+    await this.repository.store(storage, stream, {
+      onProgress: (bytesWritten) => {
+        const progress = Math.min(bytesWritten / virtual.size, 1);
+        this.downloader.notifyDownloadProgress(metadata, progress, handler.elapsedTime());
+      },
+    });
+
+    this.downloader.notifyDownloadFinished(metadata, handler);
 
     logger.debug({
       msg: `File "${virtual.nameWithExtension}" with ${storage.id.value} is now avaliable locally`,

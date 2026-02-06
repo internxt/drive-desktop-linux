@@ -49,6 +49,7 @@ describe('Storage Remote Changes Syncher', () => {
 
     repository.returnAll(expectFilesDeleted);
     singleFileMatchingSearcher.returnOneAtATime(expectFilesDeleted.map(() => FileMother.any()));
+    storageFileDownloader.returnsAReadable();
 
     await SUT.run();
 
@@ -72,6 +73,7 @@ describe('Storage Remote Changes Syncher', () => {
 
     repository.returnAll(storageFilesFound);
     singleFileMatchingSearcher.returnOneAtATime(virtualFilesAssociated);
+    storageFileDownloader.returnsAReadable();
 
     await SUT.run();
 

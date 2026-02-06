@@ -12,10 +12,6 @@ export abstract class DownloadProgressTracker {
   abstract downloadFinished(
     name: string,
     extension: string,
-    size: number,
-    progress: {
-      elapsedTime: number;
-    },
   ): Promise<void>;
   abstract error(name: string, extension: string): Promise<void>;
 }

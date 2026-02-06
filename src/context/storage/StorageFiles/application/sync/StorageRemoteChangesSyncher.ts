@@ -37,8 +37,19 @@ export class StorageRemoteChangesSyncher {
       size: virtualFile.size,
     });
 
-    const readable = await this.downloader.run(newer, virtualFile);
-    await this.repository.store(newer, readable);
+    const { stream, metadata, handler } = await this.downloader.run(newer, virtualFile, {
+      disableProgressTracking: true,
+    });
+
+    this.downloader.notifyDownloadStarted(metadata);
+    await this.repository.store(newer, stream, {
+      onProgress: (bytesWritten) => {
+        const progress = Math.min(bytesWritten / virtualFile.size, 1);
+        this.downloader.notifyDownloadProgress(metadata, progress, handler.elapsedTime());
+      },
+    });
+
+    this.downloader.notifyDownloadFinished(metadata, handler);
 
     logger.debug({
       msg: `File "${virtualFile.nameWithExtension}" with ${newer.id.value} is avaliable offline`,

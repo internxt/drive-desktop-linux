@@ -12,7 +12,6 @@ export class MainProcessDownloadProgressTracker extends SyncMessenger implements
     broadcastToWindows('sync-info-update', {
       action: 'DOWNLOADING',
       name: this.nameWithExtension(name, extension),
-      progress: 0,
     });
   }
 
@@ -28,14 +27,7 @@ export class MainProcessDownloadProgressTracker extends SyncMessenger implements
     });
   }
 
-  async downloadFinished(
-    name: string,
-    extension: string,
-    size: number,
-    progress: {
-      elapsedTime: number;
-    },
-  ): Promise<void> {
+  async downloadFinished(name: string, extension: string) {
     const nameWithExtension = this.nameWithExtension(name, extension);
 
     setTrayStatus('IDLE');

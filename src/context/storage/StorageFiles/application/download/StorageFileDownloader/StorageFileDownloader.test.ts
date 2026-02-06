@@ -50,15 +50,9 @@ describe('StorageFileDownloader', () => {
 
       expect(downloaderHandler.on).toHaveBeenCalledWith('error', expect.any(Function));
     });
-
-    it('should handle download finish', async () => {
-      await sut.run(file, metadata);
-
-      expect(downloaderHandler.on).toHaveBeenCalledWith('finish', expect.any(Function));
-    });
   });
 
-  it('should successfully download a file', async () => {
+  it('should successfully download a file and return download result', async () => {
     const mockStream = new Readable({
       read() {
         this.push('mock data');
@@ -68,9 +62,30 @@ describe('StorageFileDownloader', () => {
 
     downloaderHandler.download.mockResolvedValue(mockStream);
 
-    const stream = await sut.run(file, metadata);
+    const result = await sut.run(file, metadata);
 
-    expect(stream).toBeInstanceOf(Readable);
+    expect(result.stream).toBeInstanceOf(Readable);
+    expect(result.metadata).toEqual(metadata);
+    expect(result.handler).toBe(downloaderHandler);
     expect(downloaderHandler.download).toHaveBeenCalledWith(file);
+  });
+
+  it('should notify download finished when called manually', async () => {
+    const mockStream = new Readable({
+      read() {
+        this.push('mock data');
+        this.push(null);
+      },
+    });
+
+    downloaderHandler.download.mockResolvedValue(mockStream);
+    downloaderHandler.elapsedTime.mockReturnValue(1500);
+
+    const result = await sut.run(file, metadata);
+    sut.notifyDownloadFinished(result.metadata, result.handler);
+
+    expect(tracker.downloadFinished).toHaveBeenCalledWith(metadata.name, metadata.type, metadata.size, {
+      elapsedTime: 1500,
+    });
   });
 });

@@ -16,8 +16,14 @@ export class InMemoryStorageFileCache implements StorageFileCache {
     this.buffers.set(id.value, value);
   }
 
-  async pipe(id: StorageFileId, stream: Readable): Promise<void> {
-    const buffer = await ReadStreamToBuffer.read(stream);
+  async pipe(
+    id: StorageFileId,
+    stream: Readable,
+    options?: { onProgress?: (bytesWritten: number) => void },
+  ): Promise<void> {
+    const buffer = await ReadStreamToBuffer.read(stream, {
+      onProgress: options?.onProgress,
+    });
 
     await this.store(id, buffer);
   }

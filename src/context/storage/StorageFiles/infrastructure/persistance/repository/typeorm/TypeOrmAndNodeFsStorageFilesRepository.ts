@@ -25,10 +25,16 @@ export class TypeOrmAndNodeFsStorageFilesRepository implements StorageFilesRepos
     ensureFolderExists(this.baseFolder);
   }
 
-  async store(file: StorageFile, readable: Readable): Promise<void> {
+  async store(
+    file: StorageFile,
+    readable: Readable,
+    options?: { onProgress?: (bytesWritten: number) => void },
+  ): Promise<void> {
     const where = path.join(this.baseFolder, file.id.value);
 
-    await WriteReadableToFile.write(readable, where);
+    await WriteReadableToFile.write(readable, where, {
+      onProgress: options?.onProgress,
+    });
 
     await this.db.save(file.attributes());
   }

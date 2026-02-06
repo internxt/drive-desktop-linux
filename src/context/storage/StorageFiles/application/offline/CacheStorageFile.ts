@@ -42,8 +42,20 @@ export class CacheStorageFile {
       size: virtual.size,
     });
 
-    const readable = await this.downloader.run(storage, virtual);
-    await this.cache.pipe(id, readable);
+    const { stream, metadata, handler } = await this.downloader.run(storage, virtual, {
+      disableProgressTracking: true,
+    });
+
+    this.downloader.notifyDownloadStarted(metadata);
+
+    await this.cache.pipe(id, stream, {
+      onProgress: (bytesWritten) => {
+        const progress = Math.min(bytesWritten / virtual.size, 1);
+        this.downloader.notifyDownloadProgress(metadata, progress, handler.elapsedTime());
+      },
+    });
+
+    this.downloader.notifyDownloadFinished(metadata, handler);
 
     logger.debug({
       msg: `File "${virtual.nameWithExtension}" with ${storage.id.value} is cached`,
