@@ -65,6 +65,7 @@ export class CacheStorageFile {
     });
 
     this.tracker.downloadFinished(metadata.name, metadata.type);
+
     logger.debug({
       msg: `File "${virtual.nameWithExtension}" with ${storage.id.value} is cached`,
     });

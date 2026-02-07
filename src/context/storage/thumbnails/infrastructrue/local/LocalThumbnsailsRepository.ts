@@ -87,7 +87,7 @@ export class LocalThumbnailRepository implements ThumbnailsRepository {
         writeReadableToFile({
           readable: stream,
           path: p,
-          onProgress: vi.fn(),
+          onProgress: () => {},
         }),
       ),
     );

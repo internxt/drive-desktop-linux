@@ -58,6 +58,4 @@ describe('StorageFileDownloader', () => {
     expect(result.handler).toBe(downloaderHandler);
     expect(downloaderHandler.download).toHaveBeenCalledWith(file);
   });
-
-
 });
