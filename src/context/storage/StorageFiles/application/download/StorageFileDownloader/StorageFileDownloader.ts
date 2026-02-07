@@ -13,29 +13,6 @@ export class StorageFileDownloader {
     private readonly tracker: DownloadProgressTracker,
   ) {}
 
-  private async registerEvents(
-    handler: DownloaderHandler,
-    { name, type, size }: { name: string; type: string; size: number },
-    options?: { disableProgressTracking?: boolean },
-  ) {
-    if (!options?.disableProgressTracking) {
-      handler.on('start', () => {
-        this.tracker.downloadStarted(name, type, size);
-      });
-
-      handler.on('progress', (progress: number, elapsedTime: number) => {
-        this.tracker.downloadUpdate(name, type, {
-          elapsedTime,
-          percentage: progress,
-        });
-      });
-    }
-
-    handler.on('error', () => {
-      this.tracker.error(name, type);
-    });
-  }
-
   async run(
     file: StorageFile,
     metadata: {
@@ -43,11 +20,10 @@ export class StorageFileDownloader {
       type: string;
       size: number;
     },
-    options?: { disableProgressTracking?: boolean },
   ): Promise<{ stream: Readable; metadata: typeof metadata; handler: DownloaderHandler }> {
     const downloader = this.managerFactory.downloader();
 
-    await this.registerEvents(downloader, metadata, options);
+    downloader.on('error', () => this.tracker.error(metadata.name, metadata.type));
 
     const stream = await downloader.download(file);
 
@@ -56,20 +32,5 @@ export class StorageFileDownloader {
     });
 
     return { stream, metadata, handler: downloader };
-  }
-
-  notifyDownloadStarted(metadata: { name: string; type: string; size: number }): void {
-    this.tracker.downloadStarted(metadata.name, metadata.type, metadata.size);
-  }
-
-  notifyDownloadProgress(metadata: { name: string; type: string }, progress: number, elapsedTime: number): void {
-    this.tracker.downloadUpdate(metadata.name, metadata.type, {
-      elapsedTime,
-      percentage: progress,
-    });
-  }
-
-  notifyDownloadFinished(metadata: { name: string; type: string; size: number }, handler: DownloaderHandler): void {
-    this.tracker.downloadFinished(metadata.name, metadata.type);
   }
 }

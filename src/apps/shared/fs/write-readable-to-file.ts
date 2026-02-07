@@ -1,30 +1,26 @@
 import fs, { PathLike } from 'fs';
 import { Readable } from 'stream';
 
-export class WriteReadableToFile {
-  static write(
-    readable: Readable,
-    path: PathLike,
-    options?: {
-      onProgress?: (bytesWritten: number) => void;
-    },
-  ): Promise<void> {
-    const writableStream = fs.createWriteStream(path);
+type Props = {
+  readable: Readable;
+  path: PathLike;
+  onProgress: (bytesWritten: number) => void;
+};
 
-    let bytesWritten = 0;
+export function writeReadableToFile({ readable, path, onProgress }: Props) {
+  const writableStream = fs.createWriteStream(path);
 
-    readable.on('data', (chunk: Buffer) => {
-      bytesWritten += chunk.length;
-      if (options?.onProgress) {
-        options.onProgress(bytesWritten);
-      }
-    });
+  let bytesWritten = 0;
 
-    readable.pipe(writableStream);
+  readable.on('data', (chunk: Buffer) => {
+    bytesWritten += chunk.length;
+    onProgress(bytesWritten);
+  });
 
-    return new Promise<void>((resolve, reject) => {
-      writableStream.on('finish', resolve);
-      writableStream.on('error', reject);
-    });
-  }
+  readable.pipe(writableStream);
+
+  return new Promise<void>((resolve, reject) => {
+    writableStream.on('finish', resolve);
+    writableStream.on('error', reject);
+  });
 }

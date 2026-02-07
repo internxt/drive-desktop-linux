@@ -34,17 +34,6 @@ describe('StorageFileDownloader', () => {
   });
 
   describe('registerEvents', () => {
-    it('should handle start download', async () => {
-      await sut.run(file, metadata);
-      expect(downloaderHandler.on).toHaveBeenCalledWith('start', expect.any(Function));
-    });
-
-    it('should handle download progress', async () => {
-      await sut.run(file, metadata);
-
-      expect(downloaderHandler.on).toHaveBeenCalledWith('progress', expect.any(Function));
-    });
-
     it('should handle download errors', async () => {
       await sut.run(file, metadata);
 
@@ -70,20 +59,5 @@ describe('StorageFileDownloader', () => {
     expect(downloaderHandler.download).toHaveBeenCalledWith(file);
   });
 
-  it('should notify download finished when called manually', async () => {
-    const mockStream = new Readable({
-      read() {
-        this.push('mock data');
-        this.push(null);
-      },
-    });
 
-    downloaderHandler.download.mockResolvedValue(mockStream);
-    downloaderHandler.elapsedTime.mockReturnValue(1500);
-
-    const result = await sut.run(file, metadata);
-    sut.notifyDownloadFinished(result.metadata, result.handler);
-
-    expect(tracker.downloadFinished).toHaveBeenCalledWith(metadata.name, metadata.type);
-  });
 });

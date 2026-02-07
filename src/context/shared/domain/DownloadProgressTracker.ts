@@ -1,5 +1,5 @@
 export abstract class DownloadProgressTracker {
-  abstract downloadStarted(name: string, extension: string, size: number): Promise<void>;
+  abstract downloadStarted(name: string, extension: string): Promise<void>;
 
   abstract downloadUpdate(
     name: string,

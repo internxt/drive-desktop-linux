@@ -17,9 +17,8 @@ export class StorageFileDownloaderTestClass extends StorageFileDownloader {
   run(
     file: StorageFile,
     metadata: { name: string; type: string; size: number },
-    options?: { disableProgressTracking?: boolean },
   ): Promise<{ stream: Readable; metadata: typeof metadata; handler: DownloaderHandler }> {
-    return this.mock(file, metadata, options);
+    return this.mock(file, metadata);
   }
 
   returnsAReadable() {
@@ -39,7 +38,7 @@ export class StorageFileDownloaderTestClass extends StorageFileDownloader {
 
   assertHasBeenCalledWithStorageFile(calls: Array<StorageFile>) {
     calls.forEach((parameters) => {
-      expect(this.mock).toBeCalledWith(...[parameters, expect.anything(), expect.anything()]);
+      expect(this.mock).toBeCalledWith(...[parameters, expect.anything()]);
     });
   }
 

@@ -5,6 +5,7 @@ import { StorageFile } from '../../domain/StorageFile';
 import { StorageFilesRepository } from '../../domain/StorageFilesRepository';
 import { StorageFileDownloader } from '../download/StorageFileDownloader/StorageFileDownloader';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { DownloadProgressTracker } from '../../../../shared/domain/DownloadProgressTracker';
 
 @Service()
 export class StorageRemoteChangesSyncher {
@@ -12,6 +13,7 @@ export class StorageRemoteChangesSyncher {
     private readonly repository: StorageFilesRepository,
     private readonly fileSearcher: SingleFileMatchingSearcher,
     private readonly downloader: StorageFileDownloader,
+    private readonly tracker: DownloadProgressTracker,
   ) {}
 
   private async sync(storage: StorageFile): Promise<void> {
@@ -37,19 +39,18 @@ export class StorageRemoteChangesSyncher {
       size: virtualFile.size,
     });
 
-    const { stream, metadata, handler } = await this.downloader.run(newer, virtualFile, {
-      disableProgressTracking: true,
+    this.tracker.downloadStarted(virtualFile.name, virtualFile.type);
+    const { stream, metadata, handler } = await this.downloader.run(newer, virtualFile);
+
+    await this.repository.store(newer, stream, (bytesWritten) => {
+      const progress = Math.min(bytesWritten / virtualFile.size, 1);
+      this.tracker.downloadUpdate(metadata.name, metadata.type, {
+        percentage: progress,
+        elapsedTime: handler.elapsedTime(),
+      });
     });
 
-    this.downloader.notifyDownloadStarted(metadata);
-    await this.repository.store(newer, stream, {
-      onProgress: (bytesWritten) => {
-        const progress = Math.min(bytesWritten / virtualFile.size, 1);
-        this.downloader.notifyDownloadProgress(metadata, progress, handler.elapsedTime());
-      },
-    });
-
-    this.downloader.notifyDownloadFinished(metadata, handler);
+    this.tracker.downloadFinished(metadata.name, metadata.type);
 
     logger.debug({
       msg: `File "${virtualFile.nameWithExtension}" with ${newer.id.value} is avaliable offline`,

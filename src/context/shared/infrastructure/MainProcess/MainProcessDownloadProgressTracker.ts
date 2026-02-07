@@ -6,7 +6,7 @@ import { Service } from 'diod';
 
 @Service()
 export class MainProcessDownloadProgressTracker extends SyncMessenger implements DownloadProgressTracker {
-  async downloadStarted(name: string, extension: string, size: number): Promise<void> {
+  async downloadStarted(name: string, extension: string): Promise<void> {
     setTrayStatus('SYNCING');
 
     broadcastToWindows('sync-info-update', {
