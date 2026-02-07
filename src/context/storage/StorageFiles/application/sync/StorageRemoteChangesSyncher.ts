@@ -8,7 +8,6 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { DownloadProgressTracker } from '../../../../shared/domain/DownloadProgressTracker';
 import { downloadWithProgressTracking } from '../download/download-with-progress-tracking';
 
-
 @Service()
 export class StorageRemoteChangesSyncher {
   constructor(
