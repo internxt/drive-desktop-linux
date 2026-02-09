@@ -23,7 +23,6 @@ describe('attachRateLimiterInterceptors', () => {
   } as any;
 
   beforeEach(() => {
-
     (createRequestInterceptor as Mock).mockReturnValue(mockRequestInterceptor);
     (createResponseInterceptor as Mock).mockReturnValue({
       onFulfilled: mockOnFulfilled,

@@ -73,7 +73,6 @@ describe('createResponseInterceptor', () => {
   let retryResponse: AxiosResponse;
 
   beforeEach(() => {
-
     state = { limit: null, remaining: null, reset: null };
     delayState = { pending: null };
     retryResponse = makeResponse();
