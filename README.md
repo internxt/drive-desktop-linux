@@ -2,6 +2,11 @@
 
 [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/internxt/drive-desktop-linux)
 
+## Compatibility
+As of right now, Internxt Drive Desktop for Linux is only compatible with Ubuntu and Debian with the File explorer **Nautilus** (The default file explorer for Gnome).
+
+We cannot guarantee that the app will work properly on other Linux distributions or with other file explorers as our development and testing efforts are focused on ensuring the best experience for Ubuntu and Debian users.
+
 ## Installation
 
 Internxt Drive is available for Linux in two formats:
