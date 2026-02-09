@@ -1,15 +1,11 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import type { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
-import { DelayState, RateLimitState } from './rate-limiter.types';
+import { DelayState, RateLimitState, ResponseInterceptor } from './rate-limiter.types';
 import { updateStateFromHeaders } from './update-state-from-headers';
 import { waitForDelay } from './wait-for-delay';
 import { addJitter } from './add-jitter';
 import { MAX_RETRIES, RETRY_CONFIG_KEY } from '../../drive-server.constants';
 
-type ResponseInterceptor = {
-  onFulfilled: (response: AxiosResponse) => AxiosResponse;
-  onRejected: (error: AxiosError) => Promise<AxiosResponse | never>;
-};
 
 export function createResponseInterceptor(
   instance: AxiosInstance,

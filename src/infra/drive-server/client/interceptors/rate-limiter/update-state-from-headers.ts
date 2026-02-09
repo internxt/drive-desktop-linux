@@ -1,4 +1,3 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import { RateLimitState } from './rate-limiter.types';
 
 export function updateStateFromHeaders(state: RateLimitState, headers: Record<string, string>): void {
