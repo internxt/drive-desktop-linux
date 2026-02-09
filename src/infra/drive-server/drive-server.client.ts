@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { attachRateLimiterInterceptors } from './client/middleware/rate-limiter/attach-rate-limiter-interceptors';
+import { attachRateLimiterInterceptors } from './client/interceptors/rate-limiter/attach-rate-limiter-interceptors';
 
 type HTTPMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
