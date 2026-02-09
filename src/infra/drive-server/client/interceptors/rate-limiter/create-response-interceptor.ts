@@ -6,7 +6,6 @@ import { waitForDelay } from './wait-for-delay';
 import { addJitter } from './add-jitter';
 import { MAX_RETRIES, RETRY_CONFIG_KEY } from '../../drive-server.constants';
 
-
 export function createResponseInterceptor(
   instance: AxiosInstance,
   state: RateLimitState,

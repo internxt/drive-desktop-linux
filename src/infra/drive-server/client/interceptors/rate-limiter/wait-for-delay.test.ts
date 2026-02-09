@@ -37,5 +37,4 @@ describe('waitForDelay', () => {
 
     expect(state.pending).toBeNull();
   });
-
 });
