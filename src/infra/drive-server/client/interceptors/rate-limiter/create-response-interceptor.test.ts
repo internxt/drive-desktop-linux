@@ -130,7 +130,7 @@ describe('createResponseInterceptor', () => {
 
       const result = await onRejected(error);
 
-      call(addJitter).toEqual(3000);
+      call(addJitter).toStrictEqual(3000);
       call(waitForDelay).toMatchObject([delayState, 3050]);
       call(instance.request).toMatchObject(config);
       expect(result).toBe(retryResponse);
@@ -145,7 +145,7 @@ describe('createResponseInterceptor', () => {
 
       await onRejected(error);
 
-      call(addJitter).toEqual(5000);
+      call(addJitter).toStrictEqual(5000);
     });
 
     it('should increment the retry count on the config', async () => {
@@ -165,7 +165,7 @@ describe('createResponseInterceptor', () => {
 
       await expect(onRejected(error)).rejects.toBe(error);
       call(logger.warn).toMatchObject({ msg: '[RATE LIMITER] Max retries exceeded for 429 response' });
-      expect(instance.request).not.toHaveBeenCalled();
+      expect(instance.request).not.toBeCalled();
     });
 
     it('should reject errors without a response status', async () => {
@@ -173,10 +173,10 @@ describe('createResponseInterceptor', () => {
       const error = new AxiosError('Network error');
 
       await expect(onRejected(error)).rejects.toBe(error);
-      expect(updateStateFromHeaders).not.toHaveBeenCalled();
-      expect(addJitter).not.toHaveBeenCalled();
-      expect(waitForDelay).not.toHaveBeenCalled();
-      expect(instance.request).not.toHaveBeenCalled();
+      expect(updateStateFromHeaders).not.toBeCalled();
+      expect(addJitter).not.toBeCalled();
+      expect(waitForDelay).not.toBeCalled();
+      expect(instance.request).not.toBeCalled();
     });
   });
 });
