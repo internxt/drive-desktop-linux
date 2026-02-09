@@ -1,5 +1,6 @@
 import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { AxiosError } from 'axios';
+import { call } from 'tests/vitest/utils.helper';
 import { createResponseInterceptor } from './create-response-interceptor';
 import { DelayState, RateLimitState } from './rate-limiter.types';
 import { RETRY_CONFIG_KEY, MAX_RETRIES } from '../../drive-server.constants';
@@ -72,7 +73,6 @@ describe('createResponseInterceptor', () => {
   let retryResponse: AxiosResponse;
 
   beforeEach(() => {
-    vi.clearAllMocks();
 
     state = { limit: null, remaining: null, reset: null };
     delayState = { pending: null };
@@ -87,7 +87,7 @@ describe('createResponseInterceptor', () => {
 
       const result = onFulfilled(response);
 
-      expect(updateStateFromHeaders).toHaveBeenCalledWith(state, response.headers);
+      call(updateStateFromHeaders).toMatchObject([state, response.headers]);
       expect(result).toBe(response);
     });
   });
@@ -118,7 +118,7 @@ describe('createResponseInterceptor', () => {
 
       await onRejected(error);
 
-      expect(updateStateFromHeaders).toHaveBeenCalledWith(state, headers);
+      call(updateStateFromHeaders).toMatchObject([state, headers]);
     });
 
     it('should wait using the reset value from state with jitter and retry', async () => {
@@ -131,9 +131,9 @@ describe('createResponseInterceptor', () => {
 
       const result = await onRejected(error);
 
-      expect(addJitter).toHaveBeenCalledWith(3000);
-      expect(waitForDelay).toHaveBeenCalledWith(delayState, 3050);
-      expect(instance.request).toHaveBeenCalledWith(config);
+      call(addJitter).toEqual(3000);
+      call(waitForDelay).toMatchObject([delayState, 3050]);
+      call(instance.request).toMatchObject(config);
       expect(result).toBe(retryResponse);
     });
 
@@ -146,7 +146,7 @@ describe('createResponseInterceptor', () => {
 
       await onRejected(error);
 
-      expect(addJitter).toHaveBeenCalledWith(5000);
+      call(addJitter).toEqual(5000);
     });
 
     it('should increment the retry count on the config', async () => {
@@ -165,9 +165,7 @@ describe('createResponseInterceptor', () => {
       const error = make429Error(config);
 
       await expect(onRejected(error)).rejects.toBe(error);
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.objectContaining({ msg: '[RATE LIMITER] Max retries exceeded for 429 response' }),
-      );
+      call(logger.warn).toMatchObject({ msg: '[RATE LIMITER] Max retries exceeded for 429 response' });
       expect(instance.request).not.toHaveBeenCalled();
     });
 

@@ -1,10 +1,6 @@
 import { addJitter } from './add-jitter';
 
 describe('addJitter - spreads retry timing to avoid thundering herd', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('should never return less than the base delay', () => {
     const result = addJitter(1000);
     expect(result).toBeGreaterThanOrEqual(1000);

@@ -1,4 +1,5 @@
 import { type Mock } from 'vitest';
+import { call } from 'tests/vitest/utils.helper';
 import { attachRateLimiterInterceptors } from './attach-rate-limiter-interceptors';
 import { createRequestInterceptor } from './create-request-interceptor';
 import { createResponseInterceptor } from './create-response-interceptor';
@@ -22,7 +23,6 @@ describe('attachRateLimiterInterceptors', () => {
   } as any;
 
   beforeEach(() => {
-    vi.clearAllMocks();
 
     (createRequestInterceptor as Mock).mockReturnValue(mockRequestInterceptor);
     (createResponseInterceptor as Mock).mockReturnValue({
@@ -34,37 +34,37 @@ describe('attachRateLimiterInterceptors', () => {
   it('should create a request interceptor with a fresh delay state', () => {
     attachRateLimiterInterceptors(instance);
 
-    expect(createRequestInterceptor).toHaveBeenCalledWith({ pending: null });
+    call(createRequestInterceptor).toMatchObject({ pending: null });
   });
 
   it('should register the request interceptor on the instance', () => {
     attachRateLimiterInterceptors(instance);
 
-    expect(mockRequestUse).toHaveBeenCalledWith(mockRequestInterceptor);
+    call(mockRequestUse).toMatchObject(mockRequestInterceptor);
   });
 
   it('should create a response interceptor with the instance, fresh rate limit state, and delay state', () => {
     attachRateLimiterInterceptors(instance);
 
-    expect(createResponseInterceptor).toHaveBeenCalledWith(
+    call(createResponseInterceptor).toMatchObject([
       instance,
       { limit: null, remaining: null, reset: null },
       { pending: null },
-    );
+    ]);
   });
 
   it('should register the response interceptor on the instance', () => {
     attachRateLimiterInterceptors(instance);
 
-    expect(mockResponseUse).toHaveBeenCalledWith(mockOnFulfilled, mockOnRejected);
+    call(mockResponseUse).toMatchObject([mockOnFulfilled, mockOnRejected]);
   });
 
   it('should share the same delay state between request and response interceptors', () => {
+    const delayState = { pending: null };
+
     attachRateLimiterInterceptors(instance);
 
-    const delayStatePassedToRequest = (createRequestInterceptor as Mock).mock.calls[0][0];
-    const delayStatePassedToResponse = (createResponseInterceptor as Mock).mock.calls[0][2];
-
-    expect(delayStatePassedToRequest).toBe(delayStatePassedToResponse);
+    call(createRequestInterceptor).toMatchObject(delayState);
+    call(createResponseInterceptor).toMatchObject([expect.anything(), expect.anything(), delayState]);
   });
 });
