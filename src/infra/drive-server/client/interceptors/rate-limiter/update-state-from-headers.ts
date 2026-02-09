@@ -1,6 +1,7 @@
+import { AxiosResponse } from 'axios';
 import { RateLimitState } from './rate-limiter.types';
 
-export function updateStateFromHeaders(state: RateLimitState, headers: Record<string, string>): void {
+export function updateStateFromHeaders(state: RateLimitState, headers: AxiosResponse['headers']): void {
   const limitHeader = headers['x-internxt-ratelimit-limit'];
   const remainingHeader = headers['x-internxt-ratelimit-remaining'];
   const resetHeader = headers['x-internxt-ratelimit-reset'];

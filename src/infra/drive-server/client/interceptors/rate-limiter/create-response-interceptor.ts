@@ -13,7 +13,7 @@ export function createResponseInterceptor(
   delayState: DelayState,
 ): ResponseInterceptor {
   const onFulfilled = (response: AxiosResponse): AxiosResponse => {
-    updateStateFromHeaders(state, response.headers as Record<string, string>);
+    updateStateFromHeaders(state, response.headers);
     return response;
   };
 
@@ -27,7 +27,7 @@ export function createResponseInterceptor(
       return Promise.reject(error);
     }
 
-    updateStateFromHeaders(state, error.response.headers as Record<string, string>);
+    updateStateFromHeaders(state, error.response.headers);
 
     const retryCount = config[RETRY_CONFIG_KEY] ?? 0;
 
