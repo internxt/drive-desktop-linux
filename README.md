@@ -7,6 +7,14 @@ As of right now, Internxt Drive Desktop for Linux is only compatible with Ubuntu
 
 We cannot guarantee that the app will work properly on other Linux distributions or with other file explorers as our development and testing efforts are focused on ensuring the best experience for Ubuntu and Debian users.
 
+### FUSE 2
+This application requires **FUSE 2** for the virtual drive functionality. FUSE 3 is not supported. On recent Ubuntu versions, `libfuse2` may need to be installed manually:
+
+| Ubuntu Version | Package | Command |
+|---|---|---|
+| 22.04 – 23.10 | `libfuse2` | `sudo apt install libfuse2` |
+| 24.04+ | `libfuse2t64` | `sudo apt install libfuse2t64` |
+
 ## Installation
 
 Internxt Drive is available for Linux in two formats:
