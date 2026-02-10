@@ -1,5 +1,5 @@
 import { aes } from '@internxt/lib';
-import { dialog, IpcMainEvent } from 'electron';
+import { BrowserWindow, dialog, IpcMainEvent } from 'electron';
 import fetch from 'electron-fetch';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import os from 'os';
@@ -318,9 +318,22 @@ export async function getPathFromDialog(): Promise<{
   path: string;
   itemName: string;
 } | null> {
+  const parentWindow =
+    BrowserWindow.getFocusedWindow() ??
+    BrowserWindow.getAllWindows().find((w) => w.isVisible()) ??
+    null;
+
+  if (parentWindow) {
+    parentWindow.hide();
+  }
+
   const result = await dialog.showOpenDialog({
     properties: ['openDirectory'],
   });
+
+  if (parentWindow && !parentWindow.isDestroyed()) {
+    parentWindow.show();
+  }
 
   if (result.canceled) {
     return null;
