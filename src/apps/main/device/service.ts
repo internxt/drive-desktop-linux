@@ -1,5 +1,5 @@
 import { aes } from '@internxt/lib';
-import { BrowserWindow, dialog, IpcMainEvent } from 'electron';
+import { dialog, IpcMainEvent } from 'electron';
 import fetch from 'electron-fetch';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import os from 'os';

@@ -23,7 +23,7 @@ export async function getPathFromDialog(): Promise<Omit<PathInfo, 'isDirectory'>
 
   const chosenPath = result.filePaths[0];
 
-  const itemPath = chosenPath + (chosenPath[chosenPath.length - 1] === path.sep ? '' : path.sep);
+  const itemPath = `${chosenPath}${chosenPath.endsWith(path.sep) ? '' : path.sep}`;
 
   const itemName = path.basename(itemPath);
 
