@@ -10,10 +10,29 @@ We cannot guarantee that the app will work properly on other Linux distributions
 ### FUSE 2
 This application requires **FUSE 2** for the virtual drive functionality. FUSE 3 is not supported. On recent Ubuntu versions, `libfuse2` may need to be installed manually:
 
-| Ubuntu Version | Package | Command |
-|---|---|---|
-| 22.04 – 23.10 | `libfuse2` | `sudo apt install libfuse2` |
-| 24.04+ | `libfuse2t64` | `sudo apt install libfuse2t64` |
+#### For example, on Debian (>= 13) and Ubuntu (>= 24.04):
+```bash
+sudo add-apt-repository universe
+sudo apt install libfuse2t64
+```
+**Note:** In Ubuntu 24.04, the libfuse2 package was renamed to libfuse2t64.
+
+#### For example, on Ubuntu (>= 22.04):
+```bash
+sudo add-apt-repository universe
+sudo apt install libfuse2
+```
+**Warning:** While libfuse2 is OK, do not install the fuse package as of 22.04 or you may break your system. If the fuse package did break your system, you can recover as described [here](https://github.com/orgs/AppImage/discussions/1339).
+
+#### For example, on Ubuntu (<= 21.10):
+```bash
+sudo apt install fuse libfuse2
+sudo modprobe fuse
+sudo groupadd fuse
+
+user="$(whoami)"
+sudo usermod -a -G fuse $user
+```
 
 ## Installation
 
