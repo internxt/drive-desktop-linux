@@ -26,8 +26,6 @@ export abstract class RemoteFileSystem {
 
   abstract trash(contentsId: File['contentsId']): Promise<void>;
 
-  abstract rename(file: File): Promise<void>;
-
   abstract override(file: File): Promise<void>;
 
   abstract delete(file: File): Promise<void>;

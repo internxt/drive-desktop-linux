@@ -14,6 +14,7 @@ import { FileRenameStartedDomainEvent } from '../../domain/events/FileRenameStar
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { SingleFileMatchingSearcher } from '../search/SingleFileMatchingSearcher';
 import { moveFile } from '../../../../../infra/drive-server/services/files/services/move-file';
+import { renameFile } from '../../../../../infra/drive-server/services/files/services/rename-file';
 
 @Service()
 export class FilePathUpdater {
@@ -36,7 +37,11 @@ export class FilePathUpdater {
 
     file.rename(path);
 
-    await this.remote.rename(file);
+    await renameFile({
+      fileUuid: file.uuid,
+      plainName: file.name,
+      type: file.type,
+    });
     await this.repository.update(file);
 
     const events = file.pullDomainEvents();

@@ -9,9 +9,6 @@ import { File } from '../domain/File';
 import { FileDataToPersist, PersistedFileData, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { CreateFileDto } from '../../../../infra/drive-server/out/dto';
 import { createFile } from '../../../../infra/drive-server/services/files/services/create-file';
-import { moveFile } from '../../../../infra/drive-server/services/files/services/move-file';
-import { renameFile } from '../../../../infra/drive-server/services/files/services/rename-file';
-
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
   constructor(
@@ -96,14 +93,6 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
 
   async delete(file: File): Promise<void> {
     await this.trash(file.contentsId);
-  }
-
-  async rename(file: File): Promise<void> {
-    await renameFile({
-      plainName: file.name,
-      type: file.type,
-      fileUuid: file.uuid,
-    });
   }
 
   async override(file: File): Promise<void> {
