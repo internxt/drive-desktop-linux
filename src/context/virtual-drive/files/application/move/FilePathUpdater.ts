@@ -11,7 +11,6 @@ import { FileAlreadyExistsError } from '../../domain/errors/FileAlreadyExistsErr
 import { FileNotFoundError } from '../../domain/errors/FileNotFoundError';
 import { FileRenameFailedDomainEvent } from '../../domain/events/FileRenameFailedDomainEvent';
 import { FileRenameStartedDomainEvent } from '../../domain/events/FileRenameStartedDomainEvent';
-import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { SingleFileMatchingSearcher } from '../search/SingleFileMatchingSearcher';
 import { moveFile } from '../../../../../infra/drive-server/services/files/services/move-file';
 import { renameFile } from '../../../../../infra/drive-server/services/files/services/rename-file';
@@ -19,7 +18,6 @@ import { renameFile } from '../../../../../infra/drive-server/services/files/ser
 @Service()
 export class FilePathUpdater {
   constructor(
-    private readonly remote: RemoteFileSystem,
     private readonly repository: FileRepository,
     private readonly singleFileMatching: SingleFileMatchingSearcher,
     private readonly parentFolderFinder: ParentFolderFinder,
