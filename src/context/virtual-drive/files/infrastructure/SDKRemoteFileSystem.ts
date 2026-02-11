@@ -95,17 +95,6 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     await this.trash(file.contentsId);
   }
 
-  async override(file: File): Promise<void> {
-    await this.clients.newDrive.put(`${process.env.NEW_DRIVE_URL}/files/${file.uuid}`, {
-      fileId: file.contentsId,
-      size: file.size,
-    });
-
-    logger.debug({
-      msg: `File ${file.path} overridden`,
-    });
-  }
-
   async hardDelete(contentsId: string): Promise<void> {
     const result = await this.clients.newDrive.delete(`${process.env.NEW_DRIVE_URL}/storage/trash/file/${contentsId}`);
     if (result.status > 204) {

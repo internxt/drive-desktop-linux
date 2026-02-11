@@ -24,10 +24,6 @@ export class RemoteFileSystemMock implements RemoteFileSystem {
     return this.deleteMock(file);
   }
 
-  override(file: File): Promise<void> {
-    return this.overrideMock(file);
-  }
-
   hardDelete(contentsId: string): Promise<void> {
     return this.hardDeleteMock(contentsId);
   }
