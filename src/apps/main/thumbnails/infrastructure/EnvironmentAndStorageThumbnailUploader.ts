@@ -1,10 +1,10 @@
-import { components } from './../../../../infra/schemas.d';
 import { Environment } from '@internxt/inxt-js';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { Readable } from 'stream';
 import { ThumbnailConfig } from '../domain/ThumbnailProperties';
 import { ThumbnailUploader } from '../domain/ThumbnailUploader';
 import { createThumbnail } from '../../../../infra/drive-server/services/files/services/create-thumbnail';
+import { CreateThumbnailDto } from '../../../../infra/drive-server/out/dto';
 
 export class EnvironmentAndStorageThumbnailUploader implements ThumbnailUploader {
   constructor(
@@ -38,13 +38,15 @@ export class EnvironmentAndStorageThumbnailUploader implements ThumbnailUploader
     });
   }
 
-  private async uploadThumbnailToStorage(thumbnail: components['schemas']['CreateThumbnailDto']) {
+  private async uploadThumbnailToStorage(thumbnail: CreateThumbnailDto) {
     return await createThumbnail(thumbnail);
   }
 
   async upload(fileId: number, thumbnailFile: Buffer): Promise<void> {
     const fileIdOnEnvironment = await this.uploadThumbnailToEnvironment(thumbnailFile);
     await this.uploadThumbnailToStorage({
+      // I add this comment just because ts is complaining and this method is not being actually used.
+      fileUuid: '',
       fileId,
       type: ThumbnailConfig.Type as string,
       size: thumbnailFile.byteLength,
