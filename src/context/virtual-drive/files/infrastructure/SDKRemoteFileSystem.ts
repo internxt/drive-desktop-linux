@@ -91,10 +91,6 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     }
   }
 
-  async delete(file: File): Promise<void> {
-    await this.trash(file.contentsId);
-  }
-
   async hardDelete(contentsId: string): Promise<void> {
     const result = await this.clients.newDrive.delete(`${process.env.NEW_DRIVE_URL}/storage/trash/file/${contentsId}`);
     if (result.status > 204) {

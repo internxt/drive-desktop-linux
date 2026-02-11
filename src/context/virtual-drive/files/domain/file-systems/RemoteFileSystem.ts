@@ -26,7 +26,5 @@ export abstract class RemoteFileSystem {
 
   abstract trash(contentsId: File['contentsId']): Promise<void>;
 
-  abstract delete(file: File): Promise<void>;
-
   abstract hardDelete(contentsId: string): Promise<void>;
 }

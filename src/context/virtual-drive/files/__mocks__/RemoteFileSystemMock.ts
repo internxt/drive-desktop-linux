@@ -20,10 +20,6 @@ export class RemoteFileSystemMock implements RemoteFileSystem {
     return this.trashMock(contentsId);
   }
 
-  delete(file: File): Promise<void> {
-    return this.deleteMock(file);
-  }
-
   hardDelete(contentsId: string): Promise<void> {
     return this.hardDeleteMock(contentsId);
   }
