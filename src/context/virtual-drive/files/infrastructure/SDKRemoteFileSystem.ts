@@ -39,7 +39,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       encryptVersion: EncryptionVersion.Aes03,
       folderUuid: dataToPersists.folderUuid,
       size: dataToPersists.size.value,
-      plainName: plainName,
+      plainName,
       type: dataToPersists.path.extension(),
     };
 
@@ -47,22 +47,21 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       body.fileId = dataToPersists.contentsId.value;
     }
 
-    const response = await createFile(body);
-    if (response.data) {
+    const { data, error } = await createFile(body);
+    if (data) {
       const result: PersistedFileData = {
-        modificationTime: response.data.updatedAt,
-        id: response.data.id,
-        uuid: response.data.uuid,
-        createdAt: response.data.createdAt,
+        modificationTime: data.updatedAt,
+        id: data.id,
+        uuid: data.uuid,
+        createdAt: data.createdAt,
       };
       return right(result);
-    }
-    if (response.error && typeof response.error === 'object' && 'cause' in response.error) {
-      const errorCause = (response.error as { cause: string }).cause;
+    } else {
+      const errorCause = error.cause;
       if (errorCause === 'BAD_REQUEST') {
         return left(new DriveDesktopError('BAD_REQUEST', `Some data was not valid for ${plainName}: ${body}`));
       }
-      if (errorCause === 'FILE_ALREADY_EXISTS') {
+      if (errorCause === 'CONFLICT') {
         return left(
           new DriveDesktopError(
             'FILE_ALREADY_EXISTS',
@@ -75,8 +74,8 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
           new DriveDesktopError('BAD_RESPONSE', `The server could not handle the creation of ${plainName}: ${body}`),
         );
       }
+      return left(new DriveDesktopError('UNKNOWN', `Creating file ${plainName}: ${error}`));
     }
-    return left(new DriveDesktopError('UNKNOWN', `Creating file ${plainName}: ${response.error}`));
   }
 
   async trash(contentsId: string): Promise<void> {
