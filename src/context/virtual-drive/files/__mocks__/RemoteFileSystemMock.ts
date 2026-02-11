@@ -15,11 +15,6 @@ export class RemoteFileSystemMock implements RemoteFileSystem {
   persist(offline: FileDataToPersist): Promise<Either<DriveDesktopError, PersistedFileData>> {
     return this.persistMock(offline);
   }
-
-  trash(contentsId: string): Promise<void> {
-    return this.trashMock(contentsId);
-  }
-
   hardDelete(contentsId: string): Promise<void> {
     return this.hardDeleteMock(contentsId);
   }

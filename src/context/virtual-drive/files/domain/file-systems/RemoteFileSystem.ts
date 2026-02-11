@@ -24,7 +24,5 @@ export type PersistedFileData = {
 export abstract class RemoteFileSystem {
   abstract persist(offline: FileDataToPersist): Promise<Either<DriveDesktopError, PersistedFileData>>;
 
-  abstract trash(contentsId: File['contentsId']): Promise<void>;
-
   abstract hardDelete(contentsId: string): Promise<void>;
 }
