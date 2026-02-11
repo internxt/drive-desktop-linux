@@ -12,7 +12,7 @@ export async function deleteFileFromStorageByFileId({
 }): Promise<Result<boolean, DriveServerError>> {
   const { error } = await driveServerClient.DELETE('/files/{bucketId}/{fileId}', {
     headers: getNewApiHeaders(),
-    params: {
+    path: {
       bucketId,
       fileId,
     },
