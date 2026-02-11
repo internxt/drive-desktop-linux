@@ -106,13 +106,6 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     });
   }
 
-  async move(file: File, destinationFolderUuid: string): Promise<void> {
-    await moveFile({
-      uuid: file.uuid,
-      destinationFolder: destinationFolderUuid,
-    });
-  }
-
   async override(file: File): Promise<void> {
     await this.clients.newDrive.put(`${process.env.NEW_DRIVE_URL}/files/${file.uuid}`, {
       fileId: file.contentsId,

@@ -24,10 +24,6 @@ export class RemoteFileSystemMock implements RemoteFileSystem {
     return this.deleteMock(file);
   }
 
-  move(file: File, destinationFolderUuid: string): Promise<void> {
-    return this.moveMock(file, destinationFolderUuid);
-  }
-
   rename(file: File): Promise<void> {
     return this.renameMock(file);
   }

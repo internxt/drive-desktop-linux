@@ -138,6 +138,7 @@ export function createClient<T>(opts: ClientOptions) {
       };
     }
   }
+  // TODO: type `o` properly instead of `any` — currently callers get no type checking on body, path, headers, or query
   return {
     GET: <P extends PathsWithMethod<T, 'get'>>(p: P, o?: any) => request('get', p, o),
     POST: <P extends PathsWithMethod<T, 'post'>>(p: P, o?: any) => request('post', p, o),

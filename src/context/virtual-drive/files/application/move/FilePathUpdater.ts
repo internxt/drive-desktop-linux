@@ -13,6 +13,7 @@ import { FileRenameFailedDomainEvent } from '../../domain/events/FileRenameFaile
 import { FileRenameStartedDomainEvent } from '../../domain/events/FileRenameStartedDomainEvent';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { SingleFileMatchingSearcher } from '../search/SingleFileMatchingSearcher';
+import { moveFile } from '../../../../../infra/drive-server/services/files/services/move-file';
 
 @Service()
 export class FilePathUpdater {
@@ -48,7 +49,10 @@ export class FilePathUpdater {
     file.moveTo(destinationFolder);
 
     logger.debug({ msg: 'REMOTE CHANGES' });
-    await this.remote.move(file, destinationFolder.uuid);
+    await moveFile({
+      uuid: file.uuid,
+      destinationFolder: destinationFolder.uuid,
+    });
     await this.repository.update(file);
 
     const events = file.pullDomainEvents();
