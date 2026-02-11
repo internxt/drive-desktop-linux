@@ -7,8 +7,10 @@ import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopErr
 import { Crypt } from '../../shared/domain/Crypt';
 import { File } from '../domain/File';
 import { FileDataToPersist, PersistedFileData, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
-import { createFileIPC, moveFileIPC, renameFileIPC } from '../../../../infra/ipc/files-ipc';
 import { CreateFileDto } from '../../../../infra/drive-server/out/dto';
+import { createFile } from '../../../../infra/drive-server/services/files/services/create-file';
+import { moveFile } from '../../../../infra/drive-server/services/files/services/move-file';
+import { renameFile } from '../../../../infra/drive-server/services/files/services/rename-file';
 
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
@@ -45,7 +47,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       body.fileId = dataToPersists.contentsId.value;
     }
 
-    const response = await createFileIPC(body);
+    const response = await createFile(body);
     if (response.data) {
       const result: PersistedFileData = {
         modificationTime: response.data.updatedAt,
@@ -98,7 +100,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
   }
 
   async rename(file: File): Promise<void> {
-    await renameFileIPC({
+    await renameFile({
       plainName: file.name,
       type: file.type,
       fileUuid: file.uuid,
@@ -106,7 +108,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
   }
 
   async move(file: File, destinationFolderUuid: string): Promise<void> {
-    await moveFileIPC({
+    await moveFile({
       uuid: file.uuid,
       destinationFolder: destinationFolderUuid,
     });

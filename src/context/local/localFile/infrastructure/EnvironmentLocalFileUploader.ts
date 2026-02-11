@@ -7,9 +7,9 @@ import { LocalFileHandler } from '../domain/LocalFileUploader';
 import { Environment } from '@internxt/inxt-js';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
-import { deleteFileContentIPC } from '../../../../infra/ipc/files-ipc';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { MULTIPART_UPLOAD_SIZE_THRESHOLD } from '../../../shared/domain/UploadConstants';
+import { deleteFileFromStorageByFileId } from '../../../../infra/drive-server/services/files/services/delete-file-content-from-bucket';
 
 @Service()
 export class EnvironmentLocalFileUploader implements LocalFileHandler {
@@ -67,7 +67,7 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
 
   async delete(contentsId: string): Promise<void> {
     try {
-      await deleteFileContentIPC({
+      await deleteFileFromStorageByFileId({
         bucketId: this.bucket,
         fileId: contentsId,
       });
