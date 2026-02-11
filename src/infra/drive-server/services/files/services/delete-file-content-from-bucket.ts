@@ -1,35 +1,30 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import { Result } from './../../../../../context/shared/domain/Result';
-import fetch from 'electron-fetch';
-import { mapError } from '../../utils/mapError';
 import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
-
+import { DriveServerError } from '../../../drive-server.error';
+import { driveServerClient } from '../../../client/drive-server.client.instance';
 export async function deleteFileFromStorageByFileId({
   bucketId,
   fileId,
 }: {
   bucketId: string;
   fileId: string;
-}): Promise<Result<boolean, Error>> {
-  try {
-    const headers = getNewApiHeaders();
-    const response = await fetch(`${process.env.NEW_DRIVE_URL}/files/${bucketId}/${fileId}`, {
-      method: 'DELETE',
-      headers,
+}): Promise<Result<boolean, DriveServerError>> {
+  const { error } = await driveServerClient.DELETE('/files/{bucketId}/{fileId}', {
+    headers: getNewApiHeaders(),
+    params: {
+      bucketId,
+      fileId,
+    },
+  });
+
+  if (error) {
+    logger.error({
+      msg: 'error response deleting file content from storage',
+      path: `/files/${bucketId}/${fileId}`,
+      error,
     });
-    if (response.ok) {
-      return { data: true };
-    }
-    return {
-      error: new Error('Response delete file content from storage contained unexpected data'),
-    };
-  } catch (error) {
-    const mappedError = mapError(error);
-    return {
-      error: logger.error({
-        msg: 'Request delete file content from storage threw an exception',
-        error: mappedError.message,
-      }),
-    };
+    return { error };
   }
+  return { data: true };
 }

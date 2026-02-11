@@ -12,7 +12,4 @@ export class LocalFileUploaderMock implements LocalFileHandler {
     return this.uploadMock(path, size, abortSignal);
   }
 
-  delete(contentsId: string): Promise<void> {
-    return this.deleteMock(contentsId);
-  }
 }
