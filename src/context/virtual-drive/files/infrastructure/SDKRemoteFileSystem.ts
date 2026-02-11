@@ -5,7 +5,6 @@ import { AuthorizedClients } from '../../../../apps/shared/HttpClient/Clients';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 import { Crypt } from '../../shared/domain/Crypt';
-import { File } from '../domain/File';
 import { FileDataToPersist, PersistedFileData, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { CreateFileDto } from '../../../../infra/drive-server/out/dto';
 import { createFile } from '../../../../infra/drive-server/services/files/services/create-file';
