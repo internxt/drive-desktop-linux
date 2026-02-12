@@ -51,7 +51,7 @@ describe('File Overrider', () => {
     call(overrideFileMock).toStrictEqual({
       fileUuid: file.uuid,
       fileContentsId: updatedContentsId.value,
-      fileSize: updatedSize.value.toString(),
+      fileSize: updatedSize.value,
     });
   });
 

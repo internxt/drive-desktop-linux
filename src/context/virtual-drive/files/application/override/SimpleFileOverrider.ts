@@ -13,7 +13,7 @@ export class SimpleFileOverrider {
     await overrideFile({
       fileUuid: file.uuid,
       fileContentsId: file.contentsId,
-      fileSize: file.size.toString(),
+      fileSize: file.size,
     });
   }
 }

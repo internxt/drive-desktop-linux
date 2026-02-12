@@ -30,7 +30,7 @@ export class FileOverrider {
     await overrideFile({
       fileUuid: file.uuid,
       fileContentsId: file.contentsId,
-      fileSize: file.size.toString(),
+      fileSize: file.size,
     });
 
     await this.repository.update(file);

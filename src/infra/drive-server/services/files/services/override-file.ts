@@ -7,7 +7,7 @@ import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 type Props = {
   fileUuid: string;
   fileContentsId: string;
-  fileSize: string;
+  fileSize: number;
 };
 
 export async function overrideFile({
