@@ -193,13 +193,13 @@ export class Antivirus {
     if (signal.aborted) return null;
 
     const scanPromise = this.clamAv.isInfected(filePath);
-    const timeoutPromise = new Promise<never>((_, reject) => {
+    const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
         reject(new Error(`SCAN_TIMEOUT: File scan exceeded ${timeout}ms`));
       }, timeout);
     });
 
-    const promises: Array<Promise<any>> = [scanPromise, timeoutPromise];
+    const promises = [scanPromise, timeoutPromise];
     const abortPromise = new Promise<null>((resolve) => {
       signal.addEventListener('abort', () => resolve(null), { once: true });
     });

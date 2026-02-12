@@ -85,19 +85,6 @@ vi.mock('../event-bus', () => ({
     emit: vi.fn(),
   },
 }));
-vi.mock('electron', () => ({
-  app: {
-    isPackaged: false,
-    getName: vi.fn(() => 'drive-desktop-linux'),
-    getPath: vi.fn(() => '/mock/path'),
-    getVersion: vi.fn(() => '1.0.0'),
-  },
-  BrowserWindow: vi.fn(),
-  ipcMain: {
-    on: vi.fn(),
-    handle: vi.fn(),
-  },
-}));
 vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
   logger: {
     debug: vi.fn(),
@@ -135,22 +122,17 @@ describe('ManualSystemScan', () => {
   let mockAntivirus: Antivirus;
 
   beforeEach(async () => {
-    vi.clearAllMocks();
 
     mockAntivirus = {
-      scanFile: vi.fn().mockImplementation((path, signal) => {
-        return Promise.resolve({
-          file: path,
-          isInfected: false,
-          viruses: [],
-        });
+      scanFile: vi.fn().mockResolvedValue({
+        file: '/path/to/file.txt',
+        isInfected: false,
+        viruses: [],
       }),
-      scanFileWithRetry: vi.fn().mockImplementation((path, signal) => {
-        return Promise.resolve({
-          file: path,
-          isInfected: false,
-          viruses: [],
-        });
+      scanFileWithRetry: vi.fn().mockResolvedValue({
+        file: '/path/to/file.txt',
+        isInfected: false,
+        viruses: [],
       }),
       stopClamAv: vi.fn().mockResolvedValue(undefined),
       stopServer: vi.fn().mockResolvedValue(undefined),
