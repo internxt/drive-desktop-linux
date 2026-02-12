@@ -38,13 +38,7 @@ export function registerLocalFileServices(builder: ContainerBuilder) {
 
   // Services
   builder.registerAndUse(FileBatchUpdater);
-  builder
-    .register(FileBatchUploader)
-    .useFactory((c) => {
-      return new FileBatchUploader(
-        c.get(LocalFileHandler),
-        c.get(SimpleFileCreator),
-        user.backupsBucket,
-      );
-    });
+  builder.register(FileBatchUploader).useFactory((c) => {
+    return new FileBatchUploader(c.get(LocalFileHandler), c.get(SimpleFileCreator), user.backupsBucket);
+  });
 }

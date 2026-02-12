@@ -5,7 +5,6 @@ import { driveServerClient } from '../../../client/drive-server.client.instance'
 import { CreateThumbnailDto } from '../../../out/dto';
 import { DriveServerError } from '../../../drive-server.error';
 
-
 import { createThumbnail } from './create-thumbnail';
 
 describe('createThumbnail', () => {

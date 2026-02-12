@@ -6,7 +6,6 @@ import { overrideFile } from '../../../../../infra/drive-server/services/files/s
 
 @Service()
 export class SimpleFileOverrider {
-
   async run(file: File, contentsId: string, size: number): Promise<void> {
     file.changeContents(new FileContentsId(contentsId), new FileSize(size));
 

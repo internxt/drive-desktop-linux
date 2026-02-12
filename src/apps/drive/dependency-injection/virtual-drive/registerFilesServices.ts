@@ -33,9 +33,7 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
 
   builder.register(SyncFileMessenger).use(MainProcessSyncFileMessenger);
 
-  builder
-    .register(RemoteFileSystem)
-    .useFactory(() => new SDKRemoteFileSystem(crypt, user.bucket));
+  builder.register(RemoteFileSystem).useFactory(() => new SDKRemoteFileSystem(crypt, user.bucket));
 
   // Services
   builder.register(StorageFileService).useFactory((c) => {

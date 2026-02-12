@@ -35,11 +35,7 @@ describe('FileTrasher', () => {
 
     addFileToTrashMock.mockResolvedValue({ data: true });
 
-    sut = new FileTrasher(
-      fileRepositoryMock,
-      allParentFoldersStatusIsExistsMock,
-      syncFileMessengerMock,
-    );
+    sut = new FileTrasher(fileRepositoryMock, allParentFoldersStatusIsExistsMock, syncFileMessengerMock);
   });
 
   afterEach(() => {
