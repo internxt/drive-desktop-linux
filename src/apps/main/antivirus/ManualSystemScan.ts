@@ -183,7 +183,6 @@ export class ManualSystemScan {
    */
   private handleStalledScan(
     lastCount: number,
-    currentSession: number,
     stuckCheckCount: number,
     hasReportedError: boolean,
     scanCompleted: boolean,
@@ -695,7 +694,6 @@ export class ManualSystemScan {
 
           const stuckResult = this.handleStalledScan(
             scanState.lastScannedCount,
-            currentSession,
             scanState.stuckScanCheckCount,
             scanState.hasReportedError,
             scanState.scanCompleted,

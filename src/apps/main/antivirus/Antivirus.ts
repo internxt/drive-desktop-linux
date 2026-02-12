@@ -4,6 +4,7 @@ import clamAVServer from './ClamAVDaemon';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { AntivirusError } from './AntivirusError';
 import { RESOURCES_PATH, SERVER_HOST, SERVER_PORT } from './constants';
+import { ScanFileResult } from '@internxt/scan';
 import fs from 'fs';
 
 export interface SelectedItemToScanProps {
@@ -128,17 +129,15 @@ export class Antivirus {
     }
   }
 
-  async scanFileWithRetry(filePath: string, signal: AbortSignal, maxRetries = 2) {
+  async scanFileWithRetry(filePath: string, signal: AbortSignal, maxRetries = 2): Promise<ScanFileResult | undefined> {
     let retryCount = 0;
 
     const attemptScan = async () => {
-      if (signal.aborted) return null;
+      if (signal.aborted) return;
 
       try {
         return await this.scanFile(filePath, signal);
       } catch (error) {
-        if (signal.aborted) return null;
-
         if (error instanceof Error && error.message.includes('SCAN_TIMEOUT')) {
           logger.warn({
             tag: 'ANTIVIRUS',
@@ -180,7 +179,7 @@ export class Antivirus {
     return attemptScan();
   }
 
-  async scanFile(filePath: string, signal: AbortSignal, timeout = 60000) {
+  async scanFile(filePath: string, signal: AbortSignal, timeout = 60000): Promise<ScanFileResult | undefined> {
     if (!this.clamAv || !this.isInitialized) {
       throw AntivirusError.clamAvNotInitialized();
     }
@@ -190,26 +189,22 @@ export class Antivirus {
       throw AntivirusError.fileAccessError(filePath);
     }
 
-    if (signal.aborted) return null;
+    if (signal.aborted) return;
 
-    const scanPromise = this.clamAv.isInfected(filePath);
-    const timeoutPromise = new Promise((_, reject) => {
+    const scanPromise: Promise<ScanFileResult> = this.clamAv.isInfected(filePath);
+    const timeoutPromise: Promise<never> = new Promise((_, reject) => {
       setTimeout(() => {
         reject(new Error(`SCAN_TIMEOUT: File scan exceeded ${timeout}ms`));
       }, timeout);
     });
 
-    const promises = [scanPromise, timeoutPromise];
-    const abortPromise = new Promise<null>((resolve) => {
-      signal.addEventListener('abort', () => resolve(null), { once: true });
+    const abortPromise: Promise<undefined> = new Promise((resolve) => {
+      signal.addEventListener('abort', () => resolve(undefined));
     });
-    promises.push(abortPromise);
 
+    const promises = [scanPromise, timeoutPromise, abortPromise];
     try {
-      const result = await Promise.race(promises);
-      if (result === null) return null;
-
-      return result;
+      return await Promise.race(promises);
     } catch (error) {
       if (error instanceof Error && error.message.includes('SCAN_TIMEOUT')) {
         logger.warn({

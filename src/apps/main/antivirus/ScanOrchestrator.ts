@@ -177,11 +177,7 @@ export class ScanOrchestrator {
     try {
       const scannedItem = await transformItem(filePath);
 
-      if (this.abortController.signal.aborted) return;
-
       const cachedItem = await this.dbConnection.getItemFromDatabase(scannedItem.pathName);
-
-      if (this.abortController.signal.aborted) return;
 
       if (cachedItem && this.isFileUnchanged(scannedItem, cachedItem)) {
         if (!this.progressReporter) return;
@@ -190,13 +186,7 @@ export class ScanOrchestrator {
         return;
       }
 
-      if (this.abortController.signal.aborted) return;
-
       const scanResult = await this.antivirus.scanFileWithRetry(scannedItem.pathName, this.abortController.signal);
-
-      if (this.abortController.signal.aborted || scanResult === null) {
-        return;
-      }
 
       if (scanResult) {
         const isInfected = scanResult.isInfected;

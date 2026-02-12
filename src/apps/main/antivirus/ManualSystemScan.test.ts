@@ -604,7 +604,7 @@ describe('ManualSystemScan', () => {
     it('should increment stuck count when no progress', () => {
       (manualSystemScan as any).totalScannedFiles = 5;
 
-      const result = manualSystemScan['handleStalledScan'](5, 1, 0, false, false, true);
+      const result = manualSystemScan['handleStalledScan'](5, 0, false, false, true);
 
       expect(result).toEqual({
         stuckCount: 1,
@@ -621,7 +621,7 @@ describe('ManualSystemScan', () => {
 
       vi.spyOn(manualSystemScan as any, 'isNearlyScanComplete').mockReturnValue(true);
 
-      const result = manualSystemScan['handleStalledScan'](98, 1, 30, false, false, false);
+      const result = manualSystemScan['handleStalledScan'](98, 29, false, false, false);
 
       expect(result.isComplete).toBe(true);
       expect(result.shouldContinue).toBe(false);
@@ -637,7 +637,7 @@ describe('ManualSystemScan', () => {
 
       vi.spyOn(manualSystemScan as any, 'isNearlyScanComplete').mockReturnValue(false);
 
-      const result = manualSystemScan['handleStalledScan'](50, 1, 30, false, false, true);
+      const result = manualSystemScan['handleStalledScan'](50, 29, false, false, true);
 
       expect(result.hasError).toBe(true);
       expect((manualSystemScan as any).abortController.signal.aborted).toBe(true);
@@ -654,7 +654,9 @@ describe('ManualSystemScan', () => {
     });
 
     it('should reset stuck count if progress is made', () => {
-      const result = manualSystemScan['handleStalledScan'](4, 1, 3, false, false, true);
+      (manualSystemScan as any).totalScannedFiles = 5;
+
+      const result = manualSystemScan['handleStalledScan'](4, 3, false, false, true);
 
       expect(result.stuckCount).toBe(0);
       expect(result.shouldContinue).toBe(true);

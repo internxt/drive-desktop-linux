@@ -4,6 +4,7 @@ import NodeClam from '@internxt/scan';
 import clamAVServer from './ClamAVDaemon';
 import { Mock } from 'vitest';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { ScanFileResult } from '@internxt/scan';
 
 vi.mock('@internxt/scan');
 vi.mock('./ClamAVDaemon');
@@ -43,12 +44,6 @@ vi.mock('fs', () => ({
     },
   },
 }));
-
-type ScanResult = {
-  file: string;
-  isInfected: boolean;
-  viruses: any[];
-};
 
 describe('Antivirus', () => {
   let mockNodeClam: any;
@@ -104,7 +99,7 @@ describe('Antivirus', () => {
 
   describe('scanFile', () => {
     it('should scan a file and return the result', async () => {
-      const mockScanResult: ScanResult = {
+      const mockScanResult: ScanFileResult = {
         file: '/path/to/file.txt',
         isInfected: false,
         viruses: [],
@@ -137,7 +132,7 @@ describe('Antivirus', () => {
     });
 
     it('should retry scan if connection issues are encountered', async () => {
-      const mockScanResult: ScanResult = {
+      const mockScanResult: ScanFileResult = {
         file: '/path/to/file.txt',
         isInfected: false,
         viruses: [],
