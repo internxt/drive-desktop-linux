@@ -1,33 +1,19 @@
 import { BrowserWindow, dialog } from 'electron';
-import { call } from 'tests/vitest/utils.helper';
+import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { getPathFromDialog } from './get-path-from-dialog';
 import path from 'node:path';
-
-const mockWindow = {
-  hide: vi.fn(),
-  show: vi.fn(),
-  isVisible: vi.fn().mockReturnValue(true),
-  isDestroyed: vi.fn().mockReturnValue(false),
-};
-
-vi.mock('electron', () => ({
-  dialog: {
-    showOpenDialog: vi.fn(),
-  },
-  BrowserWindow: {
-    getFocusedWindow: vi.fn(),
-    getAllWindows: vi.fn(),
-  },
-}));
-
+import { mockDeep } from 'vitest-mock-extended';
 describe('getPathFromDialog', () => {
-  const mockedDialog = vi.mocked(dialog.showOpenDialog);
-  const mockedGetFocusedWindow = vi.mocked(BrowserWindow.getFocusedWindow);
-  const mockedGetAllWindows = vi.mocked(BrowserWindow.getAllWindows);
+  const mockWindow = mockDeep<BrowserWindow>();
+  const mockedDialog = partialSpyOn(dialog, 'showOpenDialog');
+  const mockedGetFocusedWindow = partialSpyOn(BrowserWindow, 'getFocusedWindow');
+  const mockedGetAllWindows = partialSpyOn(BrowserWindow, 'getAllWindows');
 
   beforeEach(() => {
     mockedGetFocusedWindow.mockReturnValue(mockWindow as unknown as BrowserWindow);
     mockedGetAllWindows.mockReturnValue([mockWindow] as unknown as BrowserWindow[]);
+    mockWindow.isVisible.mockReturnValue(true);
+    mockWindow.isDestroyed.mockReturnValue(false);
   });
 
   it('should hide the focused window before opening the dialog', async () => {
@@ -43,7 +29,7 @@ describe('getPathFromDialog', () => {
 
     await getPathFromDialog();
 
-    expect(mockWindow.show).toHaveBeenCalled();
+    expect(mockWindow.show).toBeCalled();
   });
 
   it('should not show the window if it was destroyed', async () => {
@@ -52,7 +38,7 @@ describe('getPathFromDialog', () => {
 
     await getPathFromDialog();
 
-    expect(mockWindow.show).not.toHaveBeenCalled();
+    expect(mockWindow.show).not.toBeCalled();
   });
 
   it('should use a visible window when no focused window exists', async () => {
@@ -62,7 +48,7 @@ describe('getPathFromDialog', () => {
 
     await getPathFromDialog();
 
-    expect(mockWindow.hide).toHaveBeenCalled();
+    expect(mockWindow.hide).toBeCalled();
   });
 
   it('should return null when the dialog is canceled', async () => {
