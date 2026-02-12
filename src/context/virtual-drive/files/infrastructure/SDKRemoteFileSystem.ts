@@ -1,7 +1,5 @@
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { AuthorizedClients } from '../../../../apps/shared/HttpClient/Clients';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 import { Crypt } from '../../shared/domain/Crypt';
@@ -11,7 +9,6 @@ import { createFile } from '../../../../infra/drive-server/services/files/servic
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
   constructor(
-    private readonly clients: AuthorizedClients,
     private readonly crypt: Crypt,
     private readonly bucket: string,
   ) {}
@@ -71,18 +68,6 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
         );
       }
       return left(new DriveDesktopError('UNKNOWN', `Creating file ${plainName}: ${error}`));
-    }
-  }
-
-  async hardDelete(contentsId: string): Promise<void> {
-    const result = await this.clients.newDrive.delete(`${process.env.NEW_DRIVE_URL}/storage/trash/file/${contentsId}`);
-    if (result.status > 204) {
-      logger.error({
-        msg: '[FILE SYSTEM] Hard delete failed with status:',
-        status: result.status,
-      });
-
-      throw new Error('Error when hard deleting file');
     }
   }
 }
