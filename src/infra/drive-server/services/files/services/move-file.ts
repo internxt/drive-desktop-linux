@@ -1,4 +1,4 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
@@ -11,7 +11,6 @@ export async function moveFile({
   destinationFolder: string;
   uuid: string;
 }): Promise<Result<boolean, DriveServerError>> {
-
   const { error } = await driveServerClient.PATCH('/files/{uuid}', {
     path: { uuid },
     body: {

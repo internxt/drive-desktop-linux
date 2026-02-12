@@ -1,4 +1,4 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { FileDto } from '../../../out/dto';
 import { getNewApiHeaders } from '../../../../../apps/main/auth/service';

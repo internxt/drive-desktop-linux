@@ -1,4 +1,4 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from './../../../../../context/shared/domain/Result';
 import { FileDto, CreateFileDto } from '../../../out/dto';
 import { driveServerClient } from '../../../client/drive-server.client.instance';

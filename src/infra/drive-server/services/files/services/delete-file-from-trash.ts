@@ -1,3 +1,4 @@
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
@@ -9,6 +10,11 @@ export async function deleteFileFromTrash(fileId: string): Promise<Result<boolea
     headers: getNewApiHeaders(),
   });
   if (error) {
+    logger.error({
+      msg: 'Error deleting file from trash',
+      error,
+      path: `/storage/trash/file/${fileId}`,
+    });
     return { error };
   }
   return { data: true };
