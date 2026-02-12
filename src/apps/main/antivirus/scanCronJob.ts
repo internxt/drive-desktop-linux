@@ -49,10 +49,7 @@ const scanInBackground = async (): Promise<void> => {
         return;
       }
 
-      const currentScannedFile = await antivirus.scanFile(
-        scannedItem.pathName,
-        backgroundScanAbortController!.signal,
-      );
+      const currentScannedFile = await antivirus.scanFile(scannedItem.pathName, backgroundScanAbortController!.signal);
 
       if (currentScannedFile) {
         await database.addItemToDatabase({
@@ -124,7 +121,7 @@ export function cancelBackgroundScan() {
 
 export function clearDailyScan() {
   cancelBackgroundScan();
-  
+
   if (dailyScanInterval) {
     clearInterval(dailyScanInterval);
     dailyScanInterval = null;

@@ -131,7 +131,9 @@ describe('Antivirus', () => {
       (antivirus as any).ensureConnection = vi.fn().mockResolvedValue(false);
 
       const abortController = new AbortController();
-      await expect(antivirus.scanFile('/path/to/file.txt', abortController.signal)).rejects.toThrow('ClamAv instance is not initialized');
+      await expect(antivirus.scanFile('/path/to/file.txt', abortController.signal)).rejects.toThrow(
+        'ClamAv instance is not initialized',
+      );
     });
 
     it('should retry scan if connection issues are encountered', async () => {

@@ -102,7 +102,7 @@ export class ScanOrchestrator {
       this.scanQueue.kill();
       logger.debug({
         tag: 'ANTIVIRUS',
-        msg: `Queue killed. Remaining in queue: ${this.scanQueue.length()}, Running workers: ${this.scanQueue.running()}`
+        msg: `Queue killed. Remaining in queue: ${this.scanQueue.length()}, Running workers: ${this.scanQueue.running()}`,
       });
     }
 
