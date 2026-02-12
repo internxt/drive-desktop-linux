@@ -122,7 +122,6 @@ describe('ManualSystemScan', () => {
   let mockAntivirus: Antivirus;
 
   beforeEach(async () => {
-
     mockAntivirus = {
       scanFile: vi.fn().mockResolvedValue({
         file: '/path/to/file.txt',
