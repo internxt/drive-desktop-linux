@@ -116,7 +116,8 @@ describe('Antivirus', () => {
       (antivirus as any).clamAv = mockNodeClam;
       (antivirus as any).isInitialized = true;
 
-      const result = await antivirus.scanFile('/path/to/file.txt');
+      const abortController = new AbortController();
+      const result = await antivirus.scanFile('/path/to/file.txt', abortController.signal);
 
       expect(mockNodeClam.isInfected).toHaveBeenCalledWith('/path/to/file.txt');
       expect(result).toEqual(mockScanResult);
@@ -129,7 +130,8 @@ describe('Antivirus', () => {
       (antivirus as any).connectionRetries = 3;
       (antivirus as any).ensureConnection = vi.fn().mockResolvedValue(false);
 
-      await expect(antivirus.scanFile('/path/to/file.txt')).rejects.toThrow('ClamAv instance is not initialized');
+      const abortController = new AbortController();
+      await expect(antivirus.scanFile('/path/to/file.txt', abortController.signal)).rejects.toThrow('ClamAv instance is not initialized');
     });
 
     it('should retry scan if connection issues are encountered', async () => {
@@ -149,7 +151,8 @@ describe('Antivirus', () => {
         .mockRejectedValueOnce(new Error('ECONNREFUSED: Connection refused'))
         .mockResolvedValueOnce(mockScanResult);
 
-      const result = await antivirus.scanFileWithRetry('/path/to/file.txt', 2);
+      const abortController = new AbortController();
+      const result = await antivirus.scanFileWithRetry('/path/to/file.txt', abortController.signal, 2);
 
       expect(mockNodeClam.isInfected).toHaveBeenCalledTimes(2);
       expect(result).toEqual(mockScanResult);

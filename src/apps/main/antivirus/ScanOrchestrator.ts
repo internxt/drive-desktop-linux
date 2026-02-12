@@ -14,11 +14,12 @@ export class ScanOrchestrator {
   private scanQueue: QueueObject<string> | null = null;
   private progressReporter: ScanProgressReporter | null = null;
   private dbConnection: DBScannerConnection;
-  private cancelled = false;
+  private abortController: AbortController;
 
   constructor() {
     const scannedItemsAdapter = new ScannedItemCollection();
     this.dbConnection = new DBScannerConnection(scannedItemsAdapter);
+    this.abortController = new AbortController();
   }
 
   async scanPaths(paths: string[]) {
@@ -94,10 +95,23 @@ export class ScanOrchestrator {
 
   async cancel() {
     logger.debug({ tag: 'ANTIVIRUS', msg: 'Cancelling scan...' });
-    this.cancelled = true;
 
-    if (this.scanQueue) this.scanQueue.kill();
+    this.abortController.abort();
+
+    if (this.scanQueue) {
+      this.scanQueue.kill();
+      logger.debug({
+        tag: 'ANTIVIRUS',
+        msg: `Queue killed. Remaining in queue: ${this.scanQueue.length()}, Running workers: ${this.scanQueue.running()}`
+      });
+    }
+
+    if (this.progressReporter) {
+      this.progressReporter.reportCompleted();
+    }
+
     await this.cleanup();
+    logger.debug({ tag: 'ANTIVIRUS', msg: 'Scan cancellation completed' });
   }
 
   private async countTotalFiles(paths: string[]) {
@@ -124,7 +138,7 @@ export class ScanOrchestrator {
     let queuedCount = 0;
 
     for (const path of paths) {
-      if (this.cancelled) break;
+      if (this.abortController.signal.aborted) break;
 
       logger.debug({
         tag: 'ANTIVIRUS',
@@ -145,7 +159,7 @@ export class ScanOrchestrator {
             }
           }
         },
-        () => this.cancelled,
+        this.abortController.signal,
       );
     }
 
@@ -156,18 +170,18 @@ export class ScanOrchestrator {
   }
 
   private async scanFile(filePath: string) {
-    if (this.cancelled || !this.antivirus || !this.progressReporter) {
-      logger.warn({
-        tag: 'ANTIVIRUS',
-        msg: `Worker called but cannot process: cancelled=${this.cancelled}, antivirus=${!!this.antivirus}, reporter=${!!this.progressReporter}`,
-      });
+    if (this.abortController.signal.aborted || !this.antivirus || !this.progressReporter) {
       return;
     }
 
     try {
       const scannedItem = await transformItem(filePath);
 
+      if (this.abortController.signal.aborted) return;
+
       const cachedItem = await this.dbConnection.getItemFromDatabase(scannedItem.pathName);
+
+      if (this.abortController.signal.aborted) return;
 
       if (cachedItem && this.isFileUnchanged(scannedItem, cachedItem)) {
         if (!this.progressReporter) return;
@@ -176,7 +190,13 @@ export class ScanOrchestrator {
         return;
       }
 
-      const scanResult = await this.antivirus.scanFileWithRetry(scannedItem.pathName);
+      if (this.abortController.signal.aborted) return;
+
+      const scanResult = await this.antivirus.scanFileWithRetry(scannedItem.pathName, this.abortController.signal);
+
+      if (this.abortController.signal.aborted || scanResult === null) {
+        return;
+      }
 
       if (scanResult) {
         const isInfected = scanResult.isInfected;

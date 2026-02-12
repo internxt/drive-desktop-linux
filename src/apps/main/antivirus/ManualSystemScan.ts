@@ -33,7 +33,7 @@ export class ManualSystemScan {
   private totalInfectedFiles: number;
   private infectedFiles: string[];
   private totalItemsToScan: number;
-  private cancelled = false;
+  private abortController: AbortController;
   private scanSessionId = 0;
   private intervals: IntervalHandle[] = [];
 
@@ -47,7 +47,7 @@ export class ManualSystemScan {
     this.infectedFiles = [];
     this.totalItemsToScan = 0;
     this.antivirus = null;
-    this.cancelled = false;
+    this.abortController = new AbortController();
     this.scanSessionId = 1;
     this.intervals = [];
     const scannedItemsAdapter = new ScannedItemCollection();
@@ -222,7 +222,7 @@ export class ManualSystemScan {
             tag: 'ANTIVIRUS',
             msg: '[SYSTEM_SCAN] Custom scan appears stuck, triggering safety timeout after extended period',
           });
-          this.cancelled = true;
+          this.abortController.abort();
 
           this.emitErrorEvent('Scan appears stuck - no progress detected for 30 minutes', `scan-stalled-${Date.now()}`);
           newHasError = true;
@@ -336,7 +336,7 @@ export class ManualSystemScan {
 
   public stopScan = async () => {
     logger.debug({ tag: 'ANTIVIRUS', msg: '[SYSTEM_SCAN] Stopping scan...' });
-    this.cancelled = true;
+    this.abortController.abort();
     this.scanSessionId++;
     if (this.manualQueue) {
       this.manualQueue.kill();
@@ -370,7 +370,7 @@ export class ManualSystemScan {
     this.infectedFiles = [];
     this.progressEvents = [];
     this.totalItemsToScan = 0;
-    this.cancelled = false;
+    this.abortController = new AbortController();
 
     this.clearAllIntervals();
 
@@ -457,7 +457,7 @@ export class ManualSystemScan {
       await getFilesFromDirectory(
         p,
         (filePath: string) => this.manualQueue!.pushAsync(filePath),
-        () => this.cancelled,
+        this.abortController.signal,
       );
     }
   }
@@ -513,7 +513,7 @@ export class ManualSystemScan {
       await getFilesFromDirectory(
         userSystemPath.path,
         (filePath: string) => this.manualQueue!.pushAsync(filePath),
-        () => this.cancelled,
+        this.abortController.signal,
       );
     } catch (error) {
       logger.error({
@@ -534,7 +534,7 @@ export class ManualSystemScan {
     activeScans: { count: number },
   ): (filePath: string) => Promise<void> {
     return async (filePath: string) => {
-      if (this.cancelled) return;
+      if (this.abortController.signal.aborted) return;
 
       activeScans.count++;
 
@@ -556,7 +556,10 @@ export class ManualSystemScan {
         }
 
         try {
-          const currentScannedFile = await antivirus.scanFileWithRetry(scannedItem.pathName);
+          const currentScannedFile = await antivirus.scanFileWithRetry(
+            scannedItem.pathName,
+            this.abortController.signal,
+          );
 
           if (currentScannedFile) {
             await this.dbConnection.addItemToDatabase({
@@ -625,7 +628,7 @@ export class ManualSystemScan {
   } {
     const progressCheckInterval = this.createInterval(
       () => {
-        if (!scanState.scanCompleted && !this.cancelled) {
+        if (!scanState.scanCompleted && !this.abortController.signal.aborted) {
           if (this.totalScannedFiles === scanState.lastProgressCount) {
             scanState.noProgressIntervals++;
             logger.debug({
@@ -649,7 +652,7 @@ export class ManualSystemScan {
                   tag: 'ANTIVIRUS',
                   msg: '[SYSTEM_SCAN] Custom scan appears stuck, triggering safety timeout after extended period',
                 });
-                this.cancelled = true;
+                this.abortController.abort();
 
                 this.emitErrorEvent(
                   'Scan appears stuck - no progress detected for 20 minutes',
@@ -674,7 +677,7 @@ export class ManualSystemScan {
 
     const heartbeatInterval = this.createInterval(
       () => {
-        if (!this.cancelled && !scanState.scanCompleted) {
+        if (!this.abortController.signal.aborted && !scanState.scanCompleted) {
           if (this.isScanComplete()) {
             logger.debug({
               tag: 'ANTIVIRUS',
@@ -756,7 +759,7 @@ export class ManualSystemScan {
       msg: `[SYSTEM_SCAN] Starting new scan with ${pathNames ? pathNames.length : 'all'} paths`,
     });
 
-    this.cancelled = false;
+    this.abortController = new AbortController();
     const scanStartTime = Date.now();
     this.scanSessionId++;
     const currentSession = this.scanSessionId;
@@ -859,7 +862,7 @@ export class ManualSystemScan {
         tag: 'ANTIVIRUS',
         msg: `[SYSTEM_SCAN] Scan finished in ${scanDuration.toFixed(
           2,
-        )}s with state: completed=${scanState.scanCompleted}, filesScanned=${this.totalScannedFiles}, infected=${this.totalInfectedFiles}, cancelled=${this.cancelled}`,
+        )}s with state: completed=${scanState.scanCompleted}, filesScanned=${this.totalScannedFiles}, infected=${this.totalInfectedFiles}, cancelled=${this.abortController.signal.aborted}`,
       });
 
       this.clearAllIntervals();

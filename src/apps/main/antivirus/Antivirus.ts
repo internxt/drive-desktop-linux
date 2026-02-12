@@ -128,19 +128,17 @@ export class Antivirus {
     }
   }
 
-  /**
-   * Scan a file with automatic retry logic for connection failures
-   * @param filePath Path to the file to scan
-   * @param maxRetries Maximum number of retries on connection failures (default 2)
-   * @returns Scan result with infection status
-   */
-  async scanFileWithRetry(filePath: string, maxRetries = 2) {
+  async scanFileWithRetry(filePath: string, signal: AbortSignal, maxRetries = 2) {
     let retryCount = 0;
 
     const attemptScan = async () => {
+      if (signal.aborted) return null;
+
       try {
-        return await this.scanFile(filePath);
+        return await this.scanFile(filePath, signal);
       } catch (error) {
+        if (signal.aborted) return null;
+
         if (error instanceof Error && error.message.includes('SCAN_TIMEOUT')) {
           logger.warn({
             tag: 'ANTIVIRUS',
@@ -182,7 +180,7 @@ export class Antivirus {
     return attemptScan();
   }
 
-  async scanFile(filePath: string, timeout = 60000) {
+  async scanFile(filePath: string, signal: AbortSignal, timeout = 60000) {
     if (!this.clamAv || !this.isInitialized) {
       throw AntivirusError.clamAvNotInitialized();
     }
@@ -192,6 +190,8 @@ export class Antivirus {
       throw AntivirusError.fileAccessError(filePath);
     }
 
+    if (signal.aborted) return null;
+
     const scanPromise = this.clamAv.isInfected(filePath);
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
@@ -199,8 +199,17 @@ export class Antivirus {
       }, timeout);
     });
 
+    const promises: Array<Promise<any>> = [scanPromise, timeoutPromise];
+    const abortPromise = new Promise<null>((resolve) => {
+      signal.addEventListener('abort', () => resolve(null), { once: true });
+    });
+    promises.push(abortPromise);
+
     try {
-      return await Promise.race([scanPromise, timeoutPromise]);
+      const result = await Promise.race(promises);
+      if (result === null) return null;
+
+      return result;
     } catch (error) {
       if (error instanceof Error && error.message.includes('SCAN_TIMEOUT')) {
         logger.warn({

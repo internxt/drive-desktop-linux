@@ -138,14 +138,14 @@ describe('ManualSystemScan', () => {
     vi.clearAllMocks();
 
     mockAntivirus = {
-      scanFile: vi.fn().mockImplementation((path) => {
+      scanFile: vi.fn().mockImplementation((path, signal) => {
         return Promise.resolve({
           file: path,
           isInfected: false,
           viruses: [],
         });
       }),
-      scanFileWithRetry: vi.fn().mockImplementation((path) => {
+      scanFileWithRetry: vi.fn().mockImplementation((path, signal) => {
         return Promise.resolve({
           file: path,
           isInfected: false,
@@ -225,7 +225,7 @@ describe('ManualSystemScan', () => {
 
       await manualSystemScan.stopScan();
 
-      expect((manualSystemScan as any).cancelled).toBe(true);
+      expect((manualSystemScan as any).abortController.signal.aborted).toBe(true);
 
       expect(mockKill).toHaveBeenCalled();
 
@@ -538,7 +538,6 @@ describe('ManualSystemScan', () => {
       (manualSystemScan as any).progressEvents = [{ progress: 50 }];
       (manualSystemScan as any).totalItemsToScan = 200;
       (manualSystemScan as any).errorCount = 10;
-      (manualSystemScan as any).cancelled = true;
 
       const mockQueue = { kill: vi.fn() };
       (manualSystemScan as any).manualQueue = mockQueue;
@@ -556,7 +555,7 @@ describe('ManualSystemScan', () => {
       expect((manualSystemScan as any).infectedFiles).toEqual([]);
       expect((manualSystemScan as any).progressEvents).toEqual([]);
       expect((manualSystemScan as any).totalItemsToScan).toBe(0);
-      expect((manualSystemScan as any).cancelled).toBe(false);
+      expect((manualSystemScan as any).abortController.signal.aborted).toBe(false);
 
       expect((manualSystemScan as any).clearAllIntervals).toHaveBeenCalled();
       expect(mockQueue.kill).toHaveBeenCalled();
@@ -659,7 +658,7 @@ describe('ManualSystemScan', () => {
       const result = manualSystemScan['handleStalledScan'](50, 1, 30, false, false, true);
 
       expect(result.hasError).toBe(true);
-      expect((manualSystemScan as any).cancelled).toBe(true);
+      expect((manualSystemScan as any).abortController.signal.aborted).toBe(true);
 
       expect(eventBus.emit).toHaveBeenCalledWith(
         'ANTIVIRUS_SCAN_PROGRESS',

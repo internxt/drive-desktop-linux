@@ -18,9 +18,9 @@ const isNonTempItem = (item: Dirent, dir: string): boolean => {
 export const getFilesFromDirectory = async (
   dir: string,
   cb: (file: string) => Promise<void>,
-  isCancelled?: () => boolean,
+  signal?: AbortSignal,
 ): Promise<void | null> => {
-  if (isCancelled && isCancelled()) {
+  if (signal?.aborted) {
     logger.debug({
       tag: 'ANTIVIRUS',
       msg: `Directory traversal cancelled at ${dir}`,
@@ -68,7 +68,7 @@ export const getFilesFromDirectory = async (
   const nonTempItems = items.filter((item) => isNonTempItem(item, dir));
 
   for (const item of nonTempItems) {
-    if (isCancelled && isCancelled()) {
+    if (signal?.aborted) {
       logger.debug({
         tag: 'ANTIVIRUS',
         msg: `Directory traversal cancelled during processing at ${dir}`,
@@ -81,7 +81,7 @@ export const getFilesFromDirectory = async (
       try {
         const subitems = await readdir(fullPath, { withFileTypes: true });
         if (subitems.length > 0) {
-          await getFilesFromDirectory(fullPath, cb, isCancelled);
+          await getFilesFromDirectory(fullPath, cb, signal);
         }
       } catch (error: unknown) {
         if (isPermissionError(error)) {

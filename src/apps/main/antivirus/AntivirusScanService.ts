@@ -3,26 +3,39 @@ import { shell } from 'electron';
 import { ScanOrchestrator } from './ScanOrchestrator';
 import { SelectedItemToScanProps } from './Antivirus';
 import { getUserSystemPath } from '../../main/device/service';
+import { cancelBackgroundScan } from './scanCronJob';
 
 let currentScan: ScanOrchestrator | null = null;
 
 export class AntivirusScanService {
   public static async performScan(items: SelectedItemToScanProps[]): Promise<void> {
-    if (currentScan) {
-      await currentScan.cancel();
+    try {
+      cancelBackgroundScan();
+
+      if (currentScan) {
+        await currentScan.cancel();
+      }
+
+      const paths = items.length === 0 ? await this.getSystemScanPaths() : this.extractPaths(items);
+
+      if (paths.length === 0) {
+        logger.warn({ tag: 'ANTIVIRUS', msg: 'No paths to scan' });
+        return;
+      }
+
+      currentScan = new ScanOrchestrator();
+
+      await currentScan.scanPaths(paths);
+      currentScan = null;
+    } catch (error) {
+      currentScan = null;
+      logger.error({
+        tag: 'ANTIVIRUS',
+        msg: 'Error in performScan:',
+        error,
+      });
+      throw error;
     }
-
-    const paths = items.length === 0 ? await this.getSystemScanPaths() : this.extractPaths(items);
-
-    if (paths.length === 0) {
-      logger.warn({ tag: 'ANTIVIRUS', msg: 'No paths to scan' });
-      return;
-    }
-
-    currentScan = new ScanOrchestrator();
-
-    await currentScan.scanPaths(paths);
-    currentScan = null;
   }
 
   public static async cancelScan(): Promise<void> {
