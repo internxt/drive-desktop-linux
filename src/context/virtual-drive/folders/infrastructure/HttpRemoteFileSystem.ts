@@ -81,20 +81,4 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
     }
     return left('UNHANDLED');
   }
-
-  async trash(id: Folder['id']): Promise<void> {
-    const result = await this.trashClient.post(`${process.env.NEW_DRIVE_URL}/storage/trash/add`, {
-      items: [{ type: 'folder', id }],
-    });
-
-    if (result.status !== 200) {
-      logger.error({
-        msg: '[FOLDER FILE SYSTEM] Folder deletion failed with status:',
-        status: result.status,
-        statusText: result.statusText,
-      });
-
-      throw new Error('Error when deleting folder');
-    }
-  }
 }

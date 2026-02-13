@@ -19,7 +19,5 @@ export abstract class RemoteFileSystem {
     parentFolderUuid: string,
   ): Promise<Either<RemoteFileSystemErrors, FolderPersistedDto>>;
 
-  abstract trash(id: Folder['id']): Promise<void>;
-
   abstract searchWith(parentId: FolderId, folderPath: FolderPath): Promise<Folder | undefined>;
 }
