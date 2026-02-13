@@ -38,10 +38,7 @@ async function scanInBackground() {
           return;
         }
 
-        const currentScannedFile = await antivirus.scanFile(
-          scannedItem.pathName,
-          abortController.signal,
-        );
+        const currentScannedFile = await antivirus.scanFile(scannedItem.pathName, abortController.signal);
         if (currentScannedFile) {
           await database.updateItemToDatabase(previousScannedItem.id, {
             ...scannedItem,
@@ -67,7 +64,7 @@ async function scanInBackground() {
   };
 
   try {
-    let backgroundQueue: QueueObject<string> = queue(scan, BACKGROUND_MAX_CONCURRENCY);
+    const backgroundQueue: QueueObject<string> = queue(scan, BACKGROUND_MAX_CONCURRENCY);
 
     await getFilesFromDirectory({
       dir: userSystemPath.path,
@@ -81,7 +78,7 @@ async function scanInBackground() {
       throw error;
     }
   }
-};
+}
 
 export function scheduleDailyScan() {
   async function startBackgroundScan() {

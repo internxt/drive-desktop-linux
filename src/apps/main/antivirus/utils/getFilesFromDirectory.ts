@@ -19,9 +19,9 @@ type Props = {
   dir: string;
   cb: (file: string) => Promise<void>;
   signal: AbortSignal;
-}
+};
 
-export async function getFilesFromDirectory({ dir, cb, signal}: Props): Promise<void | null> {
+export async function getFilesFromDirectory({ dir, cb, signal }: Props): Promise<void | null> {
   if (signal.aborted) {
     logger.debug({
       tag: 'ANTIVIRUS',
@@ -110,7 +110,7 @@ export async function getFilesFromDirectory({ dir, cb, signal}: Props): Promise<
       }
     }
   }
-};
+}
 
 export async function countSystemFiles(folder: string) {
   if (await PathTypeChecker.isFile(folder)) {
