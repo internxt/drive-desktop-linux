@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ManualSystemScan, getManualScanMonitorInstance, ProgressData } from './ManualSystemScan';
+import { ManualSystemScan, ProgressData } from './ManualSystemScan';
 import { Antivirus } from './Antivirus';
 import { ScannedItem } from '../database/entities/ScannedItem';
 import fs from 'node:fs';
