@@ -15,7 +15,7 @@ import { ipcMain } from 'electron';
 import { PathTypeChecker } from '../../shared/fs/PathTypeChecker ';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { DeviceModule } from '../../../backend/features/device/device.module';
-import { fetchFolder } from '../../../infra/drive-server/services/backup/services/fetch-folder';
+import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import { getBackupFolderUuid } from '../../../infra/drive-server/services/backup/services/fetch-backup-folder-uuid';
 import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 import { createBackup } from '../backups/create-backup';
@@ -166,7 +166,10 @@ async function downloadDeviceBackupZip(
     throw new Error('No saved user');
   }
 
-  const folder = await fetchFolder(device.uuid);
+  const { data: folder, error } = await fetchFolder(device.uuid);
+  if (error) {
+    throw new Error('Unsuccesful request to fetch folder');
+  }
   if (!folder || !folder.uuid || folder.uuid.length === 0) {
     throw new Error('No backup data found');
   }
