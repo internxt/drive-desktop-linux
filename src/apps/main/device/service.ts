@@ -16,11 +16,11 @@ import { PathTypeChecker } from '../../shared/fs/PathTypeChecker ';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { DeviceModule } from '../../../backend/features/device/device.module';
 import { fetchFolder } from '../../../infra/drive-server/services/backup/services/fetch-folder';
-import { deleteFolder } from '../../../infra/drive-server/services/backup/services/delete-folder';
 import { getBackupFolderUuid } from '../../../infra/drive-server/services/backup/services/fetch-backup-folder-uuid';
 import { updateBackupFolderName } from '../../../infra/drive-server/services/backup/services/update-backup-folder-metadata';
 import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 import { createBackup } from '../backups/create-backup';
+import { addFolderToTrash } from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
 
 export type Device = {
   id: number;
@@ -194,8 +194,8 @@ async function downloadDeviceBackupZip(
 }
 
 export async function deleteBackup(backup: BackupInfo, isCurrent?: boolean): Promise<void> {
-  const res = await deleteFolder(backup.folderId);
-  if (!res.ok) {
+  const { error } = await addFolderToTrash(backup.folderUuid);
+  if (error) {
     throw new Error('Request to delete backup wasnt succesful');
   }
 
@@ -221,7 +221,7 @@ export async function deleteBackupsFromDevice(device: Device, isCurrent?: boolea
   // delete backups that are not in the backup list
   const { tree } = await fetchFolderTree(device.uuid);
   const foldersToDelete = tree.children.filter((folder) => !backups.some((backup) => backup.folderId === folder.id));
-  deletionPromises = foldersToDelete.map((folder) => deleteFolder(folder.id));
+  deletionPromises = foldersToDelete.map((folder) => addFolderToTrash(folder.uuid));
   await Promise.all(deletionPromises);
 }
 
