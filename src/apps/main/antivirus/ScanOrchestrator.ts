@@ -66,7 +66,20 @@ export class ScanOrchestrator {
         msg: `All files queued (${this.scanQueue.length()} in queue, ${this.scanQueue.running()} running). Waiting for completion...`,
       });
 
-      await this.scanQueue.drain();
+      await Promise.race([
+        this.scanQueue.drain(),
+        new Promise<void>((resolve) => {
+          this.abortController.signal.addEventListener('abort', () => resolve());
+        }),
+      ]);
+
+      if (this.abortController.signal.aborted) {
+        logger.debug({
+          tag: 'ANTIVIRUS',
+          msg: 'Scan was cancelled',
+        });
+        return;
+      }
 
       logger.debug({
         tag: 'ANTIVIRUS',
@@ -145,9 +158,9 @@ export class ScanOrchestrator {
         msg: `Queueing files from path: ${path}`,
       });
 
-      await getFilesFromDirectory(
-        path,
-        async (filePath: string) => {
+      await getFilesFromDirectory({
+        dir: path,
+        cb: async (filePath: string) => {
           if (this.scanQueue) {
             this.scanQueue.push(filePath);
             queuedCount++;
@@ -159,8 +172,8 @@ export class ScanOrchestrator {
             }
           }
         },
-        this.abortController.signal,
-      );
+        signal: this.abortController.signal,
+      });
     }
 
     logger.debug({

@@ -453,11 +453,11 @@ export class ManualSystemScan {
     }
 
     for (const p of pathsToScan) {
-      await getFilesFromDirectory(
-        p,
-        (filePath: string) => this.manualQueue!.pushAsync(filePath),
-        this.abortController.signal,
-      );
+      await getFilesFromDirectory({
+        dir: p,
+        cb: (filePath: string) => this.manualQueue!.pushAsync(filePath),
+        signal: this.abortController.signal,
+      });
     }
   }
 
@@ -509,11 +509,11 @@ export class ManualSystemScan {
         return;
       }
 
-      await getFilesFromDirectory(
-        userSystemPath.path,
-        (filePath: string) => this.manualQueue!.pushAsync(filePath),
-        this.abortController.signal,
-      );
+      await getFilesFromDirectory({
+        dir: userSystemPath.path,
+        cb: (filePath: string) => this.manualQueue!.pushAsync(filePath),
+        signal: this.abortController.signal,
+      });
     } catch (error) {
       logger.error({
         tag: 'ANTIVIRUS',
