@@ -8,7 +8,6 @@ import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderPersistedDto, RemoteFileSystem, RemoteFileSystemErrors } from '../domain/file-systems/RemoteFileSystem';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
-import { moveFolderIPC, renameFolderIPC } from '../../../../infra/ipc/folders-ipc';
 import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
 
 type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
@@ -96,14 +95,6 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
       });
 
       throw new Error('Error when deleting folder');
-    }
-  }
-
-  async rename(folder: Folder): Promise<void> {
-    const response = await renameFolderIPC(folder.uuid, folder.name);
-
-    if (response.error) {
-      throw new Error(`[FOLDER FILE SYSTEM] Error updating item metadata: ${response.error.message}`);
     }
   }
 }

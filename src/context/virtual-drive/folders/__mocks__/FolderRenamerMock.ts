@@ -1,4 +1,3 @@
-import { RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { FolderRenamer } from '../application/FolderRenamer';
 import { FolderRepository } from '../domain/FolderRepository';
 import { SyncFolderMessenger } from '../domain/SyncFolderMessenger';
@@ -11,7 +10,6 @@ export class FolderRenamerMock extends FolderRenamer {
   constructor() {
     super(
       {} as FolderRepository,
-      {} as RemoteFileSystem,
       {} as EventBus,
       {} as SyncFolderMessenger,
       {} as FolderDescendantsPathUpdater,
