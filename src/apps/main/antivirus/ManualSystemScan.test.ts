@@ -11,8 +11,8 @@ vi.mock('../device/service', () => ({
   getUserSystemPath: vi.fn(() => '/home/user/Documents'),
 }));
 vi.mock('./utils/getFilesFromDirectory', () => ({
-  getFilesFromDirectory: vi.fn((_path, callback) => {
-    callback('/path/to/file.txt');
+  getFilesFromDirectory: vi.fn(({ cb }: { dir: string; cb: (file: string) => Promise<void>; signal: AbortSignal }) => {
+    cb('/path/to/file.txt');
     return Promise.resolve();
   }),
   countSystemFiles: vi.fn(() => Promise.resolve(10)),
@@ -161,7 +161,7 @@ describe('ManualSystemScan', () => {
     mockAntivirus.scanFile.mockResolvedValue(mockScanResult);
     mockAntivirus.scanFileWithRetry.mockResolvedValue(mockScanResult);
 
-    manualSystemScan = await getManualScanMonitorInstance();
+    manualSystemScan = new ManualSystemScan();
   });
 
   describe('scanItems', { timeout: 15000 }, () => {
@@ -170,6 +170,8 @@ describe('ManualSystemScan', () => {
 
       const originalResetCounters = manualSystemScan['resetCounters'];
       manualSystemScan['resetCounters'] = vi.fn().mockResolvedValue(undefined);
+
+      (manualSystemScan as any).abortController = new AbortController();
 
       const mockQueue = {
         pushAsync: vi.fn().mockResolvedValue(undefined),
