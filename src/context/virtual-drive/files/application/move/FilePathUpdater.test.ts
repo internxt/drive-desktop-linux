@@ -10,10 +10,7 @@ import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mock
 import { FolderMother } from '../../../../../context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
 import * as renameFileModule from '../../../../../infra/drive-server/services/files/services/rename-file';
 import * as moveFileModule from '../../../../../infra/drive-server/services/files/services/move-file';
-import { call } from '../../../../../../tests/vitest/utils.helper';
-
-vi.mock(import('../../../../../infra/drive-server/services/files/services/rename-file'));
-vi.mock(import('../../../../../infra/drive-server/services/files/services/move-file'));
+import { call, partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
 
 describe('File path updater', () => {
   let repository: FileRepositoryMock;
@@ -22,8 +19,8 @@ describe('File path updater', () => {
   let eventBus: EventBusMock;
   let SUT: FilePathUpdater;
 
-  const renameFileMock = vi.mocked(renameFileModule.renameFile);
-  const moveFileMock = vi.mocked(moveFileModule.moveFile);
+  const renameFileMock = partialSpyOn(renameFileModule, 'renameFile');
+  const moveFileMock = partialSpyOn(moveFileModule, 'moveFile');
 
   beforeEach(() => {
     repository = new FileRepositoryMock();

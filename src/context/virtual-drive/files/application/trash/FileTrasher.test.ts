@@ -8,14 +8,14 @@ import { BucketEntryIdMother } from 'src/context/virtual-drive/shared/domain/__t
 import { Mocked } from 'vitest';
 import * as addFileToTrashModule from '../../../../../infra/drive-server/services/files/services/add-file-to-trash';
 import { DriveServerError } from '../../../../../infra/drive-server/drive-server.error';
-import { call } from 'tests/vitest/utils.helper';
+import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 
 describe('FileTrasher', () => {
   let sut: FileTrasher;
   let fileRepositoryMock: Mocked<FileRepository>;
   let allParentFoldersStatusIsExistsMock: Mocked<AllParentFoldersStatusIsExists>;
   let syncFileMessengerMock: Mocked<SyncFileMessenger>;
-  const addFileToTrashMock = vi.spyOn(addFileToTrashModule, 'addFileToTrash');
+  const addFileToTrashMock = partialSpyOn(addFileToTrashModule, 'addFileToTrash');
 
   beforeEach(() => {
     fileRepositoryMock = {

@@ -7,12 +7,10 @@ import { FileSizeMother } from '../../domain/__test-helpers__/FileSizeMother';
 import { FileNotFoundError } from '../../domain/errors/FileNotFoundError';
 import { FileOverriddenDomainEvent } from '../../domain/events/FileOverriddenDomainEvent';
 import * as overrideFileModule from '../../../../../infra/drive-server/services/files/services/override-file';
-import { call } from '../../../../../../tests/vitest/utils.helper';
-
-vi.mock(import('../../../../../infra/drive-server/services/files/services/override-file'));
+import { call, partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
 
 describe('File Overrider', () => {
-  const overrideFileMock = vi.mocked(overrideFileModule.overrideFile);
+  const overrideFileMock = partialSpyOn(overrideFileModule, 'overrideFile');
 
   it('throws an error if no file is founded with the given fileId', async () => {
     const repository = new FileRepositoryMock();
