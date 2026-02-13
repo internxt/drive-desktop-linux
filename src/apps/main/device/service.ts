@@ -16,7 +16,7 @@ import { PathTypeChecker } from '../../shared/fs/PathTypeChecker ';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { DeviceModule } from '../../../backend/features/device/device.module';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
-import { getBackupFolderUuid } from '../../../infra/drive-server/services/backup/services/fetch-backup-folder-uuid';
+import { getBackupFolderUuid } from '../../../infra/drive-server/services/folder/services/fetch-backup-folder-uuid';
 import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 import { createBackup } from '../backups/create-backup';
 import { addFolderToTrash } from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
@@ -268,7 +268,7 @@ export async function changeBackupPath(currentPath: string): Promise<boolean> {
   const newFolderName = path.basename(chosenPath);
   if (oldFolderName !== newFolderName) {
     logger.debug({ tag: 'BACKUPS', msg: 'Renaming backup', existingBackup });
-    const getFolderUuidResponse = await getBackupFolderUuid(existingBackup);
+    const getFolderUuidResponse = await getBackupFolderUuid({ folderId: String(existingBackup.folderId) });
     if (getFolderUuidResponse.error) {
       throw getFolderUuidResponse.error;
     }
