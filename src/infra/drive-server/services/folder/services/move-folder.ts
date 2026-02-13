@@ -1,9 +1,9 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { FolderDto } from '../../../../../infra/drive-server/out/dto';
 import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 type Props = {
   uuid: string;
   destinationFolder: string;
