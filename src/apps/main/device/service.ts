@@ -1,11 +1,10 @@
 import { aes } from '@internxt/lib';
 import { dialog, IpcMainEvent } from 'electron';
-import fetch from 'electron-fetch';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import os from 'os';
 import path from 'path';
 import fs, { PathLike } from 'fs';
-import { getNewApiHeaders, getUser } from '../auth/service';
+import { getUser } from '../auth/service';
 import configStore from '../config';
 import { BackupInfo } from '../../backups/BackupInfo';
 import { downloadFolderAsZip } from '../network/download';
@@ -21,6 +20,7 @@ import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 import { createBackup } from '../backups/create-backup';
 import { addFolderToTrash } from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
 import { renameFolder } from '../../../infra/drive-server/services/folder/services/rename-folder';
+import { fetchFolderTreeByUuid } from '../../../infra/drive-server/services/folder/services/fetch-folder-tree-by-uuid';
 
 export type Device = {
   id: number;
@@ -47,44 +47,41 @@ export async function fetchFolderTree(folderUuid: string): Promise<{
   fileDecryptedNames: Record<number, string>;
   size: number;
 }> {
-  const res = await fetch(`${process.env.NEW_DRIVE_URL}/folders/${folderUuid}/tree`, {
-    method: 'GET',
-    headers: getNewApiHeaders(),
-  });
+  const { data, error } = await fetchFolderTreeByUuid({ uuid: folderUuid });
 
-  if (res.ok) {
-    const { tree } = (await res.json()) as unknown as { tree: FolderTree };
-
-    let size = 0;
-    const folderDecryptedNames: Record<number, string> = {};
-    const fileDecryptedNames: Record<number, string> = {};
-
-    // ! Decrypts folders and files names
-    const pendingFolders = [tree];
-    while (pendingFolders.length > 0) {
-      const currentTree = pendingFolders[0];
-      const { folders, files } = {
-        folders: currentTree.children,
-        files: currentTree.files,
-      };
-
-      folderDecryptedNames[currentTree.id] = currentTree.plainName;
-
-      for (const file of files) {
-        fileDecryptedNames[file.id] = aes.decrypt(file.name, `${process.env.NEW_CRYPTO_KEY}-${file.folderId}`);
-        size += Number(file.size);
-      }
-
-      pendingFolders.shift();
-
-      // * Adds current folder folders to pending
-      pendingFolders.push(...folders);
-    }
-
-    return { tree, folderDecryptedNames, fileDecryptedNames, size };
-  } else {
+  if (error) {
     throw new Error('Unsuccesful request to fetch folder tree');
   }
+
+  const { tree } = data as { tree: FolderTree };
+
+  let size = 0;
+  const folderDecryptedNames: Record<number, string> = {};
+  const fileDecryptedNames: Record<number, string> = {};
+
+  // ! Decrypts folders and files names
+  const pendingFolders = [tree];
+  while (pendingFolders.length > 0) {
+    const currentTree = pendingFolders[0];
+    const { folders, files } = {
+      folders: currentTree.children,
+      files: currentTree.files,
+    };
+
+    folderDecryptedNames[currentTree.id] = currentTree.plainName;
+
+    for (const file of files) {
+      fileDecryptedNames[file.id] = aes.decrypt(file.name, `${process.env.NEW_CRYPTO_KEY}-${file.folderId}`);
+      size += Number(file.size);
+    }
+
+    pendingFolders.shift();
+
+    // * Adds current folder folders to pending
+    pendingFolders.push(...folders);
+  }
+
+  return { tree, folderDecryptedNames, fileDecryptedNames, size };
 }
 
 export async function downloadBackup(device: Device): Promise<void> {
