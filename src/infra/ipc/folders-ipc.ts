@@ -1,24 +1,7 @@
 import { FolderDto } from '../drive-server/out/dto';
 import { Result } from '../../context/shared/domain/Result';
-import { FolderError } from '../drive-server/services/folder/folder.error';
 
 const isMainProcess = process.type === 'browser';
-
-/**
- * Creates a folder via IPC or direct call based on process type
- * @param deviceUuid - The UUID of the device or parent folder
- * @param plainName - The name of the folder to create
- * @returns Promise resolving to the created folder data or error
- */
-export async function createFolderIPC(deviceUuid: string, plainName: string): Promise<Result<FolderDto, FolderError>> {
-  if (isMainProcess) {
-    const { createFolder } = await import('../drive-server/services/folder/services/create-folder');
-    return await createFolder(deviceUuid, plainName);
-  } else {
-    const { ipcRenderer } = await import('electron');
-    return await ipcRenderer.invoke('create-folder', deviceUuid, plainName);
-  }
-}
 
 /**
  * Moves a folder to a different parent folder via IPC or direct call based on process type

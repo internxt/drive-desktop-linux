@@ -8,8 +8,8 @@ import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderPersistedDto, RemoteFileSystem, RemoteFileSystemErrors } from '../domain/file-systems/RemoteFileSystem';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
-import { FolderError } from '../../../../infra/drive-server/services/folder/folder.error';
-import { createFolderIPC, moveFolderIPC, renameFolderIPC } from '../../../../infra/ipc/folders-ipc';
+import { moveFolderIPC, renameFolderIPC } from '../../../../infra/ipc/folders-ipc';
+import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
 
 type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
 
@@ -60,13 +60,12 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
     parentFolderUuid: string,
     attempt = 0,
   ): Promise<Either<RemoteFileSystemErrors, FolderPersistedDto>> {
-    const { data, error } = await createFolderIPC(parentFolderUuid, plainName);
+    const { data, error } = await createFolder({ parentFolderUuid, plainName });
     if (data) {
       return right(mapToFolderPersistedDto(data));
     }
-    if (error && typeof error === 'object' && 'cause' in error) {
-      const errorCause = (error as { cause: string }).cause;
-      if (errorCause === 'BAD_REQUEST' && attempt < this.maxRetries) {
+    if (error) {
+      if (error.cause === 'BAD_REQUEST' && attempt < this.maxRetries) {
         logger.debug({ msg: 'Folder Creation failed with code 400' });
         await new Promise((resolve) => {
           setTimeout(resolve, 1_000);
@@ -74,10 +73,10 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
         logger.debug({ msg: 'Retrying' });
         return this.persist(plainName, parentFolderUuid, attempt + 1);
       }
-      if (errorCause === 'BAD_REQUEST') {
+      if (error.cause === 'BAD_REQUEST') {
         return left('WRONG_DATA');
       }
-      if (errorCause === 'FOLDER_ALREADY_EXISTS') {
+      if (error.cause === 'CONFLICT') {
         return left('ALREADY_EXISTS');
       }
     }
