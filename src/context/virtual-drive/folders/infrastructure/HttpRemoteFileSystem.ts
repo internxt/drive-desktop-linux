@@ -13,9 +13,7 @@ import { FolderDto } from '../../../../infra/drive-server/out/dto';
 @Service()
 export class HttpRemoteFileSystem implements RemoteFileSystem {
   private static PAGE_SIZE = 50;
-  public folders: Record<string, Folder> = {};
-
-  constructor(private readonly maxRetries: number = 3) {}
+  private static readonly MAX_RETRIES = 3;
 
   async searchWith(parentId: FolderId, folderPath: FolderPath): Promise<Folder | undefined> {
     let page = 0;
@@ -65,7 +63,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
       return right(mapToFolderPersistedDto(data));
     }
     if (error) {
-      if (error.cause === 'BAD_REQUEST' && attempt < this.maxRetries) {
+      if (error.cause === 'BAD_REQUEST' && attempt < HttpRemoteFileSystem.MAX_RETRIES) {
         logger.debug({ msg: 'Folder Creation failed with code 400' });
         await new Promise((resolve) => {
           setTimeout(resolve, 1_000);
