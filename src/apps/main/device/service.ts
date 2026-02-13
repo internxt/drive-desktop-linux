@@ -17,10 +17,10 @@ import { driveServerModule } from '../../../infra/drive-server/drive-server.modu
 import { DeviceModule } from '../../../backend/features/device/device.module';
 import { fetchFolder } from '../../../infra/drive-server/services/backup/services/fetch-folder';
 import { getBackupFolderUuid } from '../../../infra/drive-server/services/backup/services/fetch-backup-folder-uuid';
-import { updateBackupFolderName } from '../../../infra/drive-server/services/backup/services/update-backup-folder-metadata';
 import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 import { createBackup } from '../backups/create-backup';
 import { addFolderToTrash } from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
+import { renameFolder } from '../../../infra/drive-server/services/folder/services/rename-folder';
 
 export type Device = {
   id: number;
@@ -271,7 +271,7 @@ export async function changeBackupPath(currentPath: string): Promise<boolean> {
     }
     const { data: folderUuid } = getFolderUuidResponse;
 
-    const res = await updateBackupFolderName(folderUuid, newFolderName);
+    const res = await renameFolder({ uuid: folderUuid, plainName: newFolderName });
 
     if (res.error) {
       throw new Error('Error in the request to rename a backup');
