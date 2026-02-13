@@ -7,7 +7,7 @@ import { FolderDto } from '../../../infra/drive-server/out/dto';
 import { mapFolderDtoToBackupInfo } from './utils/mapFolderDtoToBackupInfo';
 
 export async function getBackupsFromDevice(device: Device, isCurrent?: boolean): Promise<Array<BackupInfo>> {
-  const {data: folder, error} = await fetchFolder(device.uuid);
+  const { data: folder, error } = await fetchFolder(device.uuid);
   if (error) {
     throw error;
   }
