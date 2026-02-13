@@ -106,12 +106,4 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
       throw new Error(`[FOLDER FILE SYSTEM] Error updating item metadata: ${response.error.message}`);
     }
   }
-
-  async move(folderUuid: string, destinationFolderUuid: string): Promise<void> {
-    const response = await moveFolderIPC(folderUuid, destinationFolderUuid);
-
-    if (response.error) {
-      throw new Error(`[FOLDER FILE SYSTEM] Error moving item: ${response.error.message}`);
-    }
-  }
 }

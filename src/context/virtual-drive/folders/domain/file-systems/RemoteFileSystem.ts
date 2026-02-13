@@ -21,8 +21,6 @@ export abstract class RemoteFileSystem {
 
   abstract trash(id: Folder['id']): Promise<void>;
 
-  abstract move(folderUuid: string, destinationFolderUuid: string): Promise<void>;
-
   abstract rename(folder: Folder): Promise<void>;
 
   abstract searchWith(parentId: FolderId, folderPath: FolderPath): Promise<Folder | undefined>;
