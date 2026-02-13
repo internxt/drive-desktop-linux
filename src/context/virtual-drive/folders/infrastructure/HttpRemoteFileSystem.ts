@@ -1,43 +1,44 @@
-import { Axios } from 'axios';
 import { Service } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Either, left, right } from '../../../shared/domain/Either';
-import { ServerFolder } from '../../../shared/domain/ServerFolder';
 import { Folder } from '../domain/Folder';
 import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderPersistedDto, RemoteFileSystem, RemoteFileSystemErrors } from '../domain/file-systems/RemoteFileSystem';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
 import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
-
-type NewServerFolder = Omit<ServerFolder, 'plain_name'> & { plainName: string };
+import { searchFolder } from '../../../../infra/drive-server/services/folder/services/search-folder';
+import { FolderDto } from '../../../../infra/drive-server/out/dto';
 
 @Service()
 export class HttpRemoteFileSystem implements RemoteFileSystem {
   private static PAGE_SIZE = 50;
   public folders: Record<string, Folder> = {};
 
-  constructor(
-    private readonly trashClient: Axios,
-    private readonly maxRetries: number = 3,
-  ) {}
+  constructor(private readonly maxRetries: number = 3) {}
 
   async searchWith(parentId: FolderId, folderPath: FolderPath): Promise<Folder | undefined> {
     let page = 0;
-    const folders: Array<NewServerFolder> = [];
+    const folders: Array<FolderDto> = [];
     let lastNumberOfFolders = 0;
 
     do {
       const offset = page * HttpRemoteFileSystem.PAGE_SIZE;
 
       // eslint-disable-next-line no-await-in-loop
-      const result = await this.trashClient.get(
-        `${process.env.NEW_DRIVE_URL}/folders/${parentId.value}/folders?offset=${offset}&limit=${HttpRemoteFileSystem.PAGE_SIZE}`,
-      );
+      const { data, error } = await searchFolder({
+        parentId: parentId.value,
+        offset,
+        limit: HttpRemoteFileSystem.PAGE_SIZE,
+      });
 
-      const founded = result.data.result as Array<NewServerFolder>;
-      folders.push(...founded);
-      lastNumberOfFolders = founded.length;
+      if (error) {
+        logger.error({ msg: 'Error searching subfolders', error });
+        return;
+      }
+
+      folders.push(...data);
+      lastNumberOfFolders = data.length;
 
       page++;
     } while (folders.length % HttpRemoteFileSystem.PAGE_SIZE === 0 && lastNumberOfFolders > 0);
