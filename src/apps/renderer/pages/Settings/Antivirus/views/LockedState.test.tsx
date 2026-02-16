@@ -1,7 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LockedState } from './LockedState';
 
-
 describe('LockedState', () => {
   beforeEach(() => {
     vi.clearAllMocks();
