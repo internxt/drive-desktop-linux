@@ -1,7 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LockedState } from './LockedState';
 
-vi.mock('../../../../context/LocalContext');
 
 describe('LockedState', () => {
   beforeEach(() => {
