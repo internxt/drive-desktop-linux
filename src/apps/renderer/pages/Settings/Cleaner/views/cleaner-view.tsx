@@ -54,7 +54,7 @@ export function CleanerView({
   }, [viewModel, report, totalSize, getSectionSelectionStats]);
 
   return (
-    <div className="relative flex h-full overflow-hidden rounded-lg border border-gray-10 bg-surface shadow-sm dark:bg-gray-5">
+    <div className="relative flex h-full overflow-hidden rounded-lg border border-gray-10 bg-surface shadow-sm dark:bg-gray-1">
       {/* Main View */}
       <div className="flex h-full w-full">
         {/* Left Panel */}

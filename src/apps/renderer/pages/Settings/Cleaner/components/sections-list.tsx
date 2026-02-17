@@ -27,7 +27,7 @@ export function SectionsList({
   const hasAnyItems = Object.values(report).some((section) => section.items.length > 0);
 
   return (
-    <div className="flex h-full w-1/2 flex-col p-6">
+    <div className="flex h-full w-[56%] flex-col p-6">
       <SectionsListHeadertype
         isAllSelected={isAllSelected}
         isPartiallySelected={isPartiallySelected}

@@ -9,12 +9,13 @@ type Props = {
 export function CleanupSizeIndicator({ selectedSize, totalSize, segmentDetails }: Props) {
   const { translate } = useTranslationContext();
   return (
-    <div className="flex w-1/2 flex-col items-center justify-center bg-surface p-6 dark:bg-gray-5">
-      <div className="mb-8 text-center">
-        <p className="text-gray-500 dark:text-gray-400 mb-1 text-sm">
+    <div className="relative flex w-[44%] flex-col items-center justify-start bg-surface pt-2 dark:bg-gray-1">
+      <div className="absolute left-0 top-1/2 h-[90%] w-px -translate-y-1/2 bg-gray-10" />
+      <div className="mb-8 w-full text-center">
+        <p className="text-gray-500 dark:text-gray-400 text-lg font-normal leading-tight">
           {translate('settings.cleaner.sizeIndicatorView.selectCategory')}
         </p>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-lg font-normal leading-tight">
           {translate('settings.cleaner.sizeIndicatorView.previewContent')}
         </p>
       </div>
