@@ -6,7 +6,6 @@ import { User } from '../types';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { getCredentials } from './get-credentials';
 
-
 export function getUser(): User | null {
   const user = ConfigStore.get('userData');
 
