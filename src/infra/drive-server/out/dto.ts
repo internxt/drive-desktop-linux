@@ -8,3 +8,5 @@ export type FolderDto = components['schemas']['FolderDto'];
 
 export type CreateThumbnailDto = components['schemas']['CreateThumbnailDto'];
 export type ThumbnailDto = components['schemas']['ThumbnailDto'];
+
+export type GetFolderContentDto = components['schemas']['GetFolderContentDto'];

@@ -2,7 +2,6 @@ import axios, { isAxiosError } from 'axios';
 import { attachRateLimiterInterceptors } from './client/interceptors/rate-limiter/attach-rate-limiter-interceptors';
 import { Result } from '../../context/shared/domain/Result';
 import { DriveServerError, mapStatusToErrorCause } from './drive-server.error';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 type HTTPMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
