@@ -5,7 +5,7 @@ import { File } from '../domain/File';
 import { StorageFileService } from '../../../storage/StorageFiles/StorageFileService';
 import { Mocked } from 'vitest';
 import * as deleteFileFromTrashModule from '../../../../infra/drive-server/services/files/services/delete-file-from-trash';
-import { call, partialSpyOn } from '../../../../../tests/vitest/utils.helper';
+import { call, calls, partialSpyOn } from '../../../../../tests/vitest/utils.helper';
 
 // Mock the Environment module
 vi.mock('@internxt/inxt-js', () => ({
@@ -45,8 +45,8 @@ describe('FileRepositorySynchronizer', () => {
       const result = await sut.fixDanglingFiles(['file1', 'file2']);
 
       expect(fileRepositoryMock.searchByArrayOfContentsId).toHaveBeenCalledWith(['file1', 'file2']);
-      expect(storageFileServiceMock.isFileDownloadable).not.toHaveBeenCalled();
-      expect(deleteFileFromTrashMock).not.toHaveBeenCalled();
+      expect(storageFileServiceMock.isFileDownloadable).not.toBeCalled();
+      expect(deleteFileFromTrashMock).not.toBeCalled();
       expect(result).toBe(true);
     });
     it('should check every found file if is downloadable and call deleteFileFromTrash', async () => {
@@ -62,7 +62,7 @@ describe('FileRepositorySynchronizer', () => {
       const result = await sut.fixDanglingFiles(['file1', 'file2']);
 
       expect(storageFileServiceMock.isFileDownloadable).toHaveBeenCalledTimes(2);
-      expect(deleteFileFromTrashMock).toHaveBeenCalledTimes(1);
+      calls(deleteFileFromTrashMock).toHaveLength(1);
       call(deleteFileFromTrashMock).toStrictEqual('file1');
       expect(result).toBe(true);
     });
@@ -80,8 +80,8 @@ describe('FileRepositorySynchronizer', () => {
 
       const result = await sut.fixDanglingFiles(['file1', 'file2']);
 
-      expect(storageFileServiceMock.isFileDownloadable).toHaveBeenCalledTimes(2);
-      expect(deleteFileFromTrashMock).not.toHaveBeenCalled();
+      calls(storageFileServiceMock.isFileDownloadable).toHaveLength(2);
+      expect(deleteFileFromTrashMock).not.toBeCalled();
       expect(result).toBe(true);
     });
 

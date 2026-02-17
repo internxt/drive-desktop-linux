@@ -10,7 +10,14 @@ vi.mock('electron', () => ({
   },
   ipcMain: {
     on: vi.fn(),
-    handle: vi.fn()
+    handle: vi.fn(),
+  },
+  dialog: {
+    showOpenDialog: vi.fn(),
+  },
+  BrowserWindow: {
+    getFocusedWindow: vi.fn(),
+    getAllWindows: vi.fn(),
   },
 }));
 
@@ -38,6 +45,9 @@ vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
     warn: vi.fn(),
     info: vi.fn(),
     debug: vi.fn(),
+  },
+  PaymentsModule: {
+    getUserAvailableProducts: vi.fn(),
   },
 }));
 

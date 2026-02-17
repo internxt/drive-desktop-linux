@@ -21,6 +21,7 @@ import { createBackup } from '../backups/create-backup';
 import { addFolderToTrash } from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
 import { renameFolder } from '../../../infra/drive-server/services/folder/services/rename-folder';
 import { fetchFolderTreeByUuid } from '../../../infra/drive-server/services/folder/services/fetch-folder-tree-by-uuid';
+import { getPathFromDialog } from '../../../backend/features/backup/get-path-from-dialog';
 
 export type Device = {
   id: number;
@@ -313,30 +314,6 @@ export type PathInfo = {
   itemName: string;
   isDirectory?: boolean;
 };
-
-export async function getPathFromDialog(): Promise<{
-  path: string;
-  itemName: string;
-} | null> {
-  const result = await dialog.showOpenDialog({
-    properties: ['openDirectory'],
-  });
-
-  if (result.canceled) {
-    return null;
-  }
-
-  const chosenPath = result.filePaths[0];
-
-  const itemPath = chosenPath + (chosenPath[chosenPath.length - 1] === path.sep ? '' : path.sep);
-
-  const itemName = path.basename(itemPath);
-
-  return {
-    path: itemPath,
-    itemName,
-  };
-}
 
 export async function getMultiplePathsFromDialog(allowFiles = false): Promise<PathInfo[] | null> {
   const result = await dialog.showOpenDialog({
