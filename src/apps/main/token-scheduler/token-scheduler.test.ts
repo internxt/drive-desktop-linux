@@ -45,7 +45,7 @@ describe('TokenScheduler', () => {
         const token30Days = createTokenExpiringIn('30d');
         const daysBefore = 5;
 
-        scheduler = new TokenScheduler(daysBefore, [token30Days], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(daysBefore, token30Days, unauthorizedCallbackMock);
         scheduler.schedule(refreshCallback);
 
         calls(refreshCallback).toHaveLength(0);
@@ -61,7 +61,7 @@ describe('TokenScheduler', () => {
         const token2Days = createTokenExpiringIn('2d');
         const daysBefore = 5;
 
-        scheduler = new TokenScheduler(daysBefore, [token2Days], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(daysBefore, token2Days, unauthorizedCallbackMock);
         scheduler.schedule(refreshCallback);
 
         calls(refreshCallback).toHaveLength(0);
@@ -71,10 +71,9 @@ describe('TokenScheduler', () => {
 
       it('schedules refresh N days before the earliest expiration date', () => {
         const token30Days = createTokenExpiringIn('30d');
-        const token31Days = createTokenExpiringIn('31d');
         const daysBefore = 5;
 
-        scheduler = new TokenScheduler(daysBefore, [token30Days, token31Days], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(daysBefore, token30Days, unauthorizedCallbackMock);
 
         const schedule = scheduler.schedule(vi.fn());
         const nextInvocation = schedule?.nextInvocation();
@@ -89,11 +88,9 @@ describe('TokenScheduler', () => {
         vi.useFakeTimers();
 
         const token10Days = createTokenExpiringIn('10d');
-        const token20Days = createTokenExpiringIn('20d');
-        const token30Days = createTokenExpiringIn('30d');
         const daysBefore = 3;
 
-        scheduler = new TokenScheduler(daysBefore, [token30Days, token10Days, token20Days], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(daysBefore, token10Days, unauthorizedCallbackMock);
         scheduler.schedule(refreshCallback);
 
         calls(refreshCallback).toHaveLength(0);
@@ -102,25 +99,23 @@ describe('TokenScheduler', () => {
       });
 
       it('ignores tokens without expiration field and uses valid tokens', () => {
-        const token30Days = createTokenExpiringIn('30d');
         const daysBefore = 5;
 
-        scheduler = new TokenScheduler(daysBefore, [jwtWithoutExpiration, token30Days], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(daysBefore, jwtWithoutExpiration, unauthorizedCallbackMock);
 
         const schedule = scheduler.schedule(vi.fn());
 
-        expect(schedule).toBeDefined();
+        expect(schedule).toBeUndefined();
       });
 
       it('ignores invalid tokens and uses valid tokens', () => {
-        const token30Days = createTokenExpiringIn('30d');
         const daysBefore = 5;
 
-        scheduler = new TokenScheduler(daysBefore, [invalidToken, token30Days], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(daysBefore, invalidToken, unauthorizedCallbackMock);
 
         const schedule = scheduler.schedule(vi.fn());
 
-        expect(schedule).toBeDefined();
+        expect(schedule).toBeUndefined();
       });
     });
 
@@ -128,7 +123,7 @@ describe('TokenScheduler', () => {
       it('calls unauthorized callback and does not schedule when token is already expired', () => {
         const expiredToken = createExpiredToken();
 
-        scheduler = new TokenScheduler(5, [expiredToken], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(5, expiredToken, unauthorizedCallbackMock);
 
         const schedule = scheduler.schedule(vi.fn());
 
@@ -142,7 +137,7 @@ describe('TokenScheduler', () => {
 
         const beforeSchedule = Date.now();
 
-        scheduler = new TokenScheduler(daysBefore, [token2Days], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(daysBefore, token2Days, unauthorizedCallbackMock);
         const schedule = scheduler.schedule(vi.fn());
 
         const afterSchedule = Date.now();
@@ -161,7 +156,7 @@ describe('TokenScheduler', () => {
 
     describe('when no valid tokens exist', () => {
       it('does not schedule when all tokens are invalid', () => {
-        scheduler = new TokenScheduler(5, [invalidToken, invalidToken], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(5, invalidToken, unauthorizedCallbackMock);
 
         const schedule = scheduler.schedule(vi.fn());
 
@@ -170,7 +165,7 @@ describe('TokenScheduler', () => {
       });
 
       it('does not schedule when all tokens have no expiration', () => {
-        scheduler = new TokenScheduler(5, [jwtWithoutExpiration], unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(5, jwtWithoutExpiration, unauthorizedCallbackMock);
 
         const schedule = scheduler.schedule(vi.fn());
 
@@ -185,7 +180,7 @@ describe('TokenScheduler', () => {
       const token30Days = createTokenExpiringIn('30d');
       const refreshCallback = vi.fn();
 
-      scheduler = new TokenScheduler(5, [token30Days], unauthorizedCallbackMock);
+      scheduler = new TokenScheduler(5, token30Days, unauthorizedCallbackMock);
 
       const schedule1 = scheduler.schedule(refreshCallback);
       const schedule2 = scheduler.schedule(refreshCallback);

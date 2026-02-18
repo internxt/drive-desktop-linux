@@ -22,12 +22,11 @@ export const fieldsToSave = [
 ] as const;
 
 export interface AppStore {
-  bearerToken: string;
-  bearerTokenEncrypted: boolean;
   newToken: string;
   newTokenEncrypted: boolean;
   userData: User;
   mnemonic: string;
+  mnemonicEncrypted: boolean;
   backupsEnabled: boolean;
   backupInterval: number;
   lastBackup: number;
@@ -54,12 +53,6 @@ export interface AppStore {
 }
 
 const schema: Schema<AppStore> = {
-  bearerToken: {
-    type: 'string',
-  },
-  bearerTokenEncrypted: {
-    type: 'boolean',
-  },
   newToken: {
     type: 'string',
   },
@@ -71,6 +64,9 @@ const schema: Schema<AppStore> = {
   },
   mnemonic: {
     type: 'string',
+  },
+  mnemonicEncrypted: {
+    type: 'boolean',
   },
   backupsEnabled: {
     type: 'boolean',
@@ -130,12 +126,11 @@ const schema: Schema<AppStore> = {
 } as const;
 
 export const defaults: AppStore = {
-  bearerToken: '',
-  bearerTokenEncrypted: false,
   newToken: '',
   newTokenEncrypted: false,
   userData: {} as User,
   mnemonic: '',
+  mnemonicEncrypted: false,
   backupsEnabled: false,
   backupInterval: 86_400_000, // 24h
   lastBackup: -1,

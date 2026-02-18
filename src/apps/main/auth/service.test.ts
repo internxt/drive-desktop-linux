@@ -97,11 +97,10 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       discoveredBackup: 1,
       shouldFixDanglingFiles: true,
       savedConfigs: {},
-      bearerToken: 'fake-token',
-      bearerTokenEncrypted: false,
       newToken: 'fake-new-token',
       newTokenEncrypted: false,
       mnemonic: 'fake-mnemonic',
+      mnemonicEncrypted: false,
     });
 
     mockStoreForState(configState);
@@ -152,7 +151,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
 
     mockStoreForState(configState);
 
-    const result = canHisConfigBeRestored(fakeUuid);
+    const result = canHisConfigBeRestored({ uuid: fakeUuid });
 
     expect(result).toBe(true);
 
@@ -171,7 +170,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       return storeAsRecord[key];
     });
 
-    const result = canHisConfigBeRestored('unknown-uuid');
+    const result = canHisConfigBeRestored({ uuid: 'unknown-uuid' });
 
     expect(result).toBe(false);
   });
@@ -193,11 +192,10 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       discoveredBackup: 1,
       shouldFixDanglingFiles: true,
       savedConfigs: {},
-      bearerToken: 'fake-token',
-      bearerTokenEncrypted: false,
       newToken: 'fake-new-token',
       newTokenEncrypted: false,
       mnemonic: 'fake-mnemonic',
+      mnemonicEncrypted: false,
     });
 
     mockStoreForState(configState);
@@ -207,7 +205,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
     expect(configState.backupList).toStrictEqual({});
     expect(configState.deviceUUID).toStrictEqual('');
 
-    const restored = canHisConfigBeRestored(fakeUuid);
+    const restored = canHisConfigBeRestored({ uuid: fakeUuid });
 
     expect(restored).toBe(true);
     expect(configState.backupList).toStrictEqual(fakeBackupList);

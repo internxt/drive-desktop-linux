@@ -4,6 +4,7 @@ import * as areProductsEqualModule from './are-products-equal';
 import configStore from '../../../../apps/main/config';
 import eventBus from '../../../../apps/main/event-bus';
 import { getUserAvailableProductsAndStore } from './get-user-available-products-and-store';
+import * as getCredentialsModule from '../../../../apps/main/auth/get-credentials';
 
 vi.mock(import('../../../../apps/shared/HttpClient/background-process-clients'));
 vi.mock(import('../../../../apps/main/auth/service'));
@@ -21,6 +22,11 @@ describe('getUserAvailableProductsAndStore', () => {
   const configSetMock = partialSpyOn(configStore, 'set');
   const areProductsEqualMock = partialSpyOn(areProductsEqualModule, 'areProductsEqual');
   const eventBusEmitMock = partialSpyOn(eventBus, 'emit');
+  const getCredentialsMock = partialSpyOn(getCredentialsModule, 'getCredentials');
+
+  beforeEach(() => {
+    getCredentialsMock.mockReturnValue({ newToken: 'fake-token', mnemonic: 'fake-mnemonic' });
+  });
 
   it('should not store or emit when API returns undefined', async () => {
     getUserAvailableProductsMock.mockResolvedValue(undefined);
