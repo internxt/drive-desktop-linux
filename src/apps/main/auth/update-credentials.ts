@@ -26,11 +26,12 @@ export async function updateCredentials({ newToken, mnemonic, userData }: Props)
   const isSafeStorageAvailable = safeStorage.isEncryptionAvailable();
 
   const token = isSafeStorageAvailable ? encryptKey({ key: newToken }) : newToken;
-  const mnemonicString = mnemonic
-    ? isSafeStorageAvailable
-      ? encryptKey({ key: mnemonic })
-      : mnemonic
-    : ConfigStore.get('mnemonic');
+
+  function getMnemonicString() {
+    if (!mnemonic) return ConfigStore.get('mnemonic');
+    return isSafeStorageAvailable ? encryptKey({ key: mnemonic }) : mnemonic;
+  };
+  const mnemonicString = getMnemonicString();
 
   ConfigStore.set('newToken', token);
   ConfigStore.set('newTokenEncrypted', isSafeStorageAvailable);

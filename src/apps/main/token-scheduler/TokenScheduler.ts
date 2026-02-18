@@ -9,7 +9,7 @@ export class TokenScheduler {
 
   constructor(
     private daysBefore: number,
-    private newToken: string,
+    private readonly newToken: string,
     private unauthorized: () => void,
   ) {}
 

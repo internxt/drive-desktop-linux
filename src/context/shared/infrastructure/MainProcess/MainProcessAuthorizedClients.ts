@@ -6,7 +6,6 @@ export class MainProcessAuthorizedClients implements AuthorizedClients {
 
   constructor() {
     const { newDrive } = getClients();
-
-    this.newDrive = newDrive as AuthorizedClients['newDrive'];
+    this.newDrive = newDrive;
   }
 }
