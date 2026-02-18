@@ -30,7 +30,7 @@ export async function updateCredentials({ newToken, mnemonic, userData }: Props)
   function getMnemonicString() {
     if (!mnemonic) return ConfigStore.get('mnemonic');
     return isSafeStorageAvailable ? encryptKey({ key: mnemonic }) : mnemonic;
-  };
+  }
   const mnemonicString = getMnemonicString();
 
   ConfigStore.set('newToken', token);
