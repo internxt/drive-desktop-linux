@@ -33,13 +33,13 @@ describe('refreshToken', () => {
     calls(updateCredentialsMock).toHaveLength(0);
   });
 
-  it('should return the new token as an array if the refresh was successful', async () => {
+  it('should return the new token if the refresh was successful', async () => {
     authRefreshMock.mockResolvedValue(refreshResult);
 
     const result = await refreshToken();
 
     expect(result.isRight()).toBe(true);
-    expect(result.getRight()).toEqual(['xyz']);
+    expect(result.getRight()).toEqual('xyz');
     call(updateCredentialsMock).toMatchObject({ newToken: 'xyz' });
     calls(onUserUnauthorizedMock).toHaveLength(0);
   });

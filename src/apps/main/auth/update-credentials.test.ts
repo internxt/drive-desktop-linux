@@ -1,22 +1,14 @@
 import { safeStorage } from 'electron';
 import { updateCredentials } from './update-credentials';
 import ConfigStore from '../config';
-import { Delay } from '../../shared/Delay';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { User } from '../types';
-
-vi.mock('../../shared/Delay', () => ({
-  Delay: {
-    ms: vi.fn().mockResolvedValue(undefined),
-  },
-}));
 
 describe('updateCredentials', () => {
   const configGetMock = partialSpyOn(ConfigStore, 'get');
   const configSetMock = partialSpyOn(ConfigStore, 'set');
   const safeStorageIsAvailableMock = partialSpyOn(safeStorage, 'isEncryptionAvailable');
   const safeStorageEncryptMock = partialSpyOn(safeStorage, 'encryptString');
-  const delayMock = vi.mocked(Delay.ms);
 
   const plainToken = 'plain-token-123';
   const plainMnemonic = 'plain mnemonic words here';
@@ -50,18 +42,6 @@ describe('updateCredentials', () => {
 
   beforeEach(() => {
     safeStorageEncryptMock.mockReset();
-  });
-
-  describe('delay behavior', () => {
-    it('should wait 1 second before checking safeStorage availability', async () => {
-      safeStorageIsAvailableMock.mockReturnValue(false);
-      configGetMock.mockReturnValue(existingMnemonic);
-
-      await updateCredentials({ newToken: plainToken });
-
-      expect(delayMock).toBeCalledWith(1_000);
-      expect(delayMock).toHaveBeenCalledBefore(safeStorageIsAvailableMock);
-    });
   });
 
   describe('when safeStorage is available', () => {
@@ -177,7 +157,6 @@ describe('updateCredentials', () => {
         userData: fakeUser,
       });
 
-      expect(delayMock).toBeCalledWith(1_000);
       expect(configSetMock).toBeCalledWith('newToken', encryptedTokenBuffer.toString('latin1'));
       expect(configSetMock).toBeCalledWith('newTokenEncrypted', true);
       expect(configSetMock).toBeCalledWith('mnemonic', encryptedMnemonicBuffer.toString('latin1'));
@@ -194,7 +173,6 @@ describe('updateCredentials', () => {
         userData: fakeUser,
       });
 
-      expect(delayMock).toBeCalledWith(1_000);
       expect(configSetMock).toBeCalledWith('newToken', plainToken);
       expect(configSetMock).toBeCalledWith('newTokenEncrypted', false);
       expect(configSetMock).toBeCalledWith('mnemonic', plainMnemonic);
