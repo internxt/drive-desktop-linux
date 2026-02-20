@@ -39,6 +39,7 @@ export async function stopAndClearFuseApp() {
   }
 
   try {
+    logger.debug({ msg: 'Stopping and clearing FuseApp...' });
     await hydrationApi.stop();
     await fuseApp.clearCache();
     await fuseApp.stop();

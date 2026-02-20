@@ -14,6 +14,7 @@ import { setupElectronLog } from '@internxt/drive-desktop-core/build/backend';
 setupElectronLog({
   logsPath: PATHS.LOGS,
 });
+
 import './virtual-root-folder/handlers';
 import './auto-launch/handlers';
 import './auth/handlers';
@@ -52,6 +53,7 @@ import dns from 'node:dns';
 import { registerAvailableUserProductsHandlers } from '../../backend/features/payments/ipc/register-available-user-products-handlers';
 import { getAntivirusManager } from './antivirus/antivirusManager';
 import { registerAuthIPCHandlers } from '../../infra/ipc/auth-ipc-handlers';
+import { registerQuitHandler } from '../../core/quit/quit.handler';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { trySetupAntivirusIpcAndInitialize } from './background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
 import { getUserAvailableProductsAndStore } from '../../backend/features/payments/services/get-user-available-products-and-store';
@@ -69,6 +71,7 @@ if (!gotTheLock) {
 }
 
 registerAuthIPCHandlers();
+registerQuitHandler();
 
 logger.debug({
   msg: 'Starting app',
