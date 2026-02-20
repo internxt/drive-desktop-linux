@@ -1,16 +1,18 @@
-import { postBackup } from './post-backup';
+import { createBackupFolder } from './create-backup-folder';
 import * as createFolderModule from '../../../infra/drive-server/services/folder/services/create-folder';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { call } from '../../../../tests/vitest/utils.helper';
 import { partialSpyOn } from '../../../../tests/vitest/utils.helper';
+import * as findBackupFolderByNameModule from './find-backup-folder-by-name';
 
 vi.mock(import('@internxt/drive-desktop-core/build/backend'));
 
 const createFolderMock = partialSpyOn(createFolderModule, 'createFolder');
+const findBackupFolderByNameMock = partialSpyOn(findBackupFolderByNameModule, 'findBackupFolderByName');
 const mockLogger = vi.mocked(logger);
 
-describe('postBackup', () => {
+describe('createBackupFolder', () => {
   const mockDevice = {
     id: 1,
     uuid: 'device-123',
@@ -35,7 +37,7 @@ describe('postBackup', () => {
       data: mockFolderData,
     });
 
-    const result = await postBackup({
+    const result = await createBackupFolder({
       folderName: 'My Folder',
       device: mockDevice,
     });
@@ -60,7 +62,7 @@ describe('postBackup', () => {
       error,
     });
 
-    const result = await postBackup({
+    const result = await createBackupFolder({
       folderName: 'Failed Folder',
       device: mockDevice,
     });
@@ -72,5 +74,51 @@ describe('postBackup', () => {
       error,
     });
     expect(result).toStrictEqual({ error });
+  });
+
+  it('should recover existing backup when folder creation conflicts', async () => {
+    createFolderMock.mockResolvedValue({
+      error: new DriveServerError('CONFLICT'),
+    });
+
+    findBackupFolderByNameMock.mockResolvedValue({
+      id: 900,
+      name: 'Existing Folder',
+      uuid: 'existing-folder-uuid',
+    });
+
+    const result = await createBackupFolder({
+      folderName: 'Existing Folder',
+      device: mockDevice,
+    });
+
+    call(findBackupFolderByNameMock).toMatchObject({
+      deviceUuid: 'device-123',
+      folderName: 'Existing Folder',
+    });
+    expect(result).toStrictEqual({
+      data: {
+        id: 900,
+        name: 'Existing Folder',
+        uuid: 'existing-folder-uuid',
+      },
+    });
+  });
+
+  it('should return conflict error when existing backup cannot be found', async () => {
+    const conflictError = new DriveServerError('CONFLICT');
+
+    createFolderMock.mockResolvedValue({
+      error: conflictError,
+    });
+
+    findBackupFolderByNameMock.mockResolvedValue(undefined);
+
+    const result = await createBackupFolder({
+      folderName: 'Existing Folder',
+      device: mockDevice,
+    });
+
+    expect(result).toStrictEqual({ error: conflictError });
   });
 });

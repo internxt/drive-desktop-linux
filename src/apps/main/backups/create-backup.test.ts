@@ -1,5 +1,5 @@
 import { createBackup } from './create-backup';
-import { postBackup } from './post-backup';
+import { createBackupFolder } from './create-backup-folder';
 import configStore from '../config';
 import { app } from 'electron';
 import path from 'node:path';
@@ -8,7 +8,7 @@ vi.mock('./post-backup');
 vi.mock('../config');
 vi.mock('node:path');
 
-const mockPostBackup = vi.mocked(postBackup);
+const mockPostBackup = vi.mocked(createBackupFolder);
 const mockConfigStore = vi.mocked(configStore);
 const mockApp = vi.mocked(app);
 const mockPath = vi.mocked(path);
@@ -75,7 +75,7 @@ describe('createBackup', () => {
     });
   });
 
-  it('should return undefined when postBackup fails', async () => {
+  it('should return undefined when createBackupFolder fails', async () => {
     mockPostBackup.mockResolvedValue({
       error: new Error('Failed to create backup folder') as any,
     });
