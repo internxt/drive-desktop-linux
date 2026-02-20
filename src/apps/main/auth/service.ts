@@ -15,12 +15,6 @@ export function getUser(): User | null {
 
 const keepFields: Array<keyof typeof defaults> = ['preferedLanguage', 'lastOnboardingShown'];
 
-export function getUser(): User | null {
-  const user = ConfigStore.get('userData');
-
-  return user && Object.keys(user).length ? user : null;
-}
-
 function resetConfig() {
   for (const field of fieldsToSave) {
     if (!keepFields.includes(field)) {
