@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
-import { getUser, obtainToken } from './auth/service';
+import { getUser } from './auth/service';
+import { getCredentials } from './auth/get-credentials';
 import eventBus from './event-bus';
 import { broadcastToWindows } from './windows';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
@@ -23,11 +24,12 @@ let user = getUser();
 
 function cleanAndStartRemoteNotifications() {
   stopRemoteNotifications();
+  const { newToken } = getCredentials();
 
   socket = io(process.env.NOTIFICATIONS_URL, {
     transports: ['websocket'],
     auth: {
-      token: obtainToken('newToken'),
+      token: newToken,
     },
     withCredentials: true,
   });

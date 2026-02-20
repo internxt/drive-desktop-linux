@@ -7,7 +7,6 @@ type Props = {
 
 type DeeplinkParams = {
   mnemonic: string;
-  token: string;
   newToken: string;
   privateKey: string;
 };
@@ -30,23 +29,20 @@ export async function processDeeplink({ url }: Props) {
 
     const params = new URLSearchParams(urlObj.search);
     const base64Mnemonic = params.get('mnemonic');
-    const base64LegacyToken = params.get('token');
     const base64Token = params.get('newToken');
     const base64PrivateKey = params.get('privateKey');
 
-    if (!base64Mnemonic || !base64LegacyToken || !base64Token || !base64PrivateKey) {
+    if (!base64Mnemonic || !base64Token || !base64PrivateKey) {
       logger.error({ tag: 'AUTH', msg: 'Missing required parameters in deeplink' });
       return;
     }
 
     let decodedMnemonic: string;
-    let decodedLegacyToken: string;
     let decodedToken: string;
     let decodedPrivateKey: string;
 
     try {
       decodedMnemonic = Buffer.from(base64Mnemonic, 'base64').toString('utf8');
-      decodedLegacyToken = Buffer.from(base64LegacyToken, 'base64').toString('utf8');
       decodedToken = Buffer.from(base64Token, 'base64').toString('utf8');
       decodedPrivateKey = Buffer.from(base64PrivateKey, 'base64').toString('utf8');
     } catch (error) {
@@ -62,7 +58,6 @@ export async function processDeeplink({ url }: Props) {
     logger.debug({ tag: 'AUTH', msg: 'Deeplink parameters validated successfully' });
     return {
       mnemonic: decodedMnemonic,
-      token: decodedLegacyToken,
       newToken: decodedToken,
       privateKey: decodedPrivateKey,
     } as DeeplinkParams;

@@ -22,6 +22,7 @@ import { addFolderToTrash } from '../../../infra/drive-server/services/folder/se
 import { renameFolder } from '../../../infra/drive-server/services/folder/services/rename-folder';
 import { fetchFolderTreeByUuid } from '../../../infra/drive-server/services/folder/services/fetch-folder-tree-by-uuid';
 import { getPathFromDialog } from '../../../backend/features/backup/get-path-from-dialog';
+import { getCredentials } from '../auth/get-credentials';
 
 export type Device = {
   id: number;
@@ -175,7 +176,7 @@ async function downloadDeviceBackupZip(
   const networkApiUrl = process.env.BRIDGE_URL;
   const bridgeUser = user.bridgeUser;
   const bridgePass = user.userId;
-  const encryptionKey = configStore.get('mnemonic');
+  const { mnemonic } = getCredentials();
 
   await downloadFolderAsZip(
     device.name,
@@ -185,7 +186,7 @@ async function downloadDeviceBackupZip(
     {
       bridgeUser,
       bridgePass,
-      encryptionKey,
+      encryptionKey: mnemonic,
     },
     {
       abortController,

@@ -2,7 +2,7 @@ import { onUserUnauthorized } from '../../../../apps/shared/HttpClient/backgroun
 import { logger, PaymentsModule } from '@internxt/drive-desktop-core/build/backend';
 
 import { appInfo } from '../../../../apps/main/app-info/app-info';
-import { obtainToken } from '../../../../apps/main/auth/service';
+import { getCredentials } from '../../../../apps/main/auth/get-credentials';
 import configStore from '../../../../apps/main/config';
 import { areProductsEqual } from './are-products-equal';
 import eventBus from '../../../../apps/main/event-bus';
@@ -12,12 +12,13 @@ export async function getUserAvailableProductsAndStore() {
     msg: 'Checking product availability',
   });
   const storedProducts = configStore.get('availableUserProducts');
+  const { newToken } = getCredentials();
   const paymentsClientConfig = {
     paymentsUrl: process.env.PAYMENTS_URL!,
     desktopHeader: process.env.INTERNXT_DESKTOP_HEADER_KEY!,
     clientName: appInfo.name,
     clientVersion: appInfo.version,
-    token: obtainToken('newToken'),
+    token: newToken,
     unauthorizedCallback: onUserUnauthorized,
   };
   const userProducts = await PaymentsModule.getUserAvailableProducts({
