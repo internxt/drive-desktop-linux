@@ -9,8 +9,12 @@ import { getCredentials } from './get-credentials';
 
 let isLoggedIn = false;
 
-const { newToken } = getCredentials();
-if (getUser() && newToken) setIsLoggedIn(true);
+function initializeLoginState() {
+  const { newToken } = getCredentials();
+  if (getUser() && newToken) {
+    setIsLoggedIn(true);
+  }
+}
 
 export function setIsLoggedIn(value: boolean) {
   isLoggedIn = value;
@@ -49,6 +53,8 @@ ipcMain.on('user-logged-out', () => {
 });
 
 eventBus.on('APP_IS_READY', async (): Promise<void> => {
+  initializeLoginState();
+
   if (isLoggedIn) {
     await createTokenScheduleWithRetry();
     eventBus.emit('USER_LOGGED_IN');
