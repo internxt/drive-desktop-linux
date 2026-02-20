@@ -9,7 +9,7 @@ type Props = {
   device: Device;
 };
 
-export async function postBackup({ folderName, device }: Props) {
+export async function createBackupFolder({ folderName, device }: Props) {
   const { error, data } = await createFolder({ parentFolderUuid: device.uuid, plainName: folderName });
   if (data) {
     const backupData: Backup = {

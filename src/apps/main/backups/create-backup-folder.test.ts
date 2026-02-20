@@ -1,4 +1,4 @@
-import { postBackup } from './post-backup';
+import { createBackupFolder } from './create-backup-folder';
 import * as createFolderModule from '../../../infra/drive-server/services/folder/services/create-folder';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
@@ -12,7 +12,7 @@ const createFolderMock = partialSpyOn(createFolderModule, 'createFolder');
 const findBackupFolderByNameMock = partialSpyOn(findBackupFolderByNameModule, 'findBackupFolderByName');
 const mockLogger = vi.mocked(logger);
 
-describe('postBackup', () => {
+describe('createBackupFolder', () => {
   const mockDevice = {
     id: 1,
     uuid: 'device-123',
@@ -37,7 +37,7 @@ describe('postBackup', () => {
       data: mockFolderData,
     });
 
-    const result = await postBackup({
+    const result = await createBackupFolder({
       folderName: 'My Folder',
       device: mockDevice,
     });
@@ -62,7 +62,7 @@ describe('postBackup', () => {
       error,
     });
 
-    const result = await postBackup({
+    const result = await createBackupFolder({
       folderName: 'Failed Folder',
       device: mockDevice,
     });
@@ -87,7 +87,7 @@ describe('postBackup', () => {
       uuid: 'existing-folder-uuid',
     });
 
-    const result = await postBackup({
+    const result = await createBackupFolder({
       folderName: 'Existing Folder',
       device: mockDevice,
     });
@@ -114,7 +114,7 @@ describe('postBackup', () => {
 
     findBackupFolderByNameMock.mockResolvedValue(undefined);
 
-    const result = await postBackup({
+    const result = await createBackupFolder({
       folderName: 'Existing Folder',
       device: mockDevice,
     });

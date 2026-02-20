@@ -98,10 +98,10 @@ export class AuthService {
     }
   }
 
-  async logout(headers: Record<string, string>): Promise<Either<Error, boolean>> {
+  async logout(): Promise<Either<Error, boolean>> {
     try {
       const response = await authClient.GET('/auth/logout', {
-        headers,
+        headers: getNewApiHeaders(),
       });
 
       if (!response.data) {

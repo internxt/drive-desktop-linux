@@ -22,14 +22,7 @@ function resetConfig() {
   }
 }
 
-function saveConfig() {
-  const user = getUser();
-  if (!user) {
-    return;
-  }
-
-  const { uuid } = user;
-
+function saveConfig({ uuid }: { uuid: string }) {
   const savedConfigs = ConfigStore.get('savedConfigs');
 
   const configToSave = Object.fromEntries(fieldsToSave.map((field) => [field, ConfigStore.get(field)]));
@@ -82,12 +75,16 @@ export function canHisConfigBeRestored({ uuid }: { uuid: string }) {
 }
 
 export function logout() {
-  const headers = getNewApiHeaders();
   logger.debug({ msg: 'Logging out' });
 
-  saveConfig();
+  const user = getUser();
+  if (!user) return;
+
+  const { uuid } = user;
+
+  saveConfig({ uuid });
   resetConfig();
   resetCredentials();
-  void driveServerModule.auth.logout(headers);
+  void driveServerModule.auth.logout();
   logger.debug({ msg: '[AUTH] User logged out' });
 }
