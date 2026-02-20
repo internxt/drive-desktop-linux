@@ -1,17 +1,17 @@
-import { safeStorage } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 import packageConfig from '../../../../package.json';
 import ConfigStore, { defaults, fieldsToSave } from '../config';
 import { User } from '../types';
-import { Delay } from '../../shared/Delay';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
+import { getCredentials } from './get-credentials';
 
-const TOKEN_ENCODING = 'latin1';
 
-const tokensKeys = ['bearerToken', 'newToken'] as const;
-type TokenKey = (typeof tokensKeys)[number];
-type EncryptedTokenKey = `${(typeof tokensKeys)[number]}Encrypted`;
+export function getUser(): User | null {
+  const user = ConfigStore.get('userData');
+
+  return user && Object.keys(user).length ? user : null;
+}
 
 const keepFields: Array<keyof typeof defaults> = ['preferedLanguage', 'lastOnboardingShown'];
 
@@ -41,136 +41,6 @@ function saveConfig() {
   });
 }
 
-export function obtainToken(tokenName: TokenKey): string {
-  const token = ConfigStore.get(tokenName);
-  const isEncrypted = ConfigStore.get<EncryptedTokenKey>(`${tokenName}Encrypted`);
-
-  if (!isEncrypted) {
-    return token;
-  }
-
-  try {
-    if (!safeStorage.isEncryptionAvailable()) {
-      logger.error({
-        msg: '[AUTH] Safe Storage was not available when decrypting encrypted token',
-        tag: 'AUTH',
-      });
-
-      ConfigStore.set<EncryptedTokenKey>(`${tokenName}Encrypted`, false);
-      return token;
-    }
-
-    const buffer = Buffer.from(token, TOKEN_ENCODING);
-
-    return safeStorage.decryptString(buffer);
-  } catch (err) {
-    throw logger.error({
-      msg: '[AUTH] Failed to decrypt token',
-      tag: 'AUTH',
-      error: err,
-    });
-  }
-}
-
-export function obtainTokens(): Array<string> {
-  return tokensKeys.map(obtainToken);
-}
-
-export function getUser(): User | null {
-  const user = ConfigStore.get('userData');
-
-  return user && Object.keys(user).length ? user : null;
-}
-
-export function encryptToken() {
-  const bearerTokenEncrypted = ConfigStore.get('bearerTokenEncrypted');
-
-  if (bearerTokenEncrypted) {
-    return;
-  }
-
-  logger.debug({ msg: 'TOKEN WAS NOT ENCRYPTED, ENCRYPTING...' });
-
-  if (!safeStorage.isEncryptionAvailable()) {
-    throw new Error('Safe Storage is not available');
-  }
-
-  const plainToken = ConfigStore.get('bearerToken');
-
-  const buffer = safeStorage.encryptString(plainToken);
-  const encryptedToken = buffer.toString(TOKEN_ENCODING);
-
-  ConfigStore.set('bearerToken', encryptedToken);
-  ConfigStore.set('bearerTokenEncrypted', true);
-}
-
-function ecnryptToken(token: string): string {
-  const buffer = safeStorage.encryptString(token);
-
-  return buffer.toString(TOKEN_ENCODING);
-}
-
-export async function setCredentials(mnemonic: string, bearerToken: string, newToken: string, userData?: User) {
-  ConfigStore.set('mnemonic', mnemonic);
-  if (userData) ConfigStore.set('userData', userData);
-
-  await Delay.ms(1_000);
-  // In the version of electron we are using calling
-  // isEncryptionAvailable or decryptString "too son" will crash the app
-  // we will be able to remove once we can update the electron version
-
-  const isSafeStorageAvailable = safeStorage.isEncryptionAvailable();
-
-  const token = isSafeStorageAvailable ? ecnryptToken(bearerToken) : bearerToken;
-
-  ConfigStore.set('bearerToken', token);
-  ConfigStore.set('bearerTokenEncrypted', isSafeStorageAvailable);
-
-  const secondToken = isSafeStorageAvailable ? ecnryptToken(newToken) : newToken;
-
-  ConfigStore.set('newToken', secondToken);
-  ConfigStore.set('newTokenEncrypted', isSafeStorageAvailable);
-}
-
-export function updateCredentials(bearerToken?: string, newBearerToken?: string) {
-  const isSafeStorageAvailable = safeStorage.isEncryptionAvailable();
-
-  if (bearerToken) {
-    const token = isSafeStorageAvailable ? ecnryptToken(bearerToken) : bearerToken;
-
-    ConfigStore.set('bearerToken', token);
-    ConfigStore.set('bearerTokenEncrypted', isSafeStorageAvailable);
-  }
-
-  if (!newBearerToken) {
-    return;
-  }
-
-  const secondToken = isSafeStorageAvailable ? ecnryptToken(newBearerToken) : newBearerToken;
-
-  ConfigStore.set('newToken', secondToken);
-  ConfigStore.set('newTokenEncrypted', isSafeStorageAvailable);
-}
-
-export function getHeaders(includeMnemonic = false): Record<string, string> {
-  const token = obtainToken('bearerToken');
-
-  const header = {
-    Authorization: `Bearer ${token}`,
-    'content-type': 'application/json; charset=utf-8',
-    'internxt-client': 'drive-desktop-linux',
-    'internxt-version': packageConfig.version,
-    'x-internxt-desktop-header': process.env.INTERNXT_DESKTOP_HEADER_KEY || '',
-    ...(includeMnemonic
-      ? {
-          'internxt-mnemonic': ConfigStore.get('mnemonic'),
-        }
-      : {}),
-  };
-
-  return header;
-}
-
 export function getBaseApiHeaders(): Record<string, string> {
   return {
     'content-type': 'application/json; charset=utf-8',
@@ -181,22 +51,16 @@ export function getBaseApiHeaders(): Record<string, string> {
 }
 
 export function getNewApiHeaders(): Record<string, string> {
-  const token = obtainToken('newToken');
+  const { newToken } = getCredentials();
 
   return {
-    Authorization: `Bearer ${token}`,
+    Authorization: `Bearer ${newToken}`,
     ...getBaseApiHeaders(),
   };
 }
 
-export function tokensArePresent(): boolean {
-  const tokens = tokensKeys.map((token) => ConfigStore.get(token)).filter((token) => token && token.length !== 0);
-
-  return tokens.length === tokensKeys.length;
-}
-
 function resetCredentials() {
-  for (const field of ['mnemonic', 'userData', 'bearerToken', 'bearerTokenEncrypted', 'newToken'] as const) {
+  for (const field of ['mnemonic', 'mnemonicEncrypted', 'userData', 'newToken', 'newTokenEncrypted'] as const) {
     ConfigStore.set(field, defaults[field]);
   }
 }

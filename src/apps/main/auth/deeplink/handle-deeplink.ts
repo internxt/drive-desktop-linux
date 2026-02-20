@@ -1,7 +1,8 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { app } from 'electron';
 import eventBus from '../../event-bus';
-import { canHisConfigBeRestored, setCredentials } from '../service';
+import { canHisConfigBeRestored } from '../service';
+import { updateCredentials } from '../update-credentials';
 import { setIsLoggedIn } from '../handlers';
 import { setupRootFolder } from '../../virtual-root-folder/service';
 import { processDeeplink } from './proccess-deeplink';
@@ -21,7 +22,7 @@ export async function handleDeeplink({ url }: Props) {
       return false;
     }
 
-    await setCredentials(deeplinkParams.mnemonic, deeplinkParams.token, deeplinkParams.newToken);
+    await updateCredentials({ mnemonic: deeplinkParams.mnemonic, newToken: deeplinkParams.newToken });
 
     logger.debug({ tag: 'AUTH', msg: 'Auth details stored successfully from deeplink' });
 

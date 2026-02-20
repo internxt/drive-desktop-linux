@@ -97,11 +97,10 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       discoveredBackup: 1,
       shouldFixDanglingFiles: true,
       savedConfigs: {},
-      bearerToken: 'fake-token',
-      bearerTokenEncrypted: false,
       newToken: 'fake-new-token',
       newTokenEncrypted: false,
       mnemonic: 'fake-mnemonic',
+      mnemonicEncrypted: false,
     });
 
     mockStoreForState(configState);
@@ -193,11 +192,10 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       discoveredBackup: 1,
       shouldFixDanglingFiles: true,
       savedConfigs: {},
-      bearerToken: 'fake-token',
-      bearerTokenEncrypted: false,
       newToken: 'fake-new-token',
       newTokenEncrypted: false,
       mnemonic: 'fake-mnemonic',
+      mnemonicEncrypted: false,
     });
 
     mockStoreForState(configState);

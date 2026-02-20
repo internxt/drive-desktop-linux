@@ -7,12 +7,12 @@ import { SimpleFileCreator } from '../../../../context/virtual-drive/files/appli
 import { EnvironmentLocalFileUploader } from '../../../../context/local/localFile/infrastructure/EnvironmentLocalFileUploader';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { Environment } from '@internxt/inxt-js';
-import { DependencyInjectionMnemonicProvider } from '../../../shared/dependency-injection/DependencyInjectionMnemonicProvider';
+import { getCredentials } from '../../../main/auth/get-credentials';
 
 export function registerLocalFileServices(builder: ContainerBuilder) {
   //Infra
   const user = DependencyInjectionUserProvider.get();
-  const mnemonic = DependencyInjectionMnemonicProvider.get();
+  const { mnemonic } = getCredentials();
 
   const environment = new Environment({
     bridgeUrl: process.env.BRIDGE_URL,
