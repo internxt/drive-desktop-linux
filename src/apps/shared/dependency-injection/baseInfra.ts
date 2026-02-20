@@ -8,15 +8,15 @@ import { EventRecorder } from '../../../context/virtual-drive/shared/infrastruct
 import { NodeJsEventBus } from '../../../context/virtual-drive/shared/infrastructure/NodeJsEventBus';
 import { Traverser } from '../../../context/virtual-drive/remoteTree/application/Traverser';
 import crypt from '../../../context/shared/infrastructure/crypt';
-import { DependencyInjectionMnemonicProvider } from './DependencyInjectionMnemonicProvider';
 import { InMemoryEventRepository } from '../../../context/virtual-drive/shared/infrastructure/InMemoryEventHistory';
 import { SubscribeDomainEventsHandlerToTheirEvents } from '../../../context/shared/infrastructure/domain-events/SubscribeDomainEventsHandlerToTheirEvents';
+import { getCredentials } from '../../main/auth/get-credentials';
 
 export function baseInfra(): ContainerBuilder {
   const builder = new ContainerBuilder();
 
   const user = DependencyInjectionUserProvider.get();
-  const mnemonic = DependencyInjectionMnemonicProvider.get();
+  const { mnemonic } = getCredentials();
 
   const environment = new Environment({
     bridgeUrl: process.env.BRIDGE_URL,

@@ -20,6 +20,11 @@ vi.mock('electron', () => ({
     getFocusedWindow: vi.fn(),
     getAllWindows: vi.fn(),
   },
+  safeStorage: {
+    isEncryptionAvailable: vi.fn(),
+    decryptString: vi.fn(),
+    encryptString: vi.fn(),
+  },
 }));
 
 // Mock electron-log (depends on electron)

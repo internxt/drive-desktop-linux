@@ -9,7 +9,7 @@ export class TokenScheduler {
 
   constructor(
     private daysBefore: number,
-    private tokens: Array<string | undefined>,
+    private readonly newToken: string,
     private unauthorized: () => void,
   ) {}
 
@@ -27,12 +27,6 @@ export class TokenScheduler {
     }
   }
 
-  private nearestExpiration(): number {
-    const expirations = this.tokens.map(this.getExpiration);
-
-    return Math.min(...expirations);
-  }
-
   private calculateRenewDate(expiration: number): Date {
     const renewMillisBefore = this.daysBefore * 24 * 60 * 60 * 1000;
 
@@ -46,7 +40,7 @@ export class TokenScheduler {
   }
 
   public schedule(refreshCallback: () => void) {
-    const expiration = this.nearestExpiration();
+    const expiration = this.getExpiration(this.newToken);
 
     if (expiration === TokenScheduler.MAX_TIME) {
       logger.warn({ msg: '[TOKEN] Refresh token schedule will not be set' });
