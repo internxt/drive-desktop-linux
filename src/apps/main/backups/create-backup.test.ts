@@ -4,7 +4,7 @@ import configStore from '../config';
 import { app } from 'electron';
 import path from 'node:path';
 
-vi.mock('./post-backup');
+vi.mock('./create-backup-folder');
 vi.mock('../config');
 vi.mock('node:path');
 
