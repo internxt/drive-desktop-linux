@@ -42,7 +42,6 @@ export async function fetchDevice(props: FetchDeviceProps) {
     if (error instanceof BackupError && error.code === 'NOT_FOUND') {
       const msg = 'Device not found';
       logger.debug({ tag: 'BACKUPS', msg: `[DEVICE] ${msg}` });
-      addUnknownDeviceIssue(new Error(msg));
     }
 
     if (error instanceof BackupError && error.code === 'FORBIDDEN') {
