@@ -44,8 +44,8 @@ describe('registerBackupLifecycleIpcHandlers', () => {
 
       await handler();
 
-      expect(loggerMock.debug).not.toHaveBeenCalled();
-      expect(startBackupMock).not.toHaveBeenCalled();
+      expect(loggerMock.debug).not.toBeCalled();
+      expect(startBackupMock).not.toBeCalled();
     });
   });
 
