@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerEventBusBackupHandlers } from './register-event-bus-backup-handlers';
 import eventBus from '../../../../apps/main/event-bus';
 import { backupManager } from '..';
-import { setUpBackups } from '../setup-backups';
+import { startBackupsIfAvailable } from '../start-backups-if-available';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import type { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 
@@ -12,8 +12,8 @@ vi.mock('..', () => ({
   },
 }));
 
-vi.mock('../setup-backups', () => ({
-  setUpBackups: vi.fn(),
+vi.mock('../start-backups-if-available', () => ({
+  startBackupsIfAvailable: vi.fn(),
 }));
 
 vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
@@ -32,26 +32,26 @@ describe('registerEventBusBackupHandlers', () => {
   });
 
   it('should register the event bus USER_LOGGED_OUT handler', () => {
-    registerEventBusBackupHandlers(true);
+    registerEventBusBackupHandlers();
 
     expect(eventBus.listenerCount('USER_LOGGED_OUT')).toBe(1);
   });
 
   it('should register the event bus USER_WAS_UNAUTHORIZED handler', () => {
-    registerEventBusBackupHandlers(true);
+    registerEventBusBackupHandlers();
 
     expect(eventBus.listenerCount('USER_WAS_UNAUTHORIZED')).toBe(1);
   });
 
   it('should register the event bus USER_AVAILABLE_PRODUCTS_UPDATED handler', () => {
-    registerEventBusBackupHandlers(true);
+    registerEventBusBackupHandlers();
 
     expect(eventBus.listenerCount('USER_AVAILABLE_PRODUCTS_UPDATED')).toBe(1);
   });
 
   describe('USER_LOGGED_OUT event', () => {
     it('should call stopAndClearBackups when USER_LOGGED_OUT is emitted', () => {
-      registerEventBusBackupHandlers(true);
+      registerEventBusBackupHandlers();
 
       eventBus.emit('USER_LOGGED_OUT');
 
@@ -61,7 +61,7 @@ describe('registerEventBusBackupHandlers', () => {
 
   describe('USER_WAS_UNAUTHORIZED event', () => {
     it('should call stopAndClearBackups when USER_WAS_UNAUTHORIZED is emitted', () => {
-      registerEventBusBackupHandlers(true);
+      registerEventBusBackupHandlers();
 
       eventBus.emit('USER_WAS_UNAUTHORIZED');
 
@@ -82,46 +82,28 @@ describe('registerEventBusBackupHandlers', () => {
       cleaner: false,
     };
 
-    it('should call setupBackups when user activates backup feature', () => {
-      registerEventBusBackupHandlers(false);
+    it('should call startBackupsIfAvailable when products have backups enabled', () => {
+      registerEventBusBackupHandlers();
 
       eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', mockProductsWithBackups);
 
       expect(logger.debug).toHaveBeenCalledWith({
         tag: 'BACKUPS',
-        msg: 'User now has the backup feature available, setting up backups',
+        msg: 'User has the backup feature available, starting backups',
       });
-      expect(setUpBackups).toHaveBeenCalledTimes(1);
+      expect(startBackupsIfAvailable).toHaveBeenCalledTimes(1);
     });
 
-    it('should call stopAndClearBackups when user deactivates backup feature', () => {
-      registerEventBusBackupHandlers(true);
+    it('should call stopAndClearBackups when products have backups disabled', () => {
+      registerEventBusBackupHandlers();
 
       eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', mockProductsWithoutBackups);
 
       expect(logger.debug).toHaveBeenCalledWith({
         tag: 'BACKUPS',
-        msg: 'User no longer has the backup feature available',
+        msg: 'User does not have the backup feature available',
       });
       expect(backupManager.stopAndClearBackups).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not call setupBackups when user already has backup feature and products are updated with backups enabled', () => {
-      registerEventBusBackupHandlers(true);
-
-      eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', mockProductsWithBackups);
-
-      expect(setUpBackups).not.toHaveBeenCalled();
-      expect(backupManager.stopAndClearBackups).not.toHaveBeenCalled();
-    });
-
-    it('should not call stopAndClearBackups when user does not have backup feature and products are updated without backups', () => {
-      registerEventBusBackupHandlers(false);
-
-      eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', mockProductsWithoutBackups);
-
-      expect(setUpBackups).not.toHaveBeenCalled();
-      expect(backupManager.stopAndClearBackups).not.toHaveBeenCalled();
     });
   });
 });

@@ -61,7 +61,8 @@ import { handleDeeplink } from './auth/deeplink/handle-deeplink';
 import { setupAppImageDeeplink } from './auth/deeplink/setup-appimage-deeplink';
 import { version, release } from 'node:os';
 import { INTERNXT_VERSION } from '../../core/utils/utils';
-import { setUpBackups } from '../../backend/features/backup/setup-backups';
+import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
+import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
 
 const gotTheLock = app.requestSingleInstanceLock();
 app.setAsDefaultProtocolClient('internxt');
@@ -149,7 +150,8 @@ app.on('second-instance', async (_, argv) => {
 });
 
 eventBus.on('WIDGET_IS_READY', () => {
-  setUpBackups();
+  registerBackupHandlers();
+  startBackupsIfAvailable();
 });
 
 eventBus.on('USER_LOGGED_IN', async () => {
