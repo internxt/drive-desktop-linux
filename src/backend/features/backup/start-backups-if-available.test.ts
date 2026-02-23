@@ -1,56 +1,37 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { startBackupsIfAvailable } from './start-backups-if-available';
-import { userHasBackupsEnabled } from './utils/user-has-backups-enabled';
+import * as userHasBackupsEnabledModule from './utils/user-has-backups-enabled';
 import { backupManager } from '.';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
-
-vi.mock('./utils/user-has-backups-enabled', () => ({
-  userHasBackupsEnabled: vi.fn(),
-}));
-
-vi.mock('.', () => ({
-  backupManager: {
-    startScheduler: vi.fn(),
-    isScheduled: vi.fn(),
-  },
-}));
+import { partialSpyOn, call, calls } from 'tests/vitest/utils.helper';
+import { loggerMock } from 'tests/vitest/mocks.helper';
 
 describe('startBackupsIfAvailable', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  const startSchedulerMock = partialSpyOn(backupManager, 'startScheduler');
+  const isScheduledMock = partialSpyOn(backupManager, 'isScheduled');
+  const userHasBackupsEnabledMock = partialSpyOn(userHasBackupsEnabledModule, 'userHasBackupsEnabled');
 
   it('should not start scheduler if user has no backup feature', async () => {
-    vi.mocked(userHasBackupsEnabled).mockReturnValue(false);
+    userHasBackupsEnabledMock.mockReturnValue(false);
 
     await startBackupsIfAvailable();
 
-    expect(logger.debug).toHaveBeenCalledWith({
-      tag: 'BACKUPS',
+    call(loggerMock.debug).toMatchObject({
       msg: 'User does not have the backup feature available',
     });
-    expect(backupManager.startScheduler).not.toHaveBeenCalled();
+    expect(startSchedulerMock).not.toBeCalled();
   });
 
   it('should start scheduler if user has backup feature', async () => {
-    vi.mocked(userHasBackupsEnabled).mockReturnValue(true);
-    vi.mocked(backupManager.startScheduler).mockResolvedValue(undefined);
-    vi.mocked(backupManager.isScheduled).mockReturnValue(true);
+    userHasBackupsEnabledMock.mockReturnValue(true);
+    startSchedulerMock.mockResolvedValue(undefined);
+    isScheduledMock.mockReturnValue(true);
 
     await startBackupsIfAvailable();
 
-    expect(backupManager.startScheduler).toHaveBeenCalled();
-    expect(logger.debug).toHaveBeenCalledWith({
-      tag: 'BACKUPS',
-      msg: 'Start service',
-    });
-    expect(logger.debug).toHaveBeenCalledWith({
-      tag: 'BACKUPS',
-      msg: 'Backups schedule is set',
-    });
-    expect(logger.debug).toHaveBeenCalledWith({
-      tag: 'BACKUPS',
-      msg: 'Backups ready',
-    });
+    expect(startSchedulerMock).toBeCalled();
+    calls(loggerMock.debug).toMatchObject([
+      { msg: 'Start service' },
+      { msg: 'Backups schedule is set' },
+      { msg: 'Backups ready' },
+    ]);
   });
 });

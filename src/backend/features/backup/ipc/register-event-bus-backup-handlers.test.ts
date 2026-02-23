@@ -1,33 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerEventBusBackupHandlers } from './register-event-bus-backup-handlers';
 import eventBus from '../../../../apps/main/event-bus';
 import { backupManager } from '..';
-import { startBackupsIfAvailable } from '../start-backups-if-available';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import * as startBackupsIfAvailableModule from '../start-backups-if-available';
 import type { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
-
-vi.mock('..', () => ({
-  backupManager: {
-    stopAndClearBackups: vi.fn(),
-  },
-}));
-
-vi.mock('../start-backups-if-available', () => ({
-  startBackupsIfAvailable: vi.fn(),
-}));
-
-vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
-  logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+import { calls, call, partialSpyOn } from 'tests/vitest/utils.helper';
+import { loggerMock } from 'tests/vitest/mocks.helper';
 
 describe('registerEventBusBackupHandlers', () => {
+  const stopAndClearBackupsMock = partialSpyOn(backupManager, 'stopAndClearBackups');
+  const startBackupsIfAvailableMock = partialSpyOn(startBackupsIfAvailableModule, 'startBackupsIfAvailable');
+
   beforeEach(() => {
-    vi.clearAllMocks();
     eventBus.removeAllListeners();
   });
 
@@ -55,7 +38,7 @@ describe('registerEventBusBackupHandlers', () => {
 
       eventBus.emit('USER_LOGGED_OUT');
 
-      expect(backupManager.stopAndClearBackups).toHaveBeenCalledTimes(1);
+      calls(stopAndClearBackupsMock).toHaveLength(1);
     });
   });
 
@@ -65,7 +48,7 @@ describe('registerEventBusBackupHandlers', () => {
 
       eventBus.emit('USER_WAS_UNAUTHORIZED');
 
-      expect(backupManager.stopAndClearBackups).toHaveBeenCalledTimes(1);
+      calls(stopAndClearBackupsMock).toHaveLength(1);
     });
   });
 
@@ -87,11 +70,10 @@ describe('registerEventBusBackupHandlers', () => {
 
       eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', mockProductsWithBackups);
 
-      expect(logger.debug).toHaveBeenCalledWith({
-        tag: 'BACKUPS',
+      call(loggerMock.debug).toMatchObject({
         msg: 'User has the backup feature available, starting backups',
       });
-      expect(startBackupsIfAvailable).toHaveBeenCalledTimes(1);
+      calls(startBackupsIfAvailableMock).toHaveLength(1);
     });
 
     it('should call stopAndClearBackups when products have backups disabled', () => {
@@ -99,11 +81,10 @@ describe('registerEventBusBackupHandlers', () => {
 
       eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', mockProductsWithoutBackups);
 
-      expect(logger.debug).toHaveBeenCalledWith({
-        tag: 'BACKUPS',
+      call(loggerMock.debug).toMatchObject({
         msg: 'User does not have the backup feature available',
       });
-      expect(backupManager.stopAndClearBackups).toHaveBeenCalledTimes(1);
+      calls(stopAndClearBackupsMock).toHaveLength(1);
     });
   });
 });
