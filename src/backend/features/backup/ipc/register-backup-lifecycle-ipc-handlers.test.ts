@@ -1,84 +1,65 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ipcMain } from 'electron';
 import { registerBackupLifecycleIpcHandlers } from './register-backup-lifecycle-ipc-handlers';
 import { backupManager } from '..';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import * as userHasBackupsEnabledModule from '../utils/user-has-backups-enabled';
 import { getIpcHandler } from './__test-helpers__/ipc-test-utils';
-
-vi.mock('..', () => ({
-  backupManager: {
-    startBackup: vi.fn(),
-    stopBackup: vi.fn(),
-  },
-}));
+import { partialSpyOn, call, calls } from 'tests/vitest/utils.helper';
+import { loggerMock } from 'tests/vitest/mocks.helper';
 
 describe('registerBackupLifecycleIpcHandlers', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  const startBackupMock = partialSpyOn(backupManager, 'startBackup');
+  const stopBackupMock = partialSpyOn(backupManager, 'stopBackup');
+  const userHasBackupsEnabledMock = partialSpyOn(userHasBackupsEnabledModule, 'userHasBackupsEnabled');
 
   it('should register the start-backups-process handler', () => {
-    registerBackupLifecycleIpcHandlers(true);
+    registerBackupLifecycleIpcHandlers();
 
-    expect(ipcMain.on).toHaveBeenCalledWith('start-backups-process', expect.any(Function));
+    expect(ipcMain.on).toBeCalledWith('start-backups-process', expect.any(Function));
   });
 
   it('should register the stop-backups-process handler', () => {
-    registerBackupLifecycleIpcHandlers(true);
+    registerBackupLifecycleIpcHandlers();
 
-    expect(ipcMain.on).toHaveBeenCalledWith('stop-backups-process', expect.any(Function));
+    expect(ipcMain.on).toBeCalledWith('stop-backups-process', expect.any(Function));
   });
 
   describe('start-backups-process', () => {
-    it('should call the backupManager startBackup method when start-backups-process event is called and user has backup feature', async () => {
-      registerBackupLifecycleIpcHandlers(true);
+    it('should call the backupManager startBackup method when user has backup feature', async () => {
+      userHasBackupsEnabledMock.mockReturnValue(true);
+      registerBackupLifecycleIpcHandlers();
       const handler = getIpcHandler('start-backups-process', true)!;
 
       await handler();
 
-      expect(logger.debug).toHaveBeenCalledWith({
-        tag: 'BACKUPS',
+      call(loggerMock.debug).toMatchObject({
         msg: 'Backups started manually',
       });
-      expect(backupManager.startBackup).toHaveBeenCalledTimes(1);
+      calls(startBackupMock).toHaveLength(1);
     });
 
     it('should not call startBackup when user does not have backup feature available', async () => {
-      registerBackupLifecycleIpcHandlers(false);
+      userHasBackupsEnabledMock.mockReturnValue(false);
+      registerBackupLifecycleIpcHandlers();
       const handler = getIpcHandler('start-backups-process', true)!;
 
       await handler();
 
-      expect(logger.debug).not.toHaveBeenCalled();
-      expect(backupManager.startBackup).not.toHaveBeenCalled();
+      expect(loggerMock.debug).not.toBeCalled();
+      expect(startBackupMock).not.toBeCalled();
     });
   });
 
   describe('stop-backups-process', () => {
     it('should call the backupManager stopBackup method when stop-backups-process event is called', () => {
-      registerBackupLifecycleIpcHandlers(true);
+      registerBackupLifecycleIpcHandlers();
       const handler = getIpcHandler('stop-backups-process', true)!;
 
       handler();
 
-      expect(logger.debug).toHaveBeenCalledWith({
-        tag: 'BACKUPS',
+      call(loggerMock.debug).toMatchObject({
         msg: 'Stopping backups',
       });
-      expect(backupManager.stopBackup).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call stopBackup regardless of backup feature availability', () => {
-      registerBackupLifecycleIpcHandlers(false);
-      const handler = getIpcHandler('stop-backups-process', true)!;
-
-      handler();
-
-      expect(logger.debug).toHaveBeenCalledWith({
-        tag: 'BACKUPS',
-        msg: 'Stopping backups',
-      });
-      expect(backupManager.stopBackup).toHaveBeenCalledTimes(1);
+      calls(stopBackupMock).toHaveLength(1);
     });
   });
 });
