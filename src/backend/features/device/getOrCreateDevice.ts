@@ -1,6 +1,7 @@
 import { Device } from '../../../apps/main/device/service';
 import configStore from '../../../apps/main/config';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { addUnknownDeviceIssue } from './addUnknownDeviceIssue';
 import { fetchDeviceLegacyAndMigrate } from './fetchDeviceLegacyAndMigrate';
 import { fetchDevice } from './fetchDevice';
 import { createAndSetupNewDevice } from './createAndSetupNewDevice';
@@ -10,7 +11,14 @@ import { Result } from './../../../context/shared/domain/Result';
 async function handleFetchDeviceResult(deviceResult: Result<Device, Error>) {
   if (deviceResult.error) {
     logger.debug({ tag: 'BACKUPS', msg: '[DEVICE] Device not found, creating a new one' });
-    return await createAndSetupNewDevice();
+    const { error, data } = await createAndSetupNewDevice();
+
+    if (error) {
+      addUnknownDeviceIssue(error);
+      return { error };
+    }
+
+    return { data };
   }
 
   return { data: deviceResult.data };
