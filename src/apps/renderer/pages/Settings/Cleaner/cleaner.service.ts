@@ -1,5 +1,6 @@
 import { CleanerReport, CLEANER_SECTION_KEYS } from '../../../../../backend/features/cleaner/cleaner.types';
 import { CleanerViewModel, CleanerSectionViewModel } from './types/cleaner-viewmodel';
+import { ChartSegment } from './components/cleanup-size-chart/types';
 
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -10,11 +11,11 @@ export function formatFileSize(bytes: number): string {
 }
 
 export const sectionConfig = {
-  appCache: { name: 'App Cache', color: '#3B82F6' },
-  logFiles: { name: 'Log Files', color: '#10B981' },
-  trash: { name: 'Trash', color: '#F59E0B' },
-  webStorage: { name: 'Web Storage', color: '#EF4444' },
-  webCache: { name: 'Web Cache', color: '#8B5CF6' },
+  appCache: { name: 'App Cache', color: '#65E3DA' },
+  logFiles: { name: 'Log Files', color: '#FFA424' },
+  trash: { name: 'Trash', color: '#FFDE5B' },
+  webStorage: { name: 'Web Storage', color: '#8785E1' },
+  webCache: { name: 'Web Cache', color: '#FF95C3' },
 };
 
 export function createInitialViewModel(): CleanerViewModel {
@@ -120,7 +121,6 @@ export function calculateSelectedSize(viewModel: CleanerViewModel, report: Clean
 
   return totalSize;
 }
-
 /**
  * Calculates visual segments for the circular progress chart in the CleanupSizeIndicator.
  * Each segment represents a cleaner section (appCache, logFiles, etc.) with its color,
@@ -147,18 +147,20 @@ export function calculateChartSegments(
   report: CleanerReport,
   totalSize: number,
   getSectionSelectionStats: (sectionKey: string, report: CleanerReport) => ReturnType<typeof getSectionStats>,
-): Array<{ color: string; percentage: number; size: number }> {
-  const segments: Array<{ color: string; percentage: number; size: number }> = [];
+): Array<ChartSegment> {
+  const segments: Array<ChartSegment> = [];
 
   Object.entries(report).forEach(([sectionKey, section]) => {
+    if (section.totalSizeInBytes === 0) return;
+
     const sectionStats = getSectionSelectionStats(sectionKey, report);
     const sectionViewModel = viewModel[sectionKey];
+    const isSelected = sectionViewModel !== undefined && sectionStats.selectedCount > 0;
 
-    if (sectionViewModel && sectionStats.selectedCount > 0) {
-      let sectionSelectedSize = 0;
+    let sectionSelectedSize = 0;
 
+    if (isSelected) {
       if (sectionViewModel.selectedAll) {
-        // All selected except exceptions -> calculate total minus exceptions
         sectionSelectedSize = section.totalSizeInBytes;
         sectionViewModel.exceptions.forEach((exceptionPath) => {
           const item = section.items.find((item) => item.fullPath === exceptionPath);
@@ -167,7 +169,6 @@ export function calculateChartSegments(
           }
         });
       } else {
-        // Only exceptions selected -> calculate only exception sizes
         sectionViewModel.exceptions.forEach((exceptionPath) => {
           const item = section.items.find((item) => item.fullPath === exceptionPath);
           if (item) {
@@ -175,16 +176,14 @@ export function calculateChartSegments(
           }
         });
       }
-
-      // Only add segments with actual selected size
-      if (sectionSelectedSize > 0) {
-        segments.push({
-          color: sectionConfig[sectionKey as keyof typeof sectionConfig].color,
-          percentage: totalSize > 0 ? (sectionSelectedSize / totalSize) * 100 : 0,
-          size: sectionSelectedSize,
-        });
-      }
     }
+
+    segments.push({
+      color: sectionConfig[sectionKey as keyof typeof sectionConfig].color,
+      percentage: totalSize > 0 ? (section.totalSizeInBytes / totalSize) * 100 : 0,
+      size: sectionSelectedSize,
+      selected: isSelected && sectionSelectedSize > 0,
+    });
   });
 
   return segments;
