@@ -6,6 +6,33 @@ import { User } from '../types';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { getCredentials } from './get-credentials';
 
+export function getUser(): User | null {
+  const user = ConfigStore.get('userData');
+
+  return user && Object.keys(user).length ? user : null;
+}
+
+const keepFields: Array<keyof typeof defaults> = ['preferedLanguage', 'lastOnboardingShown'];
+
+function resetConfig() {
+  for (const field of fieldsToSave) {
+    if (!keepFields.includes(field)) {
+      ConfigStore.set(field, defaults[field]);
+    }
+  }
+}
+
+function saveConfig({ uuid }: { uuid: string }) {
+  const savedConfigs = ConfigStore.get('savedConfigs');
+
+  const configToSave = Object.fromEntries(fieldsToSave.map((field) => [field, ConfigStore.get(field)]));
+
+  ConfigStore.set('savedConfigs', {
+    ...savedConfigs,
+    [uuid]: configToSave,
+  });
+}
+
 export function getBaseApiHeaders(): Record<string, string> {
   return {
     'content-type': 'application/json; charset=utf-8',
@@ -22,12 +49,6 @@ export function getNewApiHeaders(): Record<string, string> {
     Authorization: `Bearer ${newToken}`,
     ...getBaseApiHeaders(),
   };
-}
-
-export function getUser(): User | null {
-  const user = ConfigStore.get('userData');
-
-  return user && Object.keys(user).length ? user : null;
 }
 
 function resetCredentials() {
@@ -54,44 +75,16 @@ export function canHisConfigBeRestored({ uuid }: { uuid: string }) {
 }
 
 export function logout() {
-  const headers = getNewApiHeaders();
   logger.debug({ msg: 'Logging out' });
 
-  saveConfig();
-  resetConfig();
-  resetCredentials();
-  void driveServerModule.auth.logout(headers);
-  logger.debug({ msg: '[AUTH] User logged out' });
-}
-
-function saveConfig() {
   const user = getUser();
-  if (!user) {
-    return;
-  }
+  if (!user) return;
 
   const { uuid } = user;
 
-  const savedConfigs = ConfigStore.get('savedConfigs');
-
-  const configToSave: any = {};
-
-  for (const field of fieldsToSave) {
-    const value = ConfigStore.get(field);
-    configToSave[field] = value;
-  }
-  ConfigStore.set('savedConfigs', {
-    ...savedConfigs,
-    [uuid]: configToSave,
-  });
-}
-
-const keepFields: Array<keyof typeof defaults> = ['preferedLanguage', 'lastOnboardingShown'];
-
-function resetConfig() {
-  for (const field of fieldsToSave) {
-    if (!keepFields.includes(field)) {
-      ConfigStore.set(field, defaults[field]);
-    }
-  }
+  saveConfig({ uuid });
+  resetConfig();
+  resetCredentials();
+  void driveServerModule.auth.logout();
+  logger.debug({ msg: '[AUTH] User logged out' });
 }
