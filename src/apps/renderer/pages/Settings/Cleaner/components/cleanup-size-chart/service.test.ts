@@ -18,10 +18,7 @@ describe('calculateChartSegments', () => {
   });
 
   it('should return one arc per segment', () => {
-    const segments = [
-      segment({ percentage: 50, color: '#FF0000' }),
-      segment({ percentage: 50, color: '#00FF00' }),
-    ];
+    const segments = [segment({ percentage: 50, color: '#FF0000' }), segment({ percentage: 50, color: '#00FF00' })];
 
     const result = calculateChartSegments({ segments, geometry: geometry() });
 
