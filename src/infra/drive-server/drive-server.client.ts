@@ -3,7 +3,7 @@ import { attachRateLimiterInterceptors } from './client/interceptors/rate-limite
 import { attachAuthInterceptors } from './client/interceptors/auth/attach-auth-interceptors';
 import { Result } from '../../context/shared/domain/Result';
 import { DriveServerError, mapStatusToErrorCause } from './drive-server.error';
-import { AuthHeadersProvider } from './client/interceptors/auth/auth.types';
+import { ClientOptions } from './drive-server.types';
 
 type HTTPMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
@@ -54,12 +54,6 @@ type OperationResponse<T, P extends keyof T, M extends HTTPMethod> =
   }
     ? Res
     : never;
-
-export interface ClientOptions {
-  baseUrl: string;
-  onUnauthorized?: () => void;
-  authHeadersProvider?: AuthHeadersProvider;
-}
 
 /**
  * Creates a client bound to a specific OpenAPI `paths` record.

@@ -1,7 +1,9 @@
 import type { AxiosInstance } from 'axios';
-import { AuthInterceptorOptions } from './auth.types';
 import { createRequestInterceptor } from './create-request-interceptor';
 import { createResponseInterceptor } from './create-response-interceptor';
+import { ClientOptions } from '../../../drive-server.types';
+
+type AuthInterceptorOptions = Omit<ClientOptions, 'baseUrl'>
 
 export function attachAuthInterceptors(instance: AxiosInstance, options: AuthInterceptorOptions): void {
   if (options.authHeadersProvider) {

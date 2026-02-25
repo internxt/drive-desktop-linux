@@ -1,5 +1,5 @@
 import type { InternalAxiosRequestConfig } from 'axios';
-import { AuthHeadersProvider } from './auth.types';
+import { AuthHeadersProvider } from '../../../drive-server.types';
 
 function getHeaderValue(headers: unknown, key: string): string | undefined {
   if (!headers || typeof headers !== 'object') {
