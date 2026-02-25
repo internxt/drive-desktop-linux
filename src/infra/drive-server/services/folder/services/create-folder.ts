@@ -1,7 +1,6 @@
 import { FolderDto } from '../../../../drive-server/out/dto';
 import { Result } from './../../../../../context/shared/domain/Result';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
-import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { DriveServerError } from '../../../drive-server.error';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 type Props = {
@@ -14,7 +13,6 @@ export async function createFolder({
   plainName,
 }: Props): Promise<Result<FolderDto, DriveServerError>> {
   const { data, error } = await driveServerClient.POST('/folders', {
-    headers: getNewApiHeaders(),
     body: {
       parentFolderUuid,
       plainName,

@@ -3,7 +3,6 @@ import { Result } from '../../../../../context/shared/domain/Result';
 import { FolderDto } from '../../../../drive-server/out/dto';
 import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
-import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 
 type Props = {
   parentId: number;
@@ -17,7 +16,6 @@ export async function searchFolder({
   limit = 50,
 }: Props): Promise<Result<FolderDto[], DriveServerError>> {
   const { data, error } = await driveServerClient.GET('/folders/{id}/folders', {
-    headers: getNewApiHeaders(),
     path: { id: parentId },
     query: { offset, limit },
   });

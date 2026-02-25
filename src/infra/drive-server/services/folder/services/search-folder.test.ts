@@ -1,6 +1,5 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { loggerMock } from 'tests/vitest/mocks.helper';
-import * as authServiceModule from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 
@@ -8,22 +7,15 @@ import { searchFolder } from './search-folder';
 
 describe('search-folder', () => {
   const driveServerGetMock = partialSpyOn(driveServerClient, 'GET');
-  const getNewApiHeadersMock = partialSpyOn(authServiceModule, 'getNewApiHeaders');
-
-  beforeEach(() => {
-    getNewApiHeadersMock.mockReturnValue({});
-  });
 
   it('should call GET /folders/{id}/folders with correct params', async () => {
     driveServerGetMock.mockResolvedValue({ data: { result: [] } } as object);
 
     await searchFolder({ parentId: 123, offset: 0, limit: 50 });
 
-    expect(getNewApiHeadersMock).toBeCalled();
     call(driveServerGetMock).toMatchObject([
       '/folders/{id}/folders',
       {
-        headers: {},
         path: { id: 123 },
         query: { offset: 0, limit: 50 },
       },
