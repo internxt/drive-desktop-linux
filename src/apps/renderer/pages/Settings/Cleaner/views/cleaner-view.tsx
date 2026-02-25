@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { calculateChartSegments } from '../cleaner.service';
+import { calculateChartSegments, formatFileSize } from '../cleaner.service';
 import SectionDetailMenu from '../components/section-detail-menu';
-import { CleanupSizeIndicator } from '../components/cleanup-size-indicator';
+import { CleanupSizeChart } from '../components/cleanup-size-chart';
 import { SectionsList } from '../components/sections-list';
 import { CleanerViewModelHook } from '../hooks/useCleanerViewModel';
 import { CleanerReport } from '../../../../../../backend/features/cleaner/cleaner.types';
 import { useCleaner } from '../../../../../renderer/context/CleanerContext';
+import { useTranslationContext } from '../../../../context/LocalContext';
 
 type CleanerViewProps = {
   report: CleanerReport;
@@ -23,6 +24,7 @@ export function CleanerView({
   getGlobalSelectionStats,
 }: CleanerViewProps) {
   const { diskSpace } = useCleaner();
+  const { translate } = useTranslationContext();
   const [sectionDetailMenu, setSectionDetailMenu] = useState<string | null>(null);
 
   const totalSize = useMemo(() => {
@@ -54,7 +56,7 @@ export function CleanerView({
   }, [viewModel, report, totalSize, getSectionSelectionStats]);
 
   return (
-    <div className="relative flex h-full overflow-hidden rounded-lg border border-gray-10 bg-surface shadow-sm dark:bg-gray-5">
+    <div className="relative flex h-full overflow-hidden rounded-lg border border-gray-10 bg-surface shadow-sm dark:bg-gray-1">
       {/* Main View */}
       <div className="flex h-full w-full">
         {/* Left Panel */}
@@ -68,7 +70,29 @@ export function CleanerView({
           onToggleSectionExpansion={toggleSectionExpansion}
         />
         {/* Right Panel */}
-        <CleanupSizeIndicator selectedSize={selectedSize} totalSize={diskSpace} segmentDetails={segmentDetails} />
+        <div className="relative flex w-[44%] flex-col items-center justify-start bg-surface pt-4 dark:bg-gray-1">
+          <div className="absolute left-0 top-1/2 h-[90%] w-px -translate-y-1/2 bg-gray-10" />
+          <div className="mb-8 w-full text-center">
+            <p className="text-gray-500 dark:text-gray-400 text-lg font-normal leading-tight">
+              {translate('settings.cleaner.sizeIndicatorView.selectCategory')}
+            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg font-normal leading-tight">
+              {translate('settings.cleaner.sizeIndicatorView.previewContent')}
+            </p>
+          </div>
+
+          <div className="mb-8 mt-1">
+            <CleanupSizeChart
+              className="relative h-36 w-64"
+              segmentDetails={segmentDetails}
+              totalSize={diskSpace}
+              selectedSize={selectedSize}
+              formattedSelectedSize={formatFileSize(selectedSize)}
+              saveUpToLabel={translate('settings.cleaner.sizeIndicatorView.saveUpTo')}
+              ofYourSpaceLabel={translate('settings.cleaner.sizeIndicatorView.ofYourSpace')}
+            />
+          </div>
+        </div>
       </div>
       {/* Section Detail Menu */}
       {sectionDetailMenu && (
