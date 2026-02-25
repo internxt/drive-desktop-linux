@@ -37,7 +37,7 @@
     "prepare": "husky install",
     "generate_schema": "openapi-typescript http://localhost:3005/api-json -o ./src/infra/schemas.d.ts",
     "generate_schema:prod": "openapi-typescript https://gateway.internxt.com/drive/api-json -o ./src/infra/schemas.d.ts",
-    "find-deadcode": "knip --max-issues=206"
+    "find-deadcode": "knip --max-issues=95"
   },
   "build": {
     "productName": "Internxt",
@@ -184,7 +184,6 @@
     "better-sqlite3": "^11.10.0",
     "bottleneck": "^2.19.5",
     "bytes": "^3.1.1",
-    "chance": "^1.1.11",
     "check-disk-space": "^3.4.0",
     "crypto-js": "4.2.0",
     "dayjs": "^1.10.7",
@@ -203,7 +202,6 @@
     "node-schedule": "^2.1.0",
     "phosphor-react": "^1.4.1",
     "react": "^17.0.2",
-    "react-auth-code-input": "^3.2.0",
     "react-circular-progressbar": "^2.1.0",
     "react-dom": "^17.0.2",
     "react-i18next": "^12.2.0",

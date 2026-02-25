@@ -1,4 +1,4 @@
-import Fuse from 'fuse-native';
+import Fuse from '@gcas/fuse';
 
 export function mountPromise(fuse: Fuse): Promise<void> {
   return new Promise((resolve, reject) => {
