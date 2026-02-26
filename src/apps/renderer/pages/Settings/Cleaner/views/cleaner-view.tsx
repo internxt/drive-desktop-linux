@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { calculateChartSegments, formatFileSize } from '../cleaner.service';
 import SectionDetailMenu from '../components/section-detail-menu';
 import { CleanupSizeChart } from '../components/cleanup-size-chart';
@@ -26,6 +26,31 @@ export function CleanerView({
   const { diskSpace } = useCleaner();
   const { translate } = useTranslationContext();
   const [sectionDetailMenu, setSectionDetailMenu] = useState<string | null>(null);
+  const [isDetailMenuOpen, setIsDetailMenuOpen] = useState(false);
+  const [mountedSection, setMountedSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (sectionDetailMenu) {
+      setMountedSection(sectionDetailMenu);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsDetailMenuOpen(true);
+        });
+      });
+    } else {
+      setIsDetailMenuOpen(false);
+    }
+  }, [sectionDetailMenu]);
+
+  const handleDetailMenuClose = () => {
+    setSectionDetailMenu(null);
+  };
+
+  const handleTransitionEnd = () => {
+    if (!isDetailMenuOpen) {
+      setMountedSection(null);
+    }
+  };
 
   const totalSize = useMemo(() => {
     return Object.values(report).reduce((sum, section) => sum + section.totalSizeInBytes, 0);
@@ -95,12 +120,14 @@ export function CleanerView({
         </div>
       </div>
       {/* Section Detail Menu */}
-      {sectionDetailMenu && (
+      {mountedSection && (
         <SectionDetailMenu
-          sectionName={sectionDetailMenu}
+          sectionName={mountedSection}
           report={report}
           viewModel={viewModel}
-          onClose={() => setSectionDetailMenu(null)}
+          isOpen={isDetailMenuOpen}
+          onClose={handleDetailMenuClose}
+          onTransitionEnd={handleTransitionEnd}
           onToggleSection={toggleSection}
           onToggleItem={toggleItemSelection}
         />
