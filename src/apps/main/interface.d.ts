@@ -11,6 +11,9 @@ import {
 import { TLoggerBody } from '@internxt/drive-desktop-core/build/backend';
 import { CleanerReport, CleanerViewModel, CleanupProgress } from '../../backend/features/cleaner/cleaner.types';
 import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
+import { StoredValues } from './config/service';
+import { AppStore } from './config';
+import { ConfigTheme } from '../shared/types/Theme';
 
 /** This interface and declare global will replace the preload.d.ts.
  * The thing is that instead of that, we will gradually will be declaring the interface here as we generate tests
@@ -19,6 +22,12 @@ import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
  **/
 
 export interface IElectronAPI {
+  getConfigKey<T extends StoredValues>(key: T): Promise<AppStore[T]>;
+  setConfigKey<T extends StoredValues>(key: T, value: AppStore[T]): void;
+  listenToConfigKeyChange<T>(key: StoredValues, fn: (value: T) => void): () => void;
+  toggleDarkMode(mode: ConfigTheme): Promise<void>;
+  getPreferredAppLanguage(): Promise<Array<string>>;
+
   finishOnboarding: () => void;
   getBackupsInterval(): Promise<number>;
 

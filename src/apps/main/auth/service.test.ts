@@ -63,7 +63,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
 
   const mockStoreForState = (configState: AppStore) => {
     const storeAsRecord = configState as unknown as Record<string, unknown>;
-    mockConfigStoreGet.mockImplementation((key: string) => storeAsRecord[key]);
+    mockConfigStoreGet.mockImplementation((key: keyof AppStore) => storeAsRecord[key] as AppStore[keyof AppStore]);
 
     function setImpl<Key extends keyof AppStore>(key: Key, value?: AppStore[Key]): void;
     function setImpl(key: string, value: unknown): void;
@@ -165,9 +165,9 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       savedConfigs: {},
     });
 
-    mockConfigStoreGet.mockImplementation((key: string) => {
+    mockConfigStoreGet.mockImplementation((key: keyof AppStore) => {
       const storeAsRecord = configState as unknown as Record<string, unknown>;
-      return storeAsRecord[key];
+      return storeAsRecord[key] as AppStore[keyof AppStore];
     });
 
     const result = canHisConfigBeRestored({ uuid: 'unknown-uuid' });

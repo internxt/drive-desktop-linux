@@ -1,7 +1,7 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 import packageConfig from '../../../../package.json';
-import ConfigStore, { defaults, fieldsToSave } from '../config';
+import ConfigStore, { AppStore, SavedConfig, defaults, fieldsToSave } from '../config';
 import { User } from '../types';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { getCredentials } from './get-credentials';
@@ -29,7 +29,7 @@ function saveConfig({ uuid }: { uuid: string }) {
 
   ConfigStore.set('savedConfigs', {
     ...savedConfigs,
-    [uuid]: configToSave,
+    [uuid]: configToSave as SavedConfig,
   });
 }
 
@@ -68,7 +68,7 @@ export function canHisConfigBeRestored({ uuid }: { uuid: string }) {
   }
 
   for (const [key, value] of Object.entries(savedConfig)) {
-    ConfigStore.set(key, value);
+    ConfigStore.set(key as keyof AppStore, value as AppStore[keyof AppStore]);
   }
 
   return true;
