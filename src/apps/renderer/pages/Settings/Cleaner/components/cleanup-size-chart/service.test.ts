@@ -118,11 +118,7 @@ describe('resizeSmallSegments', () => {
   });
 
   it('shrinks large segments proportionally to their size', () => {
-    const segments = [
-      segment({ percentage: 0.5 }),
-      segment({ percentage: 30 }),
-      segment({ percentage: 69.5 }),
-    ];
+    const segments = [segment({ percentage: 0.5 }), segment({ percentage: 30 }), segment({ percentage: 69.5 })];
 
     const result = resizeSmallSegments(segments, MIN);
 
