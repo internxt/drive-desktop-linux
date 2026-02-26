@@ -7,7 +7,6 @@ import { PATHS } from '../../core/electron/paths';
 export type { AppStore, SavedConfig } from '../../core/electron/store/app-store.interface';
 export { defaults, fieldsToSave } from '../../core/electron/store/defaults';
 
-
 const schema: Schema<AppStore> = {
   newToken: { type: 'string' },
   newTokenEncrypted: { type: 'boolean' },
@@ -61,4 +60,3 @@ function set<T extends keyof AppStore>(key: T, value: AppStore[T]): void {
 
 export const electronStore = { get, set };
 export default electronStore;
-

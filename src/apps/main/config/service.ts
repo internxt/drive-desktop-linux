@@ -8,9 +8,7 @@ import { ConfigTheme } from './theme.types';
 
 export type StoredValues = keyof AppStore;
 
-type SetConfigKeyProps =
-  | { key: 'preferedLanguage'; value: Language }
-  | { key: 'preferedTheme'; value: ConfigTheme };
+type SetConfigKeyProps = { key: 'preferedLanguage'; value: Language } | { key: 'preferedTheme'; value: ConfigTheme };
 
 export type { SetConfigKeyProps };
 

@@ -10,9 +10,7 @@ export function getTheme(): ThemeData {
 
   nativeTheme.themeSource = configTheme;
 
-  const theme: Theme = configTheme === 'system'
-    ? nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
-    : configTheme;
+  const theme: Theme = configTheme === 'system' ? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light') : configTheme;
 
   return { configTheme, theme };
 }
