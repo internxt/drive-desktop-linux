@@ -108,6 +108,31 @@ export function layoutSegmentArcs(
   });
 }
 
+export function resizeSmallSegments(segments: ChartSegment[], minPercentage: number): ChartSegment[] {
+  if (segments.length === 0) return segments;
+
+  const totalPercentage = segments.reduce((sum, s) => sum + s.percentage, 0);
+  if (totalPercentage === 0) return segments;
+
+  const smallSegments = segments.filter((s) => s.percentage > 0 && s.percentage < minPercentage);
+  if (smallSegments.length === 0) return segments;
+
+  const addedPercentage = smallSegments.reduce((sum, s) => sum + (minPercentage - s.percentage), 0);
+  const largeSegments = segments.filter((s) => s.percentage >= minPercentage);
+  const largeTotal = largeSegments.reduce((sum, s) => sum + s.percentage, 0);
+
+  if (largeTotal <= 0) return segments;
+
+  const shrinkRatio = (largeTotal - addedPercentage) / largeTotal;
+
+  return segments.map((s) => {
+    if (s.percentage > 0 && s.percentage < minPercentage) {
+      return { ...s, percentage: minPercentage };
+    }
+    return { ...s, percentage: s.percentage * shrinkRatio };
+  });
+}
+
 export function calculateChartSegments({
   segments,
   geometry,
@@ -122,5 +147,7 @@ export function calculateChartSegments({
     return [createSegmentArc({ color: '', percentage: 100, size: 0, selected: false }, 180, 360, geometry)];
   }
 
-  return layoutSegmentArcs(segments, usableArcAngle, geometry);
+  const boosted = resizeSmallSegments(segments, geometry.minSegmentPercentage);
+
+  return layoutSegmentArcs(boosted, usableArcAngle, geometry);
 }
