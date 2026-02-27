@@ -7,6 +7,7 @@ import { fetchDevice } from './fetchDevice';
 import { createAndSetupNewDevice } from './createAndSetupNewDevice';
 import { getDeviceIdentifier } from './getDeviceIdentifier';
 import { Result } from './../../../context/shared/domain/Result';
+import { DependencyInjectionUserProvider } from './../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
 
 async function handleFetchDeviceResult(deviceResult: Result<Device, Error>) {
   if (deviceResult.error) {
@@ -20,6 +21,10 @@ async function handleFetchDeviceResult(deviceResult: Result<Device, Error>) {
 
     return { data };
   }
+
+  const user = DependencyInjectionUserProvider.get();
+  user.backupsBucket = deviceResult.data.bucket;
+  DependencyInjectionUserProvider.updateUser(user);
 
   return { data: deviceResult.data };
 }
