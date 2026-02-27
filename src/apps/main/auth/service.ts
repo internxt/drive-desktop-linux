@@ -1,10 +1,11 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 import packageConfig from '../../../../package.json';
-import ConfigStore, { AppStore, SavedConfig, defaults, fieldsToSave } from '../config';
+import ConfigStore, { AppStore, defaults, fieldsToSave } from '../config';
 import { User } from '../types';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { getCredentials } from './get-credentials';
+import { saveConfig } from '../config/save-config';
 
 export function getUser(): User | null {
   const user = ConfigStore.get('userData');
@@ -20,17 +21,6 @@ function resetConfig() {
       ConfigStore.set(field, defaults[field]);
     }
   }
-}
-
-function saveConfig({ uuid }: { uuid: string }) {
-  const savedConfigs = ConfigStore.get('savedConfigs');
-
-  const configToSave = Object.fromEntries(fieldsToSave.map((field) => [field, ConfigStore.get(field)]));
-
-  ConfigStore.set('savedConfigs', {
-    ...savedConfigs,
-    [uuid]: configToSave as SavedConfig,
-  });
 }
 
 export function getBaseApiHeaders(): Record<string, string> {
