@@ -187,7 +187,7 @@ eventBus.on('USER_LOGGED_IN', async () => {
       widget.show();
     }
     await getUserAvailableProductsAndStore();
-    //await trySetupAntivirusIpcAndInitialize();
+    await trySetupAntivirusIpcAndInitialize();
   } catch (error) {
     logger.error({
       msg: 'Error on main process while handling USER_LOGGED_IN event:',
