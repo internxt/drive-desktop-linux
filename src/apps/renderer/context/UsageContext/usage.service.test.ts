@@ -18,7 +18,7 @@ describe('fetchUsage', () => {
     vi.clearAllMocks();
   });
 
-  it('returns usage data when user is logged in and getUsage succeeds', async () => {
+  it('should return usage data when user is logged in and getUsage succeeds', async () => {
     isUserLoggedInMock.mockResolvedValue(true);
     getUsageMock.mockResolvedValue({ data: usage });
 
@@ -27,7 +27,7 @@ describe('fetchUsage', () => {
     expect(result.data).toMatchObject(usage);
   });
 
-  it('returns error when user is not logged in', async () => {
+  it('should return error when user is not logged in', async () => {
     isUserLoggedInMock.mockResolvedValue(false);
 
     const result = await fetchUsage();
@@ -35,7 +35,7 @@ describe('fetchUsage', () => {
     expect(result.error).toMatchObject({ message: 'User is not logged in' });
   });
 
-  it('returns error when getUsage fails', async () => {
+  it('should return error when getUsage fails', async () => {
     isUserLoggedInMock.mockResolvedValue(true);
     getUsageMock.mockResolvedValue({ error: new Error('API error') });
 
@@ -44,7 +44,7 @@ describe('fetchUsage', () => {
     expect(result.error).toMatchObject({ message: 'API error' });
   });
 
-  it('catches unexpected errors and logs them', async () => {
+  it('should return unexpected errors and logs them', async () => {
     const error = new Error('unexpected');
     isUserLoggedInMock.mockRejectedValue(error);
 
@@ -57,7 +57,7 @@ describe('fetchUsage', () => {
     });
   });
 
-  it('creates a default error when caught value is not an Error', async () => {
+  it('should return a default error when caught value is not an Error', async () => {
     isUserLoggedInMock.mockRejectedValue('string error');
 
     const result = await fetchUsage();

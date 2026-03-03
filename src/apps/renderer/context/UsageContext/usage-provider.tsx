@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Usage } from '../../../../backend/features/usage/usage.types';
 import { THROTTLE_TIME, UsageContext } from '.';
 import { fetchUsage } from './usage.service';
 import { throttle } from '../../../../shared/throttle';
 import { UsageContextType } from './usage.types';
 
-export function UsageProvider({ children }: { children: React.ReactNode }) {
+export function UsageProvider({ children }: { readonly children: React.ReactNode }) {
   const [usage, setUsage] = useState<Usage>();
   const [status, setStatus] = useState<UsageContextType['status']>('loading');
   const isUpdatingRef = useRef<boolean>(false);
@@ -27,6 +27,10 @@ export function UsageProvider({ children }: { children: React.ReactNode }) {
     isUpdatingRef.current = false;
   }
 
+  function refreshUsage() {
+    handleUpdateUsage();
+  }
+
   const throttledUpdate = useRef(throttle(handleUpdateUsage, THROTTLE_TIME)).current;
 
   useEffect(() => {
@@ -38,7 +42,7 @@ export function UsageProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  return (
-    <UsageContext.Provider value={{ usage, status, refreshUsage: handleUpdateUsage }}>{children}</UsageContext.Provider>
-  );
+  const value = useMemo(() => ({ usage, status, refreshUsage }), [usage, status]);
+
+  return <UsageContext.Provider value={value}>{children}</UsageContext.Provider>;
 }
