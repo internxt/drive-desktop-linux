@@ -9,7 +9,7 @@ interface UsageContextType {
 
 const UsageContext = createContext<UsageContextType | undefined>(undefined);
 
-const THROTTLE_TIME = 1000; // 1 second - allows max 1 update per second
+const THROTTLE_TIME = 1000;
 
 export function UsageProvider({ children }: { children: React.ReactNode }) {
   const [usage, setUsage] = useState<Usage>();
@@ -19,14 +19,13 @@ export function UsageProvider({ children }: { children: React.ReactNode }) {
   const lastUpdateTimeRef = useRef<number>(0);
 
   const updateUsage = useCallback(async () => {
-    // Skip if an update is already in progress
     if (isUpdatingRef.current) {
       return;
     }
 
     try {
       isUpdatingRef.current = true;
-      lastUpdateTimeRef.current = Date.now(); // Track when we last updated
+      lastUpdateTimeRef.current = Date.now();
       const userIsLoggedIn = await window.electron.isUserLoggedIn();
 
       if (!userIsLoggedIn) {
@@ -53,17 +52,13 @@ export function UsageProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Throttled version: Updates immediately if enough time has passed,
-  // otherwise schedules an update after the throttle period
   const throttledUpdateUsage = useCallback(() => {
     const now = Date.now();
     const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
 
-    // If enough time has passed, update immediately
     if (timeSinceLastUpdate >= THROTTLE_TIME) {
       updateUsage();
     } else {
-      // Otherwise, schedule an update for later (if not already scheduled)
       if (!throttleTimerRef.current) {
         throttleTimerRef.current = setTimeout(() => {
           throttleTimerRef.current = null;
@@ -73,9 +68,7 @@ export function UsageProvider({ children }: { children: React.ReactNode }) {
     }
   }, [updateUsage]);
 
-  // Immediate update for manual refresh
   const refreshUsage = useCallback(() => {
-    // Clear any pending throttled update
     if (throttleTimerRef.current) {
       clearTimeout(throttleTimerRef.current);
       throttleTimerRef.current = null;
@@ -85,14 +78,12 @@ export function UsageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setStatus('loading');
-    updateUsage(); // Initial load
+    updateUsage();
 
-    // Listen for remote changes with throttling
     const listener = window.electron.onRemoteChanges(throttledUpdateUsage);
 
     return () => {
       listener();
-      // Clean up timer on unmount
       if (throttleTimerRef.current) {
         clearTimeout(throttleTimerRef.current);
       }
