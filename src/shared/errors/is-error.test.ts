@@ -2,27 +2,27 @@ import { describe, it, expect } from 'vitest';
 import { isError } from './is-error';
 
 describe('isError', () => {
-  it('returns true for an Error instance', () => {
+  it('should return true for an Error instance', () => {
     expect(isError(new Error('test'))).toBe(true);
   });
 
-  it('returns true for an Error subclass', () => {
+  it('should return true for an Error subclass', () => {
     expect(isError(new TypeError('test'))).toBe(true);
   });
 
-  it('returns false for a string', () => {
+  it('should return false for a string', () => {
     expect(isError('error')).toBe(false);
   });
 
-  it('returns false for null', () => {
+  it('should return false for null', () => {
     expect(isError(null)).toBe(false);
   });
 
-  it('returns false for undefined', () => {
+  it('should return false for undefined', () => {
     expect(isError(undefined)).toBe(false);
   });
 
-  it('returns false for a plain object with a message property', () => {
+  it('should return false for a plain object with a message property', () => {
     expect(isError({ message: 'test' })).toBe(false);
   });
 });
