@@ -17,7 +17,9 @@ describe('useUsage', () => {
   });
 
   it('should return context when used within UsageProvider', () => {
-    partialSpyOn(usageService, 'fetchUsage').mockResolvedValue({ data: { usageInBytes: 0, limitInBytes: 0, isInfinite: false, offerUpgrade: false } });
+    partialSpyOn(usageService, 'fetchUsage').mockResolvedValue({
+      data: { usageInBytes: 0, limitInBytes: 0, isInfinite: false, offerUpgrade: false },
+    });
 
     const { result } = renderHook(() => useUsage(), {
       wrapper: ({ children }) => <UsageProvider>{children}</UsageProvider>,
