@@ -69,7 +69,7 @@ export class ScanOrchestrator {
       await Promise.race([
         this.scanQueue.drain(),
         new Promise<void>((resolve) => {
-          this.abortController.signal.addEventListener('abort', () => resolve());
+          this.abortController.signal.addEventListener('abort', () => resolve(), { once: true });
         }),
       ]);
 
