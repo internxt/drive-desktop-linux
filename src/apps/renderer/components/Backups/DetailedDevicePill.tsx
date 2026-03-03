@@ -1,4 +1,4 @@
-import useUsage from '../../hooks/useUsage';
+import { useUsage } from '../../contexts/UsageContext';
 import { SizePill } from './SizePill';
 import { useContext, useEffect } from 'react';
 import { useBackupProgress } from '../../hooks/backups/useBackupProgress';

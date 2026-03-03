@@ -6,7 +6,7 @@ import Button from '../../components/Button';
 import { useTranslationContext } from '../../context/LocalContext';
 import useVirtualDriveStatus from '../../hooks/useVirtualDriveStatus';
 import useSyncStatus from '../../hooks/useSyncStatus';
-import useUsage from '../../hooks/useUsage';
+import { useUsage } from '../../contexts/UsageContext';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus/useOnlineStatus';
 
 export default function SyncAction(props: { syncStatus: SyncStatus }) {

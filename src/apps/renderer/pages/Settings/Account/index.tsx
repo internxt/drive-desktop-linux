@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { User } from '../../../../main/types';
 import Spinner from '../../../assets/spinner.svg';
-import useUsage from '../../../hooks/useUsage';
+import { useUsage } from '../../../contexts/UsageContext';
 import Usage from './Usage';
 import UserInfo from './UserInfo';
 import Button from '../../../components/Button';

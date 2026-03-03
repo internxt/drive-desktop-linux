@@ -199,7 +199,7 @@ export class Antivirus {
     });
 
     const abortPromise: Promise<undefined> = new Promise((resolve) => {
-      signal.addEventListener('abort', () => resolve(undefined));
+      signal.addEventListener('abort', () => resolve(undefined), { once: true });
     });
 
     const promises = [scanPromise, timeoutPromise, abortPromise];

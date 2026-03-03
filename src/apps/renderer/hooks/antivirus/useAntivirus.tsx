@@ -41,6 +41,7 @@ export const useAntivirus = (): AntivirusContext => {
   }, []);
 
   const checkAntivirusAvailability = async (): Promise<boolean> => {
+    return false;
     try {
       return await window.electron.antivirus.isAvailable();
     } catch (error) {
