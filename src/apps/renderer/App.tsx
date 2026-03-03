@@ -3,7 +3,6 @@ import './localize/i18n.service';
 import { Suspense, useEffect, useRef } from 'react';
 import { HashRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { TranslationProvider } from './context/LocalContext';
-import { UsageProvider } from './contexts/UsageContext';
 import useLanguageChangedListener from './hooks/useLanguage';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
@@ -11,6 +10,7 @@ import IssuesPage from './pages/Issues/IssuesPage';
 import Settings from './pages/Settings';
 import Widget from './pages/Widget';
 import { useBackupNotifications } from './hooks/useBackupNotifications';
+import { UsageProvider } from './context/UsageContext/usage-provider';
 function LocationWrapper({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
   useEffect(() => {

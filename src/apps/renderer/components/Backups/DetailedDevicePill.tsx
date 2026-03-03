@@ -1,4 +1,3 @@
-import { useUsage } from '../../contexts/UsageContext';
 import { SizePill } from './SizePill';
 import { useContext, useEffect } from 'react';
 import { useBackupProgress } from '../../hooks/backups/useBackupProgress';
@@ -9,6 +8,7 @@ import { LastBackupMade } from './LastBackupMade';
 import { ShowBackupsIssues } from './ShowBackupsIssues';
 import { DeviceContext } from '../../context/DeviceContext';
 import { BackupContext } from '../../context/BackupContext';
+import { useUsage } from '../../context/UsageContext/useUsage';
 
 interface DetailedDevicePillProps {
   showIssues: () => void;

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { User } from '../../../../main/types';
 import Spinner from '../../../assets/spinner.svg';
-import { useUsage } from '../../../contexts/UsageContext';
 import Usage from './Usage';
 import UserInfo from './UserInfo';
 import Button from '../../../components/Button';
 import { useTranslationContext } from '../../../context/LocalContext';
+import { useUsage } from '../../../context/UsageContext/useUsage';
 
 export default function AccountSection({ active }: { active: boolean }) {
   const { translate } = useTranslationContext();
