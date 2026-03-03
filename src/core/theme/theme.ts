@@ -1,12 +1,12 @@
 import { nativeTheme } from 'electron';
 
-import { broadcastToWindows } from '../windows';
+import { broadcastToWindows } from '../../apps/main/windows';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { electronStore } from '../config';
-import { Theme, ConfigTheme, ThemeData } from './theme.types';
+import { electronStore } from '../../apps/main/config';
+import { Theme, ThemeData } from './theme.types';
 
 export function getTheme(): ThemeData {
-  const configTheme = electronStore.get('preferedTheme') as ConfigTheme;
+  const configTheme = electronStore.get('preferedTheme');
 
   nativeTheme.themeSource = configTheme;
 

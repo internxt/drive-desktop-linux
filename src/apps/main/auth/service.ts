@@ -1,11 +1,11 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 import packageConfig from '../../../../package.json';
-import ConfigStore, { AppStore, defaults, fieldsToSave } from '../config';
+import ConfigStore, { defaults, fieldsToSave } from '../config';
 import { User } from '../types';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { getCredentials } from './get-credentials';
-import { saveConfig } from '../config/save-config';
+import { saveConfig, savedConfigFields } from '../config/save-config';
 
 export function getUser(): User | null {
   const user = ConfigStore.get('userData');
@@ -14,7 +14,6 @@ export function getUser(): User | null {
 }
 
 const keepFields: Array<keyof typeof defaults> = ['preferedLanguage', 'lastOnboardingShown'];
-
 function resetConfig() {
   for (const field of fieldsToSave) {
     if (!keepFields.includes(field)) {
@@ -57,8 +56,8 @@ export function canHisConfigBeRestored({ uuid }: { uuid: string }) {
     return false;
   }
 
-  for (const [key, value] of Object.entries(savedConfig)) {
-    ConfigStore.set(key as keyof AppStore, value as AppStore[keyof AppStore]);
+  for (const key of savedConfigFields) {
+    ConfigStore.set(key, savedConfig[key]);
   }
 
   return true;

@@ -1,16 +1,9 @@
-import { AppStore } from '../../../core/electron/store/app-store.interface';
+import type { AppStore } from '../../../core/electron/store/app-store.interface';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { electronStore } from '../config';
-import { broadcastTheme } from './theme';
+import { broadcastTheme } from '../../../core/theme';
 import { broadcastLanguage } from './language';
-import { Language } from './language.types';
-import { ConfigTheme } from './theme.types';
-
-export type StoredValues = keyof AppStore;
-
-type SetConfigKeyProps = { key: 'preferedLanguage'; value: Language } | { key: 'preferedTheme'; value: ConfigTheme };
-
-export type { SetConfigKeyProps };
+import type { SetConfigKeyProps, StoredValues } from './service.types';
 
 export const getConfigKey = <T extends StoredValues>(key: T): AppStore[T] => {
   return electronStore.get(key);

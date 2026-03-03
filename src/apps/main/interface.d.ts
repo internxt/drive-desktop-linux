@@ -11,7 +11,7 @@ import {
 import { TLoggerBody } from '@internxt/drive-desktop-core/build/backend';
 import { CleanerReport, CleanerViewModel, CleanupProgress } from '../../backend/features/cleaner/cleaner.types';
 import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
-import { StoredValues } from './config/service';
+import { StoredValues } from './config/service.types';
 import { AppStore } from './config';
 import { ConfigTheme } from '../shared/types/Theme';
 

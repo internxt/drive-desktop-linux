@@ -46,7 +46,7 @@ import { createAuthWindow, getAuthWindow } from './windows/auth';
 import configStore from './config';
 import { getTray, setTrayStatus } from './tray/tray';
 import { openOnboardingWindow } from './windows/onboarding';
-import { setupThemeListener, getTheme } from './config/theme';
+import { setupThemeListener, getTheme } from '../../core/theme';
 import { installNautilusExtension } from './nautilus-extension/install';
 import { uninstallNautilusExtension } from './nautilus-extension/uninstall';
 import dns from 'node:dns';

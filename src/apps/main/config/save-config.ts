@@ -1,5 +1,21 @@
 import ConfigStore, { SavedConfig } from '../config';
 
+export const savedConfigFields = [
+  'lastOnboardingShown',
+  'backupsEnabled',
+  'backupInterval',
+  'lastBackup',
+  'syncRoot',
+  'lastSavedListing',
+  'lastSync',
+  'deviceId',
+  'deviceUUID',
+  'backupList',
+  'nautilusExtensionVersion',
+  'discoveredBackup',
+  'shouldFixDanglingFiles',
+] as (keyof SavedConfig)[];
+
 export function saveConfig({ uuid }: { uuid: string }) {
   const savedConfigs = ConfigStore.get('savedConfigs');
 
