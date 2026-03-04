@@ -49,6 +49,24 @@ export interface IElectronAPI {
 
   checkInternetConnection(): Promise<boolean>;
 
+  pathChanged(path: string): void;
+
+  isUserLoggedIn(): Promise<boolean>;
+
+  onUserLoggedInChanged(func: (value: boolean) => void): void;
+
+  onRemoteChanges(func: (value: import('../main/realtime').EventPayload) => void): () => void;
+
+  openVirtualDriveFolder(): Promise<void>;
+
+  openProcessIssuesWindow(): void;
+
+  openSettingsWindow(section?: 'BACKUPS' | 'GENERAL' | 'ACCOUNT' | 'ANTIVIRUS' | 'CLEANER'): void;
+
+  logout(): void;
+
+  quit(): void;
+
   userAvailableProducts: {
     get: () => Promise<UserAvailableProducts | undefined>;
     subscribe: () => void;
@@ -56,6 +74,7 @@ export interface IElectronAPI {
   };
   login(email: string): Promise<AuthLoginResponseViewModel>;
   access(credentials: LoginAccessRequest): Promise<AuthAccessResponseViewModel>;
+  getUser(): Promise<ReturnType<typeof import('./auth/service').getUser>>;
   logger: {
     debug: (rawBody: TLoggerBody) => void;
     warn: (rawBody: TLoggerBody) => void;

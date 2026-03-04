@@ -29,8 +29,10 @@ vi.mock('./utils/transformItem', () => ({
 vi.mock('./utils/isPermissionError', () => ({
   isPermissionError: vi.fn(() => false),
 }));
-vi.mock('./utils/errorUtils', () => ({
+vi.mock('../../../../shared/errors/is-error', () => ({
   isError: vi.fn((error) => error instanceof Error),
+}));
+vi.mock('./utils/errorUtils', () => ({
   getErrorMessage: vi.fn((error) => error?.message || String(error)),
   shouldRethrowError: vi.fn(() => false),
 }));

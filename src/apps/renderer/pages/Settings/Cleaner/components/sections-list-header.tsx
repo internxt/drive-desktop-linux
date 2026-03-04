@@ -16,7 +16,7 @@ export default function SectionsListHeadertype({
 }: Props) {
   const { translate } = useTranslationContext();
   return (
-    <div className="mb-4 ml-2 flex flex-shrink-0 items-center justify-between">
+    <div className="mb-4 ml-2 flex flex-shrink-0 items-center justify-end">
       <Checkbox
         checked={isAllSelected || isPartiallySelected}
         disabled={!hasAnyItems}

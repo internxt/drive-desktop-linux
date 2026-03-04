@@ -20,6 +20,10 @@ export class FileBatchUpdater {
     signal: AbortSignal,
   ): Promise<void> {
     for (const localFile of batch) {
+      if (signal.aborted) {
+        return;
+      }
+
       // eslint-disable-next-line no-await-in-loop
       const upload = await this.uploader.upload(localFile.path, localFile.size, signal);
 
