@@ -1,6 +1,6 @@
 import { CleanableItem } from '../../../../../../backend/features/cleaner/cleaner.types';
 import Checkbox from '../../../../components/Checkbox';
-import { formatFileSize } from '../cleaner.service';
+import { formatFileSize, truncateTextIfExceedsMaxLength } from '../cleaner.service';
 
 import { Separator } from './Separator';
 
@@ -20,12 +20,16 @@ export function SectionDetailMenuItem({
   onToggleItem,
 }: SectionDetailMenuItemProps) {
   return (
-    <div key={item.fullPath}>
-      {showSeparatorOnTop && <Separator size="small" />}
+    <div key={item.fullPath} className="relative flex h-full items-center">
+      {showSeparatorOnTop && (
+        <div className="absolute left-0 right-0 top-0">
+          <Separator size="small" />
+        </div>
+      )}
 
-      <div className="flex cursor-pointer items-center px-2 py-4 transition-colors duration-500">
+      <div className="flex w-full cursor-pointer items-center px-2 transition-colors duration-500">
         <Checkbox
-          label={item.fileName}
+          label={truncateTextIfExceedsMaxLength(item.fileName)}
           className="font-semibold hover:cursor-pointer"
           checked={isSelected}
           onClick={() => onToggleItem(sectionName, item.fullPath)}

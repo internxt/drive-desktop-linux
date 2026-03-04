@@ -12,7 +12,6 @@ type Props = {
 };
 
 export default function SectionDetailHeader({
-  sectionName,
   onClose,
   isAllSelected,
   isPartiallySelected,
@@ -28,9 +27,6 @@ export default function SectionDetailHeader({
           onClick={onClose}>
           <CaretDoubleRight color="#0066ff" weight="bold" />
         </div>
-        <h3 className="text-gray-900 text-lg font-semibold dark:text-gray-100">
-          {sectionConfig[sectionName as keyof typeof sectionConfig].name}
-        </h3>
       </div>
       <Checkbox
         checked={isAllSelected || isPartiallySelected}
