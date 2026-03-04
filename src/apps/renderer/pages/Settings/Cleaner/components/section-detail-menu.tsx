@@ -11,7 +11,9 @@ type Props = {
   sectionName: string;
   report: CleanerReport;
   viewModel: CleanerViewModel;
+  isOpen: boolean;
   onClose: () => void;
+  onTransitionEnd: () => void;
   onToggleSection: (sectionKey: string) => void;
   onToggleItem: (sectionKey: string, itemPath: string) => void;
 };
@@ -20,7 +22,9 @@ export default function SectionDetailMenu({
   sectionName,
   report,
   viewModel,
+  isOpen,
   onClose,
+  onTransitionEnd,
   onToggleSection,
   onToggleItem,
 }: Props) {
@@ -45,16 +49,17 @@ export default function SectionDetailMenu({
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 80, // Estimated height of each item in pixels
+    estimateSize: () => 50, // Estimated height of each item in pixels
     overscan: 10, // Render extra items outside viewport for smooth scrolling
   });
 
   return (
     <div
-      className={
-        'absolute right-0 top-0 z-10 h-full transform border-l border-gray-10 bg-surface shadow-sm transition-transform duration-300 ease-in-out dark:bg-gray-5'
-      }
-      style={{ width: '75%' }}>
+      className={`absolute right-0 top-0 z-10 h-full border-l border-gray-10 bg-surface shadow-sm transition-transform duration-300 ease-in-out dark:bg-gray-5 ${
+        isOpen ? 'translate-x-0' : 'translate-x-full'
+      }`}
+      style={{ width: '75%' }}
+      onTransitionEnd={onTransitionEnd}>
       <SectionDetailHeader
         sectionName={sectionName}
         onClose={onClose}
@@ -64,7 +69,7 @@ export default function SectionDetailMenu({
         onSelectAll={handleSelectAll}
       />
       <Separator classname="mx-2" />
-      <div className="flex h-full flex-1 flex-col p-4">
+      <div className="flex h-full flex-1 flex-col px-4 py-2">
         <div
           ref={parentRef}
           className="bg-space flex-1 overflow-auto rounded-lg dark:bg-gray-5"
@@ -93,7 +98,7 @@ export default function SectionDetailMenu({
                   <SectionDetailMenuItem
                     item={item}
                     sectionName={sectionName}
-                    showSeparatorOnTop={virtualItem.index > 0}
+                    showSeparatorOnTop={virtualItem.index !== 0}
                     isSelected={isSelected}
                     onToggleItem={onToggleItem}
                   />

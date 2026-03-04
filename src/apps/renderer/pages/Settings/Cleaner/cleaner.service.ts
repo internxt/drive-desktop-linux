@@ -2,6 +2,11 @@ import { CleanerReport, CLEANER_SECTION_KEYS } from '../../../../../backend/feat
 import { CleanerViewModel, CleanerSectionViewModel } from './types/cleaner-viewmodel';
 import { ChartSegment } from './components/cleanup-size-chart/types';
 
+export function truncateTextIfExceedsMaxLength(text: string, maxLength = 30): string {
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}...`;
+}
+
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
   const k = 1024;
