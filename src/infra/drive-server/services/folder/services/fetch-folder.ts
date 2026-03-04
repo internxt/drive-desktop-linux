@@ -1,4 +1,3 @@
-import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 import { GetFolderContentDto } from '../../../out/dto';
@@ -7,7 +6,6 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 export async function fetchFolder(uuid: string): Promise<Result<GetFolderContentDto, DriveServerError>> {
   const { data, error } = await driveServerClient.GET('/folders/content/{uuid}', {
-    headers: getNewApiHeaders(),
     path: { uuid },
   });
   if (error) {

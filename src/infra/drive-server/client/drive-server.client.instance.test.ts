@@ -1,6 +1,6 @@
 import { createClient } from '../drive-server.client';
 import eventBus from '../../../apps/main/event-bus';
-import { logout } from '../../../apps/main/auth/service';
+import { getNewApiHeaders, logout } from '../../../apps/main/auth/service';
 import { call } from 'tests/vitest/utils.helper';
 
 vi.mock('../drive-server.client', () => ({
@@ -8,6 +8,7 @@ vi.mock('../drive-server.client', () => ({
 }));
 
 vi.mock('../../../apps/main/auth/service', () => ({
+  getNewApiHeaders: vi.fn(() => ({ Authorization: 'Bearer token' })),
   logout: vi.fn(),
 }));
 
@@ -37,8 +38,18 @@ describe('driveServerClient instance', () => {
     await import('./drive-server.client.instance');
     call(createClient).toMatchObject({
       baseUrl: expect.any(String),
+      authHeadersProvider: expect.any(Function),
       onUnauthorized: expect.any(Function),
     });
+  });
+
+  it('should call getNewApiHeaders when authHeadersProvider is triggered', async () => {
+    await import('./drive-server.client.instance');
+    const clientOptions = vi.mocked(createClient).mock.calls[0]![0]!;
+
+    clientOptions.authHeadersProvider!();
+
+    expect(getNewApiHeaders).toHaveBeenCalled();
   });
 
   it('should call eventBus.emit and logout when onUnauthorized is triggered', async () => {

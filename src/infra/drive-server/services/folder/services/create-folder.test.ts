@@ -1,6 +1,5 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { loggerMock } from 'tests/vitest/mocks.helper';
-import * as authServiceModule from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 
@@ -8,11 +7,6 @@ import { createFolder } from './create-folder';
 
 describe('create-folder', () => {
   const driveServerPostMock = partialSpyOn(driveServerClient, 'POST');
-  const getNewApiHeadersMock = partialSpyOn(authServiceModule, 'getNewApiHeaders');
-
-  beforeEach(() => {
-    getNewApiHeadersMock.mockReturnValue({});
-  });
 
   it('should call POST /folders with correct params', async () => {
     const folderData = { id: 1, uuid: 'folder-uuid' };
@@ -20,11 +14,9 @@ describe('create-folder', () => {
 
     await createFolder({ parentFolderUuid: 'parent-uuid', plainName: 'My Folder' });
 
-    expect(getNewApiHeadersMock).toBeCalled();
     call(driveServerPostMock).toMatchObject([
       '/folders',
       {
-        headers: {},
         body: {
           parentFolderUuid: 'parent-uuid',
           plainName: 'My Folder',
