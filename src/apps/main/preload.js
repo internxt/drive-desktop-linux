@@ -284,9 +284,6 @@ contextBridge.exposeInMainWorld('electron', {
   getVirtualDriveStatus() {
     return ipcRenderer.invoke('get-virtual-drive-status');
   },
-  retryVirtualDriveMount() {
-    return ipcRenderer.invoke('retry-virtual-drive-mount');
-  },
   onVirtualDriveStatusChange(callback) {
     const eventName = 'virtual-drive-status-change';
     const callbackWrapper = (_, v) => {
