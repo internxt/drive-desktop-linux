@@ -1,161 +1,62 @@
 import Store, { Schema } from 'electron-store';
-import * as uuid from 'uuid';
 
-import { User } from './types';
-import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
+import { AppStore } from '../../core/electron/store/app-store.interface';
+import { defaults } from '../../core/electron/store/defaults';
+import { PATHS } from '../../core/electron/paths';
 
-// Fields to persist between user sessions
-export const fieldsToSave = [
-  'lastOnboardingShown',
-  'backupsEnabled',
-  'backupInterval',
-  'lastBackup',
-  'syncRoot',
-  'lastSavedListing',
-  'lastSync',
-  'deviceId',
-  'deviceUUID',
-  'backupList',
-  'nautilusExtensionVersion',
-  'discoveredBackup',
-  'shouldFixDanglingFiles',
-] as const;
-
-export interface AppStore {
-  newToken: string;
-  newTokenEncrypted: boolean;
-  userData: User;
-  mnemonic: string;
-  mnemonicEncrypted: boolean;
-  backupsEnabled: boolean;
-  backupInterval: number;
-  lastBackup: number;
-  syncRoot: string;
-  logEnginePath: string;
-  lastSavedListing: string;
-  lastSync: number;
-  savedConfigs: Record<string, Pick<AppStore, (typeof fieldsToSave)[number]>>;
-  lastOnboardingShown: string;
-  /* deviceId is deprecated use deviceUUID instead*/
-  deviceId: number;
-  deviceUUID: string;
-  backupList: Record<string, { enabled: boolean; folderId: number; folderUuid: string }>;
-  clientId: string;
-  preferedLanguage?: string;
-  preferedTheme?: string;
-  virtualdriveWindowsLetter: string;
-  nautilusExtensionVersion: number;
-  discoveredBackup: number;
-  availableUserProducts?: UserAvailableProducts;
-  shouldFixDanglingFiles: boolean;
-  storageMigrationDate: string;
-  fixDeploymentDate: string;
-}
+export type { AppStore, SavedConfig } from '../../core/electron/store/app-store.interface';
+export { defaults, fieldsToSave } from '../../core/electron/store/defaults';
 
 const schema: Schema<AppStore> = {
-  newToken: {
-    type: 'string',
-  },
-  newTokenEncrypted: {
-    type: 'boolean',
-  },
-  userData: {
-    type: 'object',
-  },
-  mnemonic: {
-    type: 'string',
-  },
-  mnemonicEncrypted: {
-    type: 'boolean',
-  },
-  backupsEnabled: {
-    type: 'boolean',
-  },
-  backupInterval: {
-    type: 'number',
-  },
-  lastBackup: {
-    type: 'number',
-  },
-  syncRoot: {
-    type: 'string',
-  },
-  logEnginePath: {
-    type: 'string',
-  },
-  lastSavedListing: {
-    type: 'string',
-  },
-  lastSync: {
-    type: 'number',
-  },
-  savedConfigs: {
-    type: 'object',
-  },
-  lastOnboardingShown: {
-    type: 'string',
-  },
-  /* deviceId is deprecated use deviceUUID instead*/
-  deviceId: {
-    type: 'number',
-  },
-  deviceUUID: {
-    type: 'string',
-  },
-  backupList: {
-    type: 'object',
-  },
-  clientId: {
-    type: 'string',
-  },
-  preferedLanguage: {
-    type: 'string',
-  },
-  preferedTheme: {
-    type: 'string',
-  },
-  virtualdriveWindowsLetter: {
-    type: 'string',
-  },
+  newToken: { type: 'string' },
+  newTokenEncrypted: { type: 'boolean' },
+  mnemonic: { type: 'string' },
+  mnemonicEncrypted: { type: 'boolean' },
+  userData: { type: 'object' },
+
+  backupsEnabled: { type: 'boolean' },
+  backupInterval: { type: 'number' },
+  lastBackup: { type: 'number' },
+  syncRoot: { type: 'string' },
+  logEnginePath: { type: 'string' },
+  lastSavedListing: { type: 'string' },
+  lastSync: { type: 'number' },
+
+  /* deviceId is deprecated, use deviceUUID instead */
+  deviceId: { type: 'number' },
+  deviceUUID: { type: 'string' },
+  backupList: { type: 'object' },
+
+  savedConfigs: { type: 'object' },
+  lastOnboardingShown: { type: 'string' },
+
+  preferedLanguage: { type: 'string' },
+  preferedTheme: { type: 'string' },
+
   nautilusExtensionVersion: { type: 'number' },
   discoveredBackup: { type: 'number' },
-  availableUserProducts: { type: 'object' },
+
   shouldFixDanglingFiles: { type: 'boolean' },
   storageMigrationDate: { type: 'string' },
   fixDeploymentDate: { type: 'string' },
+  availableUserProducts: { type: 'object' },
 } as const;
 
-export const defaults: AppStore = {
-  newToken: '',
-  newTokenEncrypted: false,
-  userData: {} as User,
-  mnemonic: '',
-  mnemonicEncrypted: false,
-  backupsEnabled: false,
-  backupInterval: 86_400_000, // 24h
-  lastBackup: -1,
-  syncRoot: '',
-  logEnginePath: '',
-  lastSavedListing: '',
-  lastSync: -1,
-  savedConfigs: {},
-  lastOnboardingShown: '',
-  /* deviceId is deprecated use deviceUUID instead*/
-  deviceId: -1,
-  deviceUUID: '',
-  backupList: {},
-  clientId: uuid.v4(),
-  preferedLanguage: '',
-  preferedTheme: 'system',
-  virtualdriveWindowsLetter: 'I',
-  nautilusExtensionVersion: 0,
-  discoveredBackup: 0,
-  availableUserProducts: undefined,
-  shouldFixDanglingFiles: true,
-  storageMigrationDate: '2025-02-19T12:00:00Z',
-  fixDeploymentDate: '2025-03-04T15:30:00Z',
-};
+const configStore = new Store<AppStore>({
+  schema,
+  defaults,
+  cwd: PATHS.INTERNXT,
+  name: 'config',
+  fileExtension: 'json',
+});
 
-const configStore = new Store({ schema, defaults });
+function get<T extends keyof AppStore>(key: T): AppStore[T] {
+  return configStore.get(key) as AppStore[T];
+}
 
-export default configStore;
+function set<T extends keyof AppStore>(key: T, value: AppStore[T]): void {
+  configStore.set(key, value);
+}
+
+export const electronStore = { get, set };
+export default electronStore;

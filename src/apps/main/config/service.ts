@@ -1,13 +1,19 @@
-import store, { AppStore } from '../config';
-import { broadcastToWindows } from '../windows';
-
-export type StoredValues = keyof AppStore;
+import type { AppStore } from '../../../core/electron/store/app-store.interface';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { electronStore } from '../config';
+import { broadcastTheme } from '../../../core/theme';
+import { broadcastLanguage } from './language';
+import type { SetConfigKeyProps, StoredValues } from './service.types';
 
 export const getConfigKey = <T extends StoredValues>(key: T): AppStore[T] => {
-  return store.get(key);
+  return electronStore.get(key);
 };
 
-export const setConfigKey = <T extends StoredValues>(key: T, value: AppStore[T]): void => {
-  store.set(key, value);
-  broadcastToWindows(`${key}-updated`, value);
+export const setConfigKey = ({ key, value }: SetConfigKeyProps): void => {
+  logger.debug({ msg: 'Config key updated', key, value });
+
+  electronStore.set(key, value);
+
+  if (key === 'preferedLanguage') broadcastLanguage();
+  else if (key === 'preferedTheme') broadcastTheme();
 };

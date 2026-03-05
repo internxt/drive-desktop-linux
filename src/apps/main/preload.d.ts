@@ -5,9 +5,9 @@ import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
 
 declare interface Window {
   electron: {
-    getConfigKey(key: import('./config/service').StoredValues): Promise<any>;
+    getConfigKey(key: import('./config/service.types').StoredValues): Promise<any>;
 
-    listenToConfigKeyChange<T>(key: import('./config/service').StoredValues, fn: (value: T) => void): () => void;
+    listenToConfigKeyChange<T>(key: import('./config/service.types').StoredValues, fn: (value: T) => void): () => void;
 
     setConfigKey: typeof import('./config/service').setConfigKey;
 
