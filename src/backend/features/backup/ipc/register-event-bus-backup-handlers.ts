@@ -13,7 +13,6 @@ function stopBackups() {
 
 export function registerEventBusBackupHandlers() {
   eventBus.on('USER_LOGGED_OUT', () => stopBackups());
-  eventBus.on('USER_WAS_UNAUTHORIZED', () => stopBackups());
 
   eventBus.on('USER_AVAILABLE_PRODUCTS_UPDATED', (updatedProducts) => {
     if (updatedProducts?.backups) {

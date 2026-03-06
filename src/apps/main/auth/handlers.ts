@@ -1,5 +1,4 @@
 import { ipcMain } from 'electron';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 import eventBus from '../event-bus';
 import { getWidget } from '../windows/widget';
@@ -33,24 +32,11 @@ ipcMain.handle('get-user', getUser);
 ipcMain.handle('get-headers-for-new-api', () => getNewApiHeaders());
 
 export function onUserUnauthorized() {
-  eventBus.emit('USER_WAS_UNAUTHORIZED');
-
-  logout();
-  logger.debug({
-    msg: '[AUTH] User has been logged out because it was unauthorized',
-  });
   setIsLoggedIn(false);
+  logout();
 }
 
-ipcMain.on('user-is-unauthorized', onUserUnauthorized);
-
-ipcMain.on('user-logged-out', () => {
-  eventBus.emit('USER_LOGGED_OUT');
-
-  setIsLoggedIn(false);
-
-  logout();
-});
+ipcMain.on('user-logged-out', onUserUnauthorized);
 
 eventBus.on('APP_IS_READY', async (): Promise<void> => {
   initializeLoginState();
