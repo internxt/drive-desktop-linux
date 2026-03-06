@@ -6,17 +6,20 @@ export class TemporalFileUploadedDomainEvent extends DomainEvent {
   readonly size: number;
   readonly path: string;
   readonly replaces: string | undefined;
+  readonly fileBuffer: Buffer | undefined;
 
   constructor({
     aggregateId,
     size,
     path,
     replaces,
+    fileBuffer,
   }: {
     aggregateId: string;
     size: number;
     path: string;
     replaces?: string;
+    fileBuffer?: Buffer;
   }) {
     super({
       aggregateId,
@@ -26,6 +29,7 @@ export class TemporalFileUploadedDomainEvent extends DomainEvent {
     this.size = size;
     this.path = path;
     this.replaces = replaces;
+    this.fileBuffer = fileBuffer;
   }
 
   toPrimitives() {

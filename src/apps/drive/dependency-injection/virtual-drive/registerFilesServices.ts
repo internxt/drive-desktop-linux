@@ -68,5 +68,15 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
   builder.registerAndUse(FilesByPartialSearcher);
 
   // Event Handlers
-  builder.registerAndUse(CreateFileOnTemporalFileUploaded).addTag('event-handler');
+  builder
+    .register(CreateFileOnTemporalFileUploaded)
+    .useFactory((c) => {
+      return new CreateFileOnTemporalFileUploaded(
+        c.get(FileCreator),
+        c.get(FileOverrider),
+        c.get(Environment),
+        user.bucket,
+      );
+    })
+    .addTag('event-handler');
 }
