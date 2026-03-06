@@ -58,7 +58,7 @@ describe('driveServerClient instance', () => {
 
     clientOptions.onUnauthorized!();
 
-    call(eventBus.emit).toEqual('USER_WAS_UNAUTHORIZED');
+    call(eventBus.emit).toStrictEqual('USER_LOGGED_OUT');
     expect(logout).toHaveBeenCalled();
   });
 
