@@ -29,8 +29,6 @@ declare interface Window {
 
     onSyncInfoUpdate(func: (value: import('../shared/types').DriveOperationInfo) => void): () => void;
 
-    userIsUnauthorized(): void;
-
     isUserLoggedIn(): Promise<boolean>;
 
     checkInternetConnection(): Promise<boolean>;
