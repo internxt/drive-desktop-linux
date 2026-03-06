@@ -31,10 +31,12 @@ ipcMain.handle('get-user', getUser);
 
 ipcMain.handle('get-headers-for-new-api', () => getNewApiHeaders());
 
-ipcMain.on('user-logged-out', () => {
+export function onUserUnauthorized() {
   setIsLoggedIn(false);
   logout();
-});
+}
+
+ipcMain.on('user-logged-out', onUserUnauthorized);
 
 eventBus.on('APP_IS_READY', async (): Promise<void> => {
   initializeLoginState();
