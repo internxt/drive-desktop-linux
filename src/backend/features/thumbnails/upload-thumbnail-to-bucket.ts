@@ -3,8 +3,6 @@ import { Readable } from 'node:stream';
 import { Result } from '../../../context/shared/domain/Result';
 import { UPLOAD_TIMEOUT_MS } from './thumbnail.constants';
 
-
-
 export function uploadThumbnailToBucket(
   environment: Environment,
   bucket: string,
