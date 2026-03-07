@@ -1,5 +1,9 @@
 vi.mock('@internxt/drive-desktop-core/build/backend');
-vi.mock('axios');
+vi.mock('../../../infra/drive-server/client/drive-server.client.instance', () => ({
+  driveServerClient: {
+    GET: vi.fn(),
+  },
+}));
 vi.mock('./RemoteSyncErrorHandler/RemoteSyncErrorHandler', () => ({
   RemoteSyncErrorHandler: vi.fn().mockImplementation(() => ({
     handleSyncError: vi.fn(),
@@ -15,14 +19,15 @@ import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncError
 import { RemoteSyncManager } from './RemoteSyncManager';
 import { RemoteSyncedFile, RemoteSyncedFolder } from './helpers';
 import * as uuid from 'uuid';
-import axios from 'axios';
+import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
+import { driveServerClient } from '../../../infra/drive-server/client/drive-server.client.instance';
 import { DatabaseCollectionAdapter } from '../database/adapters/base';
 import { DriveFile } from '../database/entities/DriveFile';
 import { DriveFolder } from '../database/entities/DriveFolder';
 import { createOrUpdateFileByBatch } from '../../../infra/sqlite/services/file/create-or-update-file-by-batch';
 import { createOrUpdateFolderByBatch } from '../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
 
-const mockedAxios = vi.mocked(axios);
+const mockedGet = vi.mocked(driveServerClient.GET);
 const mockedCreateOrUpdateFileByBatch = vi.mocked(createOrUpdateFileByBatch);
 const mockedCreateOrUpdateFolderByBatch = vi.mocked(createOrUpdateFolderByBatch);
 
@@ -101,7 +106,6 @@ describe('RemoteSyncManager', () => {
         files: inMemorySyncedFilesCollection,
       },
       {
-        httpClient: mockedAxios,
         fetchFilesLimitPerRequest: 2,
         fetchFoldersLimitPerRequest: 2,
         syncFiles: true,
@@ -109,7 +113,7 @@ describe('RemoteSyncManager', () => {
       },
       errorHandler,
     );
-    mockedAxios.get.mockClear();
+    mockedGet.mockClear();
     mockedCreateOrUpdateFileByBatch.mockClear();
     mockedCreateOrUpdateFolderByBatch.mockClear();
   });
@@ -122,7 +126,6 @@ describe('RemoteSyncManager', () => {
           files: inMemorySyncedFilesCollection,
         },
         {
-          httpClient: mockedAxios,
           fetchFilesLimitPerRequest: 2,
           fetchFoldersLimitPerRequest: 2,
           syncFiles: true,
@@ -131,7 +134,7 @@ describe('RemoteSyncManager', () => {
         errorHandler,
       );
 
-      mockedAxios.get
+      mockedGet
         .mockResolvedValueOnce({
           data: [
             createRemoteSyncedFileFixture({
@@ -152,7 +155,7 @@ describe('RemoteSyncManager', () => {
 
       await sut.startRemoteSync();
 
-      expect(mockedAxios.get).toBeCalledTimes(2);
+      expect(mockedGet).toBeCalledTimes(2);
       expect(sut.getSyncStatus()).toBe('SYNCED');
     });
     it('Should sync all the folders', async () => {
@@ -162,7 +165,6 @@ describe('RemoteSyncManager', () => {
           files: inMemorySyncedFilesCollection,
         },
         {
-          httpClient: mockedAxios,
           fetchFilesLimitPerRequest: 2,
           fetchFoldersLimitPerRequest: 2,
           syncFiles: false,
@@ -171,7 +173,7 @@ describe('RemoteSyncManager', () => {
         errorHandler,
       );
 
-      mockedAxios.get
+      mockedGet
         .mockResolvedValueOnce({
           data: [
             createRemoteSyncedFolderFixture({
@@ -202,7 +204,7 @@ describe('RemoteSyncManager', () => {
 
       await sut.startRemoteSync();
 
-      expect(mockedAxios.get).toBeCalledTimes(3);
+      expect(mockedGet).toBeCalledTimes(3);
       expect(sut.getSyncStatus()).toBe('SYNCED');
     });
 
@@ -213,7 +215,6 @@ describe('RemoteSyncManager', () => {
           files: inMemorySyncedFilesCollection,
         },
         {
-          httpClient: mockedAxios,
           fetchFilesLimitPerRequest: 2,
           fetchFoldersLimitPerRequest: 2,
           syncFiles: true,
@@ -229,13 +230,13 @@ describe('RemoteSyncManager', () => {
         plainName: 'file_2',
       });
 
-      mockedAxios.get.mockResolvedValueOnce({ data: [file1, file2] });
+      mockedGet.mockResolvedValueOnce({ data: [file1, file2] });
 
-      mockedAxios.get.mockResolvedValueOnce({ data: [] });
+      mockedGet.mockResolvedValueOnce({ data: [] });
 
       await sut.startRemoteSync();
 
-      expect(mockedAxios.get).toBeCalledTimes(2);
+      expect(mockedGet).toBeCalledTimes(2);
       expect(sut.getSyncStatus()).toBe('SYNCED');
       expect(mockedCreateOrUpdateFileByBatch).toBeCalledWith({ files: [file1, file2] });
     });
@@ -243,20 +244,20 @@ describe('RemoteSyncManager', () => {
 
   describe('When something fails during the sync', () => {
     it('Should retry N times and then stop if sync does not succeed', async () => {
-      mockedAxios.get.mockImplementation(() => Promise.reject('Fail on purpose'));
+      mockedGet.mockResolvedValue({ error: new DriveServerError('UNKNOWN', undefined, 'Fail on purpose') });
 
       await sut.startRemoteSync();
 
-      expect(mockedAxios.get).toBeCalledTimes(6);
+      expect(mockedGet).toBeCalledTimes(6);
       expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
     });
 
     it('Should fail the sync if some files or folders cannot be retrieved', async () => {
-      mockedAxios.get.mockRejectedValueOnce('Fail on purpose');
+      mockedGet.mockResolvedValueOnce({ error: new DriveServerError('UNKNOWN', undefined, 'Fail on purpose') });
 
       await sut.startRemoteSync();
 
-      expect(mockedAxios.get).toBeCalledTimes(6);
+      expect(mockedGet).toBeCalledTimes(6);
       expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
     });
 
@@ -267,7 +268,6 @@ describe('RemoteSyncManager', () => {
           files: inMemorySyncedFilesCollection,
         },
         {
-          httpClient: mockedAxios,
           fetchFilesLimitPerRequest: 2,
           fetchFoldersLimitPerRequest: 2,
           syncFiles: true,
@@ -275,7 +275,7 @@ describe('RemoteSyncManager', () => {
         },
         errorHandler,
       );
-      mockedAxios.get.mockRejectedValueOnce('Fail on purpose');
+      mockedGet.mockResolvedValueOnce({ error: new DriveServerError('UNKNOWN', undefined, 'Fail on purpose') });
       const errorHandlerInstance = sut['errorHandler'];
       const errorHandlerSpy = vi.spyOn(errorHandlerInstance, 'handleSyncError');
 
@@ -292,7 +292,6 @@ describe('RemoteSyncManager', () => {
           files: inMemorySyncedFilesCollection,
         },
         {
-          httpClient: mockedAxios,
           fetchFilesLimitPerRequest: 2,
           fetchFoldersLimitPerRequest: 2,
           syncFiles: false,
@@ -301,7 +300,7 @@ describe('RemoteSyncManager', () => {
         errorHandler,
       );
 
-      mockedAxios.get.mockRejectedValueOnce('Fail on purpose');
+      mockedGet.mockResolvedValueOnce({ error: new DriveServerError('UNKNOWN', undefined, 'Fail on purpose') });
       const errorHandlerInstance = sut['errorHandler'];
       const errorHandlerSpy = vi.spyOn(errorHandlerInstance, 'handleSyncError');
 

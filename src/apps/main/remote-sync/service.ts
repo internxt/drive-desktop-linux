@@ -1,6 +1,5 @@
 import { debounce } from 'lodash';
 import eventBus from '../event-bus';
-import { getNewTokenClient } from '../../shared/HttpClient/main-process-client';
 import { DriveFilesCollection } from '../database/collections/DriveFileCollection';
 import { DriveFoldersCollection } from '../database/collections/DriveFolderCollection';
 import { RemoteSyncManager } from './RemoteSyncManager';
@@ -20,7 +19,6 @@ export const remoteSyncManager = new RemoteSyncManager(
     folders: driveFoldersCollection,
   },
   {
-    httpClient: getNewTokenClient(),
     fetchFilesLimitPerRequest: 1000,
     fetchFoldersLimitPerRequest: 1000,
     syncFiles: true,
