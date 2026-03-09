@@ -30,11 +30,7 @@ export default function LanguagePicker(): JSX.Element {
 
   const refreshPreferedLanguage = async () => {
     const lang = await window.electron.getConfigKey('preferedLanguage');
-    if (!lang) {
-      setSelectedLanguage(DEFAULT_LANGUAGE);
-    } else {
-      setSelectedLanguage(lang);
-    }
+    setSelectedLanguage(lang ?? DEFAULT_LANGUAGE);
   };
 
   const updatePreferedLanguage = (value: string) => {
