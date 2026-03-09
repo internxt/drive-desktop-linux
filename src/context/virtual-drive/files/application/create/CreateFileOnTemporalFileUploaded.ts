@@ -30,7 +30,7 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
 
     const file = await this.creator.run(event.path, event.aggregateId, event.size);
 
-    if (file.isThumbnable() && event.fileBuffer) {
+    if (event.fileBuffer) {
       const generated = generateThumbnail(event.fileBuffer);
 
       if (generated.error) {
