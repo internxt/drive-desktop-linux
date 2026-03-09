@@ -18,7 +18,7 @@ export class FileOverrider {
     oldContentsId: File['contentsId'],
     newContentsId: File['contentsId'],
     newSize: File['size'],
-  ): Promise<void> {
+  ): Promise<File> {
     const file = await this.repository.searchByContentsId(oldContentsId);
 
     if (!file) {
@@ -36,5 +36,7 @@ export class FileOverrider {
     await this.repository.update(file);
 
     this.eventBus.publish(file.pullDomainEvents());
+
+    return file;
   }
 }

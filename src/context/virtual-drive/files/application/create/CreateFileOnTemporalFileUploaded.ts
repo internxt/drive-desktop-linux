@@ -23,12 +23,9 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
   }
 
   private async create(event: TemporalFileUploadedDomainEvent): Promise<void> {
-    if (event.replaces) {
-      await this.fileOverrider.run(event.replaces, event.aggregateId, event.size);
-      return;
-    }
-
-    const file = await this.creator.run(event.path, event.aggregateId, event.size);
+    const file = event.replaces
+      ? await this.fileOverrider.run(event.replaces, event.aggregateId, event.size)
+      : await this.creator.run(event.path, event.aggregateId, event.size);
 
     if (event.fileBuffer) {
       const generated = generateThumbnail(event.fileBuffer);
@@ -38,10 +35,8 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
         return;
       }
 
-      const thumbnailBuffer = generated.data;
-
       void uploadAndCreateThumbnail({
-        thumbnailBuffer,
+        thumbnailBuffer: generated.data,
         fileUuid: file.uuid,
         environment: this.environment,
         bucket: this.bucket,
