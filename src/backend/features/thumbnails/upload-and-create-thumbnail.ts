@@ -12,20 +12,25 @@ type Props = {
   bucket: string;
 };
 
-export async function uploadAndCreateThumbnail(params: Props): Promise<Result<ThumbnailDto, Error>> {
-  const uploaded = await uploadThumbnailToBucket(params.environment, params.bucket, params.thumbnailBuffer);
+export async function uploadAndCreateThumbnail({
+  thumbnailBuffer,
+  fileUuid,
+  environment,
+  bucket,
+}: Props): Promise<Result<ThumbnailDto, Error>> {
+  const uploaded = await uploadThumbnailToBucket(environment, bucket, thumbnailBuffer);
 
   if (uploaded.error) {
     return { error: uploaded.error };
   }
 
   return createThumbnail({
-    fileUuid: params.fileUuid,
+    fileUuid,
     type: 'png',
-    size: params.thumbnailBuffer.length,
+    size: thumbnailBuffer.length,
     maxWidth: THUMBNAIL_SIZE,
     maxHeight: THUMBNAIL_SIZE,
-    bucketId: params.bucket,
+    bucketId: bucket,
     bucketFile: uploaded.data,
     encryptVersion: '03-aes',
   });

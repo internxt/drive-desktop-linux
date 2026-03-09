@@ -8,22 +8,19 @@ export function uploadThumbnailToBucket(
   bucket: string,
   buffer: Buffer,
 ): Promise<Result<string, Error>> {
-  const source = Readable.from(buffer);
-  const fileSize = buffer.length;
-
   let timeoutId: ReturnType<typeof setTimeout>;
 
   const upload = new Promise<Result<string, Error>>((resolve) => {
     environment.upload(bucket, {
-      source,
-      fileSize,
+      source: Readable.from(buffer),
+      fileSize: buffer.length,
       finishedCallback: (err: Error | null, contentsId: string | null) => {
         clearTimeout(timeoutId);
         if (err) {
           return resolve({ error: err });
         }
         if (!contentsId) {
-          return resolve({ error: new Error('Upload succeeded but no contentsId returned') });
+          return resolve({ error: new Error('Upload finished but no contentsId returned') });
         }
         resolve({ data: contentsId });
       },

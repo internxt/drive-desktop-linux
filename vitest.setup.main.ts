@@ -1,3 +1,5 @@
+import { nativeImage } from 'electron';
+import { isEmpty } from 'lodash';
 import 'reflect-metadata';
 import { vi } from 'vitest';
 
@@ -25,6 +27,13 @@ vi.mock('electron', () => ({
     decryptString: vi.fn(),
     encryptString: vi.fn(),
   },
+  nativeImage: {
+    createFromBuffer: vi.fn().mockReturnValue({
+      isEmpty: () => false,
+      getSize: () => ({ width: 100, height: 100 }),
+      resize: vi.fn().mockReturnValue({ toPNG: () => Buffer.from('png') }),
+    }),
+  }
 }));
 
 // Mock electron-log (depends on electron)
