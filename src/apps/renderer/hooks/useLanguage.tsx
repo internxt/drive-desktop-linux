@@ -1,19 +1,28 @@
-import i18next from 'i18next';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { DEFAULT_LANGUAGE, Language } from '../../shared/Locale/Language';
+import { DEFAULT_LANGUAGE, Language, isLanguage } from '../../shared/Locale/Language';
 
-export default function useLanguage() {
-  const [lang, setLang] = useState<Language>(DEFAULT_LANGUAGE);
-
-  const updated = (l: Language) => {
-    i18next.changeLanguage(l);
-    setLang(l);
-  };
+export function useLanguage(): Language {
+  const { i18n } = useTranslation();
 
   useEffect(() => {
-    return window.electron.listenToConfigKeyChange<Language>('preferedLanguage', updated);
+    window.electron.getConfigKey('preferedLanguage').then((value) => {
+      const lang = value as string;
+      if (lang && isLanguage(lang) && i18n.language !== lang) {
+        i18n.changeLanguage(lang);
+      }
+    });
+
+    const cleanup = window.electron.listenToConfigKeyChange<string>('preferedLanguage', (lang) => {
+      if (isLanguage(lang)) {
+        i18n.changeLanguage(lang);
+      }
+    });
+
+    return cleanup;
   }, []);
 
-  return lang;
+  const currentLang = i18n.language;
+  return isLanguage(currentLang) ? currentLang : DEFAULT_LANGUAGE;
 }
