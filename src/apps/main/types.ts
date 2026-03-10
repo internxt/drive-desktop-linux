@@ -1,3 +1,7 @@
+/*
+  TODO PB-6043: Stop using this class in favor of the real, src/infra/schemas UserDTO/UserResponseDTO
+  As it is the real, maintained type from the backend.
+ */
 export type User = {
   backupsBucket: string;
   bridgeUser: string;

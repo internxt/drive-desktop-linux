@@ -1,6 +1,5 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { loggerMock } from 'tests/vitest/mocks.helper';
-import * as authServiceModule from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 
@@ -8,22 +7,15 @@ import { addFolderToTrash } from './add-folder-to-trash';
 
 describe('add-folder-to-trash', () => {
   const driveServerPostMock = partialSpyOn(driveServerClient, 'POST');
-  const getNewApiHeadersMock = partialSpyOn(authServiceModule, 'getNewApiHeaders');
-
-  beforeEach(() => {
-    getNewApiHeadersMock.mockReturnValue({});
-  });
 
   it('should call POST /storage/trash/add with correct params', async () => {
     driveServerPostMock.mockResolvedValue({ data: {} } as object);
 
     await addFolderToTrash('folder-uuid');
 
-    expect(getNewApiHeadersMock).toBeCalled();
     call(driveServerPostMock).toMatchObject([
       '/storage/trash/add',
       {
-        headers: {},
         body: {
           items: [{ type: 'folder', uuid: 'folder-uuid' }],
         },

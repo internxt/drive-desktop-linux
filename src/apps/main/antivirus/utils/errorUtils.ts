@@ -1,11 +1,4 @@
-/**
- * Type guard to check if an unknown object is an Error
- * @param error The unknown object to check
- * @returns A type predicate indicating if the object is an Error
- */
-export function isError(error: unknown): error is Error {
-  return error instanceof Error;
-}
+import { isError } from '../../../../shared/errors/is-error';
 
 /**
  * Safely gets the error message from any error object

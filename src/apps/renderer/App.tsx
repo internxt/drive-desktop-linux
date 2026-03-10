@@ -74,17 +74,19 @@ export default function App() {
     <Router>
       <Suspense fallback={<Loader />}>
         <TranslationProvider>
-          <LocationWrapper>
-            <LoggedInWrapper>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/process-issues" element={<IssuesPage />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/" element={<Widget />} />
-              </Routes>
-            </LoggedInWrapper>
-          </LocationWrapper>
+          <UsageProvider>
+            <LocationWrapper>
+              <LoggedInWrapper>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/process-issues" element={<IssuesPage />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/" element={<Widget />} />
+                </Routes>
+              </LoggedInWrapper>
+            </LocationWrapper>
+          </UsageProvider>
         </TranslationProvider>
       </Suspense>
     </Router>

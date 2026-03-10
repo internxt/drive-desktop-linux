@@ -1,6 +1,5 @@
 import { UserService } from './user.service';
 import { driveServerClient } from '../../client/drive-server.client.instance';
-import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { mapError } from '../utils/mapError';
 import { Mock } from 'vitest';
@@ -9,10 +8,6 @@ vi.mock('../../client/drive-server.client.instance', () => ({
   driveServerClient: {
     GET: vi.fn(),
   },
-}));
-
-vi.mock('../../../../apps/main/auth/service', () => ({
-  getNewApiHeaders: vi.fn(),
 }));
 
 vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
@@ -41,19 +36,12 @@ describe('UserService', () => {
         photosUsage: 256,
       };
       (driveServerClient.GET as Mock).mockResolvedValue({ data: usageData });
-      const mockedHeaders = {
-        Authorization: 'Bearer token',
-        'content-type': 'application/json; charset=utf-8',
-      };
-      (getNewApiHeaders as Mock).mockReturnValue(mockedHeaders);
 
       const result = await sut.getUsage();
 
       expect(result.isRight()).toBe(true);
       expect(result.getRight()).toEqual(usageData);
-      expect(driveServerClient.GET).toHaveBeenCalledWith('/users/usage', {
-        headers: mockedHeaders,
-      });
+      expect(driveServerClient.GET).toHaveBeenCalledWith('/users/usage');
     });
 
     it('should return error when response is not successful', async () => {
@@ -101,19 +89,12 @@ describe('UserService', () => {
         maxPhotos: 1000,
       };
       (driveServerClient.GET as Mock).mockResolvedValue({ data: limitData });
-      const mockedHeaders = {
-        Authorization: 'Bearer token',
-        'content-type': 'application/json; charset=utf-8',
-      };
-      (getNewApiHeaders as Mock).mockReturnValue(mockedHeaders);
 
       const result = await sut.getLimit();
 
       expect(result.isRight()).toBe(true);
       expect(result.getRight()).toEqual(limitData);
-      expect(driveServerClient.GET).toHaveBeenCalledWith('/users/limit', {
-        headers: mockedHeaders,
-      });
+      expect(driveServerClient.GET).toHaveBeenCalledWith('/users/limit');
     });
 
     it('should return error when response is not successful', async () => {

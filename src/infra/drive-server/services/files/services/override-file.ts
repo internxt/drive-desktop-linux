@@ -2,7 +2,6 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
-import { getNewApiHeaders } from '../../../../../apps/main/auth/service';
 
 type Props = {
   fileUuid: string;
@@ -16,7 +15,6 @@ export async function overrideFile({
   fileSize,
 }: Props): Promise<Result<boolean, DriveServerError>> {
   const { error } = await driveServerClient.PUT('/files/{uuid}', {
-    headers: getNewApiHeaders(),
     path: { uuid: fileUuid },
     body: {
       fileId: fileContentsId,

@@ -56,10 +56,14 @@ export class EnvironmentLocalFileUploader implements LocalFileHandler {
         },
       });
 
-      abortSignal.addEventListener('abort', () => {
-        state.stop();
-        readable.destroy();
-      });
+      abortSignal.addEventListener(
+        'abort',
+        () => {
+          state.stop();
+          readable.destroy();
+        },
+        { once: true },
+      );
     });
   }
 }

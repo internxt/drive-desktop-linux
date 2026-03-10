@@ -1,6 +1,5 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { loggerMock } from 'tests/vitest/mocks.helper';
-import * as authServiceModule from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 
@@ -8,11 +7,6 @@ import { getBackupFolderUuid } from './fetch-backup-folder-uuid';
 
 describe('fetch-backup-folder-uuid', () => {
   const driveServerGetMock = partialSpyOn(driveServerClient, 'GET');
-  const getNewApiHeadersMock = partialSpyOn(authServiceModule, 'getNewApiHeaders');
-
-  beforeEach(() => {
-    getNewApiHeadersMock.mockReturnValue({});
-  });
 
   it('should call GET /folders/{id}/metadata with correct params', async () => {
     const folderData = { uuid: 'folder-uuid' };
@@ -20,11 +14,9 @@ describe('fetch-backup-folder-uuid', () => {
 
     await getBackupFolderUuid({ folderId: '123' });
 
-    expect(getNewApiHeadersMock).toBeCalled();
     call(driveServerGetMock).toMatchObject([
       '/folders/{id}/metadata',
       {
-        headers: {},
         path: { id: '123' },
       },
     ]);

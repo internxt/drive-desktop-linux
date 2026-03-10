@@ -1,7 +1,9 @@
 import axios, { isAxiosError } from 'axios';
 import { attachRateLimiterInterceptors } from './client/interceptors/rate-limiter/attach-rate-limiter-interceptors';
+import { attachAuthInterceptors } from './client/interceptors/auth/attach-auth-interceptors';
 import { Result } from '../../context/shared/domain/Result';
 import { DriveServerError, mapStatusToErrorCause } from './drive-server.error';
+import { ClientOptions } from './drive-server.types';
 
 type HTTPMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
@@ -53,11 +55,6 @@ type OperationResponse<T, P extends keyof T, M extends HTTPMethod> =
     ? Res
     : never;
 
-export interface ClientOptions {
-  baseUrl: string;
-  onUnauthorized?: () => void;
-}
-
 /**
  * Creates a client bound to a specific OpenAPI `paths` record.
  *
@@ -75,18 +72,10 @@ export function createClient<T>(opts: ClientOptions) {
 
   attachRateLimiterInterceptors(http);
 
-  // TODO: ADD proper unauthorized handling (refresh token + retry, or redirect to login).
-  if (opts.onUnauthorized) {
-    http.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
-          opts.onUnauthorized!();
-        }
-        return Promise.reject(error);
-      },
-    );
-  }
+  attachAuthInterceptors(http, {
+    authHeadersProvider: opts.authHeadersProvider,
+    onUnauthorized: opts.onUnauthorized,
+  });
 
   /**
    * Low‑level helper that performs the actual Axios call.

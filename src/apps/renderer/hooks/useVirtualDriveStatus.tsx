@@ -22,17 +22,5 @@ export default function useVirtualDriveStatus() {
     return removeListener;
   }, []);
 
-  function retryMount() {
-    window.electron
-      .retryVirtualDriveMount()
-      .then(() => {
-        return window.electron.getVirtualDriveStatus();
-      })
-      .then((status: FuseDriveStatus) => setVirtualDriveStatus(status))
-      .catch((err) => {
-        reportError(err);
-      });
-  }
-
-  return { virtualDriveStatus, retryMount };
+  return { virtualDriveStatus };
 }
