@@ -11,11 +11,12 @@ import { DatabaseCollectionAdapter } from '../database/adapters/base';
 import { DriveFolder } from '../database/entities/DriveFolder';
 import { DriveFile } from '../database/entities/DriveFile';
 import { Nullable } from '../../shared/types/Nullable';
-import { RemoteSyncError, RemoteSyncInvalidResponseError, RemoteSyncNetworkError } from './errors';
+import { RemoteSyncError, RemoteSyncNetworkError } from './errors';
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { createOrUpdateFolderByBatch } from '../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
 import { createOrUpdateFileByBatch } from '../../../infra/sqlite/services/file/create-or-update-file-by-batch';
-import { driveServerClient } from '../../../infra/drive-server/client/drive-server.client.instance';
+import { fetchFiles } from '../../../infra/drive-server/services/files/services/fetch-files';
+import { fetchFolders } from '../../../infra/drive-server/services/folder/services/fetch-folders';
 
 export class RemoteSyncManager {
   private foldersSyncStatus: RemoteSyncStatus = 'IDLE';
@@ -329,32 +330,20 @@ export class RemoteSyncManager {
     hasMore: boolean;
     result: RemoteSyncedFile[];
   }> {
-    const { data, error } = await driveServerClient.GET('/files', {
-      query: {
-        limit: this.config.fetchFilesLimitPerRequest,
-        offset: 0,
-        status: 'ALL',
-        updatedAt: updatedAtCheckpoint?.toISOString(),
-      },
+    const { data, error } = await fetchFiles({
+      limit: this.config.fetchFilesLimitPerRequest,
+      offset: 0,
+      status: 'ALL',
+      updatedAt: updatedAtCheckpoint?.toISOString(),
     });
 
     if (error) {
       throw new RemoteSyncNetworkError(error.message, undefined, error.statusCode);
     }
 
-    if (!Array.isArray(data)) {
-      logger.debug({
-        tag: 'SYNC-ENGINE',
-        msg: `Expected to receive an array of files, but received: ${JSON.stringify(data, null, 2)}`,
-      });
-      throw new RemoteSyncInvalidResponseError(data);
-    }
-
-    const hasMore = data.length === this.config.fetchFilesLimitPerRequest;
-
     return {
-      hasMore,
-      result: data.map(this.patchDriveFileResponseItem),
+      hasMore: data.hasMore,
+      result: data.files.map(this.patchDriveFileResponseItem),
     };
   }
 
@@ -367,32 +356,20 @@ export class RemoteSyncManager {
     hasMore: boolean;
     result: RemoteSyncedFolder[];
   }> {
-    const { data, error } = await driveServerClient.GET('/folders', {
-      query: {
-        limit: this.config.fetchFilesLimitPerRequest,
-        offset: 0,
-        status: 'ALL',
-        updatedAt: updatedAtCheckpoint?.toISOString(),
-      },
+    const { data, error } = await fetchFolders({
+      limit: this.config.fetchFilesLimitPerRequest,
+      offset: 0,
+      status: 'ALL',
+      updatedAt: updatedAtCheckpoint?.toISOString(),
     });
 
     if (error) {
       throw new RemoteSyncNetworkError(error.message, undefined, error.statusCode);
     }
 
-    if (!Array.isArray(data)) {
-      logger.debug({
-        tag: 'SYNC-ENGINE',
-        msg: `Expected to receive an array of folders, but instead received: ${JSON.stringify(data, null, 2)}`,
-      });
-      throw new RemoteSyncInvalidResponseError(data);
-    }
-
-    const hasMore = data.length === this.config.fetchFilesLimitPerRequest;
-
     return {
-      hasMore,
-      result: data.map(this.patchDriveFolderResponseItem),
+      hasMore: data.hasMore,
+      result: data.folders.map(this.patchDriveFolderResponseItem),
     };
   }
 
