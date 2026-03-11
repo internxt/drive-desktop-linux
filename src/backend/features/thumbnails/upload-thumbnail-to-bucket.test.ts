@@ -2,6 +2,7 @@ import { Environment } from '@internxt/inxt-js';
 import { uploadThumbnailToBucket } from './upload-thumbnail-to-bucket';
 import { UPLOAD_TIMEOUT_MS } from './thumbnail.constants';
 import { UploadOptions } from '@internxt/inxt-js/build/lib/core';
+import { partialSpyOn } from '../../../../tests/vitest/utils.helper';
 
 function environmentMock(upload: (bucket: string, options: UploadOptions) => void): Environment {
   return { upload } as unknown as Environment;
@@ -10,7 +11,7 @@ function environmentMock(upload: (bucket: string, options: UploadOptions) => voi
 describe('upload-thumbnail-to-bucket', () => {
   const bucket = 'test-bucket';
   const buffer = Buffer.from('image-data');
-  const clearTimeoutMock = vi.spyOn(global, 'clearTimeout');
+  const clearTimeoutMock = partialSpyOn(global, 'clearTimeout');
 
   it('should return data with contentsId on successful upload', async () => {
     const contentsId = 'contents-id-123';
@@ -22,7 +23,7 @@ describe('upload-thumbnail-to-bucket', () => {
 
     expect(error).toBeUndefined();
     expect(data).toBe(contentsId);
-    expect(clearTimeoutMock).toHaveBeenCalled();
+    expect(clearTimeoutMock).toBeCalled();
   });
 
   it('should return error when finishedCallback receives an error', async () => {
