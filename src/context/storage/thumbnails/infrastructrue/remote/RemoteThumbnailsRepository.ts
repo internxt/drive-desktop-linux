@@ -1,4 +1,3 @@
-import { Axios } from 'axios';
 import { Service } from 'diod';
 import { Readable } from 'stream';
 import { File } from '../../../../virtual-drive/files/domain/File';
@@ -8,6 +7,7 @@ import { ThumbnailsRepository } from '../../domain/ThumbnailsRepository';
 import { EnvironmentThumbnailDownloader } from './EnvironmentThumbnailDownloader';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import Bottleneck from 'bottleneck';
+import { driveServerClient } from '../../../../../infra/drive-server/client/drive-server.client.instance';
 
 type FileMetaDataResponse = {
   thumbnails: [
@@ -36,30 +36,26 @@ const limiter = new Bottleneck({
 
 @Service()
 export class RemoteThumbnailsRepository implements ThumbnailsRepository {
-  constructor(
-    private readonly axios: Axios,
-    private readonly downloader: EnvironmentThumbnailDownloader,
-  ) {}
+  constructor(private readonly downloader: EnvironmentThumbnailDownloader) {}
 
   private async obtainThumbnails(file: File): Promise<Array<Thumbnail>> {
     try {
-      const response = await this.axios.get(`${process.env.NEW_DRIVE_URL}/folders/${file.folderId}/file`, {
-        params: { name: file.name, type: file.type },
-        timeout: 30000,
+      const { data, error } = await driveServerClient.GET('/folders/{id}/file', {
+        path: { id: file.folderId },
+        query: { name: file.name, type: file.type },
       });
 
-      if (response.status !== 200) {
+      if (error) {
         return [];
       }
 
-      const data = response.data as FileMetaDataResponse;
+      const responseData = data as unknown as FileMetaDataResponse | undefined;
 
-      // @ts-ignore
-      if (data.thumbnails.length === 0) {
+      if (!responseData?.thumbnails?.length) {
         return [];
       }
 
-      const thumbnails = data.thumbnails.map((raw) =>
+      return responseData.thumbnails.map((raw) =>
         Thumbnail.from({
           id: raw.id,
           contentsId: raw.bucketFile,
@@ -68,8 +64,6 @@ export class RemoteThumbnailsRepository implements ThumbnailsRepository {
           updatedAt: new Date(raw.updatedAt),
         }),
       );
-
-      return thumbnails;
     } catch (err) {
       logger.error({ msg: 'Error while trying to obtain thumbnails:', error: err });
       return [];
