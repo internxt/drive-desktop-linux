@@ -36,7 +36,7 @@ import './remote-sync/handlers';
 import './../../backend/features/cleaner/ipc/handlers';
 import './virtual-drive';
 
-import { app, nativeTheme, ipcMain } from 'electron';
+import { app, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import eventBus from './event-bus';
 import { AppDataSource } from './database/data-source';
@@ -46,7 +46,7 @@ import { createAuthWindow, getAuthWindow } from './windows/auth';
 import configStore from './config';
 import { getTray, setTrayStatus } from './tray/tray';
 import { openOnboardingWindow } from './windows/onboarding';
-import { Theme } from '../shared/types/Theme';
+import { setupThemeListener, getTheme } from '../../core/theme';
 import { installNautilusExtension } from './nautilus-extension/install';
 import { uninstallNautilusExtension } from './nautilus-extension/uninstall';
 import dns from 'node:dns';
@@ -123,6 +123,7 @@ app
      */
     await setupAppImageDeeplink();
     await installNautilusExtension();
+    setupThemeListener();
 
     eventBus.emit('APP_IS_READY');
     const isLoggedIn = getIsLoggedIn();
@@ -163,7 +164,7 @@ eventBus.on('USER_LOGGED_IN', async () => {
 
     getAuthWindow()?.hide();
 
-    nativeTheme.themeSource = (configStore.get('preferedTheme') || 'system') as Theme;
+    getTheme();
 
     setTrayStatus('IDLE');
     const widget = await getOrCreateWidged();

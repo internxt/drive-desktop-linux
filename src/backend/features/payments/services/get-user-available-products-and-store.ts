@@ -1,11 +1,12 @@
-import { onUserUnauthorized } from '../../../../apps/shared/HttpClient/background-process-clients';
+import { ipcRenderer } from 'electron';
 import { logger, PaymentsModule } from '@internxt/drive-desktop-core/build/backend';
-
 import { appInfo } from '../../../../apps/main/app-info/app-info';
 import { getCredentials } from '../../../../apps/main/auth/get-credentials';
 import configStore from '../../../../apps/main/config';
 import { areProductsEqual } from './are-products-equal';
 import eventBus from '../../../../apps/main/event-bus';
+
+const onUserUnauthorized = () => ipcRenderer.emit('user-logged-out');
 export async function getUserAvailableProductsAndStore() {
   logger.debug({
     tag: 'PRODUCTS',

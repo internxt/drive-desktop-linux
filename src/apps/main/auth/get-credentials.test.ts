@@ -1,7 +1,7 @@
 import { safeStorage } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { getCredentials } from './get-credentials';
-import ConfigStore from '../config';
+import ConfigStore, { AppStore } from '../config';
 import { calls, call, partialSpyOn } from 'tests/vitest/utils.helper';
 
 describe('getCredentials', () => {
@@ -17,14 +17,14 @@ describe('getCredentials', () => {
 
   describe('when neither token nor mnemonic are encrypted', () => {
     it('should return plaintext values without decryption', () => {
-      configGetMock.mockImplementation((key: string) => {
+      configGetMock.mockImplementation((key: keyof AppStore) => {
         const values: Record<string, unknown> = {
           newToken: plainToken,
           mnemonic: plainMnemonic,
           newTokenEncrypted: false,
           mnemonicEncrypted: false,
         };
-        return values[key];
+        return values[key] as AppStore[keyof AppStore];
       });
 
       const result = getCredentials();
@@ -40,14 +40,14 @@ describe('getCredentials', () => {
 
   describe('when both token and mnemonic are encrypted', () => {
     it('should decrypt both values', () => {
-      configGetMock.mockImplementation((key: string) => {
+      configGetMock.mockImplementation((key: keyof AppStore) => {
         const values: Record<string, unknown> = {
           newToken: encryptedToken,
           mnemonic: encryptedMnemonic,
           newTokenEncrypted: true,
           mnemonicEncrypted: true,
         };
-        return values[key];
+        return values[key] as AppStore[keyof AppStore];
       });
 
       safeStorageIsAvailableMock.mockReturnValue(true);
@@ -71,14 +71,14 @@ describe('getCredentials', () => {
 
   describe('when only token is encrypted', () => {
     it('should decrypt token and return plaintext mnemonic', () => {
-      configGetMock.mockImplementation((key: string) => {
+      configGetMock.mockImplementation((key: keyof AppStore) => {
         const values: Record<string, unknown> = {
           newToken: encryptedToken,
           mnemonic: plainMnemonic,
           newTokenEncrypted: true,
           mnemonicEncrypted: false,
         };
-        return values[key];
+        return values[key] as AppStore[keyof AppStore];
       });
 
       safeStorageIsAvailableMock.mockReturnValue(true);
@@ -96,14 +96,14 @@ describe('getCredentials', () => {
 
   describe('when only mnemonic is encrypted', () => {
     it('should decrypt mnemonic and return plaintext token', () => {
-      configGetMock.mockImplementation((key: string) => {
+      configGetMock.mockImplementation((key: keyof AppStore) => {
         const values: Record<string, unknown> = {
           newToken: plainToken,
           mnemonic: encryptedMnemonic,
           newTokenEncrypted: false,
           mnemonicEncrypted: true,
         };
-        return values[key];
+        return values[key] as AppStore[keyof AppStore];
       });
 
       safeStorageIsAvailableMock.mockReturnValue(true);
@@ -121,14 +121,14 @@ describe('getCredentials', () => {
 
   describe('when safeStorage is not available', () => {
     it('should return plaintext values and log error', () => {
-      configGetMock.mockImplementation((key: string) => {
+      configGetMock.mockImplementation((key: keyof AppStore) => {
         const values: Record<string, unknown> = {
           newToken: encryptedToken,
           mnemonic: encryptedMnemonic,
           newTokenEncrypted: true,
           mnemonicEncrypted: true,
         };
-        return values[key];
+        return values[key] as AppStore[keyof AppStore];
       });
 
       safeStorageIsAvailableMock.mockReturnValue(false);
@@ -149,14 +149,14 @@ describe('getCredentials', () => {
 
   describe('when decryption fails', () => {
     it('should throw error and log it', () => {
-      configGetMock.mockImplementation((key: string) => {
+      configGetMock.mockImplementation((key: keyof AppStore) => {
         const values: Record<string, unknown> = {
           newToken: encryptedToken,
           mnemonic: encryptedMnemonic,
           newTokenEncrypted: true,
           mnemonicEncrypted: true,
         };
-        return values[key];
+        return values[key] as AppStore[keyof AppStore];
       });
 
       safeStorageIsAvailableMock.mockReturnValue(true);
@@ -176,14 +176,14 @@ describe('getCredentials', () => {
 
   describe('edge cases', () => {
     it('should handle empty strings', () => {
-      configGetMock.mockImplementation((key: string) => {
+      configGetMock.mockImplementation((key: keyof AppStore) => {
         const values: Record<string, unknown> = {
           newToken: '',
           mnemonic: '',
           newTokenEncrypted: false,
           mnemonicEncrypted: false,
         };
-        return values[key];
+        return values[key] as AppStore[keyof AppStore];
       });
 
       const result = getCredentials();
@@ -197,14 +197,14 @@ describe('getCredentials', () => {
     it('should properly encode Buffer with latin1 encoding', () => {
       const testToken = 'test-token-with-special-chars';
 
-      configGetMock.mockImplementation((key: string) => {
+      configGetMock.mockImplementation((key: keyof AppStore) => {
         const values: Record<string, unknown> = {
           newToken: testToken,
           mnemonic: plainMnemonic,
           newTokenEncrypted: true,
           mnemonicEncrypted: false,
         };
-        return values[key];
+        return values[key] as AppStore[keyof AppStore];
       });
 
       safeStorageIsAvailableMock.mockReturnValue(true);

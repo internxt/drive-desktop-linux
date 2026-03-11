@@ -5,6 +5,7 @@ import ConfigStore, { defaults, fieldsToSave } from '../config';
 import { User } from '../types';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { getCredentials } from './get-credentials';
+import { saveConfig, savedConfigFields } from '../config/save-config';
 
 export function getUser(): User | null {
   const user = ConfigStore.get('userData');
@@ -13,24 +14,12 @@ export function getUser(): User | null {
 }
 
 const keepFields: Array<keyof typeof defaults> = ['preferedLanguage', 'lastOnboardingShown'];
-
 function resetConfig() {
   for (const field of fieldsToSave) {
     if (!keepFields.includes(field)) {
       ConfigStore.set(field, defaults[field]);
     }
   }
-}
-
-function saveConfig({ uuid }: { uuid: string }) {
-  const savedConfigs = ConfigStore.get('savedConfigs');
-
-  const configToSave = Object.fromEntries(fieldsToSave.map((field) => [field, ConfigStore.get(field)]));
-
-  ConfigStore.set('savedConfigs', {
-    ...savedConfigs,
-    [uuid]: configToSave,
-  });
 }
 
 export function getBaseApiHeaders(): Record<string, string> {
@@ -67,8 +56,8 @@ export function canHisConfigBeRestored({ uuid }: { uuid: string }) {
     return false;
   }
 
-  for (const [key, value] of Object.entries(savedConfig)) {
-    ConfigStore.set(key, value);
+  for (const key of savedConfigFields) {
+    ConfigStore.set(key, savedConfig[key]);
   }
 
   return true;
