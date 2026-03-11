@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { DEFAULT_THEME, Theme } from '../../../../shared/types/Theme';
+import { ConfigTheme, DEFAULT_THEME, isConfigTheme } from '../../../../shared/types/Theme';
 import Select, { SelectOptionsType } from '../../../components/Select';
 import { useTranslationContext } from '../../../context/LocalContext';
-import useConfig from '../../../hooks/useConfig';
 
 export default function ThemePicker(): JSX.Element {
   const { translate } = useTranslationContext();
-  const [selectedTheme, setSelectedTheme] = useState<Theme | null>((useConfig('preferedTheme') as Theme) || null);
+  const [selectedTheme, setSelectedTheme] = useState<ConfigTheme | null>(null);
 
   const themes: SelectOptionsType[] = [
     {
@@ -25,15 +24,14 @@ export default function ThemePicker(): JSX.Element {
 
   const refreshPreferedTheme = async () => {
     const theme = await window.electron.getConfigKey('preferedTheme');
-    if (theme === '' || theme === null) {
-      setSelectedTheme(DEFAULT_THEME);
-    } else {
-      setSelectedTheme(theme as Theme);
-    }
+    setSelectedTheme(theme ?? DEFAULT_THEME);
   };
 
-  const updatePreferedTheme = (theme: string) => {
-    window.electron.toggleDarkMode(theme as Theme);
+  const updatePreferedTheme = (value: string) => {
+    if (!isConfigTheme(value)) return;
+
+    const theme = value;
+    window.electron.toggleDarkMode(theme);
     window.electron.setConfigKey('preferedTheme', theme);
     refreshPreferedTheme();
   };
