@@ -28,11 +28,12 @@ export default function CleaningProcess({
         <p className="line-clamp-2 text-gray-80">{currentCleaningPath}</p>
       </div>
       <ProgresBar progress={cleanedProgress} />
-      <CleanedFilesContainer
-        deletedFiles={deletedFiles}
-        freeSpaceGained={freeSpaceGained}
-      />
-      <Button className={'hover:cursor-pointer mt-2 bg-transparent'} variant={'dangerLight'} size="lg" onClick={onStopCleaning}>
+      <CleanedFilesContainer deletedFiles={deletedFiles} freeSpaceGained={freeSpaceGained} />
+      <Button
+        className={'mt-2 bg-transparent hover:cursor-pointer'}
+        variant={'dangerLight'}
+        size="lg"
+        onClick={onStopCleaning}>
         {translate('settings.cleaner.cleaningView.cleaningProcess.stopCleanButton')}
       </Button>
     </div>
