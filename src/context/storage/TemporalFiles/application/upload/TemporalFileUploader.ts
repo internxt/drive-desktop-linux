@@ -1,5 +1,7 @@
 import { Service } from 'diod';
+import { extname } from 'node:path';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { canGenerateThumbnail } from '../../../../../backend/features/thumbnails/thumbnail.extensions';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
 import { TemporalFilePath } from '../../domain/TemporalFilePath';
 import { TemporalFileUploaderFactory } from '../../domain/upload/TemporalFileUploaderFactory';
@@ -40,11 +42,15 @@ export class TemporalFileUploader {
 
     logger.debug({ msg: `${documentPath.value} uploaded with id ${contentsId}` });
 
+    const ext = extname(document.path.value).replace('.', '').toLowerCase();
+    const fileBuffer = canGenerateThumbnail(ext) ? await this.repository.read(documentPath) : undefined;
+
     const contentsUploadedEvent = new TemporalFileUploadedDomainEvent({
       aggregateId: contentsId,
       size: document.size.value,
       path: document.path.value,
       replaces: replaces?.contentsId,
+      fileBuffer,
     });
 
     await this.eventBus.publish([contentsUploadedEvent]);
