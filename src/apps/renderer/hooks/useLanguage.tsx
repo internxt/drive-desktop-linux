@@ -8,13 +8,13 @@ export function useLanguage(): Language {
 
   useEffect(() => {
     window.electron.getConfigKey('preferedLanguage').then((value) => {
-      const lang = value as string;
+      const lang = value;
       if (lang && isLanguage(lang) && i18n.language !== lang) {
         i18n.changeLanguage(lang);
       }
     });
 
-    const cleanup = window.electron.listenToConfigKeyChange<string>('preferedLanguage', (lang) => {
+    const cleanup = window.electron.listenToConfigKeyChange<Language>('preferedLanguage', (lang) => {
       if (isLanguage(lang)) {
         i18n.changeLanguage(lang);
       }
