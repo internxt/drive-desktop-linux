@@ -15,25 +15,24 @@ export default function CleaningProcess({
   currentCleaningPath,
   cleanedProgress,
   deletedFiles,
-  skippedFiles,
   freeSpaceGained,
   onStopCleaning,
 }: Props) {
   const { translate } = useTranslationContext();
   return (
     <div className="flex w-full flex-col items-center gap-4" data-testid="clean-process-container">
-      <div className="flex h-20 w-full max-w-[450px] flex-col text-center">
-        <p>{translate('settings.cleaner.cleaningView.cleaningProcess.title')}</p>
-        <p className="line-clamp-2">{currentCleaningPath}</p>
+      <div className="mb-6 flex h-20 w-full max-w-[450px] flex-col text-center">
+        <p className="text-lg font-medium text-gray-100">
+          {translate('settings.cleaner.cleaningView.cleaningProcess.title')}
+        </p>
+        <p className="line-clamp-2 text-gray-80">{currentCleaningPath}</p>
       </div>
       <ProgresBar progress={cleanedProgress} />
       <CleanedFilesContainer
         deletedFiles={deletedFiles}
-        skippedFiles={skippedFiles}
         freeSpaceGained={freeSpaceGained}
-        hideSkippedFiles={true}
       />
-      <Button className={'hover:cursor-pointer'} variant={'dangerLight'} size="lg" onClick={onStopCleaning}>
+      <Button className={'hover:cursor-pointer mt-2 bg-transparent'} variant={'dangerLight'} size="lg" onClick={onStopCleaning}>
         {translate('settings.cleaner.cleaningView.cleaningProcess.stopCleanButton')}
       </Button>
     </div>

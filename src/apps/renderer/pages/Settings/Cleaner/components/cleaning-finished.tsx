@@ -11,16 +11,21 @@ type Props = {
 };
 export default function CleaningFinished({ deletedFiles, skippedFiles, freeSpaceGained, onFinish }: Props) {
   const { translate } = useTranslationContext();
-  const translateActionKey = skippedFiles === 0 ? 'noActionsRequired' : 'actionsRequired';
   return (
-    <div className="flex w-full flex-col items-center gap-4" data-testid="clean-finished-container">
+    <div className="mb-[2px] flex w-full flex-col items-center gap-4" data-testid="clean-finished-container">
       <div className="flex w-full max-w-[450px] flex-col text-center">
-        <div className="mb-4 flex justify-center">
+        <div className="mb-3 flex justify-center">
           <Sparkle color="#0066ff" weight="fill" size={64} />
         </div>
-        <h3 className="text-lg font-semibold">{translate('settings.cleaner.cleaningView.cleaningFinished.title')}</h3>
-        <p className="text-base text-gray-70">
-          {translate(`settings.cleaner.cleaningView.cleaningFinished.${translateActionKey}`)}
+        <h3 className="text-2xl font-semibold">
+          {skippedFiles === 0
+            ? translate('settings.cleaner.cleaningView.cleaningFinished.title')
+            : translate('settings.cleaner.cleaningView.cleaningFinished.titleForSkippedFiles')}
+        </h3>
+        <p className="mt-1 whitespace-pre-line text-sm text-gray-70">
+          {skippedFiles === 0
+            ? translate('settings.cleaner.cleaningView.cleaningFinished.noActionsRequired')
+            : translate('settings.cleaner.cleaningView.cleaningFinished.actionsRequired')}
         </p>
       </div>
       <CleanedFilesContainer
@@ -28,7 +33,7 @@ export default function CleaningFinished({ deletedFiles, skippedFiles, freeSpace
         skippedFiles={skippedFiles}
         freeSpaceGained={freeSpaceGained}
       />
-      <Button className={'hover:cursor-pointer'} variant={'primary'} size="lg" onClick={onFinish}>
+      <Button className={'hover:cursor-pointer'} variant="primary" size="xl" onClick={onFinish}>
         {translate('settings.cleaner.cleaningView.cleaningFinished.finish')}
       </Button>
     </div>
