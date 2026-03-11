@@ -1,6 +1,5 @@
 import { useTranslationContext } from '../../../../context/LocalContext';
 import Checkbox from '../../../../components/Checkbox';
-import { sectionConfig } from '../cleaner.service';
 import { CaretDoubleRight } from '@phosphor-icons/react';
 type Props = {
   sectionName: string;
@@ -29,7 +28,8 @@ export default function SectionDetailHeader({
         </div>
       </div>
       <Checkbox
-        checked={isAllSelected || isPartiallySelected}
+        checked={isAllSelected}
+        indeterminate={isPartiallySelected && !isAllSelected}
         disabled={isEmpty}
         label={translate('settings.cleaner.selectAllCheckbox')}
         onClick={() => !isEmpty && onSelectAll()}
