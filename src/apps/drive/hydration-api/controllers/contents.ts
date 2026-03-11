@@ -17,7 +17,6 @@ export function buildContentsController(container: Container) {
 
       return Optional.of(fileIsAvaliable);
     } catch (error) {
-      logger.debug({ msg: '[HYDRATION API] Error checking if file is locally available:', error, path });
       // If the path is from a folder it will not find it as a file
       return Optional.empty();
     }
@@ -28,7 +27,6 @@ export function buildContentsController(container: Container) {
       const folderIsAvaliable = await container.get(AllFilesInFolderAreAvailableOffline).run(path);
       return Optional.of(folderIsAvaliable);
     } catch (error) {
-      logger.debug({ msg: '[HYDRATION API] Error checking if folder is locally available:', error, path });
       // If the path is from a file it will not find it as a folder
       return Optional.empty();
     }

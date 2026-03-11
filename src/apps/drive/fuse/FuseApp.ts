@@ -20,7 +20,6 @@ import { TrashFolderCallback } from './callbacks/TrashFolderCallback';
 import { WriteCallback } from './callbacks/WriteCallback';
 import { mountPromise } from './helpers';
 import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
-import { ThumbnailSynchronizer } from '../../../context/storage/thumbnails/application/sync/ThumbnailSynchronizer';
 import { EventEmitter } from 'stream';
 import { getExistingFiles } from '../../main/remote-sync/service';
 import configStore from '../../main/config';
@@ -140,7 +139,6 @@ export class FuseApp extends EventEmitter {
 
       Promise.all([
         this.container.get(FileRepositorySynchronizer).run(tree.files),
-        this.container.get(ThumbnailSynchronizer).run(tree.files),
         this.container.get(FolderRepositorySynchronizer).run(tree.folders),
         this.container.get(StorageRemoteChangesSyncher).run(),
       ]);
