@@ -452,7 +452,7 @@
           "title": "Votre appareil est propre",
           "titleForSkippedFiles": "Nettoyage terminé !",
           "noActionsRequired": "Aucune autre action n'est nécessaire",
-          "actionsRequired": "Certains fichiers n'ont pas pu être supprimés. Fermez les applications ouvertes ou accordez l'accès pour les supprimer.",
+          "actionsRequired": "Certains fichiers n'ont pas pu être supprimés.\n Fermez les applications ouvertes ou accordez l'accès pour les supprimer.",
           "finish": "Terminer"
         }
       }
