@@ -1,4 +1,4 @@
-import { onUserUnauthorized } from '../handlers';
+import { closeUserSession } from '../handlers';
 import { updateCredentials } from '../update-credentials';
 import { Either, left, right } from '../../../../context/shared/domain/Either';
 import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
@@ -13,7 +13,7 @@ export async function refreshToken(): Promise<Either<Error, string>> {
       msg: '[TOKEN] Could not refresh token, unauthorized user',
       error,
     });
-    onUserUnauthorized();
+    closeUserSession();
     return left(error);
   }
 
