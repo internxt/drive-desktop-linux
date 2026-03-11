@@ -24,6 +24,10 @@ export class FileBatchUploader {
     signal: AbortSignal,
   ): Promise<void> {
     for (const localFile of batch) {
+      if (signal.aborted) {
+        return;
+      }
+
       const remotePath = relative(localRootPath, localFile.path);
       const parent = remoteTree.getParent(remotePath);
 

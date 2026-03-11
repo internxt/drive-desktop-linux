@@ -1,6 +1,5 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { loggerMock } from 'tests/vitest/mocks.helper';
-import * as authServiceModule from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 
@@ -8,11 +7,6 @@ import { moveFolder } from './move-folder';
 
 describe('move-folder', () => {
   const driveServerPatchMock = partialSpyOn(driveServerClient, 'PATCH');
-  const getNewApiHeadersMock = partialSpyOn(authServiceModule, 'getNewApiHeaders');
-
-  beforeEach(() => {
-    getNewApiHeadersMock.mockReturnValue({});
-  });
 
   it('should call PATCH /folders/{uuid} with correct params', async () => {
     const folderData = { id: 1, uuid: 'folder-uuid' };
@@ -20,11 +14,9 @@ describe('move-folder', () => {
 
     await moveFolder({ uuid: 'folder-uuid', destinationFolder: 'dest-uuid' });
 
-    expect(getNewApiHeadersMock).toBeCalled();
     call(driveServerPatchMock).toMatchObject([
       '/folders/{uuid}',
       {
-        headers: {},
         path: { uuid: 'folder-uuid' },
         body: { destinationFolder: 'dest-uuid' },
       },

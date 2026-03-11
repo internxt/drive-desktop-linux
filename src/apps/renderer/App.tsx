@@ -12,6 +12,7 @@ import { useBackupNotifications } from './hooks/useBackupNotifications';
 import { useTheme } from './hooks/useTheme';
 import i18next from 'i18next';
 import { isLanguage } from '../shared/Locale/Language';
+import { UsageProvider } from './context/UsageContext/usage-provider';
 
 function LocationWrapper({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
@@ -74,17 +75,19 @@ export default function App() {
     <Router>
       <Suspense fallback={<Loader />}>
         <TranslationProvider>
-          <LocationWrapper>
-            <LoggedInWrapper>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/process-issues" element={<IssuesPage />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/" element={<Widget />} />
-              </Routes>
-            </LoggedInWrapper>
-          </LocationWrapper>
+          <UsageProvider>
+            <LocationWrapper>
+              <LoggedInWrapper>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/process-issues" element={<IssuesPage />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/" element={<Widget />} />
+                </Routes>
+              </LoggedInWrapper>
+            </LocationWrapper>
+          </UsageProvider>
         </TranslationProvider>
       </Suspense>
     </Router>

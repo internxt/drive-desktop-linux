@@ -46,10 +46,14 @@ export class EnvironmentTemporalFileUploader {
       });
 
       if (this.abortSignal) {
-        this.abortSignal.addEventListener('abort', () => {
-          state.stop();
-          contents.destroy();
-        });
+        this.abortSignal.addEventListener(
+          'abort',
+          () => {
+            state.stop();
+            contents.destroy();
+          },
+          { once: true },
+        );
       }
     });
   }

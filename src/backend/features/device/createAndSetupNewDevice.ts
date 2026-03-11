@@ -22,6 +22,7 @@ export async function createAndSetupNewDevice() {
   const device = createNewDeviceEither.getRight();
   const user = DependencyInjectionUserProvider.get();
   user.backupsBucket = device.bucket;
+  DependencyInjectionUserProvider.updateUser(user);
 
   const mainWindow = BrowserWindow.getAllWindows()[0];
   if (mainWindow) {

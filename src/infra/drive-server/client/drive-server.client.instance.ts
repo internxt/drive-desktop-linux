@@ -1,5 +1,5 @@
 import { paths } from '../../schemas';
-import { logout } from '../../../apps/main/auth/service';
+import { getNewApiHeaders, logout } from '../../../apps/main/auth/service';
 import eventBus from '../../../apps/main/event-bus';
 import { ClientOptions, createClient } from '../drive-server.client';
 
@@ -10,6 +10,7 @@ function handleOnUserUnauthorized(): void {
 
 const clientOptions: ClientOptions = {
   baseUrl: process.env.NEW_DRIVE_URL || '',
+  authHeadersProvider: getNewApiHeaders,
   onUnauthorized: handleOnUserUnauthorized,
 };
 

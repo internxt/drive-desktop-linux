@@ -1,8 +1,6 @@
 import crypto from 'crypto';
 import { Service } from 'diod';
 
-export type ThumbnailSize = 'normal' | 'large' | 'x-large' | 'xx-large';
-
 @Service()
 export class SystemThumbnailNameCalculator {
   thumbnailName(original: string) {

@@ -1,5 +1,4 @@
 import { driveServerClient } from '../../client/drive-server.client.instance';
-import { getNewApiHeaders } from '../../../../apps/main/auth/service';
 import { Either, left, right } from '../../../../context/shared/domain/Either';
 import { components, operations } from '../../../schemas';
 import { mapError } from '../utils/mapError';
@@ -14,9 +13,7 @@ type getDevicesByIdentifierQuery = operations['BackupController_getDevicesAndFol
 export class BackupService {
   async getDevices(): Promise<Either<Error, Array<Device>>> {
     try {
-      const response = await driveServerClient.GET('/backup/deviceAsFolder', {
-        headers: getNewApiHeaders(),
-      });
+      const response = await driveServerClient.GET('/backup/deviceAsFolder');
       if (!response.data) {
         logger.error({
           tag: 'BACKUPS',
@@ -44,7 +41,6 @@ export class BackupService {
     try {
       const response = await driveServerClient.GET('/backup/deviceAsFolder/{uuid}', {
         path: { uuid: deviceUUID },
-        headers: getNewApiHeaders(),
       });
 
       if (!response.data) {
@@ -102,7 +98,6 @@ export class BackupService {
     try {
       const response = await driveServerClient.GET('/backup/deviceAsFolderById/{id}', {
         path: { id: deviceId },
-        headers: getNewApiHeaders(),
       });
       if (!response.data) {
         logger.error({
@@ -153,7 +148,6 @@ export class BackupService {
   async createDevice(deviceName: string): Promise<Either<Error, Device>> {
     try {
       const response = await driveServerClient.POST('/backup/deviceAsFolder', {
-        headers: getNewApiHeaders(),
         body: { deviceName },
       });
       if (!response.data) {
@@ -195,7 +189,6 @@ export class BackupService {
     try {
       const response = await driveServerClient.PATCH('/backup/deviceAsFolder/{uuid}', {
         path: { uuid: deviceUUID },
-        headers: getNewApiHeaders(),
         body: { deviceName },
       });
 
@@ -226,7 +219,6 @@ export class BackupService {
   async getDevicesByIdentifier({ query }: { query: getDevicesByIdentifierQuery }) {
     try {
       const response = await driveServerClient.GET('/backup/v2/devices', {
-        headers: getNewApiHeaders(),
         query,
       });
       if (!response.data) {
@@ -258,7 +250,6 @@ export class BackupService {
   ): Promise<Either<Error, Device>> {
     try {
       const response = await driveServerClient.POST('/backup/v2/devices/migrate', {
-        headers: getNewApiHeaders(),
         body,
       });
       if (!response.data) {
@@ -297,7 +288,6 @@ export class BackupService {
   ): Promise<Either<Error, Device>> {
     try {
       const response = await driveServerClient.POST('/backup/v2/devices', {
-        headers: getNewApiHeaders(),
         body,
       });
       if (!response.data) {
@@ -338,7 +328,6 @@ export class BackupService {
   async updateDeviceByIdentifier(deviceIdentifier: string, deviceName: string): Promise<Either<Error, Device>> {
     try {
       const response = await driveServerClient.PATCH('/backup/v2/devices/{key}', {
-        headers: getNewApiHeaders(),
         body: { name: deviceName },
         path: { key: deviceIdentifier },
       });
