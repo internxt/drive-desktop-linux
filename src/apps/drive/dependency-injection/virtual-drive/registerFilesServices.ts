@@ -21,7 +21,6 @@ import { RetrieveAllFiles } from '../../../../context/virtual-drive/files/applic
 import { StorageFileDownloader } from '../../../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
 import { SingleFileMatchingFinder } from '../../../../context/virtual-drive/files/application/SingleFileMatchingFinder';
 import { FilesByPartialSearcher } from '../../../../context/virtual-drive/files/application/search/FilesByPartialSearcher';
-import { StorageFileService } from '../../../../context/storage/StorageFiles/StorageFileService';
 import { Environment } from '@internxt/inxt-js';
 
 export async function registerFilesServices(builder: ContainerBuilder): Promise<void> {
@@ -36,11 +35,6 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
   builder.register(RemoteFileSystem).useFactory(() => new SDKRemoteFileSystem(crypt, user.bucket));
 
   // Services
-  builder.register(StorageFileService).useFactory((c) => {
-    const env = c.get(Environment);
-    return new StorageFileService(env, user.bucket);
-  });
-
   builder.registerAndUse(StorageFileDownloader).private();
 
   builder.registerAndUse(FileRepositorySynchronizer);

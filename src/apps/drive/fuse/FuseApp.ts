@@ -21,15 +21,8 @@ import { WriteCallback } from './callbacks/WriteCallback';
 import { mountPromise } from './helpers';
 import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import { EventEmitter } from 'stream';
-import { getExistingFiles } from '../../main/remote-sync/service';
-import configStore from '../../main/config';
 
 import Fuse from '@gcas/fuse';
-import { DriveFile } from 'src/apps/main/database/entities/DriveFile';
-
-const STORAGE_MIGRATION_DATE = new Date(configStore.get('storageMigrationDate'));
-const FIX_DEPLOYMENT_DATE = new Date(configStore.get('fixDeploymentDate'));
-
 export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';
   private static readonly MAX_INT_32 = 2147483647;
@@ -44,33 +37,6 @@ export class FuseApp extends EventEmitter {
     private readonly remoteRootUuid: string,
   ) {
     super();
-  }
-
-  async fixDanglingFiles(startDate: Date, endDate: Date): Promise<void> {
-    const shouldFixDanglingFiles = configStore.get('shouldFixDanglingFiles');
-    if (!shouldFixDanglingFiles) {
-      return;
-    }
-    try {
-      const fileRepository = this.container.get(FileRepositorySynchronizer);
-      const existingFiles = await getExistingFiles();
-
-      const affectedFilesIds = existingFiles
-        .filter((file: DriveFile) => new Date(file.createdAt) >= startDate && new Date(file.createdAt) < endDate)
-        .map((file: DriveFile) => file.fileId);
-
-      if (affectedFilesIds.length > 0) {
-        logger.debug({ msg: '[FUSE] Dangling files found:', count: affectedFilesIds.length });
-        const allDanglingFilesFixed = await fileRepository.fixDanglingFiles(affectedFilesIds);
-        if (allDanglingFilesFixed) {
-          configStore.set('shouldFixDanglingFiles', false);
-        }
-      }
-
-      logger.debug({ msg: '[FUSE] Dangling files done' });
-    } catch (err) {
-      logger.error({ msg: '[FUSE] Error fixing dangling files:', error: err });
-    }
   }
 
   private getOpt() {
@@ -120,8 +86,6 @@ export class FuseApp extends EventEmitter {
     }
 
     await this.update();
-
-    void this.fixDanglingFiles(STORAGE_MIGRATION_DATE, FIX_DEPLOYMENT_DATE);
   }
 
   async stop() {

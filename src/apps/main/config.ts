@@ -35,10 +35,6 @@ const schema: Schema<AppStore> = {
 
   nautilusExtensionVersion: { type: 'number' },
   discoveredBackup: { type: 'number' },
-
-  shouldFixDanglingFiles: { type: 'boolean' },
-  storageMigrationDate: { type: 'string' },
-  fixDeploymentDate: { type: 'string' },
   availableUserProducts: { type: 'object' },
 } as const;
 

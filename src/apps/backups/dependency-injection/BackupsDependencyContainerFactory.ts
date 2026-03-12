@@ -10,8 +10,6 @@ import { DependencyInjectionUserProvider } from '../../shared/dependency-injecti
 import { DownloaderHandlerFactory } from '../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
 import { EnvironmentFileDownloaderHandlerFactory } from '../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
 import { Environment } from '@internxt/inxt-js';
-import { StorageFileService } from '../../../context/storage/StorageFiles/StorageFileService';
-import { BackupsDanglingFilesService } from '../BackupsDanglingFilesService';
 
 export class BackupsDependencyContainerFactory {
   private static container: Container | null = null;
@@ -34,13 +32,6 @@ export class BackupsDependencyContainerFactory {
     builder
       .register(DownloaderHandlerFactory)
       .useFactory((c) => new EnvironmentFileDownloaderHandlerFactory(c.get(Environment), user.backupsBucket));
-
-    builder.register(StorageFileService).useFactory((c) => {
-      const env = c.get(Environment);
-      return new StorageFileService(env, user.backupsBucket);
-    });
-
-    builder.registerAndUse(BackupsDanglingFilesService);
 
     builder.registerAndUse(BackupService);
 

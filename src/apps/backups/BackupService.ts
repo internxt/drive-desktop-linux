@@ -18,7 +18,6 @@ import { relative } from './utils/relative';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 import { RetryOptions } from '../shared/retry/types';
 import { RetryHandler } from '../shared/retry/RetryHandler';
-import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
 import { UsageModule } from '../../backend/features/usage/usage.module';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { BackupProgressTracker } from '../../backend/features/backup/backup-progress-tracker';
@@ -34,7 +33,6 @@ export class BackupService {
     private readonly fileBatchUploader: FileBatchUploader,
     private readonly fileBatchUpdater: FileBatchUpdater,
     private readonly simpleFolderCreator: SimpleFolderCreator,
-    private readonly backupsDanglingFilesService: BackupsDanglingFilesService,
   ) {}
 
   // TODO: PB-3897 - Change Signature of this method for a better error handling
@@ -68,16 +66,6 @@ export class BackupService {
 
       logger.debug({ tag: 'BACKUPS', msg: 'Calculating file differences' });
       const filesDiff = DiffFilesCalculatorService.calculate(local, remote);
-
-      if (filesDiff.dangling.size > 0) {
-        logger.debug({ tag: 'BACKUPS', msg: 'Dangling files found, handling them' });
-        const filesToResync = await this.backupsDanglingFilesService.handleDanglingFilesOnBackup(filesDiff.dangling);
-        for (const [localFile, remoteFile] of filesToResync) {
-          filesDiff.modified.set(localFile, remoteFile);
-        }
-        logger.debug({ tag: 'BACKUPS', msg: `${filesToResync.size} dangling files to resync` });
-        filesDiff.total += filesDiff.dangling.size;
-      }
       logger.debug({ tag: 'BACKUPS', msg: 'File differences calculated' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Checking available space' });

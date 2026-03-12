@@ -19,7 +19,6 @@ export type SavedConfig = {
   backupList: BackupList;
   nautilusExtensionVersion: number;
   discoveredBackup: number;
-  shouldFixDanglingFiles: boolean;
 };
 
 export type AppStore = {
@@ -58,8 +57,5 @@ export type AppStore = {
   discoveredBackup: number;
 
   // Drive
-  shouldFixDanglingFiles: boolean;
-  storageMigrationDate: string;
-  fixDeploymentDate: string;
   availableUserProducts?: UserAvailableProducts;
 };

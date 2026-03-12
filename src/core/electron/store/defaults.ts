@@ -37,9 +37,6 @@ export const defaults: AppStore = {
   discoveredBackup: 0,
 
   // Drive
-  shouldFixDanglingFiles: true,
-  storageMigrationDate: '2025-02-19T12:00:00Z',
-  fixDeploymentDate: '2025-03-04T15:30:00Z',
   availableUserProducts: undefined,
 };
 
@@ -56,5 +53,4 @@ export const fieldsToSave: Array<keyof AppStore> = [
   'backupList',
   'nautilusExtensionVersion',
   'discoveredBackup',
-  'shouldFixDanglingFiles',
 ];

@@ -7,11 +7,7 @@ import path, { relative } from 'node:path';
 import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { AbsolutePathMother } from '../../../context/shared/infrastructure/__test-helpers__/AbsolutePathMother';
 import { FileMother } from '../../../context/virtual-drive/files/domain/__test-helpers__/FileMother';
-import configStore from '../../main/config';
-import { FileNameMother } from '../../../context/shared/domain/__test-helpers__/FileNameMother';
-import { FolderMother } from '../../../context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
-import { FolderNameMother } from '../../../context/shared/domain/__test-helpers__/FolderNameMother';
-import { vi, Mock } from 'vitest';
+import { vi } from 'vitest';
 
 vi.mock('../../main/config', () => ({
   default: {
@@ -122,125 +118,5 @@ describe('DiffFilesCalculatorService', () => {
     expect(deleted.length).toBe(expectedNumberOfFilesToDelete);
     expect(modified.size).toBe(0);
     expect(unmodified.length).toBe(10);
-  });
-
-  it('should add the dangling files to the result only if the files are properly dangled files', () => {
-    // @ts-ignore
-    (configStore.get as jest.Mock).mockImplementation((key: string) => {
-      if (key === 'storageMigrationDate') return '2025-02-19T00:00:00Z';
-      if (key === 'fixDeploymentDate') return '2025-03-01T00:00:00Z';
-    });
-    const tree = RemoteTreeMother.onlyRoot();
-    // We will create 2 files: One dangled and one not dangled
-    for (let i = 0; i < 2; i++) {
-      tree.addFile(
-        tree.root,
-        FileMother.fromPartial({
-          path: path.join(tree.root.path, FileNameMother.any()),
-          createdAt: i === 0 ? new Date('2025-02-20T00:00:00Z').toISOString() : new Date().toISOString(),
-        }),
-      );
-      tree.addFolder(
-        tree.root,
-        FolderMother.fromPartial({
-          path: path.join(tree.root.path, FolderNameMother.any()),
-        }),
-      );
-    }
-
-    const remote = tree;
-    const local = LocalTreeMother.onlyRoot();
-
-    // make the local tree have the same files as the remote tree
-    remote.files.forEach((file) => {
-      const localFile = LocalFileMother.fromPartial({
-        path: path.join(local.root.path, file.path) as AbsolutePath,
-        modificationTime: DateMother.nextDay(new Date(file.updatedAt)).getTime(),
-      });
-      local.addFile(local.root, localFile);
-    });
-
-    const result = DiffFilesCalculatorService.calculate(local, remote);
-
-    expect(result.added.length).toBe(0);
-    expect(result.modified.size).toBe(1);
-    expect(result.deleted.length).toBe(0);
-    expect(result.unmodified.length).toBe(0);
-    expect(result.dangling.size).toBe(1);
-    expect(result.total).toBe(1);
-  });
-  describe('isDangledFile', () => {
-    beforeEach(() => {
-      (configStore.get as Mock).mockReset();
-    });
-
-    it('should return true when the file is dangled', () => {
-      // @ts-ignore
-      (configStore.get as Mock).mockImplementation((key: string) => {
-        if (key === 'storageMigrationDate') return '2025-02-19T12:00:00Z';
-        if (key === 'fixDeploymentDate') return '2025-03-04T15:30:00Z';
-      });
-
-      const createdAt = new Date('2025-02-20');
-      const result = DiffFilesCalculatorService.isDangledFile(createdAt);
-      expect(result).toBe(true);
-    });
-
-    it('should return false when the file was created before the migration date', () => {
-      // @ts-ignore
-      (configStore.get as Mock).mockImplementation((key: string) => {
-        if (key === 'storageMigrationDate') return '2025-02-19T12:00:00Z';
-        if (key === 'fixDeploymentDate') return '2025-03-04T15:30:00Z';
-      });
-
-      const createdAt = new Date('2025-02-18');
-      const result = DiffFilesCalculatorService.isDangledFile(createdAt);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when the file was created after the fix date', () => {
-      // @ts-ignore
-      (configStore.get as Mock).mockImplementation((key: string) => {
-        if (key === 'storageMigrationDate') return '2025-02-19T12:00:00Z';
-        if (key === 'fixDeploymentDate') return '2025-03-04T15:30:00Z';
-      });
-
-      const createdAt = new Date('2025-03-05');
-      const result = DiffFilesCalculatorService.isDangledFile(createdAt);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when the storageMigrationDate is not found', () => {
-      // @ts-ignore
-      (configStore.get as Mock).mockImplementation((key: string) => {
-        if (key === 'storageMigrationDate') return undefined;
-        if (key === 'fixDeploymentDate') return '2025-03-04T15:30:00Z';
-      });
-
-      const createdAt = new Date('2025-02-20');
-      const result = DiffFilesCalculatorService.isDangledFile(createdAt);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when the fixDeploymentDate is not found', () => {
-      // @ts-ignore
-      (configStore.get as Mock).mockImplementation((key: string) => {
-        if (key === 'storageMigrationDate') return '2025-02-19T12:00:00Z';
-        if (key === 'fixDeploymentDate') return undefined;
-      });
-
-      const createdAt = new Date('2025-02-20');
-      const result = DiffFilesCalculatorService.isDangledFile(createdAt);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when both dates are not found', () => {
-      // @ts-ignore
-      (configStore.get as Mock).mockReturnValue(undefined);
-
-      const createdAt = new Date('2025-02-20');
-      const result = DiffFilesCalculatorService.isDangledFile(createdAt);
-      expect(result).toBe(false);
-    });
   });
 });

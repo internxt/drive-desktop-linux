@@ -95,7 +95,6 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       lastOnboardingShown: '2025-01-01',
       nautilusExtensionVersion: 0,
       discoveredBackup: 1,
-      shouldFixDanglingFiles: true,
       savedConfigs: {},
       newToken: 'fake-new-token',
       newTokenEncrypted: false,
@@ -139,7 +138,6 @@ describe('saveConfig and canHisConfigBeRestored', () => {
         lastOnboardingShown: '2025-01-01',
         nautilusExtensionVersion: 0,
         discoveredBackup: 1,
-        shouldFixDanglingFiles: true,
       },
     };
 
@@ -190,7 +188,6 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       lastOnboardingShown: '2025-01-01',
       nautilusExtensionVersion: 0,
       discoveredBackup: 1,
-      shouldFixDanglingFiles: true,
       savedConfigs: {},
       newToken: 'fake-new-token',
       newTokenEncrypted: false,

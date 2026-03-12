@@ -12,8 +12,6 @@ import { LocalTreeMother } from '../../context/local/localTree/domain/__test-hel
 import { RemoteTreeMother } from '../../context/virtual-drive/remoteTree/domain/__test-helpers__/RemoteTreeMother';
 import { left, right } from '../../context/shared/domain/Either';
 import { RemoteTree } from '../../context/virtual-drive/remoteTree/domain/RemoteTree';
-import { BackupsDanglingFilesService } from './BackupsDanglingFilesService';
-import { DiffFilesCalculatorService } from './diff/DiffFilesCalculatorService';
 import { UsageModule } from '../../backend/features/usage/usage.module';
 import { FolderMother } from '../../context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
 import { BackupProgressTracker } from '../../backend/features/backup/backup-progress-tracker';
@@ -39,7 +37,6 @@ describe('BackupService', () => {
   let fileBatchUploader: FileBatchUploader;
   let fileBatchUpdater: FileBatchUpdater;
   let simpleFolderCreator: SimpleFolderCreator;
-  let backupsDanglingFilesService: BackupsDanglingFilesService;
   let mockValidateSpace: Mock;
   let abortController: AbortController;
   let tracker: BackupProgressTracker;
@@ -49,7 +46,6 @@ describe('BackupService', () => {
     remoteTreeBuilder = mockDeep<RemoteTreeBuilder>();
     fileBatchUploader = mockDeep<FileBatchUploader>();
     fileBatchUpdater = mockDeep<FileBatchUpdater>();
-    backupsDanglingFilesService = mockDeep<BackupsDanglingFilesService>();
     simpleFolderCreator = mockDeep<SimpleFolderCreator>();
     tracker = mockDeep<BackupProgressTracker>();
 
@@ -65,7 +61,6 @@ describe('BackupService', () => {
       fileBatchUploader,
       fileBatchUpdater,
       simpleFolderCreator,
-      backupsDanglingFilesService,
     );
 
     mockValidateSpace.mockClear();
@@ -173,53 +168,5 @@ describe('BackupService', () => {
 
     expect(result).toBeInstanceOf(DriveDesktopError);
     expect(result?.message).toBe('An unknown error occurred');
-  });
-
-  it('should properly handle dangled files when found while calculating diff in files', async () => {
-    const info: BackupInfo = {
-      pathname: '/path/to/backup',
-      folderId: 123,
-      folderUuid: 'uuid',
-      tmpPath: '/tmp/path',
-      backupsBucket: 'backups-bucket',
-      name: 'backup-name',
-    };
-    const localTree = LocalTreeMother.oneLevel(1);
-    const remoteTree = RemoteTreeMother.oneLevel(1);
-
-    const danglingFile = localTree.files[0];
-    const remoteFile = remoteTree.files[0];
-
-    const fakeDiff = {
-      added: [],
-      modified: new Map(),
-      deleted: [],
-      unmodified: [],
-      dangling: new Map([[danglingFile, remoteFile]]),
-      total: 0,
-    };
-
-    vi.mocked(localTreeBuilder.run).mockResolvedValueOnce(right(localTree));
-    vi.mocked(remoteTreeBuilder.run).mockResolvedValueOnce(remoteTree);
-    mockValidateSpace.mockResolvedValueOnce({ data: { hasSpace: true } });
-    vi.mocked(backupsDanglingFilesService.handleDanglingFilesOnBackup).mockResolvedValueOnce(
-      new Map([[danglingFile, remoteFile]]),
-    );
-
-    const originalCalculate = DiffFilesCalculatorService.calculate;
-    DiffFilesCalculatorService.calculate = vi.fn(() => fakeDiff);
-
-    const result = await backupService.run(info, abortController.signal, tracker);
-
-    DiffFilesCalculatorService.calculate = originalCalculate;
-
-    expect(result).toBeUndefined();
-    expect(backupsDanglingFilesService.handleDanglingFilesOnBackup).toHaveBeenCalledWith(fakeDiff.dangling);
-    expect(fileBatchUpdater.run).toHaveBeenCalledWith(
-      localTree.root,
-      remoteTree,
-      [danglingFile],
-      abortController.signal,
-    );
   });
 });

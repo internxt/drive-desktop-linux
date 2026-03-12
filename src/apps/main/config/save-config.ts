@@ -13,7 +13,6 @@ export const savedConfigFields = [
   'backupList',
   'nautilusExtensionVersion',
   'discoveredBackup',
-  'shouldFixDanglingFiles',
 ] as (keyof SavedConfig)[];
 
 export function saveConfig({ uuid }: { uuid: string }) {
@@ -32,7 +31,6 @@ export function saveConfig({ uuid }: { uuid: string }) {
     backupList: ConfigStore.get('backupList'),
     nautilusExtensionVersion: ConfigStore.get('nautilusExtensionVersion'),
     discoveredBackup: ConfigStore.get('discoveredBackup'),
-    shouldFixDanglingFiles: ConfigStore.get('shouldFixDanglingFiles'),
   };
 
   ConfigStore.set('savedConfigs', {
