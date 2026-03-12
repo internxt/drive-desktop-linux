@@ -1,5 +1,6 @@
 interface CheckboxProps extends React.InputHTMLAttributes<CheckboxProps> {
   checked: boolean;
+  indeterminate?: boolean;
   label: string;
   onClick: () => void;
   customClassName?: string;
@@ -16,7 +17,15 @@ export default function Checkbox(props: CheckboxProps) {
     </svg>
   );
 
+  const Minus = () => (
+    <svg fill="none" height="2" viewBox="0 0 10 2" width="10" xmlns="http://www.w3.org/2000/svg">
+      <rect width="10" height="2" rx="1" fill="currentColor" />
+    </svg>
+  );
+
   const isDisabled = props.disabled ?? false;
+  const isIndeterminate = props.indeterminate ?? false;
+  const isActive = props.checked || isIndeterminate;
 
   return (
     <label
@@ -34,7 +43,7 @@ export default function Checkbox(props: CheckboxProps) {
             isDisabled
               ? 'cursor-not-allowed border-gray-20 bg-gray-10 opacity-50'
               : `cursor-pointer ${
-                  props.checked
+                  isActive
                     ? 'border-primary-dark bg-primary group-active:bg-primary-dark'
                     : 'bg-surface group-active:bg-gray-1 dark:bg-gray-5'
                 }`
@@ -49,8 +58,8 @@ export default function Checkbox(props: CheckboxProps) {
         <div
           className={`pointer-events-none absolute inset-0 flex items-center justify-center transition-all duration-75 ease-in-out ${
             isDisabled ? 'text-gray-40' : 'text-white'
-          } ${props.checked && !isDisabled ? 'opacity-100' : 'opacity-0'}`}>
-          <Check />
+          } ${isActive && !isDisabled ? 'opacity-100' : 'opacity-0'}`}>
+          {isIndeterminate ? <Minus /> : <Check />}
         </div>
       </div>
 

@@ -441,7 +441,7 @@
         "ofYourSpace": "of your space"
       },
       "cleanupConfirmDialogView": {
-        "title": "Confirm cleanup",
+        "title": "Confirm clean up",
         "description": "This action will permanently delete the selected files from your device. This cannot be undone. Please, confirm to continue.",
         "cancelButton": "Cancel",
         "confirmButton": "Delete files"
@@ -456,8 +456,9 @@
         },
         "cleaningFinished": {
           "title": "Your device is clean",
+          "titleForSkippedFiles": "Clean up complete!",
           "noActionsRequired": "No further actions are necessary",
-          "actionsRequired": "Some files couldn't be deleted. Close open apps or grant access to remove them.",
+          "actionsRequired": "Some files couldn't be deleted.\n Close open apps or grant access to remove them.",
           "finish": "Finish"
         }
       }

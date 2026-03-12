@@ -18,7 +18,8 @@ export default function SectionsListHeadertype({
   return (
     <div className="mb-4 ml-2 flex flex-shrink-0 items-center justify-end">
       <Checkbox
-        checked={isAllSelected || isPartiallySelected}
+        checked={isAllSelected}
+        indeterminate={isPartiallySelected && !isAllSelected}
         disabled={!hasAnyItems}
         label={translate('settings.cleaner.selectAllCheckbox')}
         onClick={() => hasAnyItems && onSelectAll()}

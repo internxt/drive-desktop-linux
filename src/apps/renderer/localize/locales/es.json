@@ -455,8 +455,9 @@
         },
         "cleaningFinished": {
           "title": "Tu dispositivo está limpio",
+          "titleForSkippedFiles": "¡Limpieza completada!",
           "noActionsRequired": "No es necesario realizar ninguna otra acción",
-          "actionsRequired": "Algunos archivos no se pudieron eliminar. Cierra las aplicaciones abiertas o concede acceso para eliminarlos.",
+          "actionsRequired": "Algunos archivos no se pudieron eliminar.\n Cierra las aplicaciones abiertas o concede acceso para eliminarlos.",
           "finish": "Finalizar"
         }
       }

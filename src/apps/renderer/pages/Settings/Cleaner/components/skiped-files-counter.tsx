@@ -2,14 +2,14 @@ import { useTranslationContext } from '../../../../context/LocalContext';
 
 type Props = {
   skippedFiles: number;
-  hide?: boolean;
+  show?: boolean;
 };
 
-export function SkippedFilesCounter({ skippedFiles, hide = false }: Props) {
+export function SkippedFilesCounter({ skippedFiles, show = true }: Props) {
   const { translate } = useTranslationContext();
 
   return (
-    <div className="flex w-full flex-row justify-center gap-5" style={{ display: hide ? 'none' : 'flex' }}>
+    <div className="flex w-full flex-row justify-center gap-5" style={{ display: show ? 'flex' : 'none' }}>
       <div className="flex w-full max-w-[248px] flex-col items-center justify-center gap-1 text-center">
         <p>{skippedFiles}</p>
         <div className="flex items-center gap-1">

@@ -38,7 +38,8 @@ export function SectionItem({
         <Checkbox
           label={config.name}
           className="font-semibold hover:cursor-pointer"
-          checked={isSectionAllSelected || isSectionPartiallySelected}
+          checked={isSectionAllSelected}
+          indeterminate={isSectionPartiallySelected && !isSectionAllSelected}
           disabled={isEmpty}
           onClick={() => !isEmpty && onToggleSection(sectionName)}
         />
