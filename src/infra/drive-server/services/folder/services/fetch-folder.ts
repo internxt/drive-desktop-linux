@@ -8,14 +8,7 @@ export async function fetchFolder(uuid: string): Promise<Result<GetFolderContent
   const { data, error } = await driveServerClient.GET('/folders/content/{uuid}', {
     path: { uuid },
   });
-  if (error) {
-    logger.error({
-      msg: 'Failed to fetch folder content',
-      error,
-      path: `/folders/content/${uuid}`,
-    });
-    return { error };
-  }
+  if (error) return { error };
   if (data.deleted || data.removed) {
     const error = new DriveServerError('NOT_FOUND');
     logger.error({

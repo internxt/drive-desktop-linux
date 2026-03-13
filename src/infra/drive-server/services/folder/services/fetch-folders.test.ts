@@ -53,11 +53,6 @@ describe('fetchFolders', () => {
     const result = await fetchFolders(defaultQuery);
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'Error fetching folders from remote',
-      path: '/folders',
-      error,
-    });
   });
 
   it('should return error when response is not an array', async () => {

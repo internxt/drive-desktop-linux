@@ -1,5 +1,4 @@
-import { call, partialSpyOn } from 'tests/vitest/utils.helper';
-import { loggerMock } from 'tests/vitest/mocks.helper';
+import { partialSpyOn } from 'tests/vitest/utils.helper';
 import * as authServiceModule from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { CreateFileDto } from '../../../out/dto';
@@ -32,10 +31,5 @@ describe('createFile', () => {
     const result = await createFile({} as CreateFileDto);
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'error response creating a file',
-      path: '/files',
-      error,
-    });
   });
 });

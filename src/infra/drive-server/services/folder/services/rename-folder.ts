@@ -2,7 +2,6 @@ import { Result } from '../../../../../context/shared/domain/Result';
 import { FolderDto } from '../../../../../infra/drive-server/out/dto';
 import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 type Props = {
   uuid: string;
   plainName: string;
@@ -13,13 +12,6 @@ export async function renameFolder({ uuid, plainName }: Props): Promise<Result<F
     body: { plainName },
   });
 
-  if (error) {
-    logger.error({
-      msg: 'Failed to update folder name',
-      error,
-      path: `/folders/${uuid}/meta`,
-    });
-    return { error };
-  }
+  if (error) return { error };
   return { data };
 }

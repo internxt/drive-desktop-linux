@@ -1,4 +1,3 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from './../../../../../context/shared/domain/Result';
 import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
@@ -16,13 +15,6 @@ export async function deleteFileFromStorageByFileId({
     },
   });
 
-  if (error) {
-    logger.error({
-      msg: 'error response deleting file content from storage',
-      path: `/files/${bucketId}/${fileId}`,
-      error,
-    });
-    return { error };
-  }
+  if (error) return { error };
   return { data: true };
 }

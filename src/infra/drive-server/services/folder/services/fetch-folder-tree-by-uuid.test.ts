@@ -1,5 +1,4 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
-import { loggerMock } from 'tests/vitest/mocks.helper';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 
@@ -39,10 +38,5 @@ describe('fetch-folder-tree-by-uuid', () => {
     const result = await fetchFolderTreeByUuid({ uuid: 'folder-uuid' });
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'Failed to fetch folder tree',
-      path: '/folders/folder-uuid/tree',
-      error,
-    });
   });
 });
