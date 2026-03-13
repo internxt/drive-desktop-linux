@@ -67,7 +67,6 @@ export function createClient<T>(opts: ClientOptions) {
   // Strip trailing slash to avoid double // when concatenating.
   const http = axios.create({
     baseURL: opts.baseUrl.replace(/\/$/, ''),
-    timeout: 15_000,
     headers: { 'content-type': 'application/json' },
   });
 

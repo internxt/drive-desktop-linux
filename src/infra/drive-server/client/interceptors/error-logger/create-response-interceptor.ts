@@ -27,6 +27,7 @@ export function createResponseInterceptor(): {
         url: error.config?.url,
         status,
         requestId,
+        timestamp: new Date().toISOString(),
         message: error.response?.data
           ? ((error.response.data as { message?: string }).message ?? error.message)
           : error.message,
