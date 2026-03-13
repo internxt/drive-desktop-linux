@@ -28,7 +28,7 @@ export function createResponseInterceptor(): {
         status,
         requestId,
         message: error.response?.data
-          ? (error.response.data as { message?: string }).message ?? error.message
+          ? ((error.response.data as { message?: string }).message ?? error.message)
           : error.message,
       });
     }

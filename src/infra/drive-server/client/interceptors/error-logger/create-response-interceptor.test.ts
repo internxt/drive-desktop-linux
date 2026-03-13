@@ -43,7 +43,6 @@ function makeErrorWithStatus(
 }
 
 describe('error-logger createResponseInterceptor', () => {
-
   describe('onFulfilled', () => {
     it('should return the response unchanged', () => {
       const { onFulfilled } = createResponseInterceptor();
@@ -166,7 +165,7 @@ describe('error-logger createResponseInterceptor', () => {
           expect.objectContaining({
             status,
             requestId: `req-${status}`,
-          })
+          }),
         );
       }
     });
