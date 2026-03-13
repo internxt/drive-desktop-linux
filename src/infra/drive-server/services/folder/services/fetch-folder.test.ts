@@ -39,11 +39,6 @@ describe('fetch-folder', () => {
     const result = await fetchFolder('folder-uuid');
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'Failed to fetch folder content',
-      path: '/folders/content/folder-uuid',
-      error,
-    });
   });
 
   it('should return NOT_FOUND error when folder is deleted', async () => {

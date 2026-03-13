@@ -1,5 +1,4 @@
-import { call, partialSpyOn } from 'tests/vitest/utils.helper';
-import { loggerMock } from 'tests/vitest/mocks.helper';
+import { partialSpyOn } from 'tests/vitest/utils.helper';
 import * as authServiceModule from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { CreateThumbnailDto } from '../../../out/dto';
@@ -32,10 +31,5 @@ describe('createThumbnail', () => {
     const result = await createThumbnail({} as CreateThumbnailDto);
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'error response creating a thumbnail',
-      path: '/files/thumbnail',
-      error,
-    });
   });
 });

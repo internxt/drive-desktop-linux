@@ -1,5 +1,6 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { loggerMock } from 'tests/vitest/mocks.helper';
+
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 import { fetchFiles } from './fetch-files';
@@ -53,11 +54,6 @@ describe('fetchFiles', () => {
     const result = await fetchFiles(defaultQuery);
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'Error fetching files from remote',
-      path: '/files',
-      error,
-    });
   });
 
   it('should return error when response is not an array', async () => {

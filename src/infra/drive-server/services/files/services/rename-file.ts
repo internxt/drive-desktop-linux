@@ -1,4 +1,3 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { FileDto } from '../../../out/dto';
 import { DriveServerError } from '../../../drive-server.error';
@@ -22,10 +21,5 @@ export async function renameFile({ plainName, type, fileUuid }: Props): Promise<
   if (data) {
     return { data: data satisfies FileDto };
   }
-  logger.error({
-    msg: 'Error renaming file',
-    error,
-    path: `/files/${fileUuid}/meta`,
-  });
   return { error };
 }

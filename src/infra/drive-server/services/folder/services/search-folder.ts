@@ -1,4 +1,3 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { FolderDto } from '../../../../drive-server/out/dto';
 import { DriveServerError } from '../../../drive-server.error';
@@ -19,13 +18,6 @@ export async function searchFolder({
     path: { id: parentId },
     query: { offset, limit },
   });
-  if (error) {
-    logger.error({
-      msg: 'Error searching subfolders',
-      error,
-      path: `/folders/${parentId}/folders`,
-    });
-    return { error };
-  }
+  if (error) return { error };
   return { data: data.result };
 }

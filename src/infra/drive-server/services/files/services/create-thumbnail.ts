@@ -1,4 +1,3 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from './../../../../../context/shared/domain/Result';
 import { CreateThumbnailDto, ThumbnailDto } from '../../../out/dto';
 import { DriveServerError } from '../../../drive-server.error';
@@ -8,13 +7,6 @@ export async function createThumbnail(body: CreateThumbnailDto): Promise<Result<
   const { data, error } = await driveServerClient.POST('/files/thumbnail', {
     body,
   });
-  if (error) {
-    logger.error({
-      msg: 'error response creating a thumbnail',
-      path: '/files/thumbnail',
-      error,
-    });
-    return { error };
-  }
+  if (error) return { error };
   return { data };
 }
