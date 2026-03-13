@@ -1,7 +1,6 @@
 import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
 import { TemporalFilePath } from './TemporalFilePath';
 import { TemporalFileSize } from './TemporalFileSize';
-
 export type TemporalFileAttributes = {
   createdAt: Date;
   modifiedAt: Date;
@@ -9,6 +8,16 @@ export type TemporalFileAttributes = {
   size: number;
 };
 
+/**
+ * A temporal file is a local staging copy of a file the user is creating/writing on the virtual drive.
+ *
+ * When a user drops a file into the Internxt Drive folder (e.g. via Nautilus drag & drop),
+ * it is stored temporarily at `/tmp/internxt-drive-tmp/{uuid}` while being written.
+ * Once the file descriptor is closed (FUSE release), the temporal file is uploaded to the cloud
+ * (see {@link TemporalFileUploader}) and then deleted from disk (see {@link DeleteTemporalFileOnFileCreated}).
+ *
+ * Auxiliary files (lock files, .tmp, vim swap, .goutputstream-*) are ignored.
+ */
 export class TemporalFile extends AggregateRoot {
   private static readonly TEMPORAL_EXTENSION = 'tmp';
   private static readonly LOCK_FILE_NAME_PREFIX = '.~lock.';
