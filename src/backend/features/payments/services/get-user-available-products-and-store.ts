@@ -6,7 +6,7 @@ import configStore from '../../../../apps/main/config';
 import { areProductsEqual } from './are-products-equal';
 import eventBus from '../../../../apps/main/event-bus';
 
-const onUserUnauthorized = () => ipcRenderer.emit('user-logged-out');
+const closeUserSession = () => ipcRenderer.emit('user-logged-out');
 export async function getUserAvailableProductsAndStore() {
   logger.debug({
     tag: 'PRODUCTS',
@@ -20,7 +20,7 @@ export async function getUserAvailableProductsAndStore() {
     clientName: appInfo.name,
     clientVersion: appInfo.version,
     token: newToken,
-    unauthorizedCallback: onUserUnauthorized,
+    unauthorizedCallback: closeUserSession,
   };
   const userProducts = await PaymentsModule.getUserAvailableProducts({
     paymentsClientConfig,

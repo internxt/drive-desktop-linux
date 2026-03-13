@@ -20,12 +20,6 @@ describe('registerEventBusBackupHandlers', () => {
     expect(eventBus.listenerCount('USER_LOGGED_OUT')).toBe(1);
   });
 
-  it('should register the event bus USER_WAS_UNAUTHORIZED handler', () => {
-    registerEventBusBackupHandlers();
-
-    expect(eventBus.listenerCount('USER_WAS_UNAUTHORIZED')).toBe(1);
-  });
-
   it('should register the event bus USER_AVAILABLE_PRODUCTS_UPDATED handler', () => {
     registerEventBusBackupHandlers();
 
@@ -37,16 +31,6 @@ describe('registerEventBusBackupHandlers', () => {
       registerEventBusBackupHandlers();
 
       eventBus.emit('USER_LOGGED_OUT');
-
-      calls(stopAndClearBackupsMock).toHaveLength(1);
-    });
-  });
-
-  describe('USER_WAS_UNAUTHORIZED event', () => {
-    it('should call stopAndClearBackups when USER_WAS_UNAUTHORIZED is emitted', () => {
-      registerEventBusBackupHandlers();
-
-      eventBus.emit('USER_WAS_UNAUTHORIZED');
 
       calls(stopAndClearBackupsMock).toHaveLength(1);
     });

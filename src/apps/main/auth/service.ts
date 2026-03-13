@@ -6,6 +6,7 @@ import { User } from '../types';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { getCredentials } from './get-credentials';
 import { saveConfig, savedConfigFields } from '../config/save-config';
+import eventBus from '../event-bus';
 
 export function getUser(): User | null {
   const user = ConfigStore.get('userData');
@@ -65,6 +66,7 @@ export function canHisConfigBeRestored({ uuid }: { uuid: string }) {
 
 export function logout() {
   logger.debug({ msg: 'Logging out' });
+  eventBus.emit('USER_LOGGED_OUT');
 
   const user = getUser();
   if (!user) return;

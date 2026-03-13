@@ -28,7 +28,3 @@ ipcMain.handle('get-general-issues', getAppIssues);
 eventBus.on('USER_LOGGED_OUT', () => {
   clearAppIssues();
 });
-
-eventBus.on('USER_WAS_UNAUTHORIZED', () => {
-  clearAppIssues();
-});

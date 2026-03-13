@@ -9,7 +9,7 @@ import * as handlers from '../handlers';
 describe('refreshToken', () => {
   const authRefreshMock = partialSpyOn(driveServerModule.auth, 'refresh');
   const updateCredentialsMock = partialSpyOn(updateCredentialsModule, 'updateCredentials');
-  const onUserUnauthorizedMock = partialSpyOn(handlers, 'onUserUnauthorized');
+  const closeUserSessionMock = partialSpyOn(handlers, 'closeUserSession');
 
   const refreshResult: Either<Error, RefreshTokenResponse> = right({
     token: 'abc',
@@ -21,7 +21,7 @@ describe('refreshToken', () => {
     } as RefreshTokenResponse['user'],
   });
 
-  it('should call onUserUnauthorized and return error when refresh fails', async () => {
+  it('should call closeUserSession and return error when refresh fails', async () => {
     const mockError = new Error('Refresh request was not successful');
     authRefreshMock.mockResolvedValue(left(mockError));
 
@@ -29,7 +29,7 @@ describe('refreshToken', () => {
 
     expect(result.isLeft()).toBe(true);
     expect(result.getLeft()).toBe(mockError);
-    calls(onUserUnauthorizedMock).toHaveLength(1);
+    calls(closeUserSessionMock).toHaveLength(1);
     calls(updateCredentialsMock).toHaveLength(0);
   });
 
@@ -41,7 +41,7 @@ describe('refreshToken', () => {
     expect(result.isRight()).toBe(true);
     expect(result.getRight()).toEqual('xyz');
     call(updateCredentialsMock).toMatchObject({ newToken: 'xyz' });
-    calls(onUserUnauthorizedMock).toHaveLength(0);
+    calls(closeUserSessionMock).toHaveLength(0);
   });
 
   it('should update credentials with the new tokens', async () => {
