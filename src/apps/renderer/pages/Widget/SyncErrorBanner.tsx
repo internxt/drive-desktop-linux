@@ -1,9 +1,9 @@
-import { SyncStatus } from '../../../../context/desktop/sync/domain/SyncStatus';
+import { useEffect } from 'react';
 import { FatalError } from '../../../../shared/issues/FatalError';
 import Error from '../../assets/error.svg';
 import Warn from '../../assets/warn.svg';
 import { useTranslationContext } from '../../context/LocalContext';
-import useSyncStatus from '../../hooks/useSyncStatus';
+import { useSyncContext } from '../../context/SyncContext';
 import useSyncStopped from '../../hooks/useSyncStopped';
 import SyncFatalErrorMessages from '../../messages/fatal-error';
 
@@ -15,7 +15,7 @@ const fatalErrorActionMap: Record<FatalError, { name: string; func: () => void }
     func: async () => {
       const result = await window.electron.chooseSyncRootWithDialog();
       if (result) {
-        window.electron.startSyncProcess();
+        window.electron.startRemoteSync();
       }
     },
   },
@@ -24,7 +24,7 @@ const fatalErrorActionMap: Record<FatalError, { name: string; func: () => void }
     func: async () => {
       const result = await window.electron.chooseSyncRootWithDialog();
       if (result) {
-        window.electron.startSyncProcess();
+        window.electron.startRemoteSync();
       }
     },
   },
@@ -39,14 +39,13 @@ const fatalErrorActionMap: Record<FatalError, { name: string; func: () => void }
 export default function SyncErrorBanner() {
   const [stopReason, setStopReason] = useSyncStopped();
   const { translate } = useTranslationContext();
+  const { syncStatus } = useSyncContext();
 
-  function onSyncStatusChanged(value: SyncStatus) {
-    if (value === 'RUNNING') {
+  useEffect(() => {
+    if (syncStatus === 'RUNNING') {
       setStopReason(null);
     }
-  }
-
-  useSyncStatus(onSyncStatusChanged);
+  }, [syncStatus]);
 
   const severity = 'FATAL' as ErrorSeverity;
   const show = stopReason !== null && stopReason?.reason !== 'STOPPED_BY_USER';

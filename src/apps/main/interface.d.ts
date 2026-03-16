@@ -125,12 +125,15 @@ export interface IElectronAPI {
     removeInfectedFiles: (infectedFiles: string[]) => Promise<void>;
     cancelScan: () => Promise<void>;
   };
+  chooseSyncRootWithDialog(): Promise<string | null>;
   getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
   onBackupProgress(func: (value: number) => void): () => void;
   startRemoteSync(): Promise<void>;
+  getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
+  onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
 }
 
 declare global {

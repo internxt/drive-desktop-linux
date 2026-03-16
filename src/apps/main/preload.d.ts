@@ -55,10 +55,6 @@ declare interface Window {
 
     getUser(): Promise<ReturnType<typeof import('./auth/service').getUser>>;
 
-    startSyncProcess(): void;
-
-    stopSyncProcess(): void;
-
     openProcessIssuesWindow(): void;
 
     openLogs(): void;

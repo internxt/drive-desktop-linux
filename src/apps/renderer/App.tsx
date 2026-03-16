@@ -3,6 +3,7 @@ import './localize/i18n.service';
 import { Suspense, useEffect, useRef } from 'react';
 import { HashRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { TranslationProvider } from './context/LocalContext';
+import { SyncProvider } from './context/SyncContext';
 import useLanguageChangedListener from './hooks/useLanguage';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
@@ -55,8 +56,9 @@ export default function App() {
       <Suspense fallback={<Loader />}>
         <TranslationProvider>
           <UsageProvider>
-            <LocationWrapper>
-              <LoggedInWrapper>
+            <SyncProvider>
+              <LocationWrapper>
+                <LoggedInWrapper>
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/process-issues" element={<IssuesPage />} />
@@ -64,8 +66,9 @@ export default function App() {
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/" element={<Widget />} />
                 </Routes>
-              </LoggedInWrapper>
-            </LocationWrapper>
+                </LoggedInWrapper>
+              </LocationWrapper>
+            </SyncProvider>
           </UsageProvider>
         </TranslationProvider>
       </Suspense>
