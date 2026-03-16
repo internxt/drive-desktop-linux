@@ -152,7 +152,8 @@
         "logout": "Cerrar sesión",
         "quit": "Salir",
         "cleaner": "Cleaner",
-        "new": "Nuevo"
+        "new": "Nuevo",
+        "sync": "Sincronizar"
       }
     },
     "body": {

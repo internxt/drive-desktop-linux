@@ -5,6 +5,7 @@ import bytes from 'bytes';
 
 import { User } from '../../../main/types';
 import { useTranslationContext } from '../../context/LocalContext';
+import { useSyncContext } from '../../context/SyncContext';
 import useBackupErrors from '../../hooks/backups/useBackupErrors';
 import useGeneralIssues from '../../hooks/GeneralIssues';
 import useVirtualDriveIssues from '../../hooks/ProcessIssues';
@@ -117,17 +118,20 @@ export default function Header() {
     children,
     active,
     onClick,
+    disabled,
   }: {
     children: JSX.Element;
     active?: boolean;
     onClick?: () => void;
+    disabled?: boolean;
   }) => {
     return (
       <button
         className={`w-full cursor-pointer px-4 py-1.5 text-left text-sm text-gray-80 active:bg-gray-10 ${
           active && 'bg-gray-1 dark:bg-gray-5'
-        }`}
+        } ${disabled ? 'pointer-events-none opacity-50' : ''}`}
         tabIndex={0}
+        disabled={disabled}
         onKeyDown={onClick}
         onClick={onClick}>
         {children}
@@ -135,7 +139,16 @@ export default function Header() {
     );
   };
 
-  const ItemsSection = () => (
+  const ItemsSection = () => {
+    const { syncStatus } = useSyncContext();
+    const isSyncing = syncStatus === 'RUNNING';
+
+    const handleManualSync = () => {
+      if (isSyncing) return;
+      window.electron.startRemoteSync().catch(reportError);
+    };
+
+    return (
     <div className="flex shrink-0 items-center space-x-0.5 text-gray-80">
       {process.env.platform === 'darwin' && <div className="h-0 w-0" tabIndex={0} ref={dummyRef} />}
       <HeaderItemWrapper onClick={() => handleOpenURL('https://drive.internxt.com')}>
@@ -170,6 +183,15 @@ export default function Header() {
                     <div>
                       <DropdownItem active={active} onClick={() => window.electron.openSettingsWindow()}>
                         <span>{translate('widget.header.dropdown.preferences')}</span>
+                      </DropdownItem>
+                    </div>
+                  )}
+                </Menu.Item>
+                <Menu.Item disabled={isSyncing}>
+                  {({ active }) => (
+                    <div>
+                      <DropdownItem active={active} onClick={handleManualSync} disabled={isSyncing}>
+                        <span>{translate('widget.header.dropdown.sync')}</span>
                       </DropdownItem>
                     </div>
                   )}
@@ -250,6 +272,7 @@ export default function Header() {
       </Menu>
     </div>
   );
+  };
 
   return (
     <div className="flex h-14 shrink-0 items-center justify-between space-x-6 border-b border-b-gray-10 bg-gray-1 px-2.5 dark:bg-gray-5">

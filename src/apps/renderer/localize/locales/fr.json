@@ -151,7 +151,8 @@
         "logout": "Déconnecter",
         "quit": "Fermer",
         "cleaner": "Cleaner",
-        "new": "Nouveau"
+        "new": "Nouveau",
+        "sync": "Synchroniser"
       }
     },
     "body": {

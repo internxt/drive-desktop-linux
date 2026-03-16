@@ -152,7 +152,8 @@
         "quit": "Quit",
         "antivirus": "Antivirus",
         "cleaner": "Cleaner",
-        "new": "New"
+        "new": "New",
+        "sync": "Sync"
       }
     },
     "body": {
