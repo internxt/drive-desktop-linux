@@ -1,6 +1,7 @@
 import axios, { isAxiosError } from 'axios';
 import { attachRateLimiterInterceptors } from './client/interceptors/rate-limiter/attach-rate-limiter-interceptors';
 import { attachAuthInterceptors } from './client/interceptors/auth/attach-auth-interceptors';
+import { attachErrorLoggerInterceptor } from './client/interceptors/error-logger/attach-error-logger-interceptor';
 import { Result } from '../../context/shared/domain/Result';
 import { DriveServerError, mapStatusToErrorCause } from './drive-server.error';
 import { ClientOptions } from './drive-server.types';
@@ -66,7 +67,6 @@ export function createClient<T>(opts: ClientOptions) {
   // Strip trailing slash to avoid double // when concatenating.
   const http = axios.create({
     baseURL: opts.baseUrl.replace(/\/$/, ''),
-    timeout: 15_000,
     headers: { 'content-type': 'application/json' },
   });
 
@@ -76,6 +76,8 @@ export function createClient<T>(opts: ClientOptions) {
     authHeadersProvider: opts.authHeadersProvider,
     onUnauthorized: opts.onUnauthorized,
   });
+
+  attachErrorLoggerInterceptor(http);
 
   /**
    * Low‑level helper that performs the actual Axios call.

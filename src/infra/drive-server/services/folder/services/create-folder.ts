@@ -2,7 +2,6 @@ import { FolderDto } from '../../../../drive-server/out/dto';
 import { Result } from './../../../../../context/shared/domain/Result';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 type Props = {
   parentFolderUuid: string;
   plainName: string;
@@ -18,13 +17,6 @@ export async function createFolder({
       plainName,
     },
   });
-  if (error) {
-    logger.error({
-      msg: 'error creating a folder',
-      error,
-      path: '/folders',
-    });
-    return { error };
-  }
+  if (error) return { error };
   return { data };
 }

@@ -1,4 +1,3 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
@@ -9,13 +8,6 @@ export async function addFolderToTrash(foldeUuid: string): Promise<Result<boolea
       items: [{ type: 'folder', uuid: foldeUuid }],
     },
   });
-  if (error) {
-    logger.error({
-      msg: 'Error adding folder to trash',
-      error,
-      path: '/storage/trash/add',
-    });
-    return { error };
-  }
+  if (error) return { error };
   return { data: true };
 }

@@ -1,4 +1,3 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
@@ -21,13 +20,6 @@ export async function overrideFile({
       size: fileSize,
     },
   });
-  if (error) {
-    logger.error({
-      msg: 'Error overriding file',
-      error,
-      path: `/files/${fileUuid}`,
-    });
-    return { error };
-  }
+  if (error) return { error };
   return { data: true };
 }

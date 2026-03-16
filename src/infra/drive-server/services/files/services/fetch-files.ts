@@ -20,14 +20,7 @@ export async function fetchFiles(query: FetchFilesQuery): Promise<Result<FetchFi
     query,
   });
 
-  if (error) {
-    logger.error({
-      msg: 'Error fetching files from remote',
-      path: '/files',
-      error,
-    });
-    return { error };
-  }
+  if (error) return { error };
 
   if (!Array.isArray(data)) {
     logger.error({

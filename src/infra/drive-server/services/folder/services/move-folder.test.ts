@@ -1,5 +1,4 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
-import { loggerMock } from 'tests/vitest/mocks.helper';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 
@@ -40,10 +39,5 @@ describe('move-folder', () => {
     const result = await moveFolder({ uuid: 'folder-uuid', destinationFolder: 'dest-uuid' });
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'Failed to move folder',
-      path: '/folders/folder-uuid',
-      error,
-    });
   });
 });
