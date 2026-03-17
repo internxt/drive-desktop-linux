@@ -44,6 +44,10 @@ export class AntivirusManager {
     return Boolean(availableUserProducts && availableUserProducts.antivirus);
   }
 
+  public isBackgroundScanEnabled(): boolean {
+    return configStore.get('backgroundScanEnabled');
+  }
+
   /**
    * Check if the ClamAV daemon is currently running
    */
@@ -79,6 +83,13 @@ export class AntivirusManager {
           tag: 'ANTIVIRUS',
           msg: '[ANTIVIRUS_MANAGER] ClamAV is already running, skipping initialization',
         });
+
+        if (this.isBackgroundScanEnabled()) {
+          scheduleDailyScan();
+        } else {
+          clearDailyScan();
+        }
+
         return;
       }
 
@@ -87,41 +98,60 @@ export class AntivirusManager {
         msg: '[ANTIVIRUS_MANAGER] Feature is available for this user, initializing ClamAV',
       });
 
-      try {
-        await runFreshclam().catch((error) => {
-          logger.error({
-            tag: 'ANTIVIRUS',
-            msg: '[ANTIVIRUS_MANAGER] Failed to run freshclam:',
-            error,
-          });
-        });
-
-        logger.debug({
-          tag: 'ANTIVIRUS',
-          msg: '[ANTIVIRUS_MANAGER] Starting ClamAV daemon after freshclam...',
-        });
-        await clamAVServer.startClamdServer();
-        await clamAVServer.waitForClamd(300000, 10000);
-        logger.debug({
-          tag: 'ANTIVIRUS',
-          msg: '[ANTIVIRUS_MANAGER] ClamAV daemon is ready',
-        });
-
-        scheduleDailyScan();
-      } catch (error) {
+      await runFreshclam().catch((error) => {
         logger.error({
           tag: 'ANTIVIRUS',
-          msg: '[ANTIVIRUS_MANAGER] Failed to initialize ClamAV:',
+          msg: '[ANTIVIRUS_MANAGER] Failed to run freshclam:',
           error,
         });
+      });
+
+      logger.debug({
+        tag: 'ANTIVIRUS',
+        msg: '[ANTIVIRUS_MANAGER] Starting ClamAV daemon after freshclam...',
+      });
+      await clamAVServer.startClamdServer();
+      await clamAVServer.waitForClamd(300000, 10000);
+      logger.debug({
+        tag: 'ANTIVIRUS',
+        msg: '[ANTIVIRUS_MANAGER] ClamAV daemon is ready',
+      });
+
+      if (this.isBackgroundScanEnabled()) {
+        scheduleDailyScan();
+      } else {
+        clearDailyScan();
       }
     } catch (error) {
       logger.error({
         tag: 'ANTIVIRUS',
-        msg: '[ANTIVIRUS_MANAGER] Error during initialization:',
+        msg: '[ANTIVIRUS_MANAGER] Failed to initialize ClamAV:',
         error,
       });
     }
+  }
+
+  public async setBackgroundScanEnabled(enabled: boolean): Promise<void> {
+    const currentlyEnabled = this.isBackgroundScanEnabled();
+
+    if (currentlyEnabled === enabled) return;
+
+    configStore.set('backgroundScanEnabled', enabled);
+
+    if (!enabled) {
+      clearDailyScan();
+      return;
+    }
+
+    if (!this.isAntivirusAvailable()) {
+      logger.debug({
+        tag: 'ANTIVIRUS',
+        msg: '[ANTIVIRUS_MANAGER] Background scan enabled but feature is not available yet',
+      });
+      return;
+    }
+
+    scheduleDailyScan();
   }
 
   /**
@@ -149,23 +179,23 @@ export class AntivirusManager {
    */
   private async handleProductsUpdate(products: UserAvailableProducts): Promise<void> {
     try {
-      const isAntivirusEnabled = !!(products && products.antivirus);
+      const isAntivirusFeatureAvailable = !!(products && products.antivirus);
 
       // Only proceed if antivirus state has actually changed
-      if (this.lastAntivirusState === isAntivirusEnabled) {
+      if (this.lastAntivirusState === isAntivirusFeatureAvailable) {
         return;
       }
 
-      this.lastAntivirusState = isAntivirusEnabled;
+      this.lastAntivirusState = isAntivirusFeatureAvailable;
       const isClamRunning = await this.isClamAVRunning();
 
-      if (isAntivirusEnabled && !isClamRunning) {
+      if (isAntivirusFeatureAvailable && !isClamRunning) {
         logger.debug({
           tag: 'ANTIVIRUS',
           msg: '[ANTIVIRUS_MANAGER] Feature became available, initializing ClamAV',
         });
         await this.initialize();
-      } else if (!isAntivirusEnabled && isClamRunning) {
+      } else if (!isAntivirusFeatureAvailable && isClamRunning) {
         logger.debug({
           tag: 'ANTIVIRUS',
           msg: '[ANTIVIRUS_MANAGER] Feature no longer available, shutting down ClamAV',

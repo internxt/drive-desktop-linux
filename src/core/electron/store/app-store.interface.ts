@@ -8,6 +8,7 @@ type BackupList = Record<string, { enabled: boolean; folderId: number; folderUui
 export type SavedConfig = {
   lastOnboardingShown: string;
   backupsEnabled: boolean;
+  backgroundScanEnabled: boolean;
   backupInterval: number;
   lastBackup: number;
   syncRoot: string;
@@ -31,6 +32,7 @@ export type AppStore = {
 
   // Sync / backup
   backupsEnabled: boolean;
+  backgroundScanEnabled: boolean;
   backupInterval: number;
   lastBackup: number;
   syncRoot: string;

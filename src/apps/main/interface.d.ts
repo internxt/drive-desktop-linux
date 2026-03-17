@@ -99,6 +99,8 @@ export interface IElectronAPI {
   };
   antivirus: {
     isAvailable: () => Promise<boolean>;
+    isBackgroundScanEnabled: () => Promise<boolean>;
+    setBackgroundScanEnabled: (enabled: boolean) => Promise<boolean>;
     isDefenderActive: () => Promise<boolean>;
     scanItems: (folderPaths?: { path: string; itemName: string; isDirectory: boolean }[]) => Promise<void>;
     scanSystem: () => Promise<void>;
