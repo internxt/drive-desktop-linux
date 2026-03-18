@@ -50,7 +50,7 @@ describe('open-flags-tracker', () => {
       expect(result).toBe(false);
 
       trackOpen('/test.png', SYSTEM_OPEN_FLAG);
-      
+
       const result2 = shouldDownload('/test.png');
       expect(result2).toBe(true);
     });

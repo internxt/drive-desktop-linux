@@ -27,7 +27,9 @@ describe('createDownloadToDisk', () => {
     });
 
     streamFileToDiskMock.mockReturnValue({
-      writeStream: fakeWriteStream as unknown as ReturnType<typeof streamFileToDiskModule.streamFileToDisk>['writeStream'],
+      writeStream: fakeWriteStream as unknown as ReturnType<
+        typeof streamFileToDiskModule.streamFileToDisk
+      >['writeStream'],
       getBytesWritten: getBytesWrittenMock,
     });
 
