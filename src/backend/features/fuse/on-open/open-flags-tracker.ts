@@ -8,8 +8,8 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
  * - 32768 (0x8000): User opening file (actual file access)
  */
 
-const SYSTEM_OPEN_FLAG = 294912;
-const USER_OPEN_FLAG = 32768;
+export const SYSTEM_OPEN_FLAG = 294912;
+export const USER_OPEN_FLAG = 32768;
 
 /**
  * v.2.5.1
