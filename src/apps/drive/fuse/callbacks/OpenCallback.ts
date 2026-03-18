@@ -4,7 +4,7 @@ import { FuseCallback } from './FuseCallback';
 import { FuseFileOrDirectoryAlreadyExistsError, FuseIOError, FuseNoSuchFileOrDirectoryError } from './FuseErrors';
 import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { Container } from 'diod';
-import { trackOpen } from './open-flags-tracker';
+import { trackOpen } from '../../../../backend/features/fuse/on-open/open-flags-tracker';
 import { TemporalFile } from '../../../../context/storage/TemporalFiles/domain/TemporalFile';
 
 export class OpenCallback extends FuseCallback<number> {
