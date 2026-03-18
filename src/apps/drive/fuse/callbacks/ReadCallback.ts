@@ -1,63 +1,23 @@
 import { Container } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
-import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
-import { Optional } from '../../../../shared/types/Optional';
 import { TemporalFileChunkReader } from '../../../../context/storage/TemporalFiles/application/read/TemporalFileChunkReader';
-import { StorageFileChunkReader } from '../../../../context/storage/StorageFiles/application/read/StorageFileChunkReader';
-import { CacheStorageFile } from '../../../../context/storage/StorageFiles/application/offline/CacheStorageFile';
-import { shouldDownload } from './open-flags-tracker';
+import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
+import { StorageFilesRepository } from '../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
+import { StorageFileId } from '../../../../context/storage/StorageFiles/domain/StorageFileId';
+import { StorageFile } from '../../../../context/storage/StorageFiles/domain/StorageFile';
+import { StorageFileDownloader } from '../../../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
+import { DownloadProgressTracker } from '../../../../context/shared/domain/DownloadProgressTracker';
+import { type File } from '../../../../context/virtual-drive/files/domain/File';
+import {
+  handleReadCallback,
+  type HandleReadCallbackDeps,
+} from '../../../../backend/features/fuse/on-read/handle-read-callback';
 
 import Fuse from '@gcas/fuse';
 
 export class ReadCallback {
   constructor(private readonly container: Container) {}
-
-  private async read(path: string, contentsId: string, buffer: Buffer, length: number, position: number) {
-    try {
-      const readResult = await this.container.get(StorageFileChunkReader).run(contentsId, length, position);
-
-      if (readResult.isPresent()) {
-        const chunk = readResult.get();
-        chunk.copy(buffer);
-        logger.debug({ msg: '[ReadCallback] Read from cache:', path, length });
-        return chunk.length;
-      }
-    } catch (error) {
-      logger.debug({ msg: '[ReadCallback] File not in cache:', path });
-    }
-
-    if (!shouldDownload(path)) {
-      logger.debug({ msg: '[ReadCallback] Download blocked - system open (thumbnail):', path });
-      return 0;
-    }
-
-    logger.debug({ msg: '[ReadCallback] Downloading file on-demand:', path });
-    await this.container.get(CacheStorageFile).run(path);
-
-    const readResultAfterDownload = await this.container.get(StorageFileChunkReader).run(contentsId, length, position);
-
-    if (!readResultAfterDownload.isPresent()) {
-      logger.error({ msg: '[ReadCallback] File not available after download:', path });
-      return 0;
-    }
-
-    const chunk = readResultAfterDownload.get();
-    chunk.copy(buffer);
-    logger.debug({ msg: '[ReadCallback] Read after download:', path, length });
-    return chunk.length;
-  }
-
-  private async copyToBuffer(buffer: Buffer, bufferOptional: Optional<Buffer>) {
-    if (!bufferOptional.isPresent()) {
-      return 0;
-    }
-
-    const chunk = bufferOptional.get();
-
-    chunk.copy(buffer);
-    return chunk.length;
-  }
 
   async execute(
     path: string,
@@ -68,29 +28,53 @@ export class ReadCallback {
     cb: (code: number, params?: any) => void,
   ) {
     try {
-      const virtualFile = await this.container.get(FirstsFileSearcher).run({
-        path,
-      });
+      const repo = this.container.get(StorageFilesRepository);
+      const downloader = this.container.get(StorageFileDownloader);
+      const tracker = this.container.get(DownloadProgressTracker);
 
-      if (!virtualFile) {
-        const document = await this.container.get(TemporalFileByPathFinder).run(path);
+      const deps: HandleReadCallbackDeps = {
+        findVirtualFile: (p: string) => this.container.get(FirstsFileSearcher).run({ path: p }),
+        findTemporalFile: (p: string) => this.container.get(TemporalFileByPathFinder).run(p),
+        readTemporalFileChunk: async (p: string, length: number, position: number) => {
+          const result = await this.container.get(TemporalFileChunkReader).run(p, length, position);
+          return result.isPresent() ? result.get() : undefined;
+        },
+        existsOnDisk: (contentsId: string) => repo.exists(new StorageFileId(contentsId)),
 
-        if (!document) {
-          logger.error({ msg: 'READ FILE NOT FOUND', path });
-          cb(Fuse.ENOENT);
-          return;
-        }
+        startDownload: async (virtualFile: File) => {
+          const storage = StorageFile.from({
+            id: virtualFile.contentsId,
+            virtualId: virtualFile.uuid,
+            size: virtualFile.size,
+          });
+          tracker.downloadStarted(virtualFile.name, virtualFile.type);
+          const { stream, handler } = await downloader.run(storage, virtualFile);
+          return { stream, elapsedTime: () => handler.elapsedTime() };
+        },
+        onDownloadProgress: (name, extension, progress) => {
+          tracker.downloadUpdate(name, extension, progress);
+        },
+        saveToRepository: async (virtualFile: File) => {
+          const storage = StorageFile.from({
+            id: virtualFile.contentsId,
+            virtualId: virtualFile.uuid,
+            size: virtualFile.size,
+          });
+          await repo.register(storage);
+          tracker.downloadFinished(virtualFile.name, virtualFile.type);
+        },
+      };
 
-        const chunk = await this.container.get(TemporalFileChunkReader).run(document.path.value, len, pos);
+      const result = await handleReadCallback(deps, path, len, pos);
 
-        const result = await this.copyToBuffer(buf, chunk);
-
-        cb(result);
+      if (result.isLeft()) {
+        cb(result.getLeft().code);
         return;
       }
 
-      const bytesRead = await this.read(path, virtualFile.contentsId, buf, len, pos);
-      cb(bytesRead);
+      const chunk = result.getRight();
+      chunk.copy(buf as unknown as Uint8Array);
+      cb(chunk.length);
     } catch (err) {
       logger.error({ msg: '[ReadCallback] Error reading file:', error: err, path });
       cb(Fuse.EIO);
