@@ -33,6 +33,10 @@ export class TypeOrmAndNodeFsStorageFilesRepository implements StorageFilesRepos
     await this.db.save(file.attributes());
   }
 
+  async register(file: StorageFile): Promise<void> {
+    await this.db.save(file.attributes());
+  }
+
   async read(id: StorageFileId): Promise<Buffer> {
     const pathToRead = path.join(this.baseFolder, id.value);
 
