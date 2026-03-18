@@ -35,7 +35,7 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
   builder.register(RemoteFileSystem).useFactory(() => new SDKRemoteFileSystem(crypt, user.bucket));
 
   // Services
-  builder.registerAndUse(StorageFileDownloader).private();
+  builder.registerAndUse(StorageFileDownloader);
 
   builder.registerAndUse(FileRepositorySynchronizer);
 

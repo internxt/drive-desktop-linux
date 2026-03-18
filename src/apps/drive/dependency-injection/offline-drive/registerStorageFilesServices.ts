@@ -32,7 +32,7 @@ export async function registerStorageFilesServices(builder: ContainerBuilder): P
   const repo = new TypeOrmAndNodeFsStorageFilesRepository(local, dataSource);
   await repo.init();
 
-  builder.register(StorageFilesRepository).useInstance(repo).private();
+  builder.register(StorageFilesRepository).useInstance(repo);
 
   builder
     .register(DownloaderHandlerFactory)
