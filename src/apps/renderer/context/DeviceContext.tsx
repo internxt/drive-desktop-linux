@@ -36,15 +36,13 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
 
   const refreshDevice = () => {
     setDeviceState({ status: 'LOADING' });
-    window.electron
-      .getOrCreateDevice()
-      .then(({ error, data: device }) => {
-        if (error || !device) {
-          setDeviceState({ status: 'ERROR' });
-          return;
-        }
-        setCurrentDevice(device);
-      });
+    window.electron.getOrCreateDevice().then(({ error, data: device }) => {
+      if (error || !device) {
+        setDeviceState({ status: 'ERROR' });
+        return;
+      }
+      setCurrentDevice(device);
+    });
   };
 
   const setCurrentDevice = (newDevice: Device) => {

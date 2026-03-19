@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getOrCreateDevice } from './getOrCreateDevice';
 import { getDeviceIdentifier } from './getDeviceIdentifier';
 import { addUnknownDeviceIssue } from './addUnknownDeviceIssue';
