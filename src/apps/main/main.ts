@@ -45,6 +45,7 @@ import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from './windows
 import { createAuthWindow, getAuthWindow } from './windows/auth';
 import configStore from './config';
 import { getTray, setTrayStatus } from './tray/tray';
+import { broadcastToWindows } from './windows';
 import { openOnboardingWindow } from './windows/onboarding';
 import { setupThemeListener, getTheme } from '../../core/theme';
 import { installNautilusExtension } from './nautilus-extension/install';
@@ -63,6 +64,7 @@ import { version, release } from 'node:os';
 import { INTERNXT_VERSION } from '../../core/utils/utils';
 import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
 import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
+import { checkForUpdatesOnDeb } from '../../core/auto-update/check-for-updates-on-deb';
 
 const gotTheLock = app.requestSingleInstanceLock();
 app.setAsDefaultProtocolClient('internxt');
@@ -82,7 +84,18 @@ logger.debug({
   osRelease: release(),
 });
 
-function checkForUpdates() {
+let pendingUpdateInfo: { version: string } | null = null;
+
+async function checkForUpdates() {
+  if (!process.env.APPIMAGE) {
+    const updateInfo = await checkForUpdatesOnDeb({ currentVersion: INTERNXT_VERSION });
+    if (updateInfo) {
+      pendingUpdateInfo = updateInfo;
+      broadcastToWindows('update-available', updateInfo);
+    }
+    return;
+  }
+
   try {
     autoUpdater.logger = {
       debug: (msg) => logger.debug({ msg: `AutoUpdater: ${msg}` }),
@@ -96,9 +109,7 @@ function checkForUpdates() {
   }
 }
 
-if (process.platform === 'darwin') {
-  app.dock.hide();
-}
+ipcMain.handle('get-update-status', () => pendingUpdateInfo);
 
 if (process.env.NODE_ENV === 'production') {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -133,7 +144,7 @@ app
       setTrayStatus('IDLE');
     }
 
-    checkForUpdates();
+    await checkForUpdates();
     registerAvailableUserProductsHandlers();
   })
   .catch((exc) => logger.error({ msg: 'Error starting app', exc }));

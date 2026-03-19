@@ -211,6 +211,10 @@
       "button": "Mount"
     },
     "banners": {
+      "update-available": {
+        "body": "A new version of Internxt is available.",
+        "action": "Download update"
+      },
       "discover-backups": {
         "title": "INTERNXT BACKUPS",
         "body": "Keep a lifesaver copy of your most important folders and files.",

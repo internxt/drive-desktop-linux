@@ -407,4 +407,13 @@ contextBridge.exposeInMainWorld('electron', {
     },
     getDiskSpace: () => ipcRenderer.invoke('cleaner:get-disk-space'),
   },
+  getUpdateStatus() {
+    return ipcRenderer.invoke('get-update-status');
+  },
+  onUpdateAvailable(callback) {
+    const eventName = 'update-available';
+    const callbackWrapper = (_, info) => callback(info);
+    ipcRenderer.on(eventName, callbackWrapper);
+    return () => ipcRenderer.removeListener(eventName, callbackWrapper);
+  },
 });

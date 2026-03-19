@@ -207,6 +207,10 @@
       "button": "Monter"
     },
     "banners": {
+      "update-available": {
+        "body": "Une nouvelle version d'Internxt est disponible.",
+        "action": "Télécharger la mise à jour"
+      },
       "discover-backups": {
         "title": "INTERNXT SAUVEGARDES",
         "body": "Gardez une copie de secours de vos dossiers et fichiers les plus importants.",
