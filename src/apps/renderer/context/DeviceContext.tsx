@@ -44,9 +44,6 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
           return;
         }
         setCurrentDevice(device);
-      })
-      .catch(() => {
-        setDeviceState({ status: 'ERROR' });
       });
   };
 
