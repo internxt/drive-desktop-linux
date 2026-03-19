@@ -67,7 +67,3 @@ ipcMain.handle('get.issues.virtual-drive', getVirtualDriveIssues);
 eventBus.on('USER_LOGGED_OUT', () => {
   clearSyncIssues();
 });
-
-eventBus.on('USER_WAS_UNAUTHORIZED', () => {
-  clearSyncIssues();
-});
