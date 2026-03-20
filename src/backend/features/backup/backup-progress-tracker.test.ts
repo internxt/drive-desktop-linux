@@ -107,8 +107,8 @@ describe('BackupProgressTracker - Functional approach', () => {
     it('should calculate weighted progress for multiple backups', () => {
       const backupIds = ['backup-a', 'backup-b'];
       const fileCounts = new Map([
-        ['backup-a', 100],  // 66.7% weight
-        ['backup-b', 50],   // 33.3% weight
+        ['backup-a', 100], // 66.7% weight
+        ['backup-b', 50], // 33.3% weight
       ]);
 
       tracker.initializeWeights(backupIds, fileCounts);
@@ -124,8 +124,8 @@ describe('BackupProgressTracker - Functional approach', () => {
     it('should accumulate progress correctly across backups', () => {
       const backupIds = ['backup-a', 'backup-b'];
       const fileCounts = new Map([
-        ['backup-a', 100],  // 66.7% weight
-        ['backup-b', 50],   // 33.3% weight
+        ['backup-a', 100], // 66.7% weight
+        ['backup-b', 50], // 33.3% weight
       ]);
 
       tracker.initializeWeights(backupIds, fileCounts);
