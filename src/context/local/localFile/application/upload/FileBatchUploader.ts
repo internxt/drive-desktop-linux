@@ -22,6 +22,7 @@ export class FileBatchUploader {
     remoteTree: RemoteTree,
     batch: Array<LocalFile>,
     signal: AbortSignal,
+    onFileProcessed: () => void,
   ): Promise<void> {
     for (const localFile of batch) {
       if (signal.aborted) {
@@ -37,6 +38,7 @@ export class FileBatchUploader {
         uploadEither = await this.localHandler.upload(localFile.path, localFile.size, signal);
       } catch (error) {
         logger.error({ msg: '[UPLOAD ERROR]', error });
+        onFileProcessed();
         continue;
       }
 
@@ -48,6 +50,7 @@ export class FileBatchUploader {
           throw error;
         }
         backupErrorsTracker.add(parent.id, { name: localFile.nameWithExtension(), error: error.cause });
+        onFileProcessed();
         continue;
       }
 
@@ -69,11 +72,13 @@ export class FileBatchUploader {
           logger.debug({
             msg: `[FILE ALREADY EXISTS] Skipping file ${localFile.path} - already exists remotely`,
           });
+          onFileProcessed();
           continue;
         }
 
         if (error.cause === 'BAD_RESPONSE') {
           backupErrorsTracker.add(parent.id, { name: localFile.nameWithExtension(), error: error.cause });
+          onFileProcessed();
           continue;
         }
 
@@ -83,6 +88,7 @@ export class FileBatchUploader {
       const file = either.getRight();
 
       remoteTree.addFile(parent, file);
+      onFileProcessed();
     }
   }
 }

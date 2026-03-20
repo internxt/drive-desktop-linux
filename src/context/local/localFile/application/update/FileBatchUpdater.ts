@@ -18,6 +18,7 @@ export class FileBatchUpdater {
     remoteTree: RemoteTree,
     batch: Array<LocalFile>,
     signal: AbortSignal,
+    onFileProcessed: () => void,
   ): Promise<void> {
     for (const localFile of batch) {
       if (signal.aborted) {
@@ -43,6 +44,7 @@ export class FileBatchUpdater {
 
       // eslint-disable-next-line no-await-in-loop
       await this.simpleFileOverrider.run(file, contentsId, localFile.size);
+      onFileProcessed();
     }
   }
 }

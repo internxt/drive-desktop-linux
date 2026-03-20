@@ -72,8 +72,8 @@ export class BackupService {
       await this.isThereEnoughSpace(filesDiff);
       logger.debug({ tag: 'BACKUPS', msg: 'Space check completed' });
 
-      const itemsAlreadyBacked = filesDiff.unmodified.length + foldersDiff.unmodified.length;
-      tracker.addToTotal(filesDiff.total + foldersDiff.total);
+      const emptyAddedFiles = filesDiff.added.filter((f) => f.size === 0).length;
+      const itemsAlreadyBacked = filesDiff.unmodified.length + foldersDiff.unmodified.length + emptyAddedFiles;
       tracker.incrementProcessed(itemsAlreadyBacked);
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting folder backup' });
@@ -212,8 +212,9 @@ export class BackupService {
         return;
       }
       // eslint-disable-next-line no-await-in-loop
-      await this.fileBatchUploader.run(localRootPath, tree, batch, signal);
-      tracker.incrementProcessed(batch.length);
+      await this.fileBatchUploader.run(localRootPath, tree, batch, signal, () => {
+        tracker.incrementProcessed(1);
+      });
     }
   }
 
@@ -227,13 +228,13 @@ export class BackupService {
     const batches = ModifiedFilesBatchCreator.run(modified);
 
     for (const batch of batches) {
-      logger.debug({ tag: 'BACKUPS', msg: 'Signal aborted', aborted: signal.aborted });
       if (signal.aborted) {
         return;
       }
       // eslint-disable-next-line no-await-in-loop
-      await this.fileBatchUpdater.run(localTree.root, remoteTree, Array.from(batch.keys()), signal);
-      tracker.incrementProcessed(batch.size);
+      await this.fileBatchUpdater.run(localTree.root, remoteTree, Array.from(batch.keys()), signal, () => {
+        tracker.incrementProcessed(1);
+      });
     }
   }
 
@@ -249,7 +250,7 @@ export class BackupService {
 
       // eslint-disable-next-line no-await-in-loop
       await addFileToTrash(file.uuid);
+      tracker.incrementProcessed(1);
     }
-    tracker.incrementProcessed(deleted.length);
   }
 }

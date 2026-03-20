@@ -1,27 +1,51 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { broadcastToWindows } from '../../../apps/main/windows';
+import {
+  BackupProgressState,
+  createInitialState,
+  initializeWeights,
+  setCurrentBackupId as setCurrentBackupIdFn,
+  markBackupAsCompleted as markBackupAsCompletedFn,
+  incrementProcessed as incrementProcessedFn,
+  getPercentage as getPercentageFn,
+  resetState,
+} from './backup-progress-state';
 
 export class BackupProgressTracker {
-  private totalItems = 0;
-  private processedItems = 0;
+  private state: BackupProgressState;
 
-  addToTotal(totalBackups: number): void {
-    this.totalItems += totalBackups;
+  constructor() {
+    this.state = createInitialState();
   }
 
-  reset() {
-    this.processedItems = 0;
-    this.totalItems = 0;
+  initializeWeights(backupIds: string[], fileCounts: ReadonlyMap<string, number>): void {
+    this.state = initializeWeights(this.state, backupIds, fileCounts);
+    logger.debug({
+      tag: 'BACKUPS',
+      msg: 'Backup progress weights initialized',
+      weights: Object.fromEntries(this.state.backupWeights),
+    });
   }
 
-  incrementProcessed(count: number): void {
-    this.processedItems += count;
+  setCurrentBackupId(backupId: string): void {
+    this.state = setCurrentBackupIdFn(this.state, backupId);
+  }
+
+  markBackupAsCompleted(backupId: string): void {
+    this.state = markBackupAsCompletedFn(this.state, backupId);
+  }
+
+  incrementProcessed(count: number = 1): void {
+    this.state = incrementProcessedFn(this.state, count);
     this.emitProgress();
   }
 
   getPercentage(): number {
-    if (this.totalItems === 0) return 0;
-    return Math.min(100, Math.round((this.processedItems / this.totalItems) * 100));
+    return getPercentageFn(this.state);
+  }
+
+  reset(): void {
+    this.state = resetState();
   }
 
   private emitProgress(): void {

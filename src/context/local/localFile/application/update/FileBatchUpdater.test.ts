@@ -2,7 +2,6 @@ import { FileBatchUpdater } from './FileBatchUpdater';
 import { AbsolutePath } from '../../infrastructure/AbsolutePath';
 import { right } from '../../../../shared/domain/Either';
 import { SimpleFileOverrider } from '../../../../virtual-drive/files/application/override/SimpleFileOverrider';
-import { RemoteFileSystem } from '../../../../virtual-drive/files/domain/file-systems/RemoteFileSystem';
 import { FileMother } from '../../../../virtual-drive/files/domain/__test-helpers__/FileMother';
 import { RemoteTreeMother } from '../../../../virtual-drive/remoteTree/domain/__test-helpers__/RemoteTreeMother';
 import { LocalFolderMother } from '../../../localFolder/domain/__test-helpers__/LocalFolderMother';
@@ -24,7 +23,7 @@ describe('File Batch Updater', () => {
 
   beforeAll(() => {
     uploader = new LocalFileUploaderMock();
-    simpleFileOverrider = new SimpleFileOverrider({} as RemoteFileSystem);
+    simpleFileOverrider = new SimpleFileOverrider();
 
     simpleFileOverriderSpy = vi.spyOn(simpleFileOverrider, 'run');
 
@@ -54,7 +53,7 @@ describe('File Batch Updater', () => {
     vi.spyOn(uploader, 'upload').mockReturnValue(Promise.resolve(right(mockContentsId)));
     simpleFileOverriderSpy.mockReturnValue(right(Promise.resolve()));
 
-    await SUT.run(localRoot, tree, localFiles, abortController.signal);
+    await SUT.run(localRoot, tree, localFiles, abortController.signal, vi.fn());
 
     expect(simpleFileOverriderSpy).toBeCalledTimes(numberOfFilesToUpdate);
   });
