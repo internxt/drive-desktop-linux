@@ -3,6 +3,7 @@ import { Readable } from 'form-data';
 import { readFile, unlink } from 'fs/promises';
 import path from 'path';
 import { DataSource, Repository } from 'typeorm';
+import { tryCatch } from '../../../../../../../shared/try-catch';
 import { ensureFolderExists } from '../../../../../../../apps/shared/fs/ensure-folder-exists';
 import { writeReadableToFile } from '../../../../../../../apps/shared/fs/write-readable-to-file';
 import { StorageFile } from '../../../../domain/StorageFile';
@@ -72,7 +73,7 @@ export class TypeOrmAndNodeFsStorageFilesRepository implements StorageFilesRepos
   async delete(id: StorageFileId): Promise<void> {
     const pathToUnlink = path.join(this.baseFolder, id.value);
 
-    await unlink(pathToUnlink);
+    await tryCatch(() => unlink(pathToUnlink));
 
     await this.db.delete({ id: id.value });
   }

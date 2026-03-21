@@ -1,8 +1,6 @@
 import { type createDownloadToDisk } from './create-download-to-disk';
-
 export type HydrationEntry = {
   writer: ReturnType<typeof createDownloadToDisk>;
-  downloadPromise: Promise<void>;
 };
 
 const registry = new Map<string, HydrationEntry>();

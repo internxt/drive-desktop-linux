@@ -12,18 +12,24 @@ const unlinkMock = vi.mocked(unlinkModule.unlink);
 describe('createDownloadToDisk', () => {
   const fakeWriteStream = new PassThrough();
   const resolveWaitersMock = vi.fn();
+  const resolveAllWaitersMock = vi.fn();
   const rejectAllWaitersMock = vi.fn();
   const waitForBytesMock = vi.fn();
+  const getBytesAvailableMock = vi.fn().mockReturnValue(0);
   const getBytesWrittenMock = vi.fn();
 
   const streamFileToDiskMock = partialSpyOn(streamFileToDiskModule, 'streamFileToDisk');
   const createWaiterQueueMock = partialSpyOn(waiterQueueModule, 'createWaiterQueue');
 
   beforeEach(() => {
+    fakeWriteStream.removeAllListeners();
+
     createWaiterQueueMock.mockReturnValue({
       resolveWaiters: resolveWaitersMock,
+      resolveAllWaiters: resolveAllWaitersMock,
       rejectAllWaiters: rejectAllWaitersMock,
       waitForBytes: waitForBytesMock,
+      getBytesAvailable: getBytesAvailableMock,
     });
 
     streamFileToDiskMock.mockReturnValue({
@@ -40,7 +46,7 @@ describe('createDownloadToDisk', () => {
     const onProgress = vi.fn();
     const stream = new PassThrough();
 
-    createDownloadToDisk(stream, '/tmp/file', onProgress);
+    createDownloadToDisk(stream, '/tmp/file', { onProgress, onFinished: vi.fn(), onError: vi.fn() });
 
     const onBytesWritten = streamFileToDiskMock.mock.calls[0][2];
     onBytesWritten(100);
@@ -49,51 +55,64 @@ describe('createDownloadToDisk', () => {
     expect(onProgress).toHaveBeenCalledWith(100);
   });
 
-  it('should resolve remaining waiters and reject the rest on writeStream finish', () => {
+  it('should resolve remaining waiters and resolveAll on writeStream finish', () => {
+    const onFinished = vi.fn();
     const stream = new PassThrough();
     getBytesWrittenMock.mockReturnValue(500);
 
-    createDownloadToDisk(stream, '/tmp/file', vi.fn());
+    createDownloadToDisk(stream, '/tmp/file', { onProgress: vi.fn(), onFinished, onError: vi.fn() });
 
     fakeWriteStream.emit('finish');
 
     expect(resolveWaitersMock).toHaveBeenCalledWith(500);
-    expect(rejectAllWaitersMock).toHaveBeenCalledWith(
-      expect.objectContaining({ message: '[createDownloadToDisk] Stream ended before all bytes were served' }),
-    );
+    expect(resolveAllWaitersMock).toHaveBeenCalledOnce();
+    expect(onFinished).toHaveBeenCalledOnce();
   });
 
   it('should reject all waiters on writeStream error', () => {
+    const onError = vi.fn();
     const stream = new PassThrough();
     const error = new Error('write failed');
 
-    createDownloadToDisk(stream, '/tmp/file', vi.fn());
+    createDownloadToDisk(stream, '/tmp/file', { onProgress: vi.fn(), onFinished: vi.fn(), onError });
 
     fakeWriteStream.emit('error', error);
 
     expect(rejectAllWaitersMock).toHaveBeenCalledWith(error);
+    expect(onError).toHaveBeenCalledWith(error);
   });
 
   it('should reject all waiters on input stream error', () => {
+    const onError = vi.fn();
     const stream = new PassThrough();
     const error = new Error('download failed');
 
-    createDownloadToDisk(stream, '/tmp/file', vi.fn());
+    createDownloadToDisk(stream, '/tmp/file', { onProgress: vi.fn(), onFinished: vi.fn(), onError });
 
     stream.emit('error', error);
 
     expect(rejectAllWaitersMock).toHaveBeenCalledWith(error);
+    expect(onError).toHaveBeenCalledWith(error);
   });
 
   it('should delegate waitForBytes to the waiter queue', () => {
     const stream = new PassThrough();
     waitForBytesMock.mockResolvedValue(undefined);
 
-    const writer = createDownloadToDisk(stream, '/tmp/file', vi.fn());
+    const writer = createDownloadToDisk(stream, '/tmp/file', { onProgress: vi.fn(), onFinished: vi.fn(), onError: vi.fn() });
 
     writer.waitForBytes(10, 20);
 
     expect(waitForBytesMock).toHaveBeenCalledWith(10, 20);
+  });
+
+  it('should expose getBytesAvailable from the waiter queue', () => {
+    const stream = new PassThrough();
+    getBytesAvailableMock.mockReturnValue(42);
+
+    const writer = createDownloadToDisk(stream, '/tmp/file', { onProgress: vi.fn(), onFinished: vi.fn(), onError: vi.fn() });
+
+    expect(writer.getBytesAvailable()).toBe(42);
   });
 
   it('should destroy both streams, reject waiters, and delete file on destroy', async () => {
@@ -101,7 +120,7 @@ describe('createDownloadToDisk', () => {
     const streamDestroySpy = vi.spyOn(stream, 'destroy');
     const writeStreamDestroySpy = vi.spyOn(fakeWriteStream, 'destroy');
 
-    const writer = createDownloadToDisk(stream, '/tmp/file', vi.fn());
+    const writer = createDownloadToDisk(stream, '/tmp/file', { onProgress: vi.fn(), onFinished: vi.fn(), onError: vi.fn() });
 
     await writer.destroy();
 

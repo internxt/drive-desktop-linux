@@ -1,70 +1,73 @@
-const WAITER_TIMEOUT_MS = 25_000;
-let nextWaiterId = 0;
 type Waiter = {
-  id: number;
   targetByte: number;
   resolve: () => void;
   reject: (err: Error) => void;
 };
-
+type WaiterQueueState = {
+  waiters: Waiter[];
+  bytesAvailable: number;
+};
 export type WaitersController = {
   waitForBytes: (position: number, length: number) => Promise<void>;
   resolveWaiters: (bytesWritten: number) => void;
+  resolveAllWaiters: () => void;
   rejectAllWaiters: (error: Error) => void;
+  getBytesAvailable: () => number;
 };
 
-function resolveWaiters(waiters: Waiter[], bytesWritten: number): void {
+function resolveWaiters(state: WaiterQueueState, bytesWritten: number): void {
+  state.bytesAvailable = bytesWritten;
   const remaining: Waiter[] = [];
-  for (const waiter of waiters) {
+  for (const waiter of state.waiters) {
     if (bytesWritten >= waiter.targetByte) {
       waiter.resolve();
     } else {
       remaining.push(waiter);
     }
   }
-  waiters.length = 0;
-  waiters.push(...remaining);
+  state.waiters.length = 0;
+  state.waiters.push(...remaining);
 }
 
-function rejectAllWaiters(waiters: Waiter[], error: Error): void {
-  for (const waiter of waiters) {
+function resolveAllWaiters(state: WaiterQueueState): void {
+  for (const waiter of state.waiters) {
+    waiter.resolve();
+  }
+  state.waiters.length = 0;
+}
+
+function rejectAllWaiters(state: WaiterQueueState, error: Error): void {
+  for (const waiter of state.waiters) {
     waiter.reject(error);
   }
-  waiters.length = 0;
+  state.waiters.length = 0;
 }
 
-function waitForBytes(waiters: Waiter[], position: number, length: number, timeoutMs: number): Promise<void> {
+function waitForBytes(state: WaiterQueueState, position: number, length: number): Promise<void> {
   const targetByte = position + length;
-  const id = nextWaiterId++;
+  if (state.bytesAvailable >= targetByte) {
+    return Promise.resolve();
+  }
 
   return new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      const index = waiters.findIndex((w) => w.id === id);
-      if (index !== -1) waiters.splice(index, 1);
-      reject(new Error(`[WaiterQueue] Timeout waiting for byte ${targetByte}`));
-    }, timeoutMs);
-
-    waiters.push({
-      id,
+    state.waiters.push({
       targetByte,
-      resolve: () => {
-        clearTimeout(timer);
-        resolve();
-      },
-      reject: (err) => {
-        clearTimeout(timer);
-        reject(err);
-      },
+      resolve,
+      reject,
     });
   });
 }
 
-export function createWaiterQueue(timeoutMs = WAITER_TIMEOUT_MS): WaitersController {
-  const waiters: Waiter[] = [];
-
+export function createWaiterQueue(): WaitersController {
+  const state: WaiterQueueState = {
+    waiters: [],
+    bytesAvailable: 0,
+  };
   return {
-    resolveWaiters: (bytesWritten) => resolveWaiters(waiters, bytesWritten),
-    rejectAllWaiters: (error) => rejectAllWaiters(waiters, error),
-    waitForBytes: (position, length) => waitForBytes(waiters, position, length, timeoutMs),
+    resolveWaiters: (bytesWritten) => resolveWaiters(state, bytesWritten),
+    resolveAllWaiters: () => resolveAllWaiters(state),
+    rejectAllWaiters: (error) => rejectAllWaiters(state, error),
+    waitForBytes: (position, length) => waitForBytes(state, position, length),
+    getBytesAvailable: () => state.bytesAvailable,
   };
 }

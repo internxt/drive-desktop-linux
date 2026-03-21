@@ -78,56 +78,46 @@ describe('createWaiterQueue', () => {
     await expect(promise2).rejects.toThrow('download failed');
   });
 
-  describe('timeout', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
+  it('should resolve immediately if bytes are already available', async () => {
+    const queue = createWaiterQueue();
 
-    afterEach(() => {
-      vi.useRealTimers();
-    });
+    queue.resolveWaiters(100);
 
-    it('should reject a waiter when it times out', async () => {
-      const queue = createWaiterQueue(100);
+    const promise = queue.waitForBytes(0, 50);
+    await expect(promise).resolves.toBe(undefined);
+  });
 
-      const promise = queue.waitForBytes(0, 10);
-      const assertion = expect(promise).rejects.toThrow('[WaiterQueue] Timeout waiting for byte 10');
-      await vi.advanceTimersByTimeAsync(100);
+  it('should track bytesAvailable via getBytesAvailable', () => {
+    const queue = createWaiterQueue();
 
-      await assertion;
-    });
+    expect(queue.getBytesAvailable()).toBe(0);
 
-    it('should remove the timed-out waiter from the queue', async () => {
-      const queue = createWaiterQueue(100);
+    queue.resolveWaiters(500);
+    expect(queue.getBytesAvailable()).toBe(500);
+  });
 
-      const promise = queue.waitForBytes(0, 10).catch(() => {});
-      await vi.advanceTimersByTimeAsync(100);
-      await promise;
+  it('should resolve all remaining waiters when resolveAllWaiters is called', async () => {
+    const queue = createWaiterQueue();
 
-      // resolving after timeout should not throw
-      queue.resolveWaiters(10);
-    });
+    const promise1 = queue.waitForBytes(0, 100);
+    const promise2 = queue.waitForBytes(0, 999999);
 
-    it('should clear the timeout when a waiter is resolved', async () => {
-      const queue = createWaiterQueue(100);
+    queue.resolveAllWaiters();
 
-      const promise = queue.waitForBytes(0, 10);
-      queue.resolveWaiters(10);
-      await promise;
+    await expect(promise1).resolves.toBe(undefined);
+    await expect(promise2).resolves.toBe(undefined);
+  });
 
-      await vi.advanceTimersByTimeAsync(100);
-      // no rejection — timeout was cleared
-    });
+  it('should resolve waiters within range and resolveAll the rest on finish', async () => {
+    const queue = createWaiterQueue();
 
-    it('should clear the timeout when a waiter is rejected', async () => {
-      const queue = createWaiterQueue(100);
+    const promise1 = queue.waitForBytes(0, 50);
+    const promise2 = queue.waitForBytes(0, 200);
 
-      const promise = queue.waitForBytes(0, 10);
-      queue.rejectAllWaiters(new Error('failed'));
-      await promise.catch(() => {});
+    queue.resolveWaiters(100);
+    await expect(promise1).resolves.toBe(undefined);
 
-      await vi.advanceTimersByTimeAsync(100);
-      // no double rejection — timeout was cleared
-    });
+    queue.resolveAllWaiters();
+    await expect(promise2).resolves.toBe(undefined);
   });
 });

@@ -17,7 +17,9 @@ const shouldDownloadMock = partialSpyOn(openFlagsTrackerModule, 'shouldDownload'
 const virtualFile = {
   contentsId: 'contents-123',
   name: 'video.mp4',
+  nameWithExtension: 'video.mp4',
   type: 'mp4',
+  uuid: 'uuid-123',
   size: 1000,
 } as unknown as File;
 
@@ -34,15 +36,20 @@ function createDeps(overrides: Partial<HandleReadCallbackDeps> = {}): HandleRead
   };
 }
 
+function createWriterMock(bytesAvailable = 0) {
+  return {
+    waitForBytes: vi.fn().mockResolvedValue(undefined),
+    getBytesAvailable: vi.fn().mockReturnValue(bytesAvailable),
+    destroy: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
 describe('handleReadCallback', () => {
   beforeEach(() => {
     shouldDownloadMock.mockReturnValue(true);
     getHydrationMock.mockReturnValue(undefined);
     readChunkFromDiskMock.mockResolvedValue(Buffer.from('data'));
-    createDownloadToDiskMock.mockReturnValue({
-      waitForBytes: vi.fn().mockResolvedValue(undefined),
-      destroy: vi.fn().mockResolvedValue(undefined),
-    });
+    createDownloadToDiskMock.mockReturnValue(createWriterMock());
   });
 
   describe('when virtual file is not found', () => {
@@ -117,32 +124,26 @@ describe('handleReadCallback', () => {
 
   describe('when file needs to be downloaded', () => {
     it('should start a new hydration when none exists', async () => {
-      const waitForBytesMock = vi.fn().mockResolvedValue(undefined);
-      createDownloadToDiskMock.mockReturnValue({
-        waitForBytes: waitForBytesMock,
-        destroy: vi.fn().mockResolvedValue(undefined),
-      });
+      const writer = createWriterMock();
+      createDownloadToDiskMock.mockReturnValue(writer);
       const deps = createDeps();
 
       await handleReadCallback(deps, '/file.mp4', 10, 50);
 
       expect(deps.startDownload).toHaveBeenCalledWith(virtualFile);
       expect(setHydrationMock).toHaveBeenCalledOnce();
-      expect(waitForBytesMock).toHaveBeenCalledWith(50, 10);
+      expect(writer.waitForBytes).toHaveBeenCalledWith(50, 10);
     });
 
     it('should reuse existing hydration when one exists', async () => {
-      const waitForBytesMock = vi.fn().mockResolvedValue(undefined);
-      getHydrationMock.mockReturnValue({
-        writer: { waitForBytes: waitForBytesMock, destroy: vi.fn() },
-        downloadPromise: Promise.resolve(),
-      });
+      const writer = createWriterMock();
+      getHydrationMock.mockReturnValue({ writer });
       const deps = createDeps();
 
       await handleReadCallback(deps, '/file.mp4', 10, 50);
 
       expect(deps.startDownload).not.toHaveBeenCalled();
-      expect(waitForBytesMock).toHaveBeenCalledWith(50, 10);
+      expect(writer.waitForBytes).toHaveBeenCalledWith(50, 10);
     });
 
     it('should read chunk from disk after waitForBytes resolves', async () => {
@@ -154,6 +155,16 @@ describe('handleReadCallback', () => {
 
       expect(result.isRight()).toBe(true);
       expect(result.getRight()).toBe(chunk);
+    });
+
+    it('should skip waitForBytes when bytes are already available', async () => {
+      const writer = createWriterMock(1000);
+      getHydrationMock.mockReturnValue({ writer });
+      const deps = createDeps();
+
+      await handleReadCallback(deps, '/file.mp4', 10, 50);
+
+      expect(writer.waitForBytes).toHaveBeenCalledWith(50, 10);
     });
   });
 });

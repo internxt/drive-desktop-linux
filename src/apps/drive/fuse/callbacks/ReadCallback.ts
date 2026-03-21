@@ -54,14 +54,14 @@ export class ReadCallback {
         onDownloadProgress: (name, extension, progress) => {
           tracker.downloadUpdate(name, extension, progress);
         },
-        saveToRepository: async (virtualFile: File) => {
+        saveToRepository: async (contentsId, size, uuid, name, extension) => {
           const storage = StorageFile.from({
-            id: virtualFile.contentsId,
-            virtualId: virtualFile.uuid,
-            size: virtualFile.size,
+            id: contentsId,
+            virtualId: uuid,
+            size,
           });
           await repo.register(storage);
-          tracker.downloadFinished(virtualFile.name, virtualFile.type);
+          tracker.downloadFinished(name, extension);
         },
       };
 
