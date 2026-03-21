@@ -99,7 +99,11 @@ describe('createDownloadToDisk', () => {
     const stream = new PassThrough();
     waitForBytesMock.mockResolvedValue(undefined);
 
-    const writer = createDownloadToDisk(stream, '/tmp/file', { onProgress: vi.fn(), onFinished: vi.fn(), onError: vi.fn() });
+    const writer = createDownloadToDisk(stream, '/tmp/file', {
+      onProgress: vi.fn(),
+      onFinished: vi.fn(),
+      onError: vi.fn(),
+    });
 
     writer.waitForBytes(10, 20);
 
@@ -110,7 +114,11 @@ describe('createDownloadToDisk', () => {
     const stream = new PassThrough();
     getBytesAvailableMock.mockReturnValue(42);
 
-    const writer = createDownloadToDisk(stream, '/tmp/file', { onProgress: vi.fn(), onFinished: vi.fn(), onError: vi.fn() });
+    const writer = createDownloadToDisk(stream, '/tmp/file', {
+      onProgress: vi.fn(),
+      onFinished: vi.fn(),
+      onError: vi.fn(),
+    });
 
     expect(writer.getBytesAvailable()).toBe(42);
   });
@@ -120,7 +128,11 @@ describe('createDownloadToDisk', () => {
     const streamDestroySpy = vi.spyOn(stream, 'destroy');
     const writeStreamDestroySpy = vi.spyOn(fakeWriteStream, 'destroy');
 
-    const writer = createDownloadToDisk(stream, '/tmp/file', { onProgress: vi.fn(), onFinished: vi.fn(), onError: vi.fn() });
+    const writer = createDownloadToDisk(stream, '/tmp/file', {
+      onProgress: vi.fn(),
+      onFinished: vi.fn(),
+      onError: vi.fn(),
+    });
 
     await writer.destroy();
 
