@@ -7,9 +7,7 @@ import { CreateFileDto } from '../../../../infra/drive-server/out/dto';
 import { createFile } from '../../../../infra/drive-server/services/files/services/create-file';
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
-  constructor(
-    private readonly bucket: string,
-  ) {}
+  constructor(private readonly bucket: string) {}
 
   async persist(dataToPersists: FileDataToPersist): Promise<Either<DriveDesktopError, PersistedFileData>> {
     const plainName = dataToPersists.path.name();

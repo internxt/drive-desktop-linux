@@ -6,7 +6,6 @@ import { BucketEntryIdMother } from '../../shared/domain/__test-helpers__/Bucket
 import { loggerMock } from '../../../../../tests/vitest/mocks.helper';
 
 describe('Traverser', () => {
-
   it('first level files starts with /', () => {
     const baseFolderId = 6;
     const rawTree = {
@@ -22,10 +21,7 @@ describe('Traverser', () => {
       ],
       folders: [],
     };
-    const SUT = new Traverser(
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -56,10 +52,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -81,10 +74,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -112,10 +102,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -143,10 +130,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -184,10 +168,7 @@ describe('Traverser', () => {
       ],
       folders: [],
     };
-    const SUT = new Traverser(
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -209,10 +190,7 @@ describe('Traverser', () => {
         {} as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -243,10 +221,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
