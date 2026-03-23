@@ -1,5 +1,4 @@
 import { ContainerBuilder } from 'diod';
-import crypt from '../../../../context/shared/infrastructure/crypt';
 import { FileCreator } from '../../../../context/virtual-drive/files/application/create/FileCreator';
 import { FileTrasher } from '../../../../context/virtual-drive/files/application/trash/FileTrasher';
 import { FilePathUpdater } from '../../../../context/virtual-drive/files/application/move/FilePathUpdater';
@@ -32,7 +31,7 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
 
   builder.register(SyncFileMessenger).use(MainProcessSyncFileMessenger);
 
-  builder.register(RemoteFileSystem).useFactory(() => new SDKRemoteFileSystem(crypt, user.bucket));
+  builder.register(RemoteFileSystem).useFactory(() => new SDKRemoteFileSystem(user.bucket));
 
   // Services
   builder.registerAndUse(StorageFileDownloader).private();
