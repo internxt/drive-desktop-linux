@@ -48,6 +48,14 @@ export class AntivirusManager {
     return configStore.get('backgroundScanEnabled');
   }
 
+  private syncDailyScan(): void {
+    if (this.isBackgroundScanEnabled()) {
+      scheduleDailyScan();
+    } else {
+      clearDailyScan();
+    }
+  }
+
   /**
    * Check if the ClamAV daemon is currently running
    */
@@ -84,11 +92,7 @@ export class AntivirusManager {
           msg: '[ANTIVIRUS_MANAGER] ClamAV is already running, skipping initialization',
         });
 
-        if (this.isBackgroundScanEnabled()) {
-          scheduleDailyScan();
-        } else {
-          clearDailyScan();
-        }
+        this.syncDailyScan();
 
         return;
       }
@@ -111,18 +115,15 @@ export class AntivirusManager {
         msg: '[ANTIVIRUS_MANAGER] Starting ClamAV daemon after freshclam...',
       });
 
-      void clamAVServer.startClamdServer().then(async () => await clamAVServer.waitForClamd(300000, 10000));
+      await clamAVServer.startClamdServer();
+      await clamAVServer.waitForClamd(300000, 10000);
 
       logger.debug({
         tag: 'ANTIVIRUS',
         msg: '[ANTIVIRUS_MANAGER] ClamAV daemon is ready',
       });
 
-      if (this.isBackgroundScanEnabled()) {
-        scheduleDailyScan();
-      } else {
-        clearDailyScan();
-      }
+      this.syncDailyScan();
     } catch (error) {
       logger.error({
         tag: 'ANTIVIRUS',

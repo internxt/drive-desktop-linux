@@ -210,6 +210,36 @@ describe('AntivirusManager', () => {
     });
   });
 
+  describe('syncDailyScan', () => {
+    it('schedules the daily scan when background scan is enabled', async () => {
+      checkClamdAvailabilityMock.mockResolvedValue(false);
+      configGet.mockImplementation((key) => {
+        if (key === 'availableUserProducts') return { antivirus: true, backups: false, cleaner: false } as never;
+        if (key === 'backgroundScanEnabled') return true as never;
+        return undefined as never;
+      });
+
+      await getInstance().initialize();
+
+      expect(scheduleDailyScanMock).toHaveBeenCalledOnce();
+      expect(clearDailyScanMock).not.toHaveBeenCalled();
+    });
+
+    it('clears the daily scan when background scan is disabled', async () => {
+      checkClamdAvailabilityMock.mockResolvedValue(false);
+      configGet.mockImplementation((key) => {
+        if (key === 'availableUserProducts') return { antivirus: true, backups: false, cleaner: false } as never;
+        if (key === 'backgroundScanEnabled') return false as never;
+        return undefined as never;
+      });
+
+      await getInstance().initialize();
+
+      expect(clearDailyScanMock).toHaveBeenCalledOnce();
+      expect(scheduleDailyScanMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe('shutdown', () => {
     it('clears the daily scan', async () => {
       stopClamdServerMock.mockResolvedValue(undefined);
