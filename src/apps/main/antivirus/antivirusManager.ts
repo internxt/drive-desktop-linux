@@ -110,8 +110,9 @@ export class AntivirusManager {
         tag: 'ANTIVIRUS',
         msg: '[ANTIVIRUS_MANAGER] Starting ClamAV daemon after freshclam...',
       });
-      await clamAVServer.startClamdServer();
-      await clamAVServer.waitForClamd(300000, 10000);
+
+      void clamAVServer.startClamdServer().then(async () => await clamAVServer.waitForClamd(300000, 10000));
+
       logger.debug({
         tag: 'ANTIVIRUS',
         msg: '[ANTIVIRUS_MANAGER] ClamAV daemon is ready',
@@ -179,23 +180,21 @@ export class AntivirusManager {
    */
   private async handleProductsUpdate(products: UserAvailableProducts): Promise<void> {
     try {
-      const isAntivirusFeatureAvailable = !!(products && products.antivirus);
-
       // Only proceed if antivirus state has actually changed
-      if (this.lastAntivirusState === isAntivirusFeatureAvailable) {
+      if (this.lastAntivirusState === products?.antivirus) {
         return;
       }
 
-      this.lastAntivirusState = isAntivirusFeatureAvailable;
+      this.lastAntivirusState = products?.antivirus;
       const isClamRunning = await this.isClamAVRunning();
 
-      if (isAntivirusFeatureAvailable && !isClamRunning) {
+      if (products?.antivirus && !isClamRunning) {
         logger.debug({
           tag: 'ANTIVIRUS',
           msg: '[ANTIVIRUS_MANAGER] Feature became available, initializing ClamAV',
         });
         await this.initialize();
-      } else if (!isAntivirusFeatureAvailable && isClamRunning) {
+      } else if (!products?.antivirus && isClamRunning) {
         logger.debug({
           tag: 'ANTIVIRUS',
           msg: '[ANTIVIRUS_MANAGER] Feature no longer available, shutting down ClamAV',
