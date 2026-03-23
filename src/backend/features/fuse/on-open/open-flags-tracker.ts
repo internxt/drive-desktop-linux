@@ -8,8 +8,8 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
  * - 32768 (0x8000): User opening file (actual file access)
  */
 
-const SYSTEM_OPEN_FLAG = 294912;
-const USER_OPEN_FLAG = 32768;
+export const SYSTEM_OPEN_FLAG = 294912;
+export const USER_OPEN_FLAG = 32768;
 
 /**
  * v.2.5.1
@@ -23,6 +23,13 @@ const DOWNLOAD_WHITELIST = new Set(['.png', '.json']);
 
 const fileFlags = new Map<string, number>();
 
+export function isSystemOpen(flag: number): boolean {
+  return flag === SYSTEM_OPEN_FLAG;
+}
+
+export function isUserOpen(flag: number): boolean {
+  return flag === USER_OPEN_FLAG;
+}
 export function trackOpen(path: string, flag: number): void {
   fileFlags.set(path, flag);
   logger.debug({
@@ -32,14 +39,6 @@ export function trackOpen(path: string, flag: number): void {
     isSystemOpen: isSystemOpen(flag),
     isUserOpen: isUserOpen(flag),
   });
-}
-
-export function isSystemOpen(flag: number): boolean {
-  return flag === SYSTEM_OPEN_FLAG;
-}
-
-export function isUserOpen(flag: number): boolean {
-  return flag === USER_OPEN_FLAG;
 }
 
 export function shouldDownload(path: string): boolean {
@@ -61,17 +60,16 @@ export function shouldDownload(path: string): boolean {
     return true;
   }
 
-  const shouldDownload = isUserOpen(flag);
-
-  if (!shouldDownload) {
+  if (isSystemOpen(flag)) {
     logger.debug({
       msg: '[OpenFlagsTracker] Download blocked - system open detected:',
       path,
       flag,
     });
+    return false;
   }
 
-  return shouldDownload;
+  return true;
 }
 
 export function onRelease(path: string): void {
