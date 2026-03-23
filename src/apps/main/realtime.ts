@@ -133,4 +133,3 @@ function stopRemoteNotifications() {
 
 eventBus.on('USER_LOGGED_IN', cleanAndStartRemoteNotifications);
 eventBus.on('USER_LOGGED_OUT', stopRemoteNotifications);
-eventBus.on('USER_WAS_UNAUTHORIZED', stopRemoteNotifications);

@@ -1,7 +1,6 @@
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 import { Result } from '../../../../../context/shared/domain/Result';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 export async function getBackupFolderUuid({
   folderId,
@@ -12,14 +11,7 @@ export async function getBackupFolderUuid({
     path: { id: folderId },
   });
 
-  if (error) {
-    logger.error({
-      msg: 'Failed to fetch backup folder UUID',
-      error,
-      path: `/folders/${folderId}/metadata`,
-    });
-    return { error };
-  }
+  if (error) return { error };
 
   return { data: data.uuid };
 }

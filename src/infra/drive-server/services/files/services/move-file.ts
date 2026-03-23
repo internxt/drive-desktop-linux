@@ -1,4 +1,3 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
@@ -17,13 +16,6 @@ export async function moveFile({
     },
   });
 
-  if (error) {
-    logger.error({
-      msg: 'Error moving file',
-      error,
-      path: `/files/${uuid}`,
-    });
-    return { error };
-  }
+  if (error) return { error };
   return { data: true };
 }

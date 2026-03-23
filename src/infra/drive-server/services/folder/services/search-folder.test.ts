@@ -1,5 +1,4 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
-import { loggerMock } from 'tests/vitest/mocks.helper';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 
@@ -52,10 +51,5 @@ describe('search-folder', () => {
     const result = await searchFolder({ parentId: 123, offset: 0 });
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'Error searching subfolders',
-      path: '/folders/123/folders',
-      error,
-    });
   });
 });

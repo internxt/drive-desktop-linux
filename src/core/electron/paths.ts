@@ -9,6 +9,7 @@ const LOGS = join(HOME_FOLDER_PATH, '.config', 'internxt', 'logs');
 const THUMBNAILS_FOLDER = path.join(os.homedir(), '.cache', 'thumbnails');
 const TEMPORAL_FOLDER = app.getPath('temp');
 const INTERNXT_DRIVE_TMP = path.join(TEMPORAL_FOLDER, 'internxt-drive-tmp');
+const DOWNLOADED = join(INTERNXT, 'downloaded');
 
 export const PATHS = {
   HOME_FOLDER_PATH,
@@ -17,4 +18,5 @@ export const PATHS = {
   THUMBNAILS_FOLDER,
   TEMPORAL_FOLDER,
   INTERNXT_DRIVE_TMP,
+  DOWNLOADED
 };

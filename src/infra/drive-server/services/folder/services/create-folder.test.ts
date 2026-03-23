@@ -1,5 +1,4 @@
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
-import { loggerMock } from 'tests/vitest/mocks.helper';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 
@@ -42,10 +41,5 @@ describe('create-folder', () => {
     const result = await createFolder({ parentFolderUuid: 'parent-uuid', plainName: 'My Folder' });
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'error creating a folder',
-      path: '/folders',
-      error,
-    });
   });
 });

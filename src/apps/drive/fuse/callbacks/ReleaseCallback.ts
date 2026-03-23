@@ -4,7 +4,7 @@ import { TemporalFileUploader } from '../../../../context/storage/TemporalFiles/
 import { NotifyFuseCallback } from './FuseCallback';
 import { FuseError } from './FuseErrors';
 import { TemporalFileDeleter } from '../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
-import { onRelease } from './open-flags-tracker';
+import { onRelease } from '../../../../backend/features/fuse/on-open/open-flags-tracker';
 import { Either } from '../../../../context/shared/domain/Either';
 import { handleReleaseCallback } from '../../../../backend/features/fuse/on-release/handle-release-callback';
 

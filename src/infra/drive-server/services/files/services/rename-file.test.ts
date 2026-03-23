@@ -1,5 +1,4 @@
-import { call, partialSpyOn } from 'tests/vitest/utils.helper';
-import { loggerMock } from 'tests/vitest/mocks.helper';
+import { partialSpyOn } from 'tests/vitest/utils.helper';
 import * as authServiceModule from '../../../../../apps/main/auth/service';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
@@ -31,10 +30,5 @@ describe('renameFile', () => {
     const result = await renameFile({ plainName: 'new-name', type: 'txt', fileUuid: 'file-uuid' });
 
     expect(result.error).toBe(error);
-    call(loggerMock.error).toMatchObject({
-      msg: 'Error renaming file',
-      error,
-      path: '/files/file-uuid/meta',
-    });
   });
 });

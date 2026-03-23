@@ -7,7 +7,6 @@ import { createFolderFromServerFolder } from '../../folders/application/create/F
 import { Folder } from '../../folders/domain/Folder';
 import { FolderStatus, FolderStatuses } from '../../folders/domain/FolderStatus';
 import { EitherTransformer } from '../../shared/application/EitherTransformer';
-import { NameDecrypt } from '../domain/NameDecrypt';
 import { RemoteTree } from '../domain/RemoteTree';
 
 type Items = {
@@ -17,22 +16,17 @@ type Items = {
 @Service()
 export class Traverser {
   constructor(
-    private readonly decrypt: NameDecrypt,
     private readonly fileStatusesToFilter: Array<ServerFileStatus>,
     private readonly folderStatusesToFilter: Array<ServerFolderStatus>,
   ) {}
 
-  static existingItems(decrypt: NameDecrypt): Traverser {
-    return new Traverser(decrypt, [ServerFileStatus.EXISTS], [ServerFolderStatus.EXISTS]);
-  }
-
-  static allItems(decrypt: NameDecrypt): Traverser {
-    return new Traverser(decrypt, [], []);
+  static existingItems(): Traverser {
+    return new Traverser([ServerFileStatus.EXISTS], [ServerFolderStatus.EXISTS]);
   }
 
   private createRootFolder(id: number, rootFolderUuid: string): Folder {
     return Folder.from({
-      id: id,
+      id,
       uuid: rootFolderUuid,
       parentId: null,
       updatedAt: new Date().toISOString(),
@@ -56,12 +50,14 @@ export class Traverser {
         return;
       }
 
-      const decryptedName =
-        serverFile.plainName ??
-        this.decrypt.decryptName(serverFile.name, serverFile.folderId.toString(), serverFile.encrypt_version);
+      if (!serverFile.plainName) {
+        logger.warn({ tag: 'SYNC-ENGINE', msg: `[Traverser] File ${serverFile.fileId} has no plainName, skipping` });
+        return;
+      }
+
       const extensionToAdd = serverFile.type ? `.${serverFile.type}` : '';
 
-      const relativeFilePath = `${currentFolder.path}/${decryptedName}${extensionToAdd}`.replaceAll('//', '/');
+      const relativeFilePath = `${currentFolder.path}/${serverFile.plainName}${extensionToAdd}`.replaceAll('//', '/');
 
       EitherTransformer.handleWithEither(() => {
         const file = createFileFromServerFile(serverFile, relativeFilePath);
@@ -77,10 +73,12 @@ export class Traverser {
     });
 
     foldersInThisFolder.forEach((serverFolder: ServerFolder) => {
-      const plainName =
-        serverFolder.plain_name ||
-        this.decrypt.decryptName(serverFolder.name, (serverFolder.parentId as number).toString(), '03-aes') ||
-        serverFolder.name;
+      if (!serverFolder.plain_name) {
+        logger.warn({ tag: 'SYNC-ENGINE', msg: `[Traverser] Folder ${serverFolder.id} has no plain_name, skipping` });
+        return;
+      }
+
+      const plainName = serverFolder.plain_name;
 
       const name = `${currentFolder.path}/${plainName}`;
 

@@ -20,14 +20,7 @@ export async function fetchFolders(query: FetchFoldersQuery): Promise<Result<Fet
     query,
   });
 
-  if (error) {
-    logger.error({
-      msg: 'Error fetching folders from remote',
-      path: '/folders',
-      error,
-    });
-    return { error };
-  }
+  if (error) return { error };
 
   if (!Array.isArray(data)) {
     logger.error({
