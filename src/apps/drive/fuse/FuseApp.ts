@@ -1,6 +1,7 @@
 import { Container } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { StorageClearer } from '../../../context/storage/StorageFiles/application/delete/StorageClearer';
+import { destroyAllHydrations } from '../../../backend/features/fuse/on-read/hydration-registry';
 import { FileRepositorySynchronizer } from '../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
 import { FolderRepositorySynchronizer } from '../../../context/virtual-drive/folders/application/FolderRepositorySynchronizer/FolderRepositorySynchronizer';
 import { RemoteTreeBuilder } from '../../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
@@ -94,6 +95,7 @@ export class FuseApp extends EventEmitter {
   }
 
   async clearCache(): Promise<void> {
+    await destroyAllHydrations();
     await this.container.get(StorageClearer).run();
   }
 

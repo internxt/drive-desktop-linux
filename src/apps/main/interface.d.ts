@@ -134,6 +134,10 @@ export interface IElectronAPI {
   startRemoteSync(): Promise<void>;
   getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
   onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
+
+  pathChanged(path: string): void;
+  isUserLoggedIn(): Promise<boolean>;
+  onUserLoggedInChanged(func: (value: boolean) => void): void;
 }
 
 declare global {

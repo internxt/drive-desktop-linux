@@ -37,7 +37,7 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   const refreshDevice = () => {
     setDeviceState({ status: 'LOADING' });
     window.electron.getOrCreateDevice().then(({ error, data: device }) => {
-      if (error) {
+      if (error || !device) {
         setDeviceState({ status: 'ERROR' });
         return;
       }

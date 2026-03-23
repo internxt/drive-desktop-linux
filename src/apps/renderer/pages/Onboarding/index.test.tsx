@@ -17,7 +17,8 @@ vi.mock('../../context/LocalContext', () => ({
 
 describe('Onboarding', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    (window.electron.getConfigKey as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    (window.electron.listenToConfigKeyChange as ReturnType<typeof vi.fn>).mockReturnValue(() => {});
   });
 
   it('renders the first slide (Welcome) by default', () => {
@@ -31,8 +32,8 @@ describe('Onboarding', () => {
     // Click the "Take Tour" button on Welcome slide
     fireEvent.click(screen.getByText('onboarding.slides.welcome.take-tour'));
 
-    // Should show the Files Organization slide
-    expect(screen.getByText('onboarding.slides.files-organization.title')).toBeInTheDocument();
+    // Should show the Drive slide
+    expect(screen.getByText('onboarding.slides.drive.title')).toBeInTheDocument();
   });
 
   it('finishes onboarding when clicking skip', () => {

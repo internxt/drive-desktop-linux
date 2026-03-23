@@ -11,7 +11,11 @@ import IssuesPage from './pages/Issues/IssuesPage';
 import Settings from './pages/Settings';
 import Widget from './pages/Widget';
 import { useBackupNotifications } from './hooks/useBackupNotifications';
+import { useTheme } from './hooks/useTheme';
+import i18next from 'i18next';
+import { isLanguage } from '../shared/Locale/Language';
 import { UsageProvider } from './context/UsageContext/usage-provider';
+
 function LocationWrapper({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -48,8 +52,26 @@ function Loader() {
 }
 
 export default function App() {
-  useLanguageChangedListener();
   useBackupNotifications();
+  useTheme();
+
+  // Global IPC → i18next bridge for language changes
+  useEffect(() => {
+    window.electron.getConfigKey('preferedLanguage').then((value) => {
+      const lang = value as string;
+      if (lang && isLanguage(lang) && i18next.language !== lang) {
+        i18next.changeLanguage(lang);
+      }
+    });
+
+    const cleanup = window.electron.listenToConfigKeyChange<string>('preferedLanguage', (lang) => {
+      if (isLanguage(lang)) {
+        i18next.changeLanguage(lang);
+      }
+    });
+
+    return cleanup;
+  }, []);
 
   return (
     <Router>

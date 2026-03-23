@@ -6,7 +6,7 @@ import { electronStore } from '../../apps/main/config';
 import { Theme, ThemeData } from './theme.types';
 
 export function getTheme(): ThemeData {
-  const configTheme = electronStore.get('preferedTheme');
+  const configTheme = electronStore.get('preferedTheme') ?? 'system';
 
   nativeTheme.themeSource = configTheme;
 

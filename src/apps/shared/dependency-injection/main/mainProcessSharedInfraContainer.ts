@@ -10,7 +10,7 @@ import { SQLiteRemoteItemsGenerator } from '../../../../context/virtual-drive/re
 export async function mainProcessSharedInfraBuilder(): Promise<ContainerBuilder> {
   const builder = baseInfra();
 
-  builder.register(DownloadProgressTracker).use(MainProcessDownloadProgressTracker).private().addTag('shared');
+  builder.register(DownloadProgressTracker).use(MainProcessDownloadProgressTracker).addTag('shared');
 
   builder.register(UploadProgressTracker).use(MainProcessUploadProgressTracker).private();
 
