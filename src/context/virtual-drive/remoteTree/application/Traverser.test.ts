@@ -3,28 +3,15 @@ import { ServerFolderStatus, ServerFolder } from '../../../shared/domain/ServerF
 import { Traverser } from './Traverser';
 import { UuidMother } from '../../../shared/domain/__test-helpers__/UuidMother';
 import { BucketEntryIdMother } from '../../shared/domain/__test-helpers__/BucketEntryIdMother';
-import { NameDecrypt } from '../domain/NameDecrypt';
-class FakeNameDecryptMock implements NameDecrypt {
-  decryptName(
-    name: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _folderId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _encryptVersion: string,
-  ): string | null {
-    return name;
-  }
-}
+import { loggerMock } from '../../../../../tests/vitest/mocks.helper';
 
 describe('Traverser', () => {
-  const nameDecrypt = new FakeNameDecryptMock();
-
   it('first level files starts with /', () => {
     const baseFolderId = 6;
     const rawTree = {
       files: [
         {
-          name: 'file A',
+          plainName: 'file A',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
           folderId: baseFolderId,
@@ -34,11 +21,7 @@ describe('Traverser', () => {
       ],
       folders: [],
     };
-    const SUT = new Traverser(
-      nameDecrypt,
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -51,7 +34,7 @@ describe('Traverser', () => {
     const rawTree = {
       files: [
         {
-          name: 'file A',
+          plainName: 'file A',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
           folderId: 22491,
@@ -69,11 +52,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      nameDecrypt,
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -95,11 +74,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      nameDecrypt,
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -127,11 +102,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      nameDecrypt,
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -159,11 +130,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      nameDecrypt,
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -175,7 +142,7 @@ describe('Traverser', () => {
     const rawTree = {
       files: [
         {
-          name: 'invalid file',
+          plainName: 'invalid file',
           fileId: 'Some response',
           uuid: UuidMother.primitive(),
           folderId: baseFolderId,
@@ -183,7 +150,7 @@ describe('Traverser', () => {
           status: 'EXISTS',
         } as ServerFile,
         {
-          name: 'valid_name',
+          plainName: 'valid_name',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
           folderId: baseFolderId,
@@ -191,7 +158,7 @@ describe('Traverser', () => {
           status: 'EXISTS',
         } as ServerFile,
         {
-          name: 'valid_name_2',
+          plainName: 'valid_name_2',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
           folderId: baseFolderId,
@@ -201,11 +168,7 @@ describe('Traverser', () => {
       ],
       folders: [],
     };
-    const SUT = new Traverser(
-      nameDecrypt,
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -227,11 +190,7 @@ describe('Traverser', () => {
         {} as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      nameDecrypt,
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -244,7 +203,7 @@ describe('Traverser', () => {
     const rawTree = {
       files: [
         {
-          name: 'file A',
+          plainName: 'file A',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
           folderId: baseFolderId,
@@ -262,11 +221,7 @@ describe('Traverser', () => {
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      nameDecrypt,
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
@@ -274,38 +229,96 @@ describe('Traverser', () => {
     expect(tree.folderPaths).toEqual(['/']);
   });
 
-  it('filters the files and folders depending on the filters set', () => {
+  it('skips a file without plainName and logs a warning', () => {
     const baseFolderId = 6;
     const rawTree = {
       files: [
         {
-          name: 'file A',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
           folderId: baseFolderId,
           size: 67,
-          status: 'TRASHED',
+          status: 'EXISTS',
+        } as ServerFile,
+        {
+          plainName: 'valid_file',
+          fileId: BucketEntryIdMother.primitive(),
+          uuid: UuidMother.primitive(),
+          folderId: baseFolderId,
+          size: 100,
+          status: 'EXISTS',
+        } as ServerFile,
+      ],
+      folders: [],
+    };
+    const SUT = Traverser.existingItems();
+
+    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+
+    expect(tree.filePaths).toEqual(['/valid_file']);
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ msg: expect.stringContaining('has no plainName') }),
+    );
+  });
+
+  it('skips a folder without plain_name and logs a warning', () => {
+    const baseFolderId = 6;
+    const rawTree = {
+      files: [],
+      folders: [
+        {
+          id: 100,
+          parentId: baseFolderId,
+          status: 'EXISTS',
+          uuid: UuidMother.primitive(),
+        } as ServerFolder,
+        {
+          id: 200,
+          parentId: baseFolderId,
+          plain_name: 'valid_folder',
+          status: 'EXISTS',
+          uuid: UuidMother.primitive(),
+        } as ServerFolder,
+      ],
+    };
+    const SUT = Traverser.existingItems();
+
+    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+
+    expect(tree.folderPaths).toEqual(['/', '/valid_folder']);
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ msg: expect.stringContaining('has no plain_name') }),
+    );
+  });
+
+  it('does not traverse children of a folder without plain_name', () => {
+    const baseFolderId = 6;
+    const missingNameFolderId = 100;
+    const rawTree = {
+      files: [
+        {
+          plainName: 'orphaned_file',
+          fileId: BucketEntryIdMother.primitive(),
+          uuid: UuidMother.primitive(),
+          folderId: missingNameFolderId,
+          size: 50,
+          status: 'EXISTS',
         } as ServerFile,
       ],
       folders: [
         {
-          id: 22491,
+          id: missingNameFolderId,
           parentId: baseFolderId,
-          plain_name: 'folder A',
-          status: 'TRASHED',
-          uuid: 'fc790269-92ac-5990-b9e0-a08d6552bf0b',
+          status: 'EXISTS',
+          uuid: UuidMother.primitive(),
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser(
-      nameDecrypt,
-      [ServerFileStatus.EXISTS, ServerFileStatus.TRASHED],
-      [ServerFolderStatus.EXISTS],
-    );
+    const SUT = Traverser.existingItems();
 
     const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
 
-    expect(tree.filePaths).toEqual(['/file A']);
+    expect(tree.filePaths).toEqual([]);
     expect(tree.folderPaths).toEqual(['/']);
   });
 });
