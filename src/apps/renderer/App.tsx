@@ -4,7 +4,6 @@ import { Suspense, useEffect, useRef } from 'react';
 import { HashRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { TranslationProvider } from './context/LocalContext';
 import { SyncProvider } from './context/SyncContext';
-import useLanguageChangedListener from './hooks/useLanguage';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
 import IssuesPage from './pages/Issues/IssuesPage';

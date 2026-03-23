@@ -7,8 +7,8 @@ import { DropdownItem } from './DropdownItem';
 import { HeaderItemWrapper } from './HeaderItemWrapper';
 
 type Props = {
-  numberOfIssues: number;
-  numberOfIssuesDisplay: number | string;
+  readonly numberOfIssues: number;
+  readonly numberOfIssuesDisplay: number | string;
   onQuitClick: () => void;
   onOpenURL: (url: string) => void;
 };
@@ -99,25 +99,23 @@ export function ItemsSection({ numberOfIssues, numberOfIssuesDisplay, onQuitClic
                     </div>
                   )}
                 </Menu.Item>
-                {true && (
-                  <Menu.Item>
-                    {({ active }) => (
-                      <div>
-                        <DropdownItem
-                          active={active}
-                          onClick={() => window.electron.openSettingsWindow('CLEANER')}
-                          data-automation-id="menuItemCleaner">
-                          <div className="flex flex-row items-center justify-end gap-4">
-                            <span>{translate('widget.header.dropdown.cleaner')}</span>
-                            <div className="flex rounded-full border border-primary bg-primary/5 px-2 py-1 text-primary">
-                              {translate('widget.header.dropdown.new')}
-                            </div>
+                <Menu.Item>
+                  {({ active }) => (
+                    <div>
+                      <DropdownItem
+                        active={active}
+                        onClick={() => window.electron.openSettingsWindow('CLEANER')}
+                        data-automation-id="menuItemCleaner">
+                        <div className="flex flex-row items-center justify-end gap-4">
+                          <span>{translate('widget.header.dropdown.cleaner')}</span>
+                          <div className="flex rounded-full border border-primary bg-primary/5 px-2 py-1 text-primary">
+                            {translate('widget.header.dropdown.new')}
                           </div>
-                        </DropdownItem>
-                      </div>
-                    )}
-                  </Menu.Item>
-                )}
+                        </div>
+                      </DropdownItem>
+                    </div>
+                  )}
+                </Menu.Item>
                 <Menu.Item>
                   {({ active }) => (
                     <div>

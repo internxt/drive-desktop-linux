@@ -1,14 +1,11 @@
-export function DropdownItem({
-  children,
-  active,
-  onClick,
-  disabled,
-}: {
-  children: JSX.Element;
-  active?: boolean;
+type Props = {
+  readonly children: React.ReactNode;
+  readonly active?: boolean;
   onClick?: () => void;
-  disabled?: boolean;
-}) {
+  readonly disabled?: boolean;
+};
+
+export function DropdownItem({ children, active, onClick, disabled }: Props) {
   return (
     <button
       className={`w-full cursor-pointer px-4 py-1.5 text-left text-sm text-gray-80 active:bg-gray-10 ${

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
+import { ElementType, ReactNode } from 'react';
 import { type Mock } from 'vitest';
 import { useTranslationContext } from '../../context/LocalContext';
 import { useSyncContext } from '../../context/SyncContext';
@@ -10,30 +10,42 @@ vi.mock('../../context/SyncContext');
 
 vi.mock('@headlessui/react', () => ({
   Menu: Object.assign(
-    ({ children, as: Tag = 'div', className }: any) => {
+    ({
+      children,
+      as: Tag = 'div',
+      className,
+    }: {
+      children: ReactNode | ((bag: { open: boolean }) => ReactNode);
+      as?: ElementType;
+      className?: string;
+    }) => {
       const content = typeof children === 'function' ? children({ open: false }) : children;
       return <Tag className={className}>{content}</Tag>;
     },
     {
-      Button: ({ children, className }: any) => <button className={className}>{children}</button>,
-      Items: ({ children, className }: any) => <div className={className}>{children}</div>,
-      Item: ({ children }: any) => <div>{typeof children === 'function' ? children({ active: false }) : children}</div>,
+      Button: ({ children, className }: { children: ReactNode; className?: string }) => (
+        <button className={className}>{children}</button>
+      ),
+      Items: ({ children, className }: { children: ReactNode; className?: string }) => (
+        <div className={className}>{children}</div>
+      ),
+      Item: ({ children }: { children: ReactNode | ((bag: { active: boolean }) => ReactNode) }) => (
+        <div>{typeof children === 'function' ? children({ active: false }) : children}</div>
+      ),
     },
   ),
-  Transition: ({ children }: any) => <>{children}</>,
+  Transition: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 const defaultProps = {
   numberOfIssues: 0,
   numberOfIssuesDisplay: 0,
-  dummyRef: { current: null } as React.RefObject<HTMLDivElement>,
   onQuitClick: vi.fn(),
   onOpenURL: vi.fn(),
 };
 
 describe('ItemsSection', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     (useTranslationContext as Mock).mockReturnValue({ translate: (key: string) => key });
     (useSyncContext as Mock).mockReturnValue({ syncStatus: 'STANDBY' });
   });
