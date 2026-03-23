@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { SyncStatus } from '../../../context/desktop/sync/domain/SyncStatus';
 import { RemoteSyncStatus } from '../../main/remote-sync/helpers';
 
@@ -15,7 +15,7 @@ interface SyncContextValue {
 
 const SyncContext = createContext<SyncContextValue>({ syncStatus: 'STANDBY' });
 
-export function SyncProvider({ children }: { children: ReactNode }) {
+export function SyncProvider({ children }: { readonly children: ReactNode }) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('STANDBY');
 
   const setSyncStatusFromRemote = useCallback((remote: RemoteSyncStatus): void => {
@@ -28,7 +28,9 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     return removeListener;
   }, [setSyncStatusFromRemote]);
 
-  return <SyncContext.Provider value={{ syncStatus }}>{children}</SyncContext.Provider>;
+  const value = useMemo(() => ({ syncStatus }), [syncStatus]);
+
+  return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
 }
 
 export function useSyncContext(): SyncContextValue {

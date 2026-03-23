@@ -1,9 +1,8 @@
-import { useEffect } from 'react';
 import { FatalError } from '../../../../shared/issues/FatalError';
 import Error from '../../assets/error.svg';
 import Warn from '../../assets/warn.svg';
 import { useTranslationContext } from '../../context/LocalContext';
-import { useSyncContext } from '../../context/SyncContext';
+import { useOnSyncRunning } from '../../hooks/useOnSyncRunning';
 import useSyncStopped from '../../hooks/useSyncStopped';
 import SyncFatalErrorMessages from '../../messages/fatal-error';
 
@@ -39,13 +38,8 @@ const fatalErrorActionMap: Record<FatalError, { name: string; func: () => void }
 export default function SyncErrorBanner() {
   const [stopReason, setStopReason] = useSyncStopped();
   const { translate } = useTranslationContext();
-  const { syncStatus } = useSyncContext();
 
-  useEffect(() => {
-    if (syncStatus === 'RUNNING') {
-      setStopReason(null);
-    }
-  }, [syncStatus]);
+  useOnSyncRunning(() => setStopReason(null));
 
   const severity = 'FATAL' as ErrorSeverity;
   const show = stopReason !== null && stopReason?.reason !== 'STOPPED_BY_USER';
