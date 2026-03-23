@@ -1,4 +1,4 @@
-import { describe, it, vi, beforeEach } from 'vitest';
+import { describe, it, vi } from 'vitest';
 import { call, calls } from '../../../../../tests/vitest/utils.helper';
 import { handleReleaseCallback } from './handle-release-callback';
 import { TemporalFile } from '../../../../context/storage/TemporalFiles/domain/TemporalFile';
@@ -27,10 +27,6 @@ describe('handle-release-callback', () => {
   const findTemporalFile = vi.fn<(path: string) => Promise<TemporalFile | undefined>>();
   const uploadTemporalFile = vi.fn<(path: string) => Promise<string>>();
   const deleteTemporalFile = vi.fn<(path: string) => Promise<void>>();
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
 
   it('should return right when no temporal file is found', async () => {
     findTemporalFile.mockResolvedValue(undefined);

@@ -1,4 +1,4 @@
-import { describe, it, vi, beforeEach } from 'vitest';
+import { describe, it, vi } from 'vitest';
 import { call } from '../../../../../tests/vitest/utils.helper';
 import { ReleaseCallback } from './ReleaseCallback';
 import { right } from '../../../../context/shared/domain/Either';
@@ -14,11 +14,6 @@ describe('ReleaseCallback', () => {
 
   const container = { get: vi.fn() } as any;
   const releaseCallback = new ReleaseCallback(container);
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should call onRelease to clean up open flags tracker', async () => {
     handleReleaseSpy.mockResolvedValue(right(undefined));
 
