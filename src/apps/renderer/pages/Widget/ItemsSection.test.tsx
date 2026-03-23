@@ -17,9 +17,7 @@ vi.mock('@headlessui/react', () => ({
     {
       Button: ({ children, className }: any) => <button className={className}>{children}</button>,
       Items: ({ children, className }: any) => <div className={className}>{children}</div>,
-      Item: ({ children }: any) => (
-        <div>{typeof children === 'function' ? children({ active: false }) : children}</div>
-      ),
+      Item: ({ children }: any) => <div>{typeof children === 'function' ? children({ active: false }) : children}</div>,
     },
   ),
   Transition: ({ children }: any) => <>{children}</>,
@@ -136,4 +134,3 @@ describe('ItemsSection', () => {
     expect(window.electron.logout).toHaveBeenCalledOnce();
   });
 });
-

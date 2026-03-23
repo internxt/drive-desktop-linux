@@ -55,7 +55,9 @@ describe('AccountSection', () => {
 
     render(<AccountSection />);
 
-    const usageParagraph = document.querySelector('[data-automation-id="headerAccountSection"]')?.querySelector('p:last-child');
+    const usageParagraph = document
+      .querySelector('[data-automation-id="headerAccountSection"]')
+      ?.querySelector('p:last-child');
     expect(usageParagraph?.textContent).toBe('');
   });
 
