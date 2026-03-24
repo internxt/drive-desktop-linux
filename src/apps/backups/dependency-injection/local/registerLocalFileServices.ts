@@ -1,6 +1,5 @@
 import { INTERNXT_CLIENT, INTERNXT_VERSION } from './../../../../core/utils/utils';
 import { ContainerBuilder } from 'diod';
-import { FileBatchUpdater } from '../../../../context/local/localFile/application/update/FileBatchUpdater';
 import { LocalFileHandler } from '../../../../context/local/localFile/domain/LocalFileUploader';
 import { EnvironmentLocalFileUploader } from '../../../../context/local/localFile/infrastructure/EnvironmentLocalFileUploader';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
@@ -33,7 +32,4 @@ export function registerLocalFileServices(builder: ContainerBuilder) {
       return new EnvironmentLocalFileUploader(env, user.backupsBucket);
     })
     .private();
-
-  // Services
-  builder.registerAndUse(FileBatchUpdater);
 }
