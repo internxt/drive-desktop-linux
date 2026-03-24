@@ -8,9 +8,8 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { sleep } from './utils/sleep';
 import { uploadContentToEnvironment } from './upload-content-to-environment';
 import { Result } from '../../../../context/shared/domain/Result';
+import { MAX_RETRIES, RETRY_DELAYS_MS } from './constants';
 
-const MAX_RETRIES = 3;
-const RETRY_DELAYS_MS = [1000, 2000, 4000];
 
 export type UploadFileParams = {
   path: string;
@@ -29,21 +28,6 @@ export type UploadFileParams = {
 function isAlreadyExistsError(error: DriveDesktopError): boolean {
   return error.cause === 'FILE_ALREADY_EXISTS';
 }
-
-/**
- * Upload a file with retry logic
- *
- * Handles the full upload flow (replicates FileBatchUploader behavior):
- * 1. Content upload (to Environment/storage) → contentsId
- * 2. Metadata creation (to backend API) → File domain object
- *
- * Retries on failure with exponential backoff.
- * Cleans up uploaded content if metadata creation fails.
- *
- * Special cases (matching FileBatchUploader):
- * - FILE_ALREADY_EXISTS: Returns data as null (not an error)
- * - BAD_RESPONSE: Treated as non-fatal, will be retried then fail
- */
 export async function uploadFileWithRetry(file: UploadFileParams): Promise<Result<File | null, DriveDesktopError>> {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (file.signal.aborted) {
@@ -51,8 +35,7 @@ export async function uploadFileWithRetry(file: UploadFileParams): Promise<Resul
     }
 
     try {
-      // Step 1: Upload content to storage bucket
-      const contentResult = await uploadContentToEnvironment({
+      const { data: contentsId, error } = await uploadContentToEnvironment({
         path: file.path,
         size: file.size,
         bucket: file.bucket,
@@ -60,13 +43,10 @@ export async function uploadFileWithRetry(file: UploadFileParams): Promise<Resul
         signal: file.signal,
       });
 
-      if (contentResult.error) {
-        throw contentResult.error;
+      if (error) {
+        throw error;
       }
 
-      const contentsId = contentResult.data;
-
-      // Step 2: Create file metadata in backend
       const metadataResult = await createFileToBackend({
         contentsId,
         filePath: file.path,
@@ -77,7 +57,6 @@ export async function uploadFileWithRetry(file: UploadFileParams): Promise<Resul
       });
 
       if (metadataResult.error) {
-        // Clean up uploaded content on metadata failure (same as FileBatchUploader)
         await deleteContentFromEnvironment(file.bucket, contentsId);
         throw metadataResult.error;
       }
@@ -86,16 +65,14 @@ export async function uploadFileWithRetry(file: UploadFileParams): Promise<Resul
     } catch (error) {
       const driveError = error instanceof DriveDesktopError ? error : new DriveDesktopError('UNKNOWN');
 
-      // FILE_ALREADY_EXISTS is not an error - file is already backed up (same as FileBatchUploader)
       if (isAlreadyExistsError(driveError)) {
         logger.debug({
           tag: 'BACKUPS',
           msg: `[FILE ALREADY EXISTS] Skipping file ${file.path} - already exists remotely`,
         });
-        return { data: null};
+        return { data: null };
       }
 
-      // Retry on failure
       if (attempt < MAX_RETRIES) {
         const delay = RETRY_DELAYS_MS[attempt];
         logger.debug({

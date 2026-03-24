@@ -2,8 +2,6 @@ import { INTERNXT_CLIENT, INTERNXT_VERSION } from './../../../../core/utils/util
 import { ContainerBuilder } from 'diod';
 import { FileBatchUpdater } from '../../../../context/local/localFile/application/update/FileBatchUpdater';
 import { LocalFileHandler } from '../../../../context/local/localFile/domain/LocalFileUploader';
-import { FileBatchUploader } from '../../../../context/local/localFile/application/upload/FileBatchUploader';
-import { SimpleFileCreator } from '../../../../context/virtual-drive/files/application/create/SimpleFileCreator';
 import { EnvironmentLocalFileUploader } from '../../../../context/local/localFile/infrastructure/EnvironmentLocalFileUploader';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { Environment } from '@internxt/inxt-js';
@@ -26,7 +24,7 @@ export function registerLocalFileServices(builder: ContainerBuilder) {
     },
   });
 
-  builder.register(Environment).useInstance(environment).private();
+  builder.register(Environment).useInstance(environment);
 
   builder
     .register(LocalFileHandler)
@@ -38,7 +36,4 @@ export function registerLocalFileServices(builder: ContainerBuilder) {
 
   // Services
   builder.registerAndUse(FileBatchUpdater);
-  builder.register(FileBatchUploader).useFactory((c) => {
-    return new FileBatchUploader(c.get(LocalFileHandler), c.get(SimpleFileCreator), user.backupsBucket);
-  });
 }

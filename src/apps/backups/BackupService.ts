@@ -1,6 +1,8 @@
+import { Environment } from '@internxt/inxt-js';
 import { Service } from 'diod';
-import { FileBatchUpdater } from '../../context/local/localFile/application/update/FileBatchUpdater';
-import { FileBatchUploader } from '../../context/local/localFile/application/upload/FileBatchUploader';
+import { executeAsyncQueue } from '../../backend/common/async-queue/execute-async-queue';
+import { createBackupUpdateExecutor, ModifiedFilePair } from '../../backend/features/backup/upload/create-backup-update-executor';
+import { DEFAULT_CONCURRENCY } from '../../backend/features/backup/upload/constants';
 import { LocalFile } from '../../context/local/localFile/domain/LocalFile';
 import { AbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
 import LocalTreeBuilder from '../../context/local/localTree/application/LocalTreeBuilder';
@@ -10,8 +12,6 @@ import { SimpleFolderCreator } from '../../context/virtual-drive/folders/applica
 import { RemoteTreeBuilder } from '../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
 import { RemoteTree } from '../../context/virtual-drive/remoteTree/domain/RemoteTree';
 import { BackupInfo } from './BackupInfo';
-import { AddedFilesBatchCreator } from './batches/AddedFilesBatchCreator';
-import { ModifiedFilesBatchCreator } from './batches/ModifiedFilesBatchCreator';
 import { DiffFilesCalculatorService, FilesDiff } from './diff/DiffFilesCalculatorService';
 import { FoldersDiff, FoldersDiffCalculator } from './diff/FoldersDiffCalculator';
 import { relative } from './utils/relative';
@@ -24,15 +24,16 @@ import { BackupProgressTracker } from '../../backend/features/backup/backup-prog
 import { RetryError } from '../shared/retry/RetryError';
 import { Either, left, right } from '../../context/shared/domain/Either';
 import { addFileToTrash } from '../../infra/drive-server/services/files/services/add-file-to-trash';
+import { createBackupUploadExecutor } from '../../backend/features/backup/upload/create-backup-upload-executor';
 
 @Service()
 export class BackupService {
   constructor(
     private readonly localTreeBuilder: LocalTreeBuilder,
     private readonly remoteTreeBuilder: RemoteTreeBuilder,
-    private readonly fileBatchUploader: FileBatchUploader,
-    private readonly fileBatchUpdater: FileBatchUpdater,
     private readonly simpleFolderCreator: SimpleFolderCreator,
+    private readonly environment: Environment,
+    private readonly bucket: string,
   ) {}
 
   // TODO: PB-3897 - Change Signature of this method for a better error handling
@@ -188,52 +189,51 @@ export class BackupService {
 
     const { added, modified, deleted } = filesDiff;
 
-    logger.debug({ tag: 'BACKUPS', msg: 'Files added', count: added.length });
-    await this.uploadAndCreate(local.root.path, added, remote, signal, tracker);
+    if (added.length > 0) {
+      logger.debug({ tag: 'BACKUPS', msg: 'Files added', count: added.length });
+      await this.uploadAndCreate(local.root.path, added, remote, signal, tracker);
+    }
 
-    logger.debug({ tag: 'BACKUPS', msg: 'Files modified', count: modified.size });
-    await this.uploadAndUpdate(modified, local, remote, signal, tracker);
+    if (modified.size > 0) {
+      logger.debug({ tag: 'BACKUPS', msg: 'Files modified', count: modified.size });
+      await this.uploadAndUpdate(modified, signal, tracker);
+    }
 
-    logger.debug({ tag: 'BACKUPS', msg: 'Files deleted', count: deleted.length });
-    await this.deleteRemoteFiles(deleted, signal, tracker);
+    if (deleted.length > 0) {
+      logger.debug({ tag: 'BACKUPS', msg: 'Files deleted', count: deleted.length });
+      await this.deleteRemoteFiles(deleted, signal, tracker);
+    }
   }
 
   private async uploadAndCreate(
     localRootPath: string,
     added: Array<LocalFile>,
-    tree: RemoteTree,
+    remoteTree: RemoteTree,
     signal: AbortSignal,
     tracker: BackupProgressTracker,
   ): Promise<void> {
-    const batches = AddedFilesBatchCreator.run(added);
+    const executor = createBackupUploadExecutor(localRootPath, remoteTree, this.bucket, this.environment, tracker);
 
-    for (const batch of batches) {
-      if (signal.aborted) {
-        return;
-      }
-      // eslint-disable-next-line no-await-in-loop
-      await this.fileBatchUploader.run(localRootPath, tree, batch, signal);
-      tracker.incrementProcessed(batch.length);
+    const result = await executeAsyncQueue(added, executor, { concurrency: DEFAULT_CONCURRENCY, signal });
+
+    if (result.error) {
+      throw result.error;
     }
   }
 
   private async uploadAndUpdate(
     modified: Map<LocalFile, File>,
-    localTree: LocalTree,
-    remoteTree: RemoteTree,
     signal: AbortSignal,
     tracker: BackupProgressTracker,
   ): Promise<void> {
-    const batches = ModifiedFilesBatchCreator.run(modified);
+    const items: ModifiedFilePair[] = Array.from(modified.entries());
 
-    for (const batch of batches) {
-      logger.debug({ tag: 'BACKUPS', msg: 'Signal aborted', aborted: signal.aborted });
-      if (signal.aborted) {
-        return;
-      }
-      // eslint-disable-next-line no-await-in-loop
-      await this.fileBatchUpdater.run(localTree.root, remoteTree, Array.from(batch.keys()), signal);
-      tracker.incrementProcessed(batch.size);
+    const executor = createBackupUpdateExecutor(this.bucket, this.environment, tracker);
+
+    const result = await executeAsyncQueue(items, executor, { concurrency: DEFAULT_CONCURRENCY, signal });
+
+    if (result.error) {
+      throw result.error;
     }
   }
 
