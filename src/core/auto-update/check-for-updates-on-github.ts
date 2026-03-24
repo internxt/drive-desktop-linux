@@ -1,4 +1,4 @@
-import https from 'https';
+import https from 'node:https';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 const GITHUB_API_OPTIONS = {
@@ -11,7 +11,7 @@ type Props = {
   currentVersion: string;
 };
 
-export async function checkForUpdatesOnDeb({ currentVersion }: Props) {
+export async function checkForUpdatesOnGithub({ currentVersion }: Props) {
   return new Promise<{ version: string } | null>((resolve) => {
     https
       .get(GITHUB_API_OPTIONS, (res) => {
@@ -22,28 +22,28 @@ export async function checkForUpdatesOnDeb({ currentVersion }: Props) {
         res.on('end', () => {
           try {
             if (res.statusCode !== 200) {
-              logger.warn({ msg: `AutoUpdater (deb): GitHub API responded with ${res.statusCode}` });
+              logger.warn({ msg: `AutoUpdater (github): GitHub API responded with ${res.statusCode}` });
               return resolve(null);
             }
             const release = JSON.parse(data) as { tag_name: string };
             const latestVersion = release.tag_name.replace(/^v/, '');
 
-            logger.debug({ msg: 'AutoUpdater (deb): version check', latestVersion, currentVersion });
+            logger.debug({ msg: 'AutoUpdater (github): version check', latestVersion, currentVersion });
 
             if (latestVersion !== currentVersion) {
-              logger.debug({ msg: 'AutoUpdater (deb): update available', version: latestVersion });
+              logger.debug({ msg: 'AutoUpdater (github): update available', version: latestVersion });
               return resolve({ version: latestVersion });
             }
 
             resolve(null);
           } catch (err) {
-            logger.error({ msg: 'AutoUpdater (deb): error parsing response', err });
+            logger.error({ msg: 'AutoUpdater (github): error parsing response', err });
             resolve(null);
           }
         });
       })
       .on('error', (err) => {
-        logger.error({ msg: 'AutoUpdater (deb): error checking for updates', err });
+        logger.error({ msg: 'AutoUpdater (github): error checking for updates', err });
         resolve(null);
       });
   });

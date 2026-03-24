@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { checkForUpdatesOnDeb } from './check-for-updates-on-deb';
+import { checkForUpdatesOnGithub } from './check-for-updates-on-github';
 
 const mockGet = vi.fn();
 
@@ -30,12 +30,12 @@ function mockHttpsError(error: Error) {
   });
 }
 
-describe('checkForUpdatesOnDeb', () => {
+describe('checkForUpdatesOnGithub', () => {
   describe('when a newer version is available', () => {
     it('returns the latest version', async () => {
       mockHttpsResponse(200, JSON.stringify({ tag_name: 'v3.0.0' }));
 
-      const result = await checkForUpdatesOnDeb({ currentVersion: '2.5.3' });
+      const result = await checkForUpdatesOnGithub({ currentVersion: '2.5.3' });
 
       expect(result).toEqual({ version: '3.0.0' });
     });
@@ -43,7 +43,7 @@ describe('checkForUpdatesOnDeb', () => {
     it('strips the leading v from the tag name', async () => {
       mockHttpsResponse(200, JSON.stringify({ tag_name: 'v2.6.0' }));
 
-      const result = await checkForUpdatesOnDeb({ currentVersion: '2.5.3' });
+      const result = await checkForUpdatesOnGithub({ currentVersion: '2.5.3' });
 
       expect(result).toEqual({ version: '2.6.0' });
     });
@@ -53,7 +53,7 @@ describe('checkForUpdatesOnDeb', () => {
     it('returns null', async () => {
       mockHttpsResponse(200, JSON.stringify({ tag_name: 'v2.5.3' }));
 
-      const result = await checkForUpdatesOnDeb({ currentVersion: '2.5.3' });
+      const result = await checkForUpdatesOnGithub({ currentVersion: '2.5.3' });
 
       expect(result).toBeNull();
     });
@@ -63,7 +63,7 @@ describe('checkForUpdatesOnDeb', () => {
     it('returns null', async () => {
       mockHttpsResponse(403, '');
 
-      const result = await checkForUpdatesOnDeb({ currentVersion: '2.5.3' });
+      const result = await checkForUpdatesOnGithub({ currentVersion: '2.5.3' });
 
       expect(result).toBeNull();
     });
@@ -73,7 +73,7 @@ describe('checkForUpdatesOnDeb', () => {
     it('returns null', async () => {
       mockHttpsResponse(200, 'not-valid-json');
 
-      const result = await checkForUpdatesOnDeb({ currentVersion: '2.5.3' });
+      const result = await checkForUpdatesOnGithub({ currentVersion: '2.5.3' });
 
       expect(result).toBeNull();
     });
@@ -83,7 +83,7 @@ describe('checkForUpdatesOnDeb', () => {
     it('returns null', async () => {
       mockHttpsError(new Error('ECONNREFUSED'));
 
-      const result = await checkForUpdatesOnDeb({ currentVersion: '2.5.3' });
+      const result = await checkForUpdatesOnGithub({ currentVersion: '2.5.3' });
 
       expect(result).toBeNull();
     });

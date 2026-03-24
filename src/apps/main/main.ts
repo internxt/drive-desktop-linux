@@ -20,7 +20,6 @@ import './auto-launch/handlers';
 import './auth/handlers';
 import './windows/settings';
 import './windows/process-issues';
-import './windows';
 import './issues/virtual-drive';
 import './device/handlers';
 import './../../backend/features/usage/handlers/handlers';
@@ -37,7 +36,6 @@ import './../../backend/features/cleaner/ipc/handlers';
 import './virtual-drive';
 
 import { app, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
 import eventBus from './event-bus';
 import { AppDataSource } from './database/data-source';
 import { getIsLoggedIn } from './auth/handlers';
@@ -64,7 +62,7 @@ import { version, release } from 'node:os';
 import { INTERNXT_VERSION } from '../../core/utils/utils';
 import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
 import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
-import { checkForUpdatesOnDeb } from '../../core/auto-update/check-for-updates-on-deb';
+import { checkForUpdates } from './auto-update/check-for-updates';
 
 const gotTheLock = app.requestSingleInstanceLock();
 app.setAsDefaultProtocolClient('internxt');
@@ -85,29 +83,6 @@ logger.debug({
 });
 
 let pendingUpdateInfo: { version: string } | null = null;
-
-async function checkForUpdates() {
-  if (!process.env.APPIMAGE) {
-    const updateInfo = await checkForUpdatesOnDeb({ currentVersion: INTERNXT_VERSION });
-    if (updateInfo) {
-      pendingUpdateInfo = updateInfo;
-      broadcastToWindows('update-available', updateInfo);
-    }
-    return;
-  }
-
-  try {
-    autoUpdater.logger = {
-      debug: (msg) => logger.debug({ msg: `AutoUpdater: ${msg}` }),
-      info: (msg) => logger.debug({ msg: `AutoUpdater: ${msg}` }),
-      error: (msg) => logger.error({ msg: `AutoUpdater: ${msg}` }),
-      warn: (msg) => logger.warn({ msg: `AutoUpdater: ${msg}` }),
-    };
-    autoUpdater.checkForUpdatesAndNotify();
-  } catch (err: unknown) {
-    logger.error({ msg: 'AutoUpdater Error:', err });
-  }
-}
 
 ipcMain.handle('get-update-status', () => pendingUpdateInfo);
 
@@ -144,7 +119,13 @@ app
       setTrayStatus('IDLE');
     }
 
-    await checkForUpdates();
+    await checkForUpdates({
+      currentVersion: INTERNXT_VERSION,
+      onUpdateAvailable: (updateInfo) => {
+        pendingUpdateInfo = updateInfo;
+        broadcastToWindows('update-available', updateInfo);
+      },
+    });
     registerAvailableUserProductsHandlers();
   })
   .catch((exc) => logger.error({ msg: 'Error starting app', exc }));
