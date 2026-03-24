@@ -1,6 +1,6 @@
 {
   "name": "internxt",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "author": "Internxt <hello@internxt.com>",
   "description": "Internxt Drive client UI",
   "main": "./dist/main/main.js",
@@ -194,7 +194,7 @@
   "dependencies": {
     "@gcas/fuse": "^2.4.2",
     "@internxt/drive-desktop-core": "0.1.7",
-    "@internxt/inxt-js": "^2.2.3",
+    "@internxt/inxt-js": "^2.2.10",
     "@internxt/scan": "^1.0.7",
     "@internxt/sdk": "1.11.17",
     "async": "^3.2.4",
