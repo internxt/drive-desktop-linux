@@ -19,11 +19,6 @@ jobs:
           node-version: 18
           cache: 'npm'
 
-      - name: Create .npmrc file
-        run: |
-          echo "@internxt:registry=https://npm.pkg.github.com/" > .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" >> .npmrc
-
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
@@ -44,11 +39,6 @@ jobs:
           node-version: 18
           cache: 'npm'
 
-      - name: Create .npmrc file
-        run: |
-          echo "@internxt:registry=https://npm.pkg.github.com/" > .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" >> .npmrc
-
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
@@ -68,11 +58,6 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-
-      - name: Create .npmrc file
-        run: |
-          echo "@internxt:registry=https://npm.pkg.github.com/" > .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" >> .npmrc
 
       - name: Install dependencies
         run: npm ci --ignore-scripts
