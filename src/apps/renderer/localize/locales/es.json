@@ -125,6 +125,7 @@
         "support": "Ayuda",
         "logout": "Cerrar sesión",
         "quit": "Salir",
+        "antivirus": "Antivirus",
         "cleaner": "Cleaner",
         "new": "Nuevo"
       }
@@ -268,6 +269,7 @@
         "subtitle": "Por favor, actualiza tu plan para usar esta función.",
         "action": "Actualizar"
       },
+      "title": "Carpetas de copia de seguridad",
       "add-folders": "Haz clic en + para hacer una copia de seguridad de tus carpetas",
       "selected-folder_one": "{{count}} carpeta",
       "selected-folder_other": "{{count}} carpetas",
@@ -332,6 +334,18 @@
         "description": "Por favor, desactiva Windows Defender para poder usar Internxt Antivirus. Para hacerlo, abre Seguridad de Windows > Protección contra virus y amenazas > Administrar configuración > desactiva la Protección en tiempo real.",
         "retry": "Reintentar",
         "cancel": "Cancelar"
+      },
+      "realtimeProtection": {
+        "title": "Protección en tiempo real",
+        "infoAriaLabel": "Acerca de la protección en tiempo real",
+        "tooltip": "Se ejecuta en segundo plano para detectar amenazas automáticamente.",
+        "disableDialog": {
+          "title": "¿Desactivar la protección en tiempo real?",
+          "description": "Tu dispositivo dejará de analizarse automáticamente en busca de amenazas.",
+          "secondary": "Podrás seguir ejecutando análisis manuales en cualquier momento.",
+          "cancel": "Cancelar",
+          "confirm": "Desactivar"
+        }
       },
       "scanOptions": {
         "stopScan": "Detener escaneo",
@@ -419,6 +433,12 @@
         "cancelButton": "Cancelar",
         "confirmButton": "Eliminar archivos"
       },
+      "cleanupConfirmDialogView": {
+        "title": "Confirmar limpieza",
+        "description": "Esta acción eliminará de forma permanente los archivos seleccionados de tu dispositivo. Esta acción no se puede deshacer. Confirma para continuar.",
+        "cancelButton": "Cancelar",
+        "confirmButton": "Eliminar archivos"
+      },
       "cleaningView": {
         "cleaningProcess": {
           "title": "Limpiando...",
@@ -452,7 +472,7 @@
     },
     "short-error-messages": {
       "unknown": "Error desconocido",
-      "emtpy-file": "Archivos vacios no son soportados",
+      "empty-file": "No se admiten archivos vacíos.",
       "bad-response": "Error de los servidores de Internxt",
       "no-remote-connection": "No pudimos conectar con los servidores de Internxt",
       "no-internet-connection": "No hay conexión a Internet",

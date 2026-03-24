@@ -15,6 +15,7 @@ const schema: Schema<AppStore> = {
   userData: { type: 'object' },
 
   backupsEnabled: { type: 'boolean' },
+  backgroundScanEnabled: { type: 'boolean' },
   backupInterval: { type: 'number' },
   lastBackup: { type: 'number' },
   syncRoot: { type: 'string' },

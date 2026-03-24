@@ -121,9 +121,11 @@
       "dropdown": {
         "preferences": "Préférences",
         "issues": "Liste d'erreurs",
+        "send-feedback": "Envoyer des commentaires",
         "support": "Aide",
         "logout": "Déconnecter",
         "quit": "Fermer",
+        "antivirus": "Antivirus",
         "cleaner": "Cleaner",
         "new": "Nouveau"
       }
@@ -164,10 +166,12 @@
     "footer": {
       "action-description": {
         "syncing": "Synchronisation de vos fichiers",
-        "updated": "Mis à jour il y a quelques instants"
+        "updated": "Mis à jour il y a quelques instants",
+        "failed": "Échec de la synchronisation"
       },
       "errors": {
-        "lock": "Synchronisation bloquée par un autre dispositif"
+        "lock": "Synchronisation bloquée par un autre dispositif",
+        "offline": "Pas de connexion à internet"
       }
     },
     "sync-error": {
@@ -178,6 +182,7 @@
     "virtual-drive-error": {
       "title": "Impossible de créer le lecteur",
       "message": "Nous rencontrons des problèmes pour monter votre disque Internxt. Essayez de le démonter manuellement et de relancer l'application. ",
+      "mounting": "Montage...",
       "button": "Monter"
     },
     "banners": {
@@ -230,6 +235,7 @@
       },
       "app-info": {
         "open-logs": "Ouvrir les registres",
+        "open-migration": "Démarrer la migration",
         "more": "Plus d'informations sur Internxt"
       }
     },
@@ -263,6 +269,7 @@
         "subtitle": "Veuillez mettre à niveau votre plan pour utiliser cette fonctionnalité.",
         "action": "Mettre à niveau"
       },
+      "title": "Dossiers de sauvegarde",
       "add-folders": "Cliquez sur + pour sélectionner les dossiers que vous souhaitez sauvegarder",
       "selected-folder_one": "{{count}} dossier",
       "selected-folder_other": "{{count}} dossiers",
@@ -327,6 +334,18 @@
         "description": "Veuillez désactiver Windows Defender afin de pouvoir utiliser Internxt Antivirus. Pour ce faire, ouvrez Sécurité Windows > Protection contre les virus et menaces > Gérer les paramètres > désactivez la protection en temps réel.",
         "retry": "Réessayer",
         "cancel": "Annuler"
+      },
+      "realtimeProtection": {
+        "title": "Protection en temps réel",
+        "infoAriaLabel": "À propos de la protection en temps réel",
+        "tooltip": "S'exécute en arrière-plan pour détecter automatiquement les menaces.",
+        "disableDialog": {
+          "title": "Désactiver la protection en temps réel ?",
+          "description": "Votre appareil ne sera plus analysé automatiquement pour détecter les menaces.",
+          "secondary": "Vous pouvez toujours lancer des analyses manuelles à tout moment.",
+          "cancel": "Annuler",
+          "confirm": "Désactiver"
+        }
       },
       "scanOptions": {
         "stopScan": "Arrêter l'analyse",
@@ -414,6 +433,12 @@
         "cancelButton": "Annuler",
         "confirmButton": "Supprimer les fichiers "
       },
+      "cleanupConfirmDialogView": {
+        "title": "Confirmer le nettoyage",
+        "description": "Cette action supprimera définitivement les fichiers sélectionnés de votre appareil. Cette action ne peut pas être annulée. Veuillez confirmer pour continuer.",
+        "cancelButton": "Annuler",
+        "confirmButton": "Supprimer les fichiers"
+      },
       "cleaningView": {
         "cleaningProcess": {
           "title": "Nettoyage...",
@@ -454,6 +479,7 @@
       "no-permission": "Permissions insuffisantes",
       "file-does-not-exist": "Le fichier n'existe pas",
       "file-too-big": "La taille maximale de téléchargement est de 20 GB. Veuillez essayer des fichiers plus petits.",
+      "file-non-extension": "Les fichiers sans extension ne sont pas pris en charge.",
       "duplicated-node": "Il y a un conflit avec l'élément.",
       "action-not-permitted": "L'opération n'a pas pu être complétée.",
       "file-already-exists": "Impossible de terminer l'opération. Le fichier existe déjà sur les serveurs Internxt.",

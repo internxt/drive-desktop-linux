@@ -165,6 +165,8 @@ declare interface Window {
 
     antivirus: {
       isAvailable: () => Promise<boolean>;
+      isBackgroundScanEnabled: () => Promise<boolean>;
+      setBackgroundScanEnabled: (enabled: boolean) => Promise<boolean>;
       isDefenderActive: () => Promise<boolean>;
       scanItems: (folderPaths?: { path: string; itemName: string; isDirectory: boolean }[]) => Promise<void>;
 
