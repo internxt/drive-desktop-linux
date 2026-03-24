@@ -10,7 +10,6 @@ import { uploadContentToEnvironment } from './upload-content-to-environment';
 import { Result } from '../../../../context/shared/domain/Result';
 import { MAX_RETRIES, RETRY_DELAYS_MS } from './constants';
 
-
 export type UploadFileParams = {
   path: string;
   size: number;

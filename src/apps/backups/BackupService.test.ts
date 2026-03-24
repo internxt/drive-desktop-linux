@@ -145,9 +145,7 @@ describe('BackupService', () => {
     vi.mocked(localTreeBuilder.run).mockResolvedValueOnce(right(LocalTreeMother.oneLevel(10)));
     vi.mocked(remoteTreeBuilder.run).mockResolvedValueOnce(RemoteTreeMother.oneLevel(10));
     mockValidateSpace.mockResolvedValueOnce({ data: { hasSpace: true } });
-    executeAsyncQueueMock
-      .mockResolvedValueOnce({ data: undefined })
-      .mockResolvedValueOnce({ error: fatalError });
+    executeAsyncQueueMock.mockResolvedValueOnce({ data: undefined }).mockResolvedValueOnce({ error: fatalError });
 
     const result = await backupService.run(info, abortController.signal, tracker);
 
