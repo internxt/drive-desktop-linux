@@ -23,7 +23,7 @@ export async function checkForUpdates({ currentVersion, onUpdateAvailable }: Pro
       error: (msg) => logger.error({ msg: `AutoUpdater: ${msg}` }),
       warn: (msg) => logger.warn({ msg: `AutoUpdater: ${msg}` }),
     };
-    autoUpdater.checkForUpdatesAndNotify();
+    await autoUpdater.checkForUpdatesAndNotify();
   } catch (err: unknown) {
     logger.error({ msg: 'AutoUpdater Error:', err });
   }
