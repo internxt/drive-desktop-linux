@@ -7,7 +7,6 @@ import { EventRepository } from '../../../context/virtual-drive/shared/domain/Ev
 import { EventRecorder } from '../../../context/virtual-drive/shared/infrastructure/EventRecorder';
 import { NodeJsEventBus } from '../../../context/virtual-drive/shared/infrastructure/NodeJsEventBus';
 import { Traverser } from '../../../context/virtual-drive/remoteTree/application/Traverser';
-import crypt from '../../../context/shared/infrastructure/crypt';
 import { InMemoryEventRepository } from '../../../context/virtual-drive/shared/infrastructure/InMemoryEventHistory';
 import { SubscribeDomainEventsHandlerToTheirEvents } from '../../../context/shared/infrastructure/domain-events/SubscribeDomainEventsHandlerToTheirEvents';
 import { getCredentials } from '../../main/auth/get-credentials';
@@ -48,7 +47,7 @@ export function baseInfra(): ContainerBuilder {
   builder
     .register(Traverser)
     .useFactory(() => {
-      return Traverser.existingItems(crypt);
+      return Traverser.existingItems();
     })
     .asSingleton()
     .private();
