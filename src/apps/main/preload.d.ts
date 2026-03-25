@@ -212,5 +212,7 @@ declare interface Window {
       ) => () => void;
       getDiskSpace: () => Promise<number>;
     };
+    getUpdateStatus(): Promise<{ version: string } | null>;
+    onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
   };
 }

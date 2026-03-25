@@ -20,7 +20,6 @@ import './auto-launch/handlers';
 import './auth/handlers';
 import './windows/settings';
 import './windows/process-issues';
-import './windows';
 import './issues/virtual-drive';
 import './device/handlers';
 import './../../backend/features/usage/handlers/handlers';
@@ -37,7 +36,6 @@ import './../../backend/features/cleaner/ipc/handlers';
 import './virtual-drive';
 
 import { app, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
 import eventBus from './event-bus';
 import { AppDataSource } from './database/data-source';
 import { getIsLoggedIn } from './auth/handlers';
@@ -45,6 +43,7 @@ import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from './windows
 import { createAuthWindow, getAuthWindow } from './windows/auth';
 import configStore from './config';
 import { getTray, setTrayStatus } from './tray/tray';
+import { broadcastToWindows } from './windows';
 import { openOnboardingWindow } from './windows/onboarding';
 import { setupThemeListener, getTheme } from '../../core/theme';
 import { installNautilusExtension } from './nautilus-extension/install';
@@ -63,6 +62,7 @@ import { version, release } from 'node:os';
 import { INTERNXT_VERSION } from '../../core/utils/utils';
 import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
 import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
+import { checkForUpdates } from './auto-update/check-for-updates';
 
 const gotTheLock = app.requestSingleInstanceLock();
 app.setAsDefaultProtocolClient('internxt');
@@ -82,23 +82,9 @@ logger.debug({
   osRelease: release(),
 });
 
-function checkForUpdates() {
-  try {
-    autoUpdater.logger = {
-      debug: (msg) => logger.debug({ msg: `AutoUpdater: ${msg}` }),
-      info: (msg) => logger.debug({ msg: `AutoUpdater: ${msg}` }),
-      error: (msg) => logger.error({ msg: `AutoUpdater: ${msg}` }),
-      warn: (msg) => logger.warn({ msg: `AutoUpdater: ${msg}` }),
-    };
-    autoUpdater.checkForUpdatesAndNotify();
-  } catch (err: unknown) {
-    logger.error({ msg: 'AutoUpdater Error:', err });
-  }
-}
+let pendingUpdateInfo: { version: string } | null = null;
 
-if (process.platform === 'darwin') {
-  app.dock.hide();
-}
+ipcMain.handle('get-update-status', () => pendingUpdateInfo);
 
 if (process.env.NODE_ENV === 'production') {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -133,7 +119,13 @@ app
       setTrayStatus('IDLE');
     }
 
-    checkForUpdates();
+    await checkForUpdates({
+      currentVersion: INTERNXT_VERSION,
+      onUpdateAvailable: (updateInfo) => {
+        pendingUpdateInfo = updateInfo;
+        broadcastToWindows('update-available', updateInfo);
+      },
+    });
     registerAvailableUserProductsHandlers();
   })
   .catch((exc) => logger.error({ msg: 'Error starting app', exc }));
