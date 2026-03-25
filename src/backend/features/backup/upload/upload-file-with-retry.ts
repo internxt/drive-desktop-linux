@@ -2,13 +2,13 @@
 import { Environment } from '@internxt/inxt-js';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
 import { File } from '../../../../context/virtual-drive/files/domain/File';
-import { deleteContentFromEnvironment } from './delete-content-from-environment';
 import { createFileToBackend } from './create-file-to-backend';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { sleep } from './utils/sleep';
 import { uploadContentToEnvironment } from './upload-content-to-environment';
 import { Result } from '../../../../context/shared/domain/Result';
 import { MAX_RETRIES, RETRY_DELAYS_MS } from './constants';
+import { deleteFileFromStorageByFileId } from '../../../../infra/drive-server/services/files/services/delete-file-content-from-bucket';
 
 export type UploadFileParams = {
   path: string;
@@ -20,17 +20,14 @@ export type UploadFileParams = {
   signal: AbortSignal;
 };
 
-/**
- * Check if error indicates file already exists
- * Same logic as FileBatchUploader error handling
- */
+// This file substitutes fileBatchUploader
 function isAlreadyExistsError(error: DriveDesktopError): boolean {
   return error.cause === 'FILE_ALREADY_EXISTS';
 }
 export async function uploadFileWithRetry(file: UploadFileParams): Promise<Result<File | null, DriveDesktopError>> {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (file.signal.aborted) {
-      return { error: new DriveDesktopError('UNKNOWN', 'Upload aborted') };
+      return { data: null };
     }
 
     try {
@@ -56,13 +53,17 @@ export async function uploadFileWithRetry(file: UploadFileParams): Promise<Resul
       });
 
       if (metadataResult.error) {
-        await deleteContentFromEnvironment(file.bucket, contentsId);
+        await deleteFileFromStorageByFileId({ bucketId: file.bucket, fileId: contentsId });
         throw metadataResult.error;
       }
 
       return { data: metadataResult.data };
     } catch (error) {
       const driveError = error instanceof DriveDesktopError ? error : new DriveDesktopError('UNKNOWN');
+
+      if (file.signal.aborted) {
+        return { data: null };
+      }
 
       if (isAlreadyExistsError(driveError)) {
         logger.debug({

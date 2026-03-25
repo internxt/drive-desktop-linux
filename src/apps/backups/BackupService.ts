@@ -182,15 +182,13 @@ export class BackupService {
   }
 
   private async backupFiles(
-    filesDiff: FilesDiff,
+    { added, modified, deleted }: FilesDiff,
     local: LocalTree,
     remote: RemoteTree,
     signal: AbortSignal,
     tracker: BackupProgressTracker,
   ) {
     logger.debug({ tag: 'BACKUPS', msg: 'Backing files' });
-
-    const { added, modified, deleted } = filesDiff;
 
     if (added.length > 0) {
       logger.debug({ tag: 'BACKUPS', msg: 'Files added', count: added.length });

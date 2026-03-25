@@ -19,6 +19,9 @@ export function createBackupUploadExecutor(
   tracker: BackupProgressTracker,
 ): TaskExecutor<LocalFile> {
   return async (localFile: LocalFile, signal: AbortSignal): Promise<Result<void, DriveDesktopError>> => {
+    if (signal.aborted) {
+      return { data: undefined };
+    }
     const remotePath = relative(localRootPath, localFile.path);
     const parent = remoteTree.getParent(remotePath);
 
@@ -45,11 +48,9 @@ export function createBackupUploadExecutor(
         name: localFile.nameWithExtension(),
         error: result.error.cause,
       });
-
-      return { data: undefined };
     }
 
-    if (result.data !== null) {
+    if (!result.error && result.data !== null) {
       remoteTree.addFile(parent, result.data);
     }
 

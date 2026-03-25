@@ -102,4 +102,5 @@ describe('createBackupUploadExecutor', () => {
       signal: abortController.signal,
     });
   });
+  it('should abort succesfully upon abort signal')
 });

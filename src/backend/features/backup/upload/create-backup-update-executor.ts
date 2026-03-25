@@ -21,6 +21,9 @@ export function createBackupUpdateExecutor(
     [localFile, remoteFile]: ModifiedFilePair,
     signal: AbortSignal,
   ): Promise<Result<void, DriveDesktopError>> => {
+    if (signal.aborted) {
+      return { data: undefined };
+    }
     const result = await updateFileWithRetry({
       path: localFile.path,
       size: localFile.size,
@@ -43,8 +46,6 @@ export function createBackupUpdateExecutor(
         name: localFile.nameWithExtension(),
         error: result.error.cause,
       });
-
-      return { data: undefined };
     }
 
     return { data: undefined };

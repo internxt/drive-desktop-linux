@@ -16,11 +16,11 @@ export type UpdateFileParams = {
   environment: Environment;
   signal: AbortSignal;
 };
-
+// This file substitutes FileBatchUpdater
 export async function updateFileWithRetry(file: UpdateFileParams): Promise<Result<void, DriveDesktopError>> {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (file.signal.aborted) {
-      return { error: new DriveDesktopError('UNKNOWN', 'Upload aborted') };
+      return { data: undefined };
     }
 
     try {

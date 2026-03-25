@@ -13,12 +13,7 @@ export type ContentUploadParams = {
   environment: Environment;
   signal: AbortSignal;
 };
-
-/**
- * Upload file content to storage bucket (Environment)
- * Returns contentsId on success
- *
- */
+// This file substitutes EnvironmentLocalFileUploader
 export function uploadContentToEnvironment({
   path,
   size,
@@ -33,7 +28,7 @@ export function uploadContentToEnvironment({
 
   const readable = createReadStream(path);
 
-  return new Promise((resolve) => {
+  return new Promise<Result<string, DriveDesktopError>>((resolve) => {
     const state = uploadFn(bucket, {
       source: readable,
       fileSize: size,
@@ -60,9 +55,13 @@ export function uploadContentToEnvironment({
       },
     });
 
-    signal.addEventListener('abort', () => {
-      state.stop();
-      readable.destroy();
-    });
+    signal.addEventListener(
+      'abort',
+      () => {
+        state.stop();
+        readable.destroy();
+      },
+      { once: true },
+    );
   });
 }

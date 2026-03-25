@@ -27,7 +27,7 @@ function extractExtension(filePath: string): string {
   const { ext } = path.posix.parse(base);
   return ext.slice(1);
 }
-
+// This substitutes SimpleFileCreator
 export async function createFileToBackend({
   contentsId,
   filePath,
@@ -41,7 +41,7 @@ export async function createFileToBackend({
 
   const body: CreateFileDto = {
     bucket,
-    fileId: undefined as string | undefined,
+    fileId: undefined,
     encryptVersion: EncryptionVersion.Aes03,
     folderUuid,
     size,
@@ -62,7 +62,7 @@ export async function createFileToBackend({
       contentsId,
       folderId,
       createdAt: response.data.createdAt,
-      modificationTime: response.data.updatedAt,
+      modificationTime: response.data.modificationTime,
       path: filePath,
       size,
       updatedAt: response.data.updatedAt,
