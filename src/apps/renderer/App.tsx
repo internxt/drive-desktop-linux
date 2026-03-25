@@ -3,6 +3,7 @@ import './localize/i18n.service';
 import { Suspense, useEffect, useRef } from 'react';
 import { HashRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { TranslationProvider } from './context/LocalContext';
+import { SyncProvider } from './context/SyncContext';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
 import IssuesPage from './pages/Issues/IssuesPage';
@@ -76,17 +77,19 @@ export default function App() {
       <Suspense fallback={<Loader />}>
         <TranslationProvider>
           <UsageProvider>
-            <LocationWrapper>
-              <LoggedInWrapper>
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/process-issues" element={<IssuesPage />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/" element={<Widget />} />
-                </Routes>
-              </LoggedInWrapper>
-            </LocationWrapper>
+            <SyncProvider>
+              <LocationWrapper>
+                <LoggedInWrapper>
+                  <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/process-issues" element={<IssuesPage />} />
+                    <Route path="/onboarding" element={<Onboarding />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/" element={<Widget />} />
+                  </Routes>
+                </LoggedInWrapper>
+              </LocationWrapper>
+            </SyncProvider>
           </UsageProvider>
         </TranslationProvider>
       </Suspense>

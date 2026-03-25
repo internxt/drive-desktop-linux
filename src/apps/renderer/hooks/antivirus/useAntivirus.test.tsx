@@ -16,7 +16,6 @@ describe('useAntivirus', () => {
   let progressCallbackStore: ProgressCallback | null = null;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     progressCallbackStore = null;
 
     // Setup mock implementation for onScanProgress to capture the callback
@@ -27,6 +26,8 @@ describe('useAntivirus', () => {
 
     // Setup default mock implementations
     vi.mocked(window.electron.antivirus.isAvailable).mockResolvedValue(true);
+    vi.mocked(window.electron.antivirus.isBackgroundScanEnabled).mockResolvedValue(true);
+    vi.mocked(window.electron.antivirus.setBackgroundScanEnabled).mockResolvedValue(true);
     vi.mocked(window.electron.antivirus.scanItems).mockResolvedValue(undefined);
     vi.mocked(window.electron.antivirus.addItemsToScan).mockResolvedValue([
       { path: '/test/file1.txt', itemName: 'file1.txt', isDirectory: false },
@@ -47,6 +48,8 @@ describe('useAntivirus', () => {
       expect(result.current.isScanCompleted).toBe(false);
       expect(result.current.isScanning).toBe(false);
       expect(result.current.isAntivirusAvailable).toBe(false);
+      expect(result.current.isAntivirusEnabled).toBe(true);
+      expect(result.current.isUpdatingAntivirusEnabled).toBe(false);
       expect(result.current.showErrorState).toBe(false);
       expect(result.current.view).toBe('loading');
     });
@@ -139,6 +142,53 @@ describe('useAntivirus', () => {
       expect(typeof result.current.onScanUserSystemButtonClicked).toBe('function');
       expect(typeof result.current.onScanAgainButtonClicked).toBe('function');
       expect(typeof result.current.onCancelScan).toBe('function');
+      expect(typeof result.current.onSetBackgroundScanEnabled).toBe('function');
+    });
+
+    it('should update antivirus enabled preference', async () => {
+      vi.mocked(window.electron.antivirus.isBackgroundScanEnabled).mockResolvedValueOnce(false);
+      vi.mocked(window.electron.antivirus.setBackgroundScanEnabled).mockResolvedValueOnce(false);
+
+      const { result } = renderHook(() => useAntivirus());
+
+      await act(async () => {
+        await result.current.onSetBackgroundScanEnabled(false);
+      });
+
+      expect(window.electron.antivirus.setBackgroundScanEnabled).toHaveBeenCalledWith(false);
+      expect(result.current.isAntivirusEnabled).toBe(false);
+      expect(result.current.isUpdatingAntivirusEnabled).toBe(false);
+    });
+
+    it('should update antivirus enabled state immediately while request is pending', async () => {
+      vi.mocked(window.electron.antivirus.isBackgroundScanEnabled).mockResolvedValueOnce(false);
+      let resolveSetBackgroundScanEnabled: (value: boolean) => void = () => undefined;
+      const pendingSetBackgroundScanEnabled = new Promise<boolean>((resolve) => {
+        resolveSetBackgroundScanEnabled = resolve;
+      });
+
+      vi.mocked(window.electron.antivirus.setBackgroundScanEnabled).mockReturnValueOnce(
+        pendingSetBackgroundScanEnabled,
+      );
+
+      const { result } = renderHook(() => useAntivirus());
+
+      let updatePromise: Promise<void> = Promise.resolve();
+
+      act(() => {
+        updatePromise = result.current.onSetBackgroundScanEnabled(false);
+      });
+
+      expect(result.current.isAntivirusEnabled).toBe(false);
+      expect(result.current.isUpdatingAntivirusEnabled).toBe(true);
+
+      await act(async () => {
+        resolveSetBackgroundScanEnabled(false);
+        await updatePromise;
+      });
+
+      expect(result.current.isAntivirusEnabled).toBe(false);
+      expect(result.current.isUpdatingAntivirusEnabled).toBe(false);
     });
   });
 

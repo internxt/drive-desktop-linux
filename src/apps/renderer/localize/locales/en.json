@@ -127,7 +127,8 @@
         "quit": "Quit",
         "antivirus": "Antivirus",
         "cleaner": "Cleaner",
-        "new": "New"
+        "new": "New",
+        "sync": "Sync"
       }
     },
     "body": {
@@ -338,6 +339,18 @@
         "description": "Please disable Windows Defender to be able to use Internxt Antivirus. To do this, open Windows Security > Virus and Threat Protection > Manage settings > disable Real-time protection.",
         "retry": "Retry",
         "cancel": "Cancel"
+      },
+      "realtimeProtection": {
+        "title": "Real-time protection",
+        "infoAriaLabel": "About real-time protection",
+        "tooltip": "Runs in the background to automatically detect threats.",
+        "disableDialog": {
+          "title": "Turn off real-time protection?",
+          "description": "Your device will no longer be automatically scanned for threats.",
+          "secondary": "You can still run manual scans at any time.",
+          "cancel": "Cancel",
+          "confirm": "Turn off"
+        }
       },
       "scanOptions": {
         "stopScan": "Stop scan",

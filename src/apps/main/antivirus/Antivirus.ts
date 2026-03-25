@@ -33,6 +33,10 @@ export class Antivirus {
   async initialize(): Promise<void> {
     try {
       const clamdConfigPath = path.join(RESOURCES_PATH, '/etc/clamd.conf');
+
+      const libPath = path.join(RESOURCES_PATH, 'lib');
+      process.env.LD_LIBRARY_PATH = `${libPath}:${process.env.LD_LIBRARY_PATH ?? ''}`;
+
       this.clamAv = await new NodeClam().init({
         removeInfected: false,
         debugMode: true,

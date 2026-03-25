@@ -53,10 +53,6 @@ declare interface Window {
 
     getUser(): Promise<ReturnType<typeof import('./auth/service').getUser>>;
 
-    startSyncProcess(): void;
-
-    stopSyncProcess(): void;
-
     openProcessIssuesWindow(): void;
 
     openLogs(): void;
@@ -165,6 +161,8 @@ declare interface Window {
 
     antivirus: {
       isAvailable: () => Promise<boolean>;
+      isBackgroundScanEnabled: () => Promise<boolean>;
+      setBackgroundScanEnabled: (enabled: boolean) => Promise<boolean>;
       isDefenderActive: () => Promise<boolean>;
       scanItems: (folderPaths?: { path: string; itemName: string; isDirectory: boolean }[]) => Promise<void>;
 

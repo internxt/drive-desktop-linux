@@ -1,6 +1,6 @@
 {
   "name": "internxt",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "author": "Internxt <hello@internxt.com>",
   "description": "Internxt Drive client UI",
   "main": "./dist/main/main.js",
@@ -14,7 +14,7 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir .",
     "reinstall:nautilus-extension": "NODE_ENV=development ts-node src/apps/nautilus-extension/reload.ts",
-    "lint": "cross-env NODE_ENV=development eslint . --ext .ts,.tsx --max-warnings=220",
+    "lint": "cross-env NODE_ENV=development eslint . --ext .ts,.tsx --max-warnings=210",
     "lint:fix": "npm run lint --fix",
     "format": "prettier src --check",
     "format:fix": "prettier src --write",
@@ -194,7 +194,7 @@
   "dependencies": {
     "@gcas/fuse": "^2.4.2",
     "@internxt/drive-desktop-core": "0.1.7",
-    "@internxt/inxt-js": "^2.2.3",
+    "@internxt/inxt-js": "^2.2.10",
     "@internxt/scan": "^1.0.7",
     "@internxt/sdk": "1.11.17",
     "async": "^3.2.4",
