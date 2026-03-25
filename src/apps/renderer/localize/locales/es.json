@@ -127,7 +127,8 @@
         "quit": "Salir",
         "antivirus": "Antivirus",
         "cleaner": "Cleaner",
-        "new": "Nuevo"
+        "new": "Nuevo",
+        "sync": "Sincronizar"
       }
     },
     "body": {
