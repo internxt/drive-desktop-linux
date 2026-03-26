@@ -114,7 +114,7 @@ app
      * Esteban Galvis Triana
      * The Nautilus extension will be temporarily disabled
      * while the exact behavior of the context menu options is being determined.
-    */
+     */
     // await installNautilusExtension();
     setupThemeListener();
 
