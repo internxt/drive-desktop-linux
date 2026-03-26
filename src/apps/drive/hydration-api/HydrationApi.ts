@@ -16,7 +16,7 @@ export class HydrationApi {
   private static readonly PORT = 4567;
   private readonly app;
   private server: Server | null = null;
-  private readonly openSockets = new Set<import('net').Socket>();
+  private readonly openSockets = new Set<import('node:net').Socket>();
 
   constructor(private readonly container: Container) {
     this.app = express();
