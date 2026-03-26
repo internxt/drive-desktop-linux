@@ -55,7 +55,7 @@ async function stopFuseApp() {
   }
 
   try {
-    await stopHydrationApi()
+    await stopHydrationApi();
     logger.debug({ msg: 'Stopping and clearing FuseApp...' });
     await fuseApp.clearCache();
     await fuseApp.stop();
