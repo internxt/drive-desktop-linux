@@ -8,6 +8,7 @@ vi.mock('electron', () => ({
     getName: vi.fn().mockReturnValue('DriveDesktop'),
     getVersion: vi.fn().mockReturnValue('1.0.0'),
     quit: vi.fn(),
+    on: vi.fn(),
   },
   ipcMain: {
     on: vi.fn(),
