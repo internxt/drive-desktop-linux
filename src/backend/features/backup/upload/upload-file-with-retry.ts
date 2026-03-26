@@ -7,7 +7,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { sleep } from './utils/sleep';
 import { uploadContentToEnvironment } from './upload-content-to-environment';
 import { Result } from '../../../../context/shared/domain/Result';
-import { MAX_RETRIES, RETRY_DELAYS_MS } from './constants';
+import { INITIAL_RATE_LIMIT_DELAY_MS, MAX_BACKOFF_MS, MAX_RETRIES, RETRY_DELAYS_MS } from './constants';
 import { deleteFileFromStorageByFileId } from '../../../../infra/drive-server/services/files/services/delete-file-content-from-bucket';
 
 export type UploadFileParams = {
@@ -25,6 +25,8 @@ function isAlreadyExistsError(error: DriveDesktopError): boolean {
   return error.cause === 'FILE_ALREADY_EXISTS';
 }
 export async function uploadFileWithRetry(file: UploadFileParams): Promise<Result<File | null, DriveDesktopError>> {
+  let rateLimitAttempts = 0;
+
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (file.signal.aborted) {
       return { data: null };
@@ -71,6 +73,33 @@ export async function uploadFileWithRetry(file: UploadFileParams): Promise<Resul
           msg: `[FILE ALREADY EXISTS] Skipping file ${file.path} - already exists remotely`,
         });
         return { data: null };
+      }
+
+      if (driveError.cause === 'RATE_LIMITED') {
+        rateLimitAttempts++;
+        const baseDelay = Number(driveError.message) || INITIAL_RATE_LIMIT_DELAY_MS;
+        const retryAfterMs = Math.min(baseDelay * Math.pow(2, rateLimitAttempts - 1), MAX_BACKOFF_MS);
+        logger.debug({
+          tag: 'BACKUPS',
+          msg: `[RATE LIMITED] Attempt ${rateLimitAttempts}, waiting ${retryAfterMs}ms before retrying`,
+          path: file.path,
+        });
+        await sleep(retryAfterMs);
+        attempt--;
+        continue;
+      }
+
+      if (driveError.cause === 'UNKNOWN') {
+        const retryAfterMs = Math.min(RETRY_DELAYS_MS[0] * Math.pow(2, attempt), MAX_BACKOFF_MS);
+        logger.debug({
+          tag: 'BACKUPS',
+          msg: `[UNKNOWN ERROR] Attempt ${attempt + 1}, waiting ${retryAfterMs}ms before retrying`,
+          path: file.path,
+          error: driveError.message,
+        });
+        await sleep(retryAfterMs);
+        attempt--;
+        continue;
       }
 
       if (attempt < MAX_RETRIES) {

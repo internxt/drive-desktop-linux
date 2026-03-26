@@ -6,7 +6,7 @@ import { overrideFile } from '../../../../infra/drive-server/services/files/serv
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { sleep } from './utils/sleep';
 import { uploadContentToEnvironment } from './upload-content-to-environment';
-import { MAX_RETRIES, RETRY_DELAYS_MS } from './constants';
+import { INITIAL_RATE_LIMIT_DELAY_MS, MAX_BACKOFF_MS, MAX_RETRIES, RETRY_DELAYS_MS } from './constants';
 
 export type UpdateFileParams = {
   path: string;
@@ -18,6 +18,8 @@ export type UpdateFileParams = {
 };
 // This file substitutes FileBatchUpdater
 export async function updateFileWithRetry(file: UpdateFileParams): Promise<Result<void, DriveDesktopError>> {
+  let rateLimitAttempts = 0;
+
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (file.signal.aborted) {
       return { data: undefined };
@@ -49,6 +51,37 @@ export async function updateFileWithRetry(file: UpdateFileParams): Promise<Resul
       return { data: undefined };
     } catch (error) {
       const driveError = error instanceof DriveDesktopError ? error : new DriveDesktopError('UNKNOWN');
+
+      if (file.signal.aborted) {
+        return { data: undefined };
+      }
+
+      if (driveError.cause === 'RATE_LIMITED') {
+        rateLimitAttempts++;
+        const baseDelay = Number(driveError.message) || INITIAL_RATE_LIMIT_DELAY_MS;
+        const retryAfterMs = Math.min(baseDelay * Math.pow(2, rateLimitAttempts - 1), MAX_BACKOFF_MS);
+        logger.debug({
+          tag: 'BACKUPS',
+          msg: `[RATE LIMITED] Attempt ${rateLimitAttempts}, waiting ${retryAfterMs}ms before retrying`,
+          path: file.path,
+        });
+        await sleep(retryAfterMs);
+        attempt--;
+        continue;
+      }
+
+      if (driveError.cause === 'UNKNOWN') {
+        const retryAfterMs = Math.min(RETRY_DELAYS_MS[0] * Math.pow(2, attempt), MAX_BACKOFF_MS);
+        logger.debug({
+          tag: 'BACKUPS',
+          msg: `[UNKNOWN ERROR] Attempt ${attempt + 1}, waiting ${retryAfterMs}ms before retrying`,
+          path: file.path,
+          error: driveError.message,
+        });
+        await sleep(retryAfterMs);
+        attempt--;
+        continue;
+      }
 
       if (attempt < MAX_RETRIES) {
         const delay = RETRY_DELAYS_MS[attempt];

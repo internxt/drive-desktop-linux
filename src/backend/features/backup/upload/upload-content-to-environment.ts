@@ -5,6 +5,7 @@ import { createReadStream } from 'node:fs';
 import { UploadStrategyFunction } from '@internxt/inxt-js/build/lib/core';
 import { Result } from '../../../../context/shared/domain/Result';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { extractPropertyFromStringyfiedJson } from '../../../../shared/extract-property-from-json';
 
 export type ContentUploadParams = {
   path: string;
@@ -39,6 +40,11 @@ export function uploadContentToEnvironment({
           logger.error({ tag: 'BACKUPS', msg: '[ENVLFU UPLOAD ERROR]', err });
           if (err.message === 'Max space used') {
             return resolve({ error: new DriveDesktopError('NOT_ENOUGH_SPACE') });
+          }
+          if ('status' in err && err.status === 429) {
+            const retryAfter = extractPropertyFromStringyfiedJson(err.message, 'retry_after');
+            const retryAfterMs = typeof retryAfter === 'number' ? retryAfter * 1000 : 30_000;
+            return resolve({ error: new DriveDesktopError('RATE_LIMITED', String(retryAfterMs)) });
           }
           return resolve({ error: new DriveDesktopError('UNKNOWN') });
         }
