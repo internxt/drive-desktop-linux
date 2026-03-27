@@ -2,7 +2,7 @@ import { describe, it, vi } from 'vitest';
 import { call } from '../../../../../tests/vitest/utils.helper';
 import { ReleaseCallback } from './ReleaseCallback';
 import { right } from '../../../../context/shared/domain/Either';
-import * as openFlagsTracker from './open-flags-tracker';
+import * as openFlagsTracker from './../../../../backend/features/fuse/on-open/open-flags-tracker';
 import * as handleReleaseModule from '../../../../backend/features/fuse/on-release/handle-release-callback';
 import { partialSpyOn } from '../../../../../tests/vitest/utils.helper';
 
