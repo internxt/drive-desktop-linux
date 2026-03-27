@@ -27,7 +27,6 @@ function extractExtension(filePath: string): string {
   const { ext } = path.posix.parse(base);
   return ext.slice(1);
 }
-// This substitutes SimpleFileCreator
 export async function createFileToBackend({
   contentsId,
   filePath,

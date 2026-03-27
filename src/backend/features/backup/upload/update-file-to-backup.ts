@@ -55,7 +55,6 @@ async function updateFile(file: UpdateFileParams): Promise<Result<void, DriveDes
   return { data: undefined };
 }
 
-// This file substitutes FileBatchUpdater
 export async function updateFileToBackup(file: UpdateFileParams): Promise<Result<void, DriveDesktopError>> {
   return updateFile(file);
 }

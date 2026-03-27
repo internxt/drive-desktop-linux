@@ -31,7 +31,6 @@ function mapUploadError(err: Error & { status?: unknown }): DriveDesktopError {
   return new DriveDesktopError('UNKNOWN');
 }
 
-// This file substitutes EnvironmentLocalFileUploader
 export function uploadContentToEnvironment({
   path,
   size,

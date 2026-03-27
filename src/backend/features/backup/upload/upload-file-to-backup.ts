@@ -63,7 +63,6 @@ async function uploadFile(file: UploadFileParams): Promise<Result<File | null, D
   return { data: metadataResult.data };
 }
 
-// This file substitutes fileBatchUploader
 export async function uploadFileToBackup(file: UploadFileParams): Promise<Result<File | null, DriveDesktopError>> {
   const result = await uploadFile(file);
 
