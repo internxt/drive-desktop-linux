@@ -46,8 +46,8 @@ import { getTray, setTrayStatus } from './tray/tray';
 import { broadcastToWindows } from './windows';
 import { openOnboardingWindow } from './windows/onboarding';
 import { setupThemeListener, getTheme } from '../../core/theme';
-import { installNautilusExtension } from './nautilus-extension/install';
-import { uninstallNautilusExtension } from './nautilus-extension/uninstall';
+// import { installNautilusExtension } from './nautilus-extension/install';
+// import { uninstallNautilusExtension } from './nautilus-extension/uninstall';
 import dns from 'node:dns';
 import { registerAvailableUserProductsHandlers } from '../../backend/features/payments/ipc/register-available-user-products-handlers';
 import { getAntivirusManager } from './antivirus/antivirusManager';
@@ -108,7 +108,14 @@ app
      * This function manually registers the protocol handler for .AppImage installations.
      */
     await setupAppImageDeeplink();
-    await installNautilusExtension();
+    /**
+     * TODO: Nautilus extension disabled temporarily
+     * v.2.5.4
+     * Esteban Galvis Triana
+     * The Nautilus extension will be temporarily disabled
+     * while the exact behavior of the context menu options is being determined.
+     */
+    // await installNautilusExtension();
     setupThemeListener();
 
     eventBus.emit('APP_IS_READY');
@@ -209,7 +216,7 @@ eventBus.on('USER_LOGGED_OUT', async () => {
     await AppDataSource.destroy();
   }
 
-  await uninstallNautilusExtension();
+  // await uninstallNautilusExtension();
 });
 
 process.on('uncaughtException', (error) => {
