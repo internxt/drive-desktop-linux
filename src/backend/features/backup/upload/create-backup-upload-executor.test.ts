@@ -7,13 +7,13 @@ import { RemoteTreeMother } from '../../../../context/virtual-drive/remoteTree/d
 import { BackupProgressTracker } from '../backup-progress-tracker';
 import { mockDeep } from 'vitest-mock-extended';
 import { createBackupUploadExecutor } from './create-backup-upload-executor';
-import * as uploadFileWithRetryModule from './upload-file-with-retry';
-import * as backupErrorsTrackerModule from '..';
+import * as uploadFileToBackupModule from './upload-file-to-backup';
+import * as backupErrorsTrackerModule from '../';
 import { AbsolutePath } from '../../../../context/local/localFile/infrastructure/AbsolutePath';
 import { Environment } from '@internxt/inxt-js';
 
 describe('createBackupUploadExecutor', () => {
-  const uploadFileWithRetryMock = partialSpyOn(uploadFileWithRetryModule, 'uploadFileWithRetry');
+  const uploadFileToBackupMock = partialSpyOn(uploadFileToBackupModule, 'uploadFileToBackup');
   const backupErrorsTrackerAddMock = partialSpyOn(backupErrorsTrackerModule.backupErrorsTracker, 'add');
 
   let tracker: BackupProgressTracker;
@@ -37,7 +37,7 @@ describe('createBackupUploadExecutor', () => {
   it('should upload a file successfully and add it to the remote tree', async () => {
     const { remoteTree, localFile, executor } = setup();
     const createdFile = FileMother.any();
-    uploadFileWithRetryMock.mockResolvedValue({ data: createdFile });
+    uploadFileToBackupMock.mockResolvedValue({ data: createdFile });
     const addFileMock = partialSpyOn(remoteTree, 'addFile');
 
     const result = await executor(localFile, abortController.signal);
@@ -50,7 +50,7 @@ describe('createBackupUploadExecutor', () => {
 
   it('should skip adding to remote tree when file already exists (data is null)', async () => {
     const { remoteTree, localFile, executor } = setup();
-    uploadFileWithRetryMock.mockResolvedValue({ data: null });
+    uploadFileToBackupMock.mockResolvedValue({ data: null });
     const addFileMock = partialSpyOn(remoteTree, 'addFile');
 
     const result = await executor(localFile, abortController.signal);
@@ -64,7 +64,7 @@ describe('createBackupUploadExecutor', () => {
   it('should return fatal error without tracking it', async () => {
     const { localFile, executor } = setup();
     const fatalError = new DriveDesktopError('NOT_ENOUGH_SPACE', 'No space');
-    uploadFileWithRetryMock.mockResolvedValue({ error: fatalError });
+    uploadFileToBackupMock.mockResolvedValue({ error: fatalError });
 
     const result = await executor(localFile, abortController.signal);
 
@@ -76,7 +76,7 @@ describe('createBackupUploadExecutor', () => {
   it('should track non-fatal error and return success', async () => {
     const { localFile, executor } = setup();
     const nonFatalError = new DriveDesktopError('BAD_RESPONSE', 'Network error');
-    uploadFileWithRetryMock.mockResolvedValue({ error: nonFatalError });
+    uploadFileToBackupMock.mockResolvedValue({ error: nonFatalError });
 
     const result = await executor(localFile, abortController.signal);
 
@@ -86,13 +86,13 @@ describe('createBackupUploadExecutor', () => {
     expect(tracker.incrementProcessed).toHaveBeenCalledWith(1);
   });
 
-  it('should call uploadFileWithRetry with correct params', async () => {
+  it('should call uploadFileToBackup with correct params', async () => {
     const { remoteTree, localFile, executor } = setup();
-    uploadFileWithRetryMock.mockResolvedValue({ data: FileMother.any() });
+    uploadFileToBackupMock.mockResolvedValue({ data: FileMother.any() });
 
     await executor(localFile, abortController.signal);
 
-    expect(uploadFileWithRetryMock).toHaveBeenCalledWith({
+    expect(uploadFileToBackupMock).toHaveBeenCalledWith({
       path: localFile.path,
       size: localFile.size,
       bucket: 'bucket',
@@ -102,5 +102,14 @@ describe('createBackupUploadExecutor', () => {
       signal: abortController.signal,
     });
   });
-  it('should abort succesfully upon abort signal')
+  it('should return success without uploading when signal is already aborted', async () => {
+    const { localFile, executor } = setup();
+    abortController.abort();
+
+    const result = await executor(localFile, abortController.signal);
+
+    expect(result.data).toBeUndefined();
+    expect(result.error).toBeUndefined();
+    expect(uploadFileToBackupMock).not.toHaveBeenCalled();
+  });
 });

@@ -4,7 +4,7 @@ import { LocalFile } from '../../../../context/local/localFile/domain/LocalFile'
 import { File } from '../../../../context/virtual-drive/files/domain/File';
 import { Result } from '../../../../context/shared/domain/Result';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
-import { updateFileWithRetry } from './update-file-with-retry';
+import { updateFileToBackup } from './update-file-to-backup';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { isFatalError } from '../../../../shared/issues/SyncErrorCause';
 import { TaskExecutor } from '../../../common/async-queue/types';
@@ -24,7 +24,7 @@ export function createBackupUpdateExecutor(
     if (signal.aborted) {
       return { data: undefined };
     }
-    const result = await updateFileWithRetry({
+    const result = await updateFileToBackup({
       path: localFile.path,
       size: localFile.size,
       bucket,

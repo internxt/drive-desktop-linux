@@ -22,6 +22,7 @@ const NonFatalErrors = [
   'COULD_NOT_ENCRYPT_NAME',
   'BAD_REQUEST',
   'UNKNOWN',
+  'INTERNAL_SERVER_ERROR',
 ] as const;
 
 const Errors = [...FatalErrors, ...NonFatalErrors] as const;

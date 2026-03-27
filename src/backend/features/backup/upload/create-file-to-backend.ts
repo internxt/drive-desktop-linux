@@ -72,9 +72,9 @@ export async function createFileToBackend({
   }
 
   const causeMap: Record<string, SyncError> = {
-    BAD_REQUEST: 'BAD_REQUEST',
     CONFLICT: 'FILE_ALREADY_EXISTS',
-    SERVER_ERROR: 'BAD_RESPONSE',
+    SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
+    TOO_MANY_REQUESTS: 'RATE_LIMITED',
   };
 
   const cause = causeMap[response.error.cause] ?? 'UNKNOWN';

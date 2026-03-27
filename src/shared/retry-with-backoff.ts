@@ -5,10 +5,14 @@ import { DriveDesktopError } from '../context/shared/domain/errors/DriveDesktopE
 function sleepAbortable(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise<void>((resolve) => {
     const timer = setTimeout(resolve, ms);
-    signal.addEventListener('abort', () => {
-      clearTimeout(timer);
-      resolve();
-    }, { once: true });
+    signal.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
   });
 }
 

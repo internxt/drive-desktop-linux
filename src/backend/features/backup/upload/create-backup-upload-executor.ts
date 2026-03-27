@@ -5,7 +5,7 @@ import { LocalFile } from '../../../../context/local/localFile/domain/LocalFile'
 import { Result } from '../../../../context/shared/domain/Result';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
 import { relative } from 'node:path';
-import { uploadFileWithRetry } from './upload-file-with-retry';
+import { uploadFileToBackup } from './upload-file-to-backup';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { isFatalError } from '../../../../shared/issues/SyncErrorCause';
 import { TaskExecutor } from '../../../common/async-queue/types';
@@ -25,7 +25,7 @@ export function createBackupUploadExecutor(
     const remotePath = relative(localRootPath, localFile.path);
     const parent = remoteTree.getParent(remotePath);
 
-    const result = await uploadFileWithRetry({
+    const result = await uploadFileToBackup({
       path: localFile.path,
       size: localFile.size,
       bucket,

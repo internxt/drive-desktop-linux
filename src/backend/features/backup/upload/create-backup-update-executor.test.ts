@@ -5,11 +5,11 @@ import { LocalFileMother } from '../../../../context/local/localFile/domain/__te
 import { BackupProgressTracker } from '../backup-progress-tracker';
 import { mockDeep } from 'vitest-mock-extended';
 import { createBackupUpdateExecutor, ModifiedFilePair } from './create-backup-update-executor';
-import * as updateFileWithRetryModule from './update-file-with-retry';
+import * as updateFileToBackupModule from './update-file-to-backup';
 import * as backupErrorsTrackerModule from '..';
 
 describe('createBackupUpdateExecutor', () => {
-  const updateFileWithRetryMock = partialSpyOn(updateFileWithRetryModule, 'updateFileWithRetry');
+  const updateFileToBackupMock = partialSpyOn(updateFileToBackupModule, 'updateFileToBackup');
   const backupErrorsTrackerAddMock = partialSpyOn(backupErrorsTrackerModule.backupErrorsTracker, 'add');
 
   let tracker: BackupProgressTracker;
@@ -29,7 +29,7 @@ describe('createBackupUpdateExecutor', () => {
   }
 
   it('should update a file successfully', async () => {
-    updateFileWithRetryMock.mockResolvedValue({ data: undefined });
+    updateFileToBackupMock.mockResolvedValue({ data: undefined });
     const executor = createExecutor();
     const pair = createPair();
 
@@ -42,7 +42,7 @@ describe('createBackupUpdateExecutor', () => {
 
   it('should return fatal error without tracking it', async () => {
     const fatalError = new DriveDesktopError('NOT_ENOUGH_SPACE', 'No space');
-    updateFileWithRetryMock.mockResolvedValue({ error: fatalError });
+    updateFileToBackupMock.mockResolvedValue({ error: fatalError });
     const executor = createExecutor();
     const pair = createPair();
 
@@ -55,7 +55,7 @@ describe('createBackupUpdateExecutor', () => {
 
   it('should track non-fatal error and return success', async () => {
     const nonFatalError = new DriveDesktopError('BAD_RESPONSE', 'Network error');
-    updateFileWithRetryMock.mockResolvedValue({ error: nonFatalError });
+    updateFileToBackupMock.mockResolvedValue({ error: nonFatalError });
     const executor = createExecutor();
     const [localFile, remoteFile] = createPair();
 
@@ -70,14 +70,14 @@ describe('createBackupUpdateExecutor', () => {
     expect(tracker.incrementProcessed).toHaveBeenCalledWith(1);
   });
 
-  it('should call updateFileWithRetry with correct params', async () => {
-    updateFileWithRetryMock.mockResolvedValue({ data: undefined });
+  it('should call updateFileToBackup with correct params', async () => {
+    updateFileToBackupMock.mockResolvedValue({ data: undefined });
     const executor = createExecutor();
     const [localFile, remoteFile] = createPair();
 
     await executor([localFile, remoteFile], abortController.signal);
 
-    expect(updateFileWithRetryMock).toHaveBeenCalledWith({
+    expect(updateFileToBackupMock).toHaveBeenCalledWith({
       path: localFile.path,
       size: localFile.size,
       bucket: 'bucket',
@@ -86,5 +86,15 @@ describe('createBackupUpdateExecutor', () => {
       signal: abortController.signal,
     });
   });
-  it('should abort succesfully upon abort signal');
+  it('should return success without updating when signal is already aborted', async () => {
+    const executor = createExecutor();
+    const pair = createPair();
+    abortController.abort();
+
+    const result = await executor(pair, abortController.signal);
+
+    expect(result.data).toBeUndefined();
+    expect(result.error).toBeUndefined();
+    expect(updateFileToBackupMock).not.toHaveBeenCalled();
+  });
 });
