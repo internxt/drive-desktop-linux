@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
 import { SyncError } from '../../../../shared/issues/SyncErrorCause';

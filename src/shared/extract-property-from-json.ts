@@ -2,7 +2,7 @@ export function extractPropertyFromStringyfiedJson(message: string, property: st
   try {
     const json = JSON.parse(message);
     return json[property];
-  } catch (error) {
+  } catch {
     return undefined;
   }
 }

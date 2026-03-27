@@ -18,7 +18,6 @@ import * as addFileToTrashModule from '../../infra/drive-server/services/files/s
 import { partialSpyOn } from '../../../tests/vitest/utils.helper';
 
 vi.mock(import('../../backend/features/usage/usage.module'));
-vi.mock(import('@internxt/inxt-js'));
 
 describe('BackupService', () => {
   const executeAsyncQueueMock = partialSpyOn(executeAsyncQueueModule, 'executeAsyncQueue');

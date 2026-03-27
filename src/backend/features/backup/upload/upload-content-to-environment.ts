@@ -14,6 +14,23 @@ export type ContentUploadParams = {
   environment: Environment;
   signal: AbortSignal;
 };
+function mapUploadError(err: Error & { status?: unknown }): DriveDesktopError {
+  if (err.message === 'Max space used') {
+    return new DriveDesktopError('NOT_ENOUGH_SPACE');
+  }
+  if (typeof err.status === 'number') {
+    if (err.status === 429) {
+      const retryAfter = extractPropertyFromStringyfiedJson(err.message, 'retry_after');
+      const retryAfterMs = typeof retryAfter === 'number' ? retryAfter * 1000 : 30_000;
+      return new DriveDesktopError('RATE_LIMITED', String(retryAfterMs));
+    }
+    if (err.status >= 500) {
+      return new DriveDesktopError('INTERNAL_SERVER_ERROR');
+    }
+  }
+  return new DriveDesktopError('UNKNOWN');
+}
+
 // This file substitutes EnvironmentLocalFileUploader
 export function uploadContentToEnvironment({
   path,
@@ -39,20 +56,7 @@ export function uploadContentToEnvironment({
 
           if (err) {
             logger.error({ tag: 'BACKUPS', msg: '[ENVLFU UPLOAD ERROR]', err });
-            if (err.message === 'Max space used') {
-              return resolve({ error: new DriveDesktopError('NOT_ENOUGH_SPACE') });
-            }
-            if ('status' in err && typeof err.status === 'number') {
-              if (err.status === 429) {
-                const retryAfter = extractPropertyFromStringyfiedJson(err.message, 'retry_after');
-                const retryAfterMs = typeof retryAfter === 'number' ? retryAfter * 1000 : 30_000;
-                return resolve({ error: new DriveDesktopError('RATE_LIMITED', String(retryAfterMs)) });
-              }
-              if (err.status >= 500) {
-                return resolve({ error: new DriveDesktopError('INTERNAL_SERVER_ERROR') });
-              }
-            }
-            return resolve({ error: new DriveDesktopError('UNKNOWN') });
+            return resolve({ error: mapUploadError(err) });
           }
 
           if (!contentsId) {
