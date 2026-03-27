@@ -33,19 +33,8 @@ export async function startVirtualDrive() {
 }
 
 export async function stopAndClearFuseApp() {
-  if (!fuseApp || !hydrationApi) {
-    logger.debug({ msg: 'FuseApp or HydrationApi not initialized, skipping stop and clear.' });
-    return;
-  }
-
-  try {
-    logger.debug({ msg: 'Stopping and clearing FuseApp...' });
-    await hydrationApi.stop();
-    await fuseApp.clearCache();
-    await fuseApp.stop();
-  } catch (error) {
-    logger.error({ msg: 'Error stopping and clearing FUSE app:', error });
-  }
+  await stopHydrationApi();
+  await stopFuseApp();
 }
 
 export async function updateFuseApp() {
@@ -59,7 +48,32 @@ export function getFuseDriveState() {
   return fuseApp.getStatus();
 }
 
-export async function stopFuse() {
-  await fuseApp.stop();
-  await hydrationApi.stop();
+async function stopFuseApp() {
+  if (!fuseApp) {
+    logger.debug({ msg: 'FuseApp not initialized, skipping stop.' });
+    return;
+  }
+
+  try {
+    await stopHydrationApi();
+    logger.debug({ msg: 'Stopping and clearing FuseApp...' });
+    await fuseApp.clearCache();
+    await fuseApp.stop();
+  } catch (error) {
+    logger.error({ msg: 'Error stopping and clearing FUSE app:', error });
+  }
+}
+
+export async function stopHydrationApi() {
+  if (!hydrationApi) {
+    logger.debug({ msg: 'HydrationApi not initialized, skipping stop.' });
+    return;
+  }
+
+  try {
+    logger.debug({ msg: 'Stopping HydrationApi...' });
+    await hydrationApi.stop();
+  } catch (error) {
+    logger.error({ msg: 'Error stopping HydrationApi:', error });
+  }
 }

@@ -21,6 +21,7 @@ import { TrashFolderCallback } from './callbacks/TrashFolderCallback';
 import { WriteCallback } from './callbacks/WriteCallback';
 import { mountPromise } from './helpers';
 import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
+import { execFile } from 'node:child_process';
 import { EventEmitter } from 'stream';
 
 import Fuse from '@gcas/fuse';
@@ -76,6 +77,7 @@ export class FuseApp extends EventEmitter {
     this._fuse = new Fuse(this.localRoot, ops, {
       debug: false,
       force: true,
+      autoUnmount: true,
       maxRead: FuseApp.MAX_INT_32,
     });
 
@@ -90,8 +92,35 @@ export class FuseApp extends EventEmitter {
   }
 
   async stop() {
-    // It is not possible to implement this method while still using @gcas/fuse.
-    // For more information, see this ticket. https://inxt.atlassian.net/browse/PB-5389
+    if (!this._fuse) {
+      return;
+    }
+
+    await this.unmountFuse();
+    this._fuse = undefined;
+    this.status = 'UNMOUNTED';
+  }
+
+  private unmountFuse(): Promise<void> {
+    // It is not possible to implement this method during logout while @gcas/fuse is still in use.
+    // For more information, see this issue. https://inxt.atlassian.net/browse/PB-5389
+
+    const fusermount = '/usr/bin/fusermount';
+    return new Promise((resolve) => {
+      execFile(fusermount, ['-u', this.localRoot], (err) => {
+        if (!err) {
+          resolve();
+          return;
+        }
+        logger.debug({ msg: '[FUSE] non-lazy unmount failed, trying lazy unmount', error: err });
+        execFile(fusermount, ['-uz', this.localRoot], (err2) => {
+          if (err2) {
+            logger.error({ msg: '[FUSE] lazy unmount failed:', error: err2 });
+          }
+          resolve();
+        });
+      });
+    });
   }
 
   async clearCache(): Promise<void> {
