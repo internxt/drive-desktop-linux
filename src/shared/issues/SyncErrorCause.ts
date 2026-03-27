@@ -9,6 +9,7 @@ const FatalErrors = [
 export type FatalError = (typeof FatalErrors)[number];
 
 const NonFatalErrors = [
+  'ABORTED',
   'RATE_LIMITED',
   'NOT_EXISTS',
   'BAD_RESPONSE',
