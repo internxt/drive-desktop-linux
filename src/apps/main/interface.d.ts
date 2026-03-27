@@ -129,6 +129,8 @@ export interface IElectronAPI {
   };
   chooseSyncRootWithDialog(): Promise<string | null>;
   getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
+  changeBackupPath: typeof import('./device/service').changeBackupPath;
+  startBackupsProcess(): void;
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
@@ -138,6 +140,10 @@ export interface IElectronAPI {
   onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
   getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
   onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
+  getVirtualDriveStatus(): Promise<import('../drive/fuse/FuseDriveStatus').FuseDriveStatus>;
+  onVirtualDriveStatusChange(
+    callback: (event: { status: import('../drive/fuse/FuseDriveStatus').FuseDriveStatus }) => void,
+  ): () => void;
 
   pathChanged(path: string): void;
   isUserLoggedIn(): Promise<boolean>;

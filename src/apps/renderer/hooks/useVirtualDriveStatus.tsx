@@ -15,7 +15,7 @@ export default function useVirtualDriveStatus() {
 
   useEffect(() => {
     const removeListener = window.electron.onVirtualDriveStatusChange((status) => {
-      console.debug('status changed');
+      reportError('status changed');
       setVirtualDriveStatus(status.status);
     });
 

@@ -90,6 +90,56 @@ export async function fetchFolderTree(folderUuid: string): Promise<{
   return { tree, folderDecryptedNames, fileDecryptedNames, size };
 }
 
+async function downloadDeviceBackupZip(
+  device: Device,
+  path: PathLike,
+  {
+    updateProgress,
+    abortController,
+  }: {
+    updateProgress: (progress: number) => void;
+    abortController?: AbortController;
+  },
+): Promise<void> {
+  if (!device.id) {
+    throw new Error('This backup has not been uploaded yet');
+  }
+
+  const user = getUser();
+  if (!user) {
+    throw new Error('No saved user');
+  }
+
+  const { data: folder, error } = await fetchFolder(device.uuid);
+  if (error) {
+    throw new Error('Unsuccesful request to fetch folder');
+  }
+  if (!folder || !folder.uuid || folder.uuid.length === 0) {
+    throw new Error('No backup data found');
+  }
+
+  const networkApiUrl = process.env.BRIDGE_URL;
+  const bridgeUser = user.bridgeUser;
+  const bridgePass = user.userId;
+  const { mnemonic } = getCredentials();
+
+  await downloadFolderAsZip(
+    device.name,
+    networkApiUrl!,
+    folder.uuid,
+    path,
+    {
+      bridgeUser,
+      bridgePass,
+      encryptionKey: mnemonic,
+    },
+    {
+      abortController,
+      updateProgress,
+    },
+  );
+}
+
 export async function downloadBackup(device: Device): Promise<void> {
   const chosenItem = await getPathFromDialog();
   if (!chosenItem || !chosenItem.path) {
@@ -149,56 +199,6 @@ export async function downloadBackup(device: Device): Promise<void> {
   removeListenerIpc.removeListener(listenerName, abortListener);
 }
 
-async function downloadDeviceBackupZip(
-  device: Device,
-  path: PathLike,
-  {
-    updateProgress,
-    abortController,
-  }: {
-    updateProgress: (progress: number) => void;
-    abortController?: AbortController;
-  },
-): Promise<void> {
-  if (!device.id) {
-    throw new Error('This backup has not been uploaded yet');
-  }
-
-  const user = getUser();
-  if (!user) {
-    throw new Error('No saved user');
-  }
-
-  const { data: folder, error } = await fetchFolder(device.uuid);
-  if (error) {
-    throw new Error('Unsuccesful request to fetch folder');
-  }
-  if (!folder || !folder.uuid || folder.uuid.length === 0) {
-    throw new Error('No backup data found');
-  }
-
-  const networkApiUrl = process.env.BRIDGE_URL;
-  const bridgeUser = user.bridgeUser;
-  const bridgePass = user.userId;
-  const { mnemonic } = getCredentials();
-
-  await downloadFolderAsZip(
-    device.name,
-    networkApiUrl!,
-    folder.uuid,
-    path,
-    {
-      bridgeUser,
-      bridgePass,
-      encryptionKey: mnemonic,
-    },
-    {
-      abortController,
-      updateProgress,
-    },
-  );
-}
-
 export async function deleteBackup(backup: BackupInfo, isCurrent?: boolean): Promise<void> {
   const { error } = await addFolderToTrash(backup.folderUuid);
   if (error) {
@@ -221,14 +221,19 @@ export async function deleteBackupsFromDevice(device: Device, isCurrent?: boolea
   logger.debug({ tag: 'BACKUPS', msg: '[BACKUPS] Deleting backups from device', count: backups.length });
   logger.debug({ tag: 'BACKUPS', msg: '[BACKUPS] Backups details', backups });
 
-  let deletionPromises: Promise<any>[] = backups.map((backup) => deleteBackup(backup, isCurrent));
-  await Promise.all(deletionPromises);
+  await Promise.all(backups.map((backup) => deleteBackup(backup, isCurrent)));
 
   // delete backups that are not in the backup list
   const { tree } = await fetchFolderTree(device.uuid);
   const foldersToDelete = tree.children.filter((folder) => !backups.some((backup) => backup.folderId === folder.id));
-  deletionPromises = foldersToDelete.map((folder) => addFolderToTrash(folder.uuid));
-  await Promise.all(deletionPromises);
+  await Promise.all(foldersToDelete.map((folder) => addFolderToTrash(folder.uuid)));
+}
+
+export function findBackupPathnameFromId(id: number): string | undefined {
+  const backupsList = configStore.get('backupList');
+  const entryfound = Object.entries(backupsList).find(([, b]) => b.folderId === id);
+
+  return entryfound?.[0];
 }
 
 export async function disableBackup(backup: BackupInfo): Promise<void> {
@@ -293,13 +298,6 @@ export async function changeBackupPath(currentPath: string): Promise<boolean> {
     return true;
   }
   return false;
-}
-
-export function findBackupPathnameFromId(id: number): string | undefined {
-  const backupsList = configStore.get('backupList');
-  const entryfound = Object.entries(backupsList).find(([, b]) => b.folderId === id);
-
-  return entryfound?.[0];
 }
 
 export async function createBackupsFromLocalPaths(folderPaths: string[]) {

@@ -4,6 +4,8 @@ import { fetchFolder } from '../../../infra/drive-server/services/folder/service
 import { createBackup } from './create-backup';
 import { migrateBackupEntryIfNeeded } from '../device/migrate-backup-entry-if-needed';
 import { app } from 'electron';
+import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
+import { GetFolderContentDto } from '../../../infra/drive-server/out/dto';
 
 vi.mock('../config');
 vi.mock('../../../infra/drive-server/services/folder/services/fetch-folder');
@@ -49,7 +51,7 @@ describe('enableExistingBackup', () => {
 
     mockedConfigStore.get.mockReturnValue({ [pathname]: existingBackupData });
     mockedMigrateBackupEntryIfNeeded.mockResolvedValue(existingBackupData);
-    mockedFetchFolder.mockResolvedValue({ error: new Error('Folder not found') } as any);
+    mockedFetchFolder.mockResolvedValue({ error: new DriveServerError('NOT_FOUND') });
     mockedCreateBackup.mockResolvedValue(mockNewBackupInfo);
 
     const result = await enableExistingBackup(pathname, mockDevice);
@@ -76,7 +78,7 @@ describe('enableExistingBackup', () => {
       .mockReturnValueOnce(updatedBackupList);
 
     mockedMigrateBackupEntryIfNeeded.mockResolvedValue(migratedBackup);
-    mockedFetchFolder.mockResolvedValue({ data: { id: migratedBackup.folderId } } as any);
+    mockedFetchFolder.mockResolvedValue({ data: { id: migratedBackup.folderId } as GetFolderContentDto });
     mockedApp.getPath.mockReturnValue('/tmp');
 
     const result = await enableExistingBackup(pathname, mockDevice);

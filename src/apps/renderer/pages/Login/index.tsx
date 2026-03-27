@@ -12,7 +12,7 @@ export default function Login() {
       setIsLoading(true);
       await window.electron.openUrl(URL);
     } catch (error) {
-      console.error('Error opening URL:', error);
+      reportError(error);
     } finally {
       setIsLoading(false);
     }
@@ -28,7 +28,7 @@ export default function Login() {
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-surface dark:bg-gray-1">
-      <WindowTopBar className="bg-surface dark:bg-gray-1" />
+      <WindowTopBar title={''} className="bg-surface dark:bg-gray-1" />
 
       <div className="flex flex-1 items-center justify-center px-8">
         <div className="flex w-full max-w-[300px] flex-col items-center justify-center">

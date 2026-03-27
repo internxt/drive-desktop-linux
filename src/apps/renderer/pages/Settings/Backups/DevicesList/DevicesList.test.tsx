@@ -73,7 +73,7 @@ describe('DevicesList', () => {
   });
 
   afterAll(() => {
-    // @ts-ignore
+    // @ts-expect-error - window.electron is defined by preload and not deletable by type
     delete window.electron;
   });
 

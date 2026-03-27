@@ -66,7 +66,7 @@ export const createWidget = async () => {
   widget.webContents.on('ipc-message', (_, channel, payload) => {
     // Current widget pathname
     if (channel === 'path-changed') {
-      console.log('Renderer navigated to ', payload);
+      reportError(`Renderer navigated to ${payload}`);
     }
   });
 
