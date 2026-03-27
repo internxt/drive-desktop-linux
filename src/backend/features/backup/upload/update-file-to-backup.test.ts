@@ -86,8 +86,6 @@ describe('update-file-to-backup', () => {
 
     await updateFileToBackup({ ...baseParams, signal: abortController.signal });
 
-    expect(overrideFileMock).toHaveBeenCalledWith(
-      expect.objectContaining({ fileContentsId: contentsId }),
-    );
+    expect(overrideFileMock).toHaveBeenCalledWith(expect.objectContaining({ fileContentsId: contentsId }));
   });
 });
