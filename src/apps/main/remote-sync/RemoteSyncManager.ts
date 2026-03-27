@@ -390,11 +390,11 @@ export class RemoteSyncManager {
     return 'EXISTS';
   }
 
-  private patchDriveFileResponseItem = (payload: Record<string, unknown>): RemoteSyncedFile => {
+  private readonly patchDriveFileResponseItem = (payload: Record<string, unknown>): RemoteSyncedFile => {
     return {
       ...(payload as Omit<RemoteSyncedFile, 'fileId' | 'size' | 'name'>),
       fileId: typeof payload.fileId === 'string' ? payload.fileId : '',
-      size: typeof payload.size === 'string' ? parseInt(payload.size) : (payload.size as number),
+      size: typeof payload.size === 'string' ? Number.parseInt(payload.size) : (payload.size as number),
       name: typeof payload.name === 'string' ? payload.name : undefined,
     };
   };

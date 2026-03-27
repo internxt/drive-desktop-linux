@@ -15,7 +15,7 @@ export function buildFilesControllers(container: Container) {
 
   const filter = async (req: Request, res: Response) => {
     const filter = Object.fromEntries(
-      Object.entries(req.query).map(([key, value]) => [key, value?.toString()]),
+      Object.entries(req.query).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
     ) as Partial<FileAttributes>;
 
     const files = await container.get(FilesSearcherByPartialMatch).run(filter);
