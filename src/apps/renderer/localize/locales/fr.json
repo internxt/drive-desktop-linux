@@ -34,57 +34,30 @@
   "onboarding": {
     "slides": {
       "welcome": {
-        "title": "Bienvenue dans Internxt Drive !",
-        "description": "Commençons par sauvegarder tous vos fichiers et dossiers importants dans la barre latérale de votre finder.",
+        "title": "Internxt Desktop",
+        "description": "Bienvenue dans Internxt!\n\nSauvegardez vos fichiers avec Drive, protégez-les contre les logiciels malveillants avec Antivirus et optimisez les performances avec Cleaner — tout en préservant votre vie privée.",
         "take-tour": "Visite guidée"
       },
-      "files-organization": {
-        "title": "Accédez à tous vos fichiers sauvegardés et organisez-les à partir de la barre latérale",
-        "description": "Votre dossier personnel Internxt Drive est situé dans votre barre latérale {{platform_app}}."
-      },
-      "available-online": {
-        "title": "Économisez de l'espace sur votre appareil grâce au téléchargement intelligent",
-        "description": "Stockez les fichiers non essentiels comme uniquement en ligne pour économiser de l'espace sur le disque local.",
-        "description-2": "En enregistrant les fichiers uniquement en ligne, ils sont automatiquement supprimés de votre appareil et téléchargés sur le cloud."
-      },
-      "available-offline": {
-        "title": "Synchronisation entre appareils et accès aux fichiers hors ligne",
-        "description": "Stockez les fichiers essentiels en tant que disponibles hors ligne pour les avoir toujours à portée de main.",
-        "description-2": "En enregistrant les fichiers comme étant disponibles hors ligne, ils sont stockés localement et automatiquement synchronisés sur tous vos appareils."
-      },
-      "context-menu": {
-        "title": "Organisez vos fichiers en un seul clic",
-        "description": "Cliquez simplement avec le bouton droit sur un ou plusieurs fichiers et sélectionnez la manière dont vous souhaitez les stocker.",
-        "list-1": "Identifiez les fichiers disponibles hors ligne pour y accéder à tout moment, avec ou sans internet",
-        "list-2": "Étiqueter les fichiers uniquement en ligne pour économiser de l'espace sur le disque dur"
+      "drive": {
+        "title": "Drive",
+        "description": "Accédez à tous vos fichiers depuis le dossier Internxt Drive dans la barre latérale de {{platform_app}}.\n\nChoisissez d’économiser de l’espace avec des fichiers disponibles uniquement en ligne, ou gardez l’essentiel accessible hors ligne — tout reste sécurisé et synchronisé sur tous vos appareils."
       },
       "antivirus": {
-        "title": "Protégez votre ordinateur contre les virus",
-        "description": "L'application de bureau d'Internxt intègre désormais le tout nouveau Internxt Antivirus, qui vous permet d'analyser et de supprimer tout malware potentiel de votre appareil."
+        "title": "Antivirus",
+        "description": "Protégez votre appareil contre les logiciels malveillants et les menaces en ligne.\n\nInternxt Antivirus vous protège grâce à des analyses en temps réel et une sécurité axée sur la confidentialité."
       },
       "backups": {
-        "title": "Sauvegardez et sécurisez vos fichiers en quelques clics",
-        "description": "Sauvegardez vos fichiers en sélectionnant simplement les dossiers que vous souhaitez protéger.",
-        "description-2": "Planifiez des sauvegardes et gardez vos fichiers en sécurité et à jour sur tous vos appareils.",
-        "setup-backups": "Configurer les sauvegardes"
-      },
-      "antivirus": {
-        "title": "Protégez vos fichiers avec un antivirus",
-        "description": "Protégez vos fichiers avec un antivirus pour éviter toute menace de virus ou de malware.",
-        "description-2": "L'antivirus d'Internxt Drive vous permet de protéger vos fichiers et dossiers contre toute menace de virus ou de malware."
+        "title": "Backup",
+        "description": "Avec la fonction de sauvegarde améliorée d’Internxt, vous pouvez désormais sauvegarder vos dossiers en toute sécurité sur le cloud afin de libérer de l’espace localement.\n\nVous pouvez également ajuster la fréquence des sauvegardes selon vos besoins."
       },
       "cleaner": {
-        "title": "Libérez de l'espace localement et optimisez les performances de votre appareil.",
-        "description": "Notre nettoyeur trouve et supprime les fichiers inutiles afin que votre appareil fonctionne correctement."
+        "title": "Cleaner",
+        "description": "Libérez de l’espace localement et optimisez les performances de votre appareil.\n\nNotre nettoyeur détecte et supprime les fichiers inutiles afin que votre appareil fonctionne sans encombre."
       },
       "onboarding-completed": {
         "title": "Vous êtes prêt, profitez de votre vie privée !",
-        "backups-completed": {
-          "title": "{{folders}} dossiers ajoutés aux sauvegardes",
-          "description": "Ajoutez d'autres dossiers et planifiez des sauvegardes automatiques dans les Paramètres"
-        },
         "desktop-ready": {
-          "title": "Internxt Drive est prêt",
+          "title": "Internxt est prêt",
           "description": "Accédez à vos fichiers stockés depuis la barre latérale de votre {{platform_phrase}}."
         }
       }
@@ -94,6 +67,7 @@
       "open-drive": "Ouvrir Internxt Drive",
       "continue": "Continuer",
       "skip": "Sauter",
+      "new": "Nouveau",
       "platform-phrase": {
         "windows": "navigateur de fichiers",
         "linux": "navigateur de fichiers",
@@ -147,11 +121,14 @@
       "dropdown": {
         "preferences": "Préférences",
         "issues": "Liste d'erreurs",
+        "send-feedback": "Envoyer des commentaires",
         "support": "Aide",
         "logout": "Déconnecter",
         "quit": "Fermer",
+        "antivirus": "Antivirus",
         "cleaner": "Cleaner",
-        "new": "Nouveau"
+        "new": "Nouveau",
+        "sync": "Synchroniser"
       }
     },
     "body": {
@@ -190,10 +167,12 @@
     "footer": {
       "action-description": {
         "syncing": "Synchronisation de vos fichiers",
-        "updated": "Mis à jour il y a quelques instants"
+        "updated": "Mis à jour il y a quelques instants",
+        "failed": "Échec de la synchronisation"
       },
       "errors": {
-        "lock": "Synchronisation bloquée par un autre dispositif"
+        "lock": "Synchronisation bloquée par un autre dispositif",
+        "offline": "Pas de connexion à internet"
       }
     },
     "sync-error": {
@@ -204,9 +183,14 @@
     "virtual-drive-error": {
       "title": "Impossible de créer le lecteur",
       "message": "Nous rencontrons des problèmes pour monter votre disque Internxt. Essayez de le démonter manuellement et de relancer l'application. ",
+      "mounting": "Montage...",
       "button": "Monter"
     },
     "banners": {
+      "update-available": {
+        "body": "Une nouvelle version d'Internxt est disponible.",
+        "action": "Télécharger la mise à jour"
+      },
       "discover-backups": {
         "title": "INTERNXT SAUVEGARDES",
         "body": "Gardez une copie de secours de vos dossiers et fichiers les plus importants.",
@@ -256,6 +240,7 @@
       },
       "app-info": {
         "open-logs": "Ouvrir les registres",
+        "open-migration": "Démarrer la migration",
         "more": "Plus d'informations sur Internxt"
       }
     },
@@ -289,6 +274,7 @@
         "subtitle": "Veuillez mettre à niveau votre plan pour utiliser cette fonctionnalité.",
         "action": "Mettre à niveau"
       },
+      "title": "Dossiers de sauvegarde",
       "add-folders": "Cliquez sur + pour sélectionner les dossiers que vous souhaitez sauvegarder",
       "selected-folder_one": "{{count}} dossier",
       "selected-folder_other": "{{count}} dossiers",
@@ -353,6 +339,18 @@
         "description": "Veuillez désactiver Windows Defender afin de pouvoir utiliser Internxt Antivirus. Pour ce faire, ouvrez Sécurité Windows > Protection contre les virus et menaces > Gérer les paramètres > désactivez la protection en temps réel.",
         "retry": "Réessayer",
         "cancel": "Annuler"
+      },
+      "realtimeProtection": {
+        "title": "Protection en temps réel",
+        "infoAriaLabel": "À propos de la protection en temps réel",
+        "tooltip": "S'exécute en arrière-plan pour détecter automatiquement les menaces.",
+        "disableDialog": {
+          "title": "Désactiver la protection en temps réel ?",
+          "description": "Votre appareil ne sera plus analysé automatiquement pour détecter les menaces.",
+          "secondary": "Vous pouvez toujours lancer des analyses manuelles à tout moment.",
+          "cancel": "Annuler",
+          "confirm": "Désactiver"
+        }
       },
       "scanOptions": {
         "stopScan": "Arrêter l'analyse",
@@ -440,6 +438,12 @@
         "cancelButton": "Annuler",
         "confirmButton": "Supprimer les fichiers "
       },
+      "cleanupConfirmDialogView": {
+        "title": "Confirmer le nettoyage",
+        "description": "Cette action supprimera définitivement les fichiers sélectionnés de votre appareil. Cette action ne peut pas être annulée. Veuillez confirmer pour continuer.",
+        "cancelButton": "Annuler",
+        "confirmButton": "Supprimer les fichiers"
+      },
       "cleaningView": {
         "cleaningProcess": {
           "title": "Nettoyage...",
@@ -480,6 +484,7 @@
       "no-permission": "Permissions insuffisantes",
       "file-does-not-exist": "Le fichier n'existe pas",
       "file-too-big": "La taille maximale de téléchargement est de 20 GB. Veuillez essayer des fichiers plus petits.",
+      "file-non-extension": "Les fichiers sans extension ne sont pas pris en charge.",
       "duplicated-node": "Il y a un conflit avec l'élément.",
       "action-not-permitted": "L'opération n'a pas pu être complétée.",
       "file-already-exists": "Impossible de terminer l'opération. Le fichier existe déjà sur les serveurs Internxt.",

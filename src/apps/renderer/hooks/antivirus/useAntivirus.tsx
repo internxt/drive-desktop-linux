@@ -14,7 +14,10 @@ export interface AntivirusContext {
   isScanCompleted: boolean;
   progressRatio: number;
   isAntivirusAvailable: boolean;
+  isAntivirusEnabled: boolean;
+  isUpdatingAntivirusEnabled: boolean;
   showErrorState: boolean;
+  onSetBackgroundScanEnabled: (enabled: boolean) => Promise<void>;
   onScanUserSystemButtonClicked: () => Promise<void>;
   onScanAgainButtonClicked: () => void;
   onCancelScan: () => void;
@@ -30,6 +33,8 @@ export const useAntivirus = (): AntivirusContext => {
   const [isScanCompleted, setIsScanCompleted] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isAntivirusAvailable, setIsAntivirusAvailable] = useState<boolean>(false);
+  const [isAntivirusEnabled, setIsAntivirusEnabled] = useState<boolean>(true);
+  const [isUpdatingAntivirusEnabled, setIsUpdatingAntivirusEnabled] = useState<boolean>(false);
   const [showErrorState, setShowErrorState] = useState<boolean>(false);
   const [view, setView] = useState<Views>('loading');
 
@@ -55,14 +60,48 @@ export const useAntivirus = (): AntivirusContext => {
 
   useEffect(() => {
     const updateEligibilityStatus = async () => {
-      const isAvailable = await checkAntivirusAvailability();
+      try {
+        const [isAvailable, enabled] = await Promise.all([
+          checkAntivirusAvailability(),
+          window.electron.antivirus.isBackgroundScanEnabled(),
+        ]);
 
-      setIsAntivirusAvailable(isAvailable);
-      setView(isAvailable ? 'chooseItems' : 'locked');
+        setIsAntivirusAvailable(isAvailable);
+        setIsAntivirusEnabled(enabled);
+        setView(isAvailable ? 'chooseItems' : 'locked');
+      } catch (error) {
+        window.electron.logger.error({
+          tag: 'ANTIVIRUS',
+          msg: 'Error loading antivirus settings:',
+          error,
+        });
+        setView('locked');
+      }
     };
 
     updateEligibilityStatus();
   }, []);
+
+  const onSetBackgroundScanEnabled = async (enabled: boolean): Promise<void> => {
+    const previousValue = isAntivirusEnabled;
+
+    setIsUpdatingAntivirusEnabled(true);
+    setIsAntivirusEnabled(enabled);
+
+    try {
+      const nextValue = await window.electron.antivirus.setBackgroundScanEnabled(enabled);
+      setIsAntivirusEnabled(nextValue);
+    } catch (error) {
+      setIsAntivirusEnabled(previousValue);
+      window.electron.logger.error({
+        tag: 'ANTIVIRUS',
+        msg: 'Error updating antivirus enabled state:',
+        error,
+      });
+    } finally {
+      setIsUpdatingAntivirusEnabled(false);
+    }
+  };
 
   const handleProgress = (progress: {
     scanId?: string;
@@ -234,7 +273,10 @@ export const useAntivirus = (): AntivirusContext => {
     isScanCompleted,
     progressRatio,
     isAntivirusAvailable,
+    isAntivirusEnabled,
+    isUpdatingAntivirusEnabled,
     showErrorState,
+    onSetBackgroundScanEnabled,
     onScanUserSystemButtonClicked,
     onScanAgainButtonClicked,
     onCustomScanButtonClicked,

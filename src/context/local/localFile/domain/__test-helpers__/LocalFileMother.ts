@@ -18,17 +18,4 @@ export class LocalFileMother {
       ...partial,
     });
   }
-
-  static array(
-    numberOfElements: number,
-    generator?: (position: number) => Partial<LocalFileAttributes>,
-  ): Array<LocalFile> {
-    const array = [];
-
-    for (let i = 0; i < numberOfElements; i++) {
-      array.push(LocalFileMother.fromPartial(generator ? generator(i) : {}));
-    }
-
-    return array;
-  }
 }

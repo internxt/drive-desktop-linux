@@ -8,12 +8,14 @@ vi.mock('../../../../context/AntivirusContext');
 describe('ChooseItemsState', () => {
   const mockAntivirusContext = {
     isAntivirusAvailable: true,
+    isAntivirusEnabled: true,
+    isUpdatingAntivirusEnabled: false,
+    onSetBackgroundScanEnabled: vi.fn(),
     onCustomScanButtonClicked: vi.fn(),
     onScanUserSystemButtonClicked: vi.fn(),
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
     (useAntivirusContext as Mock).mockReturnValue(mockAntivirusContext);
   });
 
@@ -25,6 +27,7 @@ describe('ChooseItemsState', () => {
 
     expect(screen.getByText('settings.antivirus.scanOptions.systemScan.action')).toBeInTheDocument();
     expect(screen.getByText('settings.antivirus.scanOptions.customScan.action')).toBeInTheDocument();
+    expect(screen.getByText('settings.antivirus.realtimeProtection.title')).toBeInTheDocument();
   });
 
   it('disables buttons when user is not eligible', () => {
@@ -49,6 +52,41 @@ describe('ChooseItemsState', () => {
     fireEvent.click(systemScanButton);
 
     expect(mockAntivirusContext.onScanUserSystemButtonClicked).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows disable confirmation dialog when real-time protection is active and user toggles off', () => {
+    render(<ChooseItemsState />);
+
+    const toggle = screen.getByRole('switch');
+    fireEvent.click(toggle);
+
+    expect(screen.getByText('settings.antivirus.realtimeProtection.disableDialog.title')).toBeInTheDocument();
+  });
+
+  it('disables real-time protection after confirming the dialog', () => {
+    render(<ChooseItemsState />);
+
+    const toggle = screen.getByRole('switch');
+    fireEvent.click(toggle);
+
+    const confirm = screen.getByText('settings.antivirus.realtimeProtection.disableDialog.confirm');
+    fireEvent.click(confirm);
+
+    expect(mockAntivirusContext.onSetBackgroundScanEnabled).toHaveBeenCalledWith(false);
+  });
+
+  it('enables real-time protection directly when currently disabled', () => {
+    (useAntivirusContext as Mock).mockReturnValue({
+      ...mockAntivirusContext,
+      isAntivirusEnabled: false,
+    });
+
+    render(<ChooseItemsState />);
+
+    const toggle = screen.getByRole('switch');
+    fireEvent.click(toggle);
+
+    expect(mockAntivirusContext.onSetBackgroundScanEnabled).toHaveBeenCalledWith(true);
   });
 
   it('shows custom scan dropdown when custom scan button is clicked', () => {

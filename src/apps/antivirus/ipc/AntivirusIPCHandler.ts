@@ -3,6 +3,7 @@ import { ipcMain } from 'electron';
 import { AntivirusIPCMain } from './AntivirusIPCMain';
 import { getMultiplePathsFromDialog } from '../../main/device/service';
 import { AntivirusScanService } from '../../main/antivirus/AntivirusScanService';
+import { getAntivirusManager } from '../../main/antivirus/antivirusManager';
 import configStore from '../../main/config';
 
 export class AntivirusIPCHandler {
@@ -13,6 +14,7 @@ export class AntivirusIPCHandler {
 
   private addMessagesHandlers(): void {
     this.setupAvailabilityHandler();
+    this.setupBackgroundScanEnabledHandler();
     this.setupCancelScanHandler();
     this.setupScanItemsHandler();
     this.setupAddItemsToScanHandler();
@@ -39,6 +41,27 @@ export class AntivirusIPCHandler {
     AntivirusIPCMain.handle('antivirus:cancel-scan', async () => {
       logger.debug({ tag: 'ANTIVIRUS', msg: 'Cancelling scan' });
       await AntivirusScanService.cancelScan();
+    });
+  }
+
+  private setupBackgroundScanEnabledHandler(): void {
+    AntivirusIPCMain.handle('antivirus:is-background-scan-enabled', async () => {
+      return getAntivirusManager().isBackgroundScanEnabled();
+    });
+
+    AntivirusIPCMain.handle('antivirus:set-background-scan-enabled', async (_, enabled) => {
+      try {
+        await getAntivirusManager().setBackgroundScanEnabled(Boolean(enabled));
+        return getAntivirusManager().isBackgroundScanEnabled();
+      } catch (error) {
+        logger.error({
+          tag: 'ANTIVIRUS',
+          msg: 'Error changing background scan enabled state:',
+          error,
+        });
+
+        return getAntivirusManager().isBackgroundScanEnabled();
+      }
     });
   }
 
@@ -121,6 +144,8 @@ export class AntivirusIPCHandler {
     try {
       const handlerNames = [
         'antivirus:is-available',
+        'antivirus:is-background-scan-enabled',
+        'antivirus:set-background-scan-enabled',
         'antivirus:cancel-scan',
         'antivirus:scan-items',
         'antivirus:add-items-to-scan',

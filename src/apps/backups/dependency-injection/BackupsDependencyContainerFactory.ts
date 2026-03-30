@@ -1,4 +1,5 @@
 import { Container } from 'diod';
+import { Environment } from '@internxt/inxt-js';
 import { backgroundProcessSharedInfraBuilder } from '../../shared/dependency-injection/background/backgroundProcessSharedInfraBuilder';
 import { registerFilesServices } from './virtual-drive/registerFilesServices';
 import { registerFolderServices } from './virtual-drive/registerFolderServices';
@@ -9,7 +10,9 @@ import { registerRemoteTreeServices } from './virtual-drive/registerRemoteTreeSe
 import { DependencyInjectionUserProvider } from '../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { DownloaderHandlerFactory } from '../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
 import { EnvironmentFileDownloaderHandlerFactory } from '../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
-import { Environment } from '@internxt/inxt-js';
+import LocalTreeBuilder from '../../../context/local/localTree/application/LocalTreeBuilder';
+import { RemoteTreeBuilder } from '../../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
+import { SimpleFolderCreator } from '../../../context/virtual-drive/folders/application/create/SimpleFolderCreator';
 
 export class BackupsDependencyContainerFactory {
   private static container: Container | null = null;
@@ -33,7 +36,15 @@ export class BackupsDependencyContainerFactory {
       .register(DownloaderHandlerFactory)
       .useFactory((c) => new EnvironmentFileDownloaderHandlerFactory(c.get(Environment), user.backupsBucket));
 
-    builder.registerAndUse(BackupService);
+    builder.register(BackupService).useFactory((c) => {
+      return new BackupService(
+        c.get(LocalTreeBuilder),
+        c.get(RemoteTreeBuilder),
+        c.get(SimpleFolderCreator),
+        c.get(Environment),
+        user.backupsBucket,
+      );
+    });
 
     this.container = builder.build();
 

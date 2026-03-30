@@ -16,6 +16,7 @@ export class HydrationApi {
   private static readonly PORT = 4567;
   private readonly app;
   private server: Server | null = null;
+  private readonly openSockets = new Set<import('node:net').Socket>();
 
   constructor(private readonly container: Container) {
     this.app = express();
@@ -75,20 +76,35 @@ export class HydrationApi {
         });
         resolve();
       });
+
+      this.server.on('connection', (socket) => {
+        this.openSockets.add(socket);
+        socket.once('close', () => this.openSockets.delete(socket));
+      });
     });
   }
 
   async stop(): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (this.server)
-        this.server.close((err) => {
-          if (err) {
-            reject(err);
-            return;
-          }
+      if (!this.server) {
+        resolve();
+        return;
+      }
 
-          resolve();
-        });
+      for (const socket of this.openSockets) {
+        socket.destroy();
+      }
+      this.openSockets.clear();
+
+      this.server.close((err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        this.server = null;
+        resolve();
+      });
     });
   }
 }

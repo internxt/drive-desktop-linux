@@ -13,6 +13,19 @@ export type MainProcessAntivirusMessages = {
   'antivirus:is-available': () => Promise<boolean>;
 
   /**
+   * Check if background scan is enabled by user preference
+   * @returns Promise<boolean> Whether background scan is enabled
+   */
+  'antivirus:is-background-scan-enabled': () => Promise<boolean>;
+
+  /**
+   * Enable or disable antivirus background scan
+   * @param enabled Desired enabled state
+   * @returns Promise<boolean> The applied enabled state
+   */
+  'antivirus:set-background-scan-enabled': (enabled: boolean) => Promise<boolean>;
+
+  /**
    * Cancel an ongoing antivirus scan
    * @returns Promise<void>
    */

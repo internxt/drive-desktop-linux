@@ -99,6 +99,8 @@ export interface IElectronAPI {
   };
   antivirus: {
     isAvailable: () => Promise<boolean>;
+    isBackgroundScanEnabled: () => Promise<boolean>;
+    setBackgroundScanEnabled: (enabled: boolean) => Promise<boolean>;
     isDefenderActive: () => Promise<boolean>;
     scanItems: (folderPaths?: { path: string; itemName: string; isDirectory: boolean }[]) => Promise<void>;
     scanSystem: () => Promise<void>;
@@ -125,12 +127,21 @@ export interface IElectronAPI {
     removeInfectedFiles: (infectedFiles: string[]) => Promise<void>;
     cancelScan: () => Promise<void>;
   };
+  chooseSyncRootWithDialog(): Promise<string | null>;
   getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
   onBackupProgress(func: (value: number) => void): () => void;
   startRemoteSync(): Promise<void>;
+  getUpdateStatus(): Promise<{ version: string } | null>;
+  onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
+  getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
+  onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
+
+  pathChanged(path: string): void;
+  isUserLoggedIn(): Promise<boolean>;
+  onUserLoggedInChanged(func: (value: boolean) => void): void;
 }
 
 declare global {

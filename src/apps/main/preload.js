@@ -47,21 +47,6 @@ contextBridge.exposeInMainWorld('electron', {
   getUser() {
     return ipcRenderer.invoke('get-user');
   },
-  startSyncProcess() {
-    return ipcRenderer.send('start-sync-process');
-  },
-  stopSyncProcess() {
-    return ipcRenderer.send('stop-sync-process');
-  },
-  getSyncStatus() {
-    return ipcRenderer.invoke('get-sync-status');
-  },
-  onSyncStatusChanged(func) {
-    const eventName = 'sync-status-changed';
-    const callback = (_, v) => func(v);
-    ipcRenderer.on(eventName, callback);
-    return () => ipcRenderer.removeListener(eventName, callback);
-  },
   onSyncStopped(func) {
     const eventName = 'sync-stopped';
     const callback = (_, v) => func(v);
@@ -319,6 +304,23 @@ contextBridge.exposeInMainWorld('electron', {
     },
 
     /**
+     * Check if background scan is enabled by user preference
+     * @returns {Promise<boolean>} Whether background scan is enabled
+     */
+    isBackgroundScanEnabled: () => {
+      return ipcRenderer.invoke('antivirus:is-background-scan-enabled');
+    },
+
+    /**
+     * Enable or disable background scan
+     * @param {boolean} enabled Desired enabled state
+     * @returns {Promise<boolean>} Applied enabled state
+     */
+    setBackgroundScanEnabled: (enabled) => {
+      return ipcRenderer.invoke('antivirus:set-background-scan-enabled', enabled);
+    },
+
+    /**
      * Scan items for viruses
      * @param {Array<{path: string, itemName: string, isDirectory: boolean}>} items Items to scan
      * @returns {Promise<void>}
@@ -406,5 +408,14 @@ contextBridge.exposeInMainWorld('electron', {
       return () => ipcRenderer.removeListener(eventName, callbackWrapper);
     },
     getDiskSpace: () => ipcRenderer.invoke('cleaner:get-disk-space'),
+  },
+  getUpdateStatus() {
+    return ipcRenderer.invoke('get-update-status');
+  },
+  onUpdateAvailable(callback) {
+    const eventName = 'update-available';
+    const callbackWrapper = (_, info) => callback(info);
+    ipcRenderer.on(eventName, callbackWrapper);
+    return () => ipcRenderer.removeListener(eventName, callbackWrapper);
   },
 });

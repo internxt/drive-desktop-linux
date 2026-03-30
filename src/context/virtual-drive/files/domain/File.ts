@@ -227,28 +227,12 @@ export class File extends AggregateRoot {
     }
   }
 
-  hasParent(id: number): boolean {
-    return this.folderId === id;
-  }
-
   isFolder(): this is Folder {
     return false;
   }
 
   isFile(): this is File {
     return true;
-  }
-
-  isThumbnable(): boolean {
-    return this._path.isThumbnable();
-  }
-
-  mimeType() {
-    return this._path.mimeType();
-  }
-
-  hasStatus(status: FileStatuses): boolean {
-    return this._status.is(status);
   }
 
   attributes(): FileAttributes {

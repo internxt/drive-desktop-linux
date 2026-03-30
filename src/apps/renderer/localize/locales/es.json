@@ -34,57 +34,30 @@
   "onboarding": {
     "slides": {
       "welcome": {
-        "title": "¡Bienvenido a Internxt Drive!",
-        "description": "Empieza haciendo una copia de seguridad de todos tus archivos y carpetas importantes en la barra lateral del buscador.",
+        "title": "Internxt Desktop",
+        "description": "¡Bienvenido a Internxt!\n\nHaz copias de seguridad de tus archivos con Drive, protégelos contra malware con Antivirus y optimiza el rendimiento con Cleaner — todo mientras mantienes tu privacidad protegida.",
         "take-tour": "Hacer recorrido"
       },
-      "files-organization": {
-        "title": "Accede y organiza todos tus archivos almacenados desde la barra lateral",
-        "description": "Tu carpeta personal de Internxt Drive se encuentra en tu barra lateral de {{platform_app}}."
-      },
-      "available-online": {
-        "title": "Ahorra espacio en tu dispositivo con la descarga inteligente",
-        "description": "Guarda los archivos no esenciales como solo online para ahorrar espacio en la unidad local.",
-        "description-2": "Al guardarlos de esta forma, los archivos se eliminan automáticamente de tu dispositivo y se suben a la nube."
-      },
-      "available-offline": {
-        "title": "Sincronización entre dispositivos y acceso a archivos sin conexión",
-        "description": "Almacena tus archivos esenciales como disponibles sin conexión para tenerlos siempre a mano.",
-        "description-2": "Al guardar como disponibles sin conexión, los archivos se almacenan localmente y se sincronizan automáticamente en todos tus dispositivos."
-      },
-      "context-menu": {
-        "title": "Organiza tus archivos con un solo clic",
-        "description": "Basta con hacer clic con el botón derecho en uno o varios archivos y seleccionar cómo deseas almacenarlos.",
-        "list-1": "Etiqueta los archivos disponibles sin conexión para acceder a ellos en cualquier momento, con o sin internet",
-        "list-2": "Etiqueta los archivos sólo en línea para ahorrar espacio físico en el disco duro"
+      "drive": {
+        "title": "Drive",
+        "description": "Accede a todos tus archivos desde la carpeta de Internxt Drive en la barra lateral de {{platform_app}}.\n\nElige ahorrar espacio con archivos disponibles solo en línea o mantener los esenciales sin conexión — todo permanece seguro y sincronizado en todos tus dispositivos."
       },
       "antivirus": {
-        "title": "Mantén tu ordenador protegido contra virus",
-        "description": "La aplicación de escritorio de Internxt ahora también cuenta con el nuevo Internxt Antivirus, con el que puedes escanear y eliminar cualquier posible malware de tu dispositivo."
+        "title": "Antivirus",
+        "description": "Protege tu dispositivo contra el malware y las amenazas en línea.\n\nInternxt Antivirus te mantiene seguro con análisis en tiempo real y una seguridad que prioriza tu privacidad."
       },
       "backups": {
-        "title": "Haz copias de seguridad y protege tus archivos con un par de clics",
-        "description": "Realiza copias de seguridad de tus archivos con solo seleccionar las carpetas que desea proteger.",
-        "description-2": "Programa tus copias de seguridad y mantén tus archivos seguros y actualizados en todos tus dispositivos.",
-        "setup-backups": "Configurar"
-      },
-      "antivirus": {
-        "title": "Protege tus archivos con un antivirus",
-        "description": "Protege tus archivos con un antivirus para evitar cualquier amenaza de virus o malware.",
-        "description-2": "El antivirus de Internxt Drive te permite proteger tus archivos y carpetas contra cualquier amenaza de virus o malware."
+        "title": "Backup",
+        "description": "Con la función de copia de seguridad mejorada de Internxt, ahora puedes hacer copias seguras de tus carpetas en la nube para liberar espacio localmente.\n\nTambién puedes ajustar la frecuencia de las copias de seguridad según tus necesidades."
       },
       "cleaner": {
-        "title": "Libera espacio localmente y optimiza el rendimiento de tu dispositivo.",
-        "description": "Nuestro Cleaner encuentra y elimina archivos innecesarios para que tu dispositivo funcione sin problemas."
+        "title": "Cleaner",
+        "description": "Libera espacio localmente y optimiza el rendimiento de tu dispositivo.\n\nNuestro limpiador detecta y elimina archivos innecesarios para que tu dispositivo funcione sin problemas."
       },
       "onboarding-completed": {
         "title": "Ya está todo listo, ¡disfruta de tu privacidad!",
-        "backups-completed": {
-          "title": "{{folders}} carpetas añadidas a las copias de seguridad",
-          "description": "Añade más carpetas y programa copias de seguridad automáticas en Configuración"
-        },
         "desktop-ready": {
-          "title": "Internxt Drive está listo",
+          "title": "Internxt está listo",
           "description": "Accede a tus archivos almacenados desde la barra lateral de tu {{platform_phrase}}."
         }
       }
@@ -94,6 +67,7 @@
       "continue": "Continuar",
       "open-drive": "Abrir Internxt Drive",
       "skip": "Saltar",
+      "new": "Nuevo",
       "platform-phrase": {
         "windows": "explorador de archivos",
         "linux": "buscador de archivos",
@@ -151,8 +125,10 @@
         "support": "Ayuda",
         "logout": "Cerrar sesión",
         "quit": "Salir",
+        "antivirus": "Antivirus",
         "cleaner": "Cleaner",
-        "new": "Nuevo"
+        "new": "Nuevo",
+        "sync": "Sincronizar"
       }
     },
     "body": {
@@ -211,6 +187,10 @@
       "button": "Montar"
     },
     "banners": {
+      "update-available": {
+        "body": "Hay una nueva versión de Internxt disponible.",
+        "action": "Descargar actualización"
+      },
       "discover-backups": {
         "title": " COPIAS DE SEGURIDAD DE INTERNXT",
         "body": "Mantén una copia de seguridad de tus carpetas y archivos más importantes.",
@@ -294,6 +274,7 @@
         "subtitle": "Por favor, actualiza tu plan para usar esta función.",
         "action": "Actualizar"
       },
+      "title": "Carpetas de copia de seguridad",
       "add-folders": "Haz clic en + para hacer una copia de seguridad de tus carpetas",
       "selected-folder_one": "{{count}} carpeta",
       "selected-folder_other": "{{count}} carpetas",
@@ -358,6 +339,18 @@
         "description": "Por favor, desactiva Windows Defender para poder usar Internxt Antivirus. Para hacerlo, abre Seguridad de Windows > Protección contra virus y amenazas > Administrar configuración > desactiva la Protección en tiempo real.",
         "retry": "Reintentar",
         "cancel": "Cancelar"
+      },
+      "realtimeProtection": {
+        "title": "Protección en tiempo real",
+        "infoAriaLabel": "Acerca de la protección en tiempo real",
+        "tooltip": "Se ejecuta en segundo plano para detectar amenazas automáticamente.",
+        "disableDialog": {
+          "title": "¿Desactivar la protección en tiempo real?",
+          "description": "Tu dispositivo dejará de analizarse automáticamente en busca de amenazas.",
+          "secondary": "Podrás seguir ejecutando análisis manuales en cualquier momento.",
+          "cancel": "Cancelar",
+          "confirm": "Desactivar"
+        }
       },
       "scanOptions": {
         "stopScan": "Detener escaneo",
@@ -445,6 +438,12 @@
         "cancelButton": "Cancelar",
         "confirmButton": "Eliminar archivos"
       },
+      "cleanupConfirmDialogView": {
+        "title": "Confirmar limpieza",
+        "description": "Esta acción eliminará de forma permanente los archivos seleccionados de tu dispositivo. Esta acción no se puede deshacer. Confirma para continuar.",
+        "cancelButton": "Cancelar",
+        "confirmButton": "Eliminar archivos"
+      },
       "cleaningView": {
         "cleaningProcess": {
           "title": "Limpiando...",
@@ -478,7 +477,7 @@
     },
     "short-error-messages": {
       "unknown": "Error desconocido",
-      "emtpy-file": "Archivos vacios no son soportados",
+      "empty-file": "No se admiten archivos vacíos.",
       "bad-response": "Error de los servidores de Internxt",
       "no-remote-connection": "No pudimos conectar con los servidores de Internxt",
       "no-internet-connection": "No hay conexión a Internet",

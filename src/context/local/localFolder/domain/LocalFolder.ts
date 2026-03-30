@@ -19,10 +19,6 @@ export class LocalFolder extends AggregateRoot {
     return this._path;
   }
 
-  get modificationTime(): number {
-    return this._modificationTime;
-  }
-
   basedir(): string {
     const dirname = path.posix.dirname(this._path);
     if (dirname === '.') {

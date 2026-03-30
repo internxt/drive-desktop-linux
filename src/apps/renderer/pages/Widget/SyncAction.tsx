@@ -5,7 +5,6 @@ import Spinner from '../../assets/spinner.svg';
 import Button from '../../components/Button';
 import { useTranslationContext } from '../../context/LocalContext';
 import useVirtualDriveStatus from '../../hooks/useVirtualDriveStatus';
-import useSyncStatus from '../../hooks/useSyncStatus';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus/useOnlineStatus';
 import { useUsage } from '../../context/UsageContext/useUsage';
 
@@ -14,9 +13,8 @@ export default function SyncAction(props: { syncStatus: SyncStatus }) {
   const isOnLine = useOnlineStatus();
   const { usage, status } = useUsage();
   const { virtualDriveStatus } = useVirtualDriveStatus();
-  const { syncStatus } = useSyncStatus();
 
-  const isSyncStopped = virtualDriveStatus && syncStatus && syncStatus === 'FAILED';
+  const isSyncStopped = virtualDriveStatus && props.syncStatus && props.syncStatus === 'FAILED';
 
   const handleOpenUpgrade = async () => {
     try {

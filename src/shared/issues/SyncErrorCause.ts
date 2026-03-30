@@ -9,6 +9,8 @@ const FatalErrors = [
 export type FatalError = (typeof FatalErrors)[number];
 
 const NonFatalErrors = [
+  'ABORTED',
+  'RATE_LIMITED',
   'NOT_EXISTS',
   'BAD_RESPONSE',
   'EMPTY_FILE',
@@ -20,6 +22,7 @@ const NonFatalErrors = [
   'COULD_NOT_ENCRYPT_NAME',
   'BAD_REQUEST',
   'UNKNOWN',
+  'INTERNAL_SERVER_ERROR',
 ] as const;
 
 const Errors = [...FatalErrors, ...NonFatalErrors] as const;

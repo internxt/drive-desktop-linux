@@ -2,7 +2,7 @@ import Header from './Header';
 import SyncAction from './SyncAction';
 import SyncErrorBanner from './SyncErrorBanner';
 import SyncInfo from './SyncInfo';
-import useSyncStatus from '../../hooks/useSyncStatus';
+import { useSyncContext } from '../../context/SyncContext';
 import { SyncFailed } from './SyncFailed';
 import { useEffect, useState } from 'react';
 import useVirtualDriveStatus from '../../hooks/useVirtualDriveStatus';
@@ -16,7 +16,7 @@ const handleRetrySync = () => {
 };
 
 export default function Widget() {
-  const { syncStatus } = useSyncStatus();
+  const { syncStatus } = useSyncContext();
   const [displayErrorInWidget, setDisplayErrorInWidget] = useState(false);
 
   const { virtualDriveStatus } = useVirtualDriveStatus();

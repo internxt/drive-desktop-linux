@@ -34,12 +34,16 @@ export type Device = {
 };
 
 export async function getDevices(): Promise<Array<Device>> {
-  const response = await driveServerModule.backup.getDevices();
-  if (response.isLeft()) {
+  try {
+    const response = await driveServerModule.backup.getDevices();
+    if (response.isLeft()) {
+      return [];
+    } else {
+      const devices = response.getRight();
+      return devices.filter(({ removed, hasBackups }) => !removed && hasBackups).map((device) => device);
+    }
+  } catch {
     return [];
-  } else {
-    const devices = response.getRight();
-    return devices.filter(({ removed, hasBackups }) => !removed && hasBackups).map((device) => device);
   }
 }
 

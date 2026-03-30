@@ -1,14 +1,12 @@
-import { SyncStatus } from '../../../context/desktop/sync/domain/SyncStatus';
-import useSyncStatus from './useSyncStatus';
+import { useEffect } from 'react';
+import { useSyncContext } from '../context/SyncContext';
 
 export function useOnSyncRunning(fn: () => void) {
-  function isRunning(status: SyncStatus) {
-    return status === 'RUNNING';
-  }
+  const { syncStatus } = useSyncContext();
 
-  useSyncStatus((status) => {
-    if (!isRunning(status)) return;
-
-    fn();
-  });
+  useEffect(() => {
+    if (syncStatus === 'RUNNING') {
+      fn();
+    }
+  }, [syncStatus]);
 }

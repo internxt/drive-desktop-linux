@@ -3,6 +3,7 @@ import ConfigStore, { SavedConfig } from '../config';
 export const savedConfigFields = [
   'lastOnboardingShown',
   'backupsEnabled',
+  'backgroundScanEnabled',
   'backupInterval',
   'lastBackup',
   'syncRoot',
@@ -21,6 +22,7 @@ export function saveConfig({ uuid }: { uuid: string }) {
   const configToSave: SavedConfig = {
     lastOnboardingShown: ConfigStore.get('lastOnboardingShown'),
     backupsEnabled: ConfigStore.get('backupsEnabled'),
+    backgroundScanEnabled: ConfigStore.get('backgroundScanEnabled'),
     backupInterval: ConfigStore.get('backupInterval'),
     lastBackup: ConfigStore.get('lastBackup'),
     syncRoot: ConfigStore.get('syncRoot'),

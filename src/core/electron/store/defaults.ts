@@ -12,6 +12,7 @@ export const defaults: AppStore = {
 
   // Sync / backup
   backupsEnabled: false,
+  backgroundScanEnabled: true,
   backupInterval: 86_400_000, // 24h
   lastBackup: -1,
   syncRoot: '',
@@ -43,6 +44,7 @@ export const defaults: AppStore = {
 export const fieldsToSave: Array<keyof AppStore> = [
   'lastOnboardingShown',
   'backupsEnabled',
+  'backgroundScanEnabled',
   'backupInterval',
   'lastBackup',
   'syncRoot',
