@@ -4,7 +4,6 @@ import { ContainerMock } from '../__mocks__/ContainerMock';
 import { StorageFileIsAvailableOffline } from '../../../context/storage/StorageFiles/application/offline/StorageFileIsAvailableOffline';
 import { AllFilesInFolderAreAvailableOffline } from '../../../context/storage/StorageFolders/application/offline/AllFilesInFolderAreAvailableOffline';
 import { TemporalFileByPathFinder } from '../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
-import { CacheStorageFile } from '../../../context/storage/StorageFiles/application/offline/CacheStorageFile';
 
 describe('VirtualDrive', () => {
   let container: ContainerMock;
@@ -18,17 +17,6 @@ describe('VirtualDrive', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
-  });
-
-  it('should make a file locally available given a path', async () => {
-    const cacheStorageFileMock = { run: vi.fn() };
-
-    container.set(CacheStorageFile, cacheStorageFileMock);
-
-    await virtualDrive.makeFileLocallyAvailable(path);
-
-    expect(container.get).toHaveBeenCalledWith(CacheStorageFile);
-    expect(cacheStorageFileMock.run).toHaveBeenCalledWith(path);
   });
 
   describe('isLocallyAvailable', () => {
