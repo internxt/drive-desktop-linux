@@ -3,13 +3,13 @@ import { broadcastToWindows } from '../../../apps/main/windows';
 import {
   BackupProgressState,
   createInitialState,
-  initializeWeights,
+  initializeBackupProgressWeights,
   setCurrentBackupId as setCurrentBackupIdFn,
   markBackupAsCompleted as markBackupAsCompletedFn,
   incrementProcessed as incrementProcessedFn,
   getPercentage as getPercentageFn,
   resetState,
-} from './backup-progress-state';
+} from './initializeBackupProgressWeights';
 
 export class BackupProgressTracker {
   private state: BackupProgressState;
@@ -18,8 +18,8 @@ export class BackupProgressTracker {
     this.state = createInitialState();
   }
 
-  initializeWeights(backupIds: string[], fileCounts: ReadonlyMap<string, number>): void {
-    this.state = initializeWeights(this.state, backupIds, fileCounts);
+  initializeBackupProgressWeights(backupIds: string[], fileCounts: ReadonlyMap<string, number>): void {
+    this.state = initializeBackupProgressWeights(this.state, backupIds, fileCounts);
     logger.debug({
       tag: 'BACKUPS',
       msg: 'Backup progress weights initialized',

@@ -18,4 +18,10 @@ export class LocalFileMother {
       ...partial,
     });
   }
+
+  static array(count: number, override?: (index: number) => Partial<LocalFileAttributes>): LocalFile[] {
+    return Array.from({ length: count }, (_, i) =>
+      LocalFileMother.fromPartial(override ? override(i) : {}),
+    );
+  }
 }

@@ -7,7 +7,7 @@ import { backupsConfig } from '.';
 import { BackupService } from '../../../apps/backups/BackupService';
 import { BackupsDependencyContainerFactory } from '../../../apps/backups/dependency-injection/BackupsDependencyContainerFactory';
 import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
-import { precalculateBackupItemCount } from './precalculate-backup-item-count';
+import { calculateBackupsItemsCount } from './calculate-backups-items-count';
 
 export async function launchBackupProcesses(
   tracker: BackupProgressTracker,
@@ -16,79 +16,67 @@ export async function launchBackupProcesses(
 ) {
   const suspensionBlockId = powerSaveBlocker.start('prevent-display-sleep');
 
-  try {
-    const backups = await backupsConfig.obtainBackupsInfo();
-    const container = await BackupsDependencyContainerFactory.build();
-    const backupService = container.get(BackupService);
+  const backups = await backupsConfig.obtainBackupsInfo();
+  const container = await BackupsDependencyContainerFactory.build();
+  const backupService = container.get(BackupService);
 
+  logger.debug({
+    tag: 'BACKUPS',
+    msg: 'Starting backup item count precalculation',
+    count: backups.length,
+  });
+
+  const itemCounts = await calculateBackupsItemsCount({ backups, signal, container });
+
+  const backupIds = backups.map((b) => b.folderUuid);
+  tracker.initializeBackupProgressWeights(backupIds, itemCounts);
+
+  logger.debug({
+    tag: 'BACKUPS',
+    msg: 'Starting backup execution with weighted progress',
+  });
+
+  for (const backupInfo of backups) {
     logger.debug({
       tag: 'BACKUPS',
-      msg: 'Starting backup item count precalculation',
-      count: backups.length,
+      msg: 'Backup info obtained',
+      pathname: backupInfo.pathname,
     });
 
-    const itemCounts = new Map<string, number>();
-
-    for (const backup of backups) {
-      if (signal.aborted) {
-        logger.debug({ tag: 'BACKUPS', msg: 'Precalculation aborted' });
-        break;
-      }
-
-      const count = await precalculateBackupItemCount(backup, container);
-      itemCounts.set(backup.folderUuid, count);
+    if (signal.aborted) {
+      logger.debug({ tag: 'BACKUPS', msg: 'Backup execution aborted' });
+      break;
     }
 
-    const backupIds = backups.map((b) => b.folderUuid);
-    tracker.initializeWeights(backupIds, itemCounts);
+    tracker.setCurrentBackupId(backupInfo.folderUuid);
 
-    logger.debug({
-      tag: 'BACKUPS',
-      msg: 'Starting backup execution with weighted progress',
-    });
+    const result = await backupService.runWithRetry(backupInfo, signal, tracker);
 
-    for (const backupInfo of backups) {
+    tracker.markBackupAsCompleted(backupInfo.folderUuid);
+
+    if (result.isLeft()) {
+      const error = result.getLeft();
       logger.debug({
         tag: 'BACKUPS',
-        msg: 'Backup info obtained',
+        msg: 'Backup failed',
         pathname: backupInfo.pathname,
+        error: error.cause,
       });
 
-      if (signal.aborted) {
-        logger.debug({ tag: 'BACKUPS', msg: 'Backup execution aborted' });
-        break;
-      }
-
-      tracker.setCurrentBackupId(backupInfo.folderUuid);
-
-      const result = await backupService.runWithRetry(backupInfo, signal, tracker);
-
-      tracker.markBackupAsCompleted(backupInfo.folderUuid);
-
-      if (result.isLeft()) {
-        const error = result.getLeft();
-        logger.debug({
-          tag: 'BACKUPS',
-          msg: 'Backup failed',
-          pathname: backupInfo.pathname,
+      if (error instanceof DriveDesktopError && 'cause' in error && error.cause && isSyncError(error.cause)) {
+        errors.add(backupInfo.folderId, {
+          name: backupInfo.name,
           error: error.cause,
         });
-
-        if (error instanceof DriveDesktopError && 'cause' in error && error.cause && isSyncError(error.cause)) {
-          errors.add(backupInfo.folderId, {
-            name: backupInfo.name,
-            error: error.cause,
-          });
-        }
       }
-
-      logger.debug({
-        tag: 'BACKUPS',
-        msg: 'Backup execution completed',
-        pathname: backupInfo.pathname,
-      });
     }
-  } finally {
-    powerSaveBlocker.stop(suspensionBlockId);
+
+    logger.debug({
+      tag: 'BACKUPS',
+      msg: 'Backup execution completed',
+      pathname: backupInfo.pathname,
+    });
   }
+
+  powerSaveBlocker.stop(suspensionBlockId);
 }

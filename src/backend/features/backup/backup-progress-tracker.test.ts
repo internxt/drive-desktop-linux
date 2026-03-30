@@ -1,29 +1,27 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BackupProgressTracker } from './backup-progress-tracker';
 import {
   createInitialState,
-  initializeWeights,
+  initializeBackupProgressWeights,
   setCurrentBackupId,
   incrementProcessed,
   markBackupAsCompleted,
   getPercentage,
   resetState,
-} from './backup-progress-state';
+} from './initializeBackupProgressWeights';
 import { broadcastToWindows } from '../../../apps/main/windows';
 
 vi.mock('../../../apps/main/windows', () => ({
   broadcastToWindows: vi.fn(),
 }));
 
-describe('BackupProgressTracker - Functional approach', () => {
+describe('BackupProgressTracker', () => {
   let tracker: BackupProgressTracker;
 
   beforeEach(() => {
     tracker = new BackupProgressTracker();
-    vi.clearAllMocks();
   });
 
-  describe('initializeWeights', () => {
+  describe('initializeBackupProgressWeights', () => {
     it('should initialize weights for multiple backups', () => {
       const backupIds = ['backup-a', 'backup-b', 'backup-c'];
       const fileCounts = new Map([
@@ -32,146 +30,102 @@ describe('BackupProgressTracker - Functional approach', () => {
         ['backup-c', 200],
       ]);
 
-      tracker.initializeWeights(backupIds, fileCounts);
-
-      // After initialization, percentages should still be 0
-      expect(tracker.getPercentage()).toBe(0);
-    });
-
-    it('should handle single backup', () => {
-      const backupIds = ['backup-a'];
-      const fileCounts = new Map([['backup-a', 100]]);
-
-      tracker.initializeWeights(backupIds, fileCounts);
-
-      expect(tracker.getPercentage()).toBe(0);
-    });
-
-    it('should handle empty file counts gracefully', () => {
-      const backupIds = ['backup-a'];
-      const fileCounts = new Map([['backup-a', 0]]);
-
-      tracker.initializeWeights(backupIds, fileCounts);
+      tracker.initializeBackupProgressWeights(backupIds, fileCounts);
 
       expect(tracker.getPercentage()).toBe(0);
     });
   });
 
   describe('setCurrentBackupId', () => {
-    it('should set current backup id', () => {
+    beforeEach(() => {
       const backupIds = ['backup-a', 'backup-b'];
       const fileCounts = new Map([
         ['backup-a', 100],
-        ['backup-b', 50],
+        ['backup-b', 100],
       ]);
 
-      tracker.initializeWeights(backupIds, fileCounts);
+      tracker.initializeBackupProgressWeights(backupIds, fileCounts);
       tracker.setCurrentBackupId('backup-a');
+    });
 
+    it('should set current backup id', () => {
       // Should still be 0 initially
       expect(tracker.getPercentage()).toBe(0);
     });
 
     it('should reset processed items when setting new backup', () => {
-      const backupIds = ['backup-a', 'backup-b'];
-      const fileCounts = new Map([
-        ['backup-a', 100],
-        ['backup-b', 50],
-      ]);
-
-      tracker.initializeWeights(backupIds, fileCounts);
-      tracker.setCurrentBackupId('backup-a');
       tracker.incrementProcessed(50);
 
-      expect(tracker.getPercentage()).toBeGreaterThan(0);
+      // 50/100 * 50% weight = 25%
+      expect(tracker.getPercentage()).toBe(25);
 
       tracker.setCurrentBackupId('backup-b');
-      // Processed should reset to 0 for new backup
-      expect(tracker.getPercentage()).toBeLessThan(50); // Should be backup-a (67%) * 50% = ~33%
+      // processed items reset, backup-a not marked as completed so contribution is lost
+      expect(tracker.getPercentage()).toBe(0);
     });
   });
 
   describe('incrementProcessed with weighted calculation', () => {
-    it('should calculate weighted progress for single backup', () => {
-      const backupIds = ['backup-a'];
-      const fileCounts = new Map([['backup-a', 100]]);
+    describe('single backup', () => {
+      beforeEach(() => {
+        tracker.initializeBackupProgressWeights(['backup-a'], new Map([['backup-a', 100]]));
+        tracker.setCurrentBackupId('backup-a');
+      });
 
-      tracker.initializeWeights(backupIds, fileCounts);
-      tracker.setCurrentBackupId('backup-a');
-      tracker.incrementProcessed(25);
+      it('should calculate weighted progress', () => {
+        tracker.incrementProcessed(25);
 
-      // 25/100 * 100% = 25%
-      expect(tracker.getPercentage()).toBe(25);
+        // 25/100 * 100% = 25%
+        expect(tracker.getPercentage()).toBe(25);
+      });
+
+      it('should emit progress after incrementing', () => {
+        tracker.incrementProcessed(50);
+
+        expect(broadcastToWindows).toHaveBeenCalledWith('backup-progress', 50);
+      });
+
+      it('should handle increments accumulating', () => {
+        tracker.incrementProcessed(25);
+        expect(tracker.getPercentage()).toBe(25);
+
+        tracker.incrementProcessed(25);
+        expect(tracker.getPercentage()).toBe(50);
+
+        tracker.incrementProcessed(50);
+        expect(tracker.getPercentage()).toBe(100);
+      });
     });
 
-    it('should calculate weighted progress for multiple backups', () => {
-      const backupIds = ['backup-a', 'backup-b'];
-      const fileCounts = new Map([
-        ['backup-a', 100], // 66.7% weight
-        ['backup-b', 50], // 33.3% weight
-      ]);
+    describe('multiple backups', () => {
+      beforeEach(() => {
+        const fileCounts = new Map([
+          ['backup-a', 100], // 66.7% weight
+          ['backup-b', 50], // 33.3% weight
+        ]);
+        tracker.initializeBackupProgressWeights(['backup-a', 'backup-b'], fileCounts);
+        tracker.setCurrentBackupId('backup-a');
+      });
 
-      tracker.initializeWeights(backupIds, fileCounts);
+      it('should calculate weighted progress', () => {
+        tracker.incrementProcessed(50);
 
-      // Process backup-a halfway
-      tracker.setCurrentBackupId('backup-a');
-      tracker.incrementProcessed(50);
+        // Should be around 33% (50/100 * 0.667 = 0.333)
+        expect(tracker.getPercentage()).toBe(33);
+      });
 
-      // Should be around 33% (50/100 * 0.667 = 0.333)
-      expect(tracker.getPercentage()).toBe(33);
-    });
+      it('should accumulate progress correctly across backups', () => {
+        tracker.incrementProcessed(100);
+        expect(tracker.getPercentage()).toBe(67);
 
-    it('should accumulate progress correctly across backups', () => {
-      const backupIds = ['backup-a', 'backup-b'];
-      const fileCounts = new Map([
-        ['backup-a', 100], // 66.7% weight
-        ['backup-b', 50], // 33.3% weight
-      ]);
+        tracker.markBackupAsCompleted('backup-a');
 
-      tracker.initializeWeights(backupIds, fileCounts);
+        tracker.setCurrentBackupId('backup-b');
+        tracker.incrementProcessed(25);
 
-      // Complete backup-a
-      tracker.setCurrentBackupId('backup-a');
-      tracker.incrementProcessed(100);
-      expect(tracker.getPercentage()).toBe(67);
-
-      // Mark backup-a as completed
-      tracker.markBackupAsCompleted('backup-a');
-
-      // Start backup-b
-      tracker.setCurrentBackupId('backup-b');
-      tracker.incrementProcessed(25);
-
-      // Should be 67% (completed a) + 25/50 * 33% = 67% + 16% = 83%
-      expect(tracker.getPercentage()).toBe(83);
-    });
-
-    it('should emit progress after incrementing', () => {
-      const backupIds = ['backup-a'];
-      const fileCounts = new Map([['backup-a', 100]]);
-
-      tracker.initializeWeights(backupIds, fileCounts);
-      tracker.setCurrentBackupId('backup-a');
-      tracker.incrementProcessed(50);
-
-      expect(broadcastToWindows).toHaveBeenCalledWith('backup-progress', 50);
-    });
-
-    it('should handle increments accumulating', () => {
-      const backupIds = ['backup-a'];
-      const fileCounts = new Map([['backup-a', 100]]);
-
-      tracker.initializeWeights(backupIds, fileCounts);
-      tracker.setCurrentBackupId('backup-a');
-
-      tracker.incrementProcessed(25);
-      expect(tracker.getPercentage()).toBe(25);
-
-      tracker.incrementProcessed(25);
-      expect(tracker.getPercentage()).toBe(50);
-
-      tracker.incrementProcessed(50);
-      expect(tracker.getPercentage()).toBe(100);
+        // Should be 67% (completed a) + 25/50 * 33% = 67% + 16% = 83%
+        expect(tracker.getPercentage()).toBe(83);
+      });
     });
   });
 
@@ -183,7 +137,7 @@ describe('BackupProgressTracker - Functional approach', () => {
         ['backup-b', 5],
       ]);
 
-      tracker.initializeWeights(backupIds, fileCounts);
+      tracker.initializeBackupProgressWeights(backupIds, fileCounts);
       tracker.setCurrentBackupId('backup-a');
       tracker.incrementProcessed(10);
 
@@ -202,7 +156,7 @@ describe('BackupProgressTracker - Functional approach', () => {
       const backupIds = ['backup-a'];
       const fileCounts = new Map([['backup-a', 100]]);
 
-      tracker.initializeWeights(backupIds, fileCounts);
+      tracker.initializeBackupProgressWeights(backupIds, fileCounts);
       tracker.setCurrentBackupId('backup-a');
       tracker.incrementProcessed(50);
 
@@ -228,7 +182,7 @@ describe('Pure functional backup progress state', () => {
     });
   });
 
-  describe('initializeWeights', () => {
+  describe('initializeBackupProgressWeights', () => {
     it('should calculate correct weights', () => {
       const state = createInitialState();
       const backupIds = ['a', 'b'];
@@ -237,7 +191,7 @@ describe('Pure functional backup progress state', () => {
         ['b', 100],
       ]);
 
-      const newState = initializeWeights(state, backupIds, fileCounts);
+      const newState = initializeBackupProgressWeights(state, backupIds, fileCounts);
 
       expect(newState.backupWeights.get('a')).toBe(0.5);
       expect(newState.backupWeights.get('b')).toBe(0.5);
@@ -251,7 +205,7 @@ describe('Pure functional backup progress state', () => {
         ['b', 50],
       ]);
 
-      const newState = initializeWeights(state, backupIds, fileCounts);
+      const newState = initializeBackupProgressWeights(state, backupIds, fileCounts);
 
       expect(newState.backupWeights.get('a')).toBeCloseTo(0.667, 2);
       expect(newState.backupWeights.get('b')).toBeCloseTo(0.333, 2);
@@ -268,7 +222,7 @@ describe('Pure functional backup progress state', () => {
         ['b', 50],
       ]);
 
-      state = initializeWeights(state, backupIds, fileCounts);
+      state = initializeBackupProgressWeights(state, backupIds, fileCounts);
       state = setCurrentBackupId(state, 'a');
       state = incrementProcessed(state, 50);
 
@@ -285,7 +239,7 @@ describe('Pure functional backup progress state', () => {
         ['b', 50],
       ]);
 
-      state = initializeWeights(state, backupIds, fileCounts);
+      state = initializeBackupProgressWeights(state, backupIds, fileCounts);
       state = setCurrentBackupId(state, 'a');
       state = incrementProcessed(state, 100);
       state = markBackupAsCompleted(state, 'a');

@@ -14,7 +14,7 @@ export const createInitialState = (): BackupProgressState => ({
   completedBackups: new Set(),
 });
 
-export const initializeWeights = (
+export const initializeBackupProgressWeights = (
   state: BackupProgressState,
   backupIds: string[],
   fileCounts: ReadonlyMap<string, number>,
@@ -86,6 +86,6 @@ export const initializeAndSetBackup = (
   fileCounts: ReadonlyMap<string, number>,
   firstBackupId: string,
 ): BackupProgressState => {
-  const weightedState = initializeWeights(state, backupIds, fileCounts);
+  const weightedState = initializeBackupProgressWeights(state, backupIds, fileCounts);
   return setCurrentBackupId(weightedState, firstBackupId);
 };
