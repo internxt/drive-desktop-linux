@@ -30,10 +30,6 @@ export class LocalFile extends AggregateRoot {
     return this._size.value;
   }
 
-  holdsSubpath(otherPath: string): boolean {
-    return this._path.endsWith(otherPath);
-  }
-
   isEmpty(): boolean {
     return this._size.isEmpty();
   }
@@ -48,15 +44,6 @@ export class LocalFile extends AggregateRoot {
 
   isBig(): boolean {
     return this._size.isBig();
-  }
-
-  basedir(): string {
-    const dirname = path.posix.dirname(this._path);
-    if (dirname === '.') {
-      return path.posix.sep;
-    }
-
-    return dirname;
   }
 
   nameWithExtension() {

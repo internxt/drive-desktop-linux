@@ -1,6 +1,4 @@
 import { ContainerBuilder } from 'diod';
-import { SimpleFileCreator } from '../../../../context/virtual-drive/files/application/create/SimpleFileCreator';
-import { SimpleFileOverrider } from '../../../../context/virtual-drive/files/application/override/SimpleFileOverrider';
 import { RemoteFileSystem } from '../../../../context/virtual-drive/files/domain/file-systems/RemoteFileSystem';
 import { SDKRemoteFileSystem } from '../../../../context/virtual-drive/files/infrastructure/SDKRemoteFileSystem';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
@@ -13,7 +11,4 @@ export function registerFilesServices(builder: ContainerBuilder) {
     .register(RemoteFileSystem)
     .useFactory(() => new SDKRemoteFileSystem(user.backupsBucket))
     .private();
-
-  builder.registerAndUse(SimpleFileCreator);
-  builder.registerAndUse(SimpleFileOverrider);
 }

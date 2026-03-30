@@ -44,13 +44,6 @@ export class FileMother {
     });
   }
 
-  static thumbnable() {
-    return File.from({
-      ...FileMother.any().attributes(),
-      path: FilePathMother.thumbnable(2).value,
-    });
-  }
-
   static noThumbnable() {
     return File.from({
       ...FileMother.any().attributes(),
