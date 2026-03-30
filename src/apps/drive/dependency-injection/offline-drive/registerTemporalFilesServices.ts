@@ -1,7 +1,5 @@
 import { Environment } from '@internxt/inxt-js';
 import { ContainerBuilder } from 'diod';
-import { app } from 'electron';
-import path from 'path';
 import { UploadProgressTracker } from '../../../../context/shared/domain/UploadProgressTracker';
 import { TemporalFileByteByByteComparator } from '../../../../context/storage/TemporalFiles/application/comparation/TemporalFileByteByByteComparator';
 import { TemporalFileCreator } from '../../../../context/storage/TemporalFiles/application/creation/TemporalFileCreator';
@@ -18,18 +16,16 @@ import { TemporalFileUploaderFactory } from '../../../../context/storage/Tempora
 import { NodeTemporalFileRepository } from '../../../../context/storage/TemporalFiles/infrastructure/NodeTemporalFileRepository';
 import { EnvironmentTemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/infrastructure/upload/EnvironmentTemporalFileUploaderFactory';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { PATHS } from '../../../../core/electron/paths';
 
 export async function registerTemporalFilesServices(builder: ContainerBuilder) {
   // Infra
   const user = DependencyInjectionUserProvider.get();
 
-  const temporal = app.getPath('temp');
-  const write = path.join(temporal, 'internxt-drive-tmp');
-
   builder
     .register(TemporalFileRepository)
     .useFactory(() => {
-      const repo = new NodeTemporalFileRepository(write);
+      const repo = new NodeTemporalFileRepository(PATHS.INTERNXT_DRIVE_TMP);
 
       repo.init();
 
