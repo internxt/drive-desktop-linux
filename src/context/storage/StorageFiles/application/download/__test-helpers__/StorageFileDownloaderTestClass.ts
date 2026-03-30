@@ -32,10 +32,6 @@ export class StorageFileDownloaderTestClass extends StorageFileDownloader {
     });
   }
 
-  assertHasBeenCalled() {
-    expect(this.mock).toHaveBeenCalled();
-  }
-
   assertHasBeenCalledWithStorageFile(calls: Array<StorageFile>) {
     calls.forEach((parameters) => {
       expect(this.mock).toBeCalledWith(...[parameters, expect.anything()]);

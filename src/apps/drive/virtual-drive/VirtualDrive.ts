@@ -5,7 +5,6 @@ import { AllFilesInFolderAreAvailableOffline } from '../../../context/storage/St
 import { StorageFileIsAvailableOffline } from '../../../context/storage/StorageFiles/application/offline/StorageFileIsAvailableOffline';
 import { TemporalFileByPathFinder } from '../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { VirtualDriveError } from '../errors/VirtualDriveError';
-import { CacheStorageFile } from '../../../context/storage/StorageFiles/application/offline/CacheStorageFile';
 
 export class VirtualDrive {
   constructor(private readonly container: Container) {}
@@ -46,11 +45,6 @@ export class VirtualDrive {
 
     return await this.isFileLocallyAvailable(path);
   }
-
-  async makeFileLocallyAvailable(path: string): Promise<void> {
-    await this.container.get(CacheStorageFile).run(path);
-  }
-
   async temporalFileExists(path: string): Promise<Either<VirtualDriveError, boolean>> {
     const file = await this.container.get(TemporalFileByPathFinder).run(path);
 
