@@ -16,7 +16,7 @@ export async function createDesktopEntry() {
   Version=${packageJson.version}
   Name=${packageJson.name}
   Comment=${packageJson.name} startup script
-  Exec=\"${execPath}\" --process-start-args --hidden
+  Exec="${execPath}" --process-start-args --hidden
   StartupNotify=false
   Terminal=false
   `;
