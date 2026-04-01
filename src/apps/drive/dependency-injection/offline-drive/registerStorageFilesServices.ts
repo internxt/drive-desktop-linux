@@ -1,7 +1,6 @@
 import { Environment } from '@internxt/inxt-js';
 import { ContainerBuilder } from 'diod';
-import { app } from 'electron';
-import path from 'path';
+import path from 'node:path';
 import { StorageClearer } from '../../../../context/storage/StorageFiles/application/delete/StorageClearer';
 import { StorageFileDeleter } from '../../../../context/storage/StorageFiles/application/delete/StorageFileDeleter';
 import { MakeStorageFileAvaliableOffline } from '../../../../context/storage/StorageFiles/application/offline/MakeStorageFileAvaliableOffline';
@@ -13,12 +12,12 @@ import { EnvironmentFileDownloaderHandlerFactory } from '../../../../context/sto
 import { TypeOrmAndNodeFsStorageFilesRepository } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmAndNodeFsStorageFilesRepository';
 import { TypeOrmStorageFilesDataSourceFactory } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmStorageFilesDataSourceFactory';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { PATHS } from '../../../../core/electron/paths';
 
 export async function registerStorageFilesServices(builder: ContainerBuilder): Promise<void> {
   // Infra
 
-  const appData = app.getPath('appData');
-  const local = path.join(appData, 'internxt-drive', 'downloaded');
+  const local = path.join(PATHS.INTERNXT_DRIVE, 'downloaded');
 
   const user = DependencyInjectionUserProvider.get();
 

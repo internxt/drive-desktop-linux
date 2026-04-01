@@ -1,12 +1,13 @@
-import { app } from 'electron';
 import eventBus from '../event-bus';
 import { DataSource } from 'typeorm';
 import { DriveFile } from './entities/DriveFile';
 import { DriveFolder } from './entities/DriveFolder';
 import { ScannedItem } from './entities/ScannedItem';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { PATHS } from '../../../core/electron/paths';
+import path from 'node:path';
 
-const dbPath = app.getPath('appData') + '/internxt-drive/internxt_desktop.db';
+const dbPath = path.join(PATHS.INTERNXT_DRIVE, 'internxt_desktop.db');
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
