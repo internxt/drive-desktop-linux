@@ -1,6 +1,5 @@
 import { DataSource } from 'typeorm';
 import { TypeOrmStorageFile } from './entities/TypeOrmStorageFile';
-import { app } from 'electron';
 import path from 'node:path';
 import { PATHS } from '../../../../../../../core/electron/paths';
 
