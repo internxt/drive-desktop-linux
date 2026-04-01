@@ -1,10 +1,10 @@
 import { Menu, nativeImage, Tray } from 'electron';
-import path from 'path';
+import path from 'node:path';
 import PackageJson from '../../../../package.json';
 import { TrayMenuState } from './types';
 
 export class TrayMenu {
-  private tray: Tray;
+  private readonly tray: Tray;
 
   get bounds() {
     return this.tray.getBounds();
