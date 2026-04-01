@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import { addVirtualDriveIssue } from '../../../../../apps/main/issues/virtual-drive';
-import { setTrayStatus } from '../../../../../apps/main/tray/tray';
+import { setTrayStatus } from '../../../../../apps/main/tray/tray-setup';
 import { broadcastToWindows } from '../../../../../apps/main/windows';
 import { VirtualDriveFileIssue } from '../../../../../shared/issues/VirtualDriveIssue';
 import { SyncMessenger } from '../../../../shared/domain/SyncMessenger';

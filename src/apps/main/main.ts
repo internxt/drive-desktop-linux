@@ -24,7 +24,6 @@ import './issues/virtual-drive';
 import './device/handlers';
 import './../../backend/features/usage/handlers/handlers';
 import './realtime';
-import './tray/tray';
 import './tray/handlers';
 import './fordwardToWindows';
 import './analytics/handlers';
@@ -42,7 +41,7 @@ import { getIsLoggedIn } from './auth/handlers';
 import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from './windows/widget';
 import { createAuthWindow, getAuthWindow } from './windows/auth';
 import configStore from './config';
-import { getTray, setTrayStatus } from './tray/tray';
+import { getTray, setTrayStatus, setupTrayIcon } from './tray/tray-setup';
 import { broadcastToWindows } from './windows';
 import { openOnboardingWindow } from './windows/onboarding';
 import { setupThemeListener, getTheme } from '../../core/theme';
@@ -117,6 +116,7 @@ app
      */
     // await installNautilusExtension();
     setupThemeListener();
+    setupTrayIcon();
 
     eventBus.emit('APP_IS_READY');
     const isLoggedIn = getIsLoggedIn();
