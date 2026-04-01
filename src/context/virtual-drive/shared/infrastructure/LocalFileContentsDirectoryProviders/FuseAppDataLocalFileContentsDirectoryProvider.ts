@@ -4,7 +4,6 @@ import { LocalFileContentsDirectoryProvider } from '../../domain/LocalFileConten
 
 @Service()
 export class FuseAppDataLocalFileContentsDirectoryProvider implements LocalFileContentsDirectoryProvider {
-
   provide(): Promise<string> {
     return Promise.resolve(PATHS.INTERNXT_DRIVE);
   }
