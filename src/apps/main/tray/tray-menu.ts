@@ -3,7 +3,6 @@ import path from 'path';
 import PackageJson from '../../../../package.json';
 import { TrayMenuState } from './types';
 
-
 export class TrayMenu {
   private tray: Tray;
 
