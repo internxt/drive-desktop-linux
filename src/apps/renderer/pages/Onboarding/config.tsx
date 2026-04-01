@@ -45,7 +45,13 @@ export const SLIDES: OnboardingSlide[] = [
     },
     image: () => {
       const { theme } = useTheme();
-      return <div className="relative ml-2 mt-4">{getLinuxFileExplorerImage(theme)}</div>;
+      return (
+        <div className="relative h-full w-full overflow-hidden">
+          <div className="absolute top-[80px]" style={{ left: '76px' }}>
+            {getLinuxFileExplorerImage(theme)}
+          </div>
+        </div>
+      );
     },
   },
   {
@@ -120,7 +126,9 @@ export const SLIDES: OnboardingSlide[] = [
     },
     image: () => {
       const { theme } = useTheme();
-      return <div className="flex h-full w-full items-center justify-center">{getBackupsImageSvg(theme)}</div>;
+      return (
+        <div className="grid h-full w-full place-items-center [&>svg]:translate-x-4">{getBackupsImageSvg(theme)}</div>
+      );
     },
   },
   {
@@ -237,8 +245,10 @@ export const SLIDES: OnboardingSlide[] = [
     image: () => {
       const { theme } = useTheme();
       return (
-        <div className="relative ml-2 mt-4">
-          <SideImageAnimation display>{getLinuxFileExplorerImage(theme)}</SideImageAnimation>
+        <div className="relative h-full w-full overflow-hidden">
+          <div className="absolute top-[80px]" style={{ left: '76px' }}>
+            <SideImageAnimation display>{getLinuxFileExplorerImage(theme)}</SideImageAnimation>
+          </div>
         </div>
       );
     },

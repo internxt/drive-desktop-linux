@@ -38,9 +38,9 @@ export function UpdateAvailable() {
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="shrink-0 text-gray-50 hover:text-gray-80"
+        className="ml-2 shrink-0 rounded-md p-1 text-gray-50 transition-colors hover:bg-black/5 hover:text-gray-80"
         aria-label="Dismiss">
-        <X size={14} />
+        <X size={18} />
       </button>
     </div>
   );
