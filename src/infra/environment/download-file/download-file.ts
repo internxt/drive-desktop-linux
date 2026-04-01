@@ -22,8 +22,6 @@ async function fetchEncryptedRange(url: string, position: number, length: number
   });
 }
 
-
-
 export async function downloadFileRange({
   signal,
   fileId,

@@ -86,7 +86,11 @@ async function ensureRangeDownloaded(
 
   const missingBlocks = getMissingBlocks(state, { position: blockStart, length: blockLength });
   if (missingBlocks.length > 0) {
-    logger.debug({ msg: '[ReadCallback] downloading missing blocks', file: virtualFile.nameWithExtension, blocks: missingBlocks });
+    logger.debug({
+      msg: '[ReadCallback] downloading missing blocks',
+      file: virtualFile.nameWithExtension,
+      blocks: missingBlocks,
+    });
     await Promise.all(
       missingBlocks.map((block) => {
         const start = block * BLOCK_SIZE;

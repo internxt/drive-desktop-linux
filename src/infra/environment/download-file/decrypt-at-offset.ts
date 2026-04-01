@@ -24,9 +24,7 @@ export function decryptAtOffset(encryptedBytes: Buffer, key: Buffer, iv: Buffer,
   const startBlockNumber = (position - partialBlock) / AES_BLOCK_SIZE;
 
   // Compute the IV for the starting block by adding the block number to the original IV
-  const ivForRange = (BigInt('0x' + iv.toString('hex')) + BigInt(startBlockNumber))
-    .toString(16)
-    .padStart(32, '0');
+  const ivForRange = (BigInt('0x' + iv.toString('hex')) + BigInt(startBlockNumber)).toString(16).padStart(32, '0');
   const offsetIv = Buffer.from(ivForRange, 'hex');
 
   const decipher = createDecipheriv('aes-256-ctr', new Uint8Array(key), new Uint8Array(offsetIv));

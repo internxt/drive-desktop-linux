@@ -34,7 +34,7 @@ export async function startVirtualDrive() {
    * If a user abruptly quits the app, all the hydrated files will be orphaned.
    * Hence why we clear the cache before starting up the virtual drive.
    * To ensure that every time we get a fresh start.
-  */
+   */
   fuseApp.clearCache();
   await fuseApp.start();
 }
