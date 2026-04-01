@@ -6,9 +6,8 @@ import { useTranslationContext } from '../../../../context/LocalContext';
 
 export function DiscoverBackups() {
   const { hasDiscovered, discover } = useDiscoverBackups();
-  const forceShowBackupsBanner = true;
 
-  if (hasDiscovered && !forceShowBackupsBanner) {
+  if (hasDiscovered) {
     return <></>;
   }
 
