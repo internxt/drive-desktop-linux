@@ -246,7 +246,7 @@ export const SLIDES: OnboardingSlide[] = [
       const { theme } = useTheme();
       return (
         <div className="relative h-full w-full overflow-hidden">
-          <div className="absolute top-[80px]" style={{ left: '76px' }}>
+          <div className="absolute top-[80px] left-[76px]">
             <SideImageAnimation display>{getLinuxFileExplorerImage(theme)}</SideImageAnimation>
           </div>
         </div>
