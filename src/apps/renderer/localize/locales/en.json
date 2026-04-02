@@ -68,11 +68,7 @@
       "skip": "Skip",
       "open-drive": "Open Internxt Drive",
       "new": "New",
-      "platform-phrase": {
-        "windows": "file explorer",
-        "linux": "file browser",
-        "macos": "Finder"
-      }
+      "platform-phrase": "file explorer"
     }
   },
   "migration": {

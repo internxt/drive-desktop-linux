@@ -143,7 +143,6 @@ declare interface Window {
 
     getUsage: () => Promise<import('../../backend/features/usage/usage.types').Usage>;
 
-    getPlatform: () => Promise<import('../main/platform/DesktopPlatform').DesktopPlatform>;
     onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
     getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
     getVirtualDriveStatus(): Promise<import('../drive/fuse/FuseDriveStatus').FuseDriveStatus>;

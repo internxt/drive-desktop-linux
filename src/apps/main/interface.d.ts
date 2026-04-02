@@ -47,6 +47,8 @@ export interface IElectronAPI {
 
   abortDownloadBackups: (deviceId: string) => void;
 
+  addBackupsFromLocalPaths: (folderPaths: string[]) => Promise<void>;
+
   renameDevice: (deviceName: string) => Promise<Device>;
   devices: {
     getDevices: () => Promise<Array<Device>>;
@@ -63,6 +65,10 @@ export interface IElectronAPI {
   isUserLoggedIn(): Promise<boolean>;
 
   onUserLoggedInChanged(func: (value: boolean) => void): void;
+
+  closeWindow(): void;
+
+  minimizeWindow(): void;
 
   onRemoteChanges(func: (value: import('../main/realtime').EventPayload) => void): () => void;
 
