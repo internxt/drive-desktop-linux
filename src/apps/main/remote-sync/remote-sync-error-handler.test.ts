@@ -7,7 +7,7 @@ vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import * as virtualDriveIssuesModule from '../issues/virtual-drive';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
-import { createRemoteSyncErrorHandler } from './create-remote-sync-error-handler';
+import { createRemoteSyncErrorHandler } from './remote-sync-error-handler';
 import {
   RemoteSyncError,
   RemoteSyncInvalidResponseError,
@@ -15,7 +15,7 @@ import {
   RemoteSyncServerError,
 } from './errors';
 
-describe('create-remote-sync-error-handler.test', () => {
+describe('remote-sync-error-handler.test', () => {
   const addVirtualDriveIssueMock = partialSpyOn(virtualDriveIssuesModule, 'addVirtualDriveIssue');
 
   beforeEach(() => {

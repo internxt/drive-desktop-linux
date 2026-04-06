@@ -2,7 +2,7 @@ import { SyncConfig, RemoteSyncStatus } from '../helpers';
 import { DatabaseCollectionAdapter } from '../../database/adapters/base';
 import { DriveFile } from '../../database/entities/DriveFile';
 import { DriveFolder } from '../../database/entities/DriveFolder';
-import { RemoteSyncErrorHandler } from '../create-remote-sync-error-handler';
+import { RemoteSyncErrorHandler } from '../remote-sync-error-handler';
 
 export type RemoteSyncControllerConfig = {
   fetchFilesLimitPerRequest: number;

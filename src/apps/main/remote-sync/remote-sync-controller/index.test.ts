@@ -13,7 +13,7 @@ vi.mock('../../../../infra/sqlite/services/folder/create-or-update-folder-by-bat
 
 import * as uuid from 'uuid';
 import { createRemoteSyncController, CreateRemoteSyncControllerPops, RemoteSyncController } from './index';
-import { RemoteSyncErrorHandler } from '../create-remote-sync-error-handler';
+import { RemoteSyncErrorHandler } from '../remote-sync-error-handler';
 import { RemoteSyncedFile, RemoteSyncedFolder } from '../helpers';
 import { DriveServerError } from '../../../../infra/drive-server/drive-server.error';
 import { driveServerClient } from '../../../../infra/drive-server/client/drive-server.client.instance';
