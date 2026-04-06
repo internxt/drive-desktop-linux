@@ -6,14 +6,7 @@ import { syncRemoteItems } from '../sync-remote-items';
 import { checkRemoteSyncStatus } from './check-remote-sync-status';
 import { SyncRemoteItemsPops } from './types';
 
-export async function syncRemoteFiles({
-  state,
-  db,
-  config,
-  errorHandler,
-  syncConfig,
-  from,
-}: SyncRemoteItemsPops) {
+export async function syncRemoteFiles({ state, db, config, errorHandler, syncConfig, from }: SyncRemoteItemsPops) {
   await syncRemoteItems({
     from,
     finishMessage: 'Remote files sync finished',
