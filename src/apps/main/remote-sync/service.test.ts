@@ -80,7 +80,7 @@ vi.mock('./remote-sync-controller', () => ({
   createRemoteSyncController: mocks.remoteSyncControllerFactory,
 }));
 
-vi.mock('./create-remote-sync-error-handler', () => ({
+vi.mock('./remote-sync-error-handler', () => ({
   createRemoteSyncErrorHandler: vi.fn(() => ({
     handleSyncError: vi.fn(),
   })),

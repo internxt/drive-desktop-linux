@@ -9,7 +9,7 @@ export function patchDriveFileResponseItem(payload: DriveFileResponseItem) {
   return {
     ...payload,
     fileId: payload.fileId ?? '',
-    size: typeof payload.size === 'string' ? parseInt(payload.size) : payload.size,
+    size: typeof payload.size === 'string' ? Number.parseInt(payload.size) : payload.size,
     name: payload.name ?? undefined,
   } as RemoteSyncedFile;
 }

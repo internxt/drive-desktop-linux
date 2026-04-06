@@ -5,7 +5,7 @@ import { DriveFoldersCollection } from '../database/collections/DriveFolderColle
 import { createRemoteSyncController } from './remote-sync-controller';
 import { broadcastToWindows } from '../windows';
 import { isInitialSyncReady, setInitialSyncState } from './InitialSyncReady';
-import { createRemoteSyncErrorHandler } from './create-remote-sync-error-handler';
+import { createRemoteSyncErrorHandler } from './remote-sync-error-handler';
 import { registerRemoteSyncService } from '../../../context/shared/application/sync/remote-sync-service';
 import { toRemoteSyncFileDto } from './to-remote-sync-file-dto';
 import { toRemoteSyncFolderDto } from './to-remote-sync-folder-dto';
