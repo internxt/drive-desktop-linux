@@ -47,9 +47,7 @@ export const SLIDES: OnboardingSlide[] = [
       const { theme } = useTheme();
       return (
         <div className="relative h-full w-full overflow-hidden">
-          <div className="absolute top-[80px] left-[76px]">
-            {getLinuxFileExplorerImage(theme)}
-          </div>
+          <div className="absolute left-[76px] top-[80px]">{getLinuxFileExplorerImage(theme)}</div>
         </div>
       );
     },
