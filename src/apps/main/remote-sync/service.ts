@@ -2,32 +2,36 @@ import { debounce } from 'lodash';
 import eventBus from '../event-bus';
 import { DriveFilesCollection } from '../database/collections/DriveFileCollection';
 import { DriveFoldersCollection } from '../database/collections/DriveFolderCollection';
-import { RemoteSyncManager } from './RemoteSyncManager';
+import { createRemoteSyncController } from './remote-sync-controller';
 import { broadcastToWindows } from '../windows';
 import { isInitialSyncReady, setInitialSyncState } from './InitialSyncReady';
-import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
+import { createRemoteSyncErrorHandler } from './create-remote-sync-error-handler';
+import { registerRemoteSyncService } from '../../../context/shared/application/sync/remote-sync-service';
+import { toRemoteSyncFileDto } from './to-remote-sync-file-dto';
+import { toRemoteSyncFolderDto } from './to-remote-sync-folder-dto';
 
 const SYNC_DEBOUNCE_DELAY = 3_000;
 
 const driveFilesCollection = new DriveFilesCollection();
 const driveFoldersCollection = new DriveFoldersCollection();
-const errorHandler = new RemoteSyncErrorHandler();
-
-export const remoteSyncManager = new RemoteSyncManager(
-  {
+const errorHandler = createRemoteSyncErrorHandler();
+const remoteSyncControllerPops = {
+  db: {
     files: driveFilesCollection,
     folders: driveFoldersCollection,
   },
-  {
+  config: {
     fetchFilesLimitPerRequest: 1000,
     fetchFoldersLimitPerRequest: 1000,
     syncFiles: true,
     syncFolders: true,
   },
   errorHandler,
-);
+};
 
-remoteSyncManager.onStatusChange(async (newStatus) => {
+export const remoteSyncController = createRemoteSyncController();
+
+remoteSyncController.onStatusChange(async (newStatus) => {
   if (!isInitialSyncReady() && newStatus === 'SYNCED') {
     setInitialSyncState('READY');
     eventBus.emit('INITIAL_SYNC_READY');
@@ -44,14 +48,15 @@ export async function getUpdatedRemoteItems() {
   if (!allDriveFiles.success) throw new Error('Failed to retrieve all the drive files from local db');
 
   if (!allDriveFolders.success) throw new Error('Failed to retrieve all the drive folders from local db');
+
   return {
-    files: allDriveFiles.result,
-    folders: allDriveFolders.result,
+    files: allDriveFiles.result.map(toRemoteSyncFileDto),
+    folders: allDriveFolders.result.map(toRemoteSyncFolderDto),
   };
 }
 
 export async function startRemoteSync(): Promise<void> {
-  await remoteSyncManager.startRemoteSync();
+  await remoteSyncController.startRemoteSync(remoteSyncControllerPops);
 }
 
 const debouncedSynchronization = debounce(async () => {
@@ -62,6 +67,12 @@ const debouncedSynchronization = debounce(async () => {
 export async function resyncRemoteSync() {
   await debouncedSynchronization();
 }
+
+registerRemoteSyncService({
+  getUpdatedRemoteItems,
+  startRemoteSync,
+  resyncRemoteSync,
+});
 
 export async function getExistingFiles() {
   const allExisting = await driveFilesCollection.getAllWhere({
