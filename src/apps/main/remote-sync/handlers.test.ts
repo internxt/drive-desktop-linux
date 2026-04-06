@@ -44,9 +44,7 @@ async function loadHandlersModule() {
 function getEventBusHandler(eventBusOnMock: ReturnType<typeof partialSpyOn>, eventName: string) {
   const calls = eventBusOnMock.mock.calls as Array<[string, (...args: unknown[]) => unknown]>;
 
-  return calls.find(([name]) => name === eventName)?.[1] as
-    | ((...args: unknown[]) => unknown)
-    | undefined;
+  return calls.find(([name]) => name === eventName)?.[1] as ((...args: unknown[]) => unknown) | undefined;
 }
 
 describe('handlers.test', () => {

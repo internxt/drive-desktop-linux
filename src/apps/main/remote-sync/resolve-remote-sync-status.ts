@@ -7,12 +7,7 @@ type Pops = {
   syncFolders: boolean;
 };
 
-export function resolveRemoteSyncStatus({
-  filesSyncStatus,
-  foldersSyncStatus,
-  syncFiles,
-  syncFolders,
-}: Pops) {
+export function resolveRemoteSyncStatus({ filesSyncStatus, foldersSyncStatus, syncFiles, syncFolders }: Pops) {
   if (syncFiles && !syncFolders && filesSyncStatus === 'SYNCED') {
     return 'SYNCED' as const;
   }
