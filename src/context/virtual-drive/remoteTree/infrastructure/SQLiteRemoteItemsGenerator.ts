@@ -1,13 +1,13 @@
 import { Service } from 'diod';
-import { getUpdatedRemoteItems, startRemoteSync } from '../../../../apps/main/remote-sync/service';
 import { ServerFile, ServerFileStatus } from '../../../shared/domain/ServerFile';
 import { ServerFolder, ServerFolderStatus } from '../../../shared/domain/ServerFolder';
 import { RemoteItemsGenerator } from '../domain/RemoteItemsGenerator';
+import { getRemoteSyncService } from '../../../shared/application/sync/remote-sync-service';
 
 @Service()
 export class SQLiteRemoteItemsGenerator implements RemoteItemsGenerator {
   async getAll(): Promise<{ files: ServerFile[]; folders: ServerFolder[] }> {
-    const result = await getUpdatedRemoteItems();
+    const result = await getRemoteSyncService().getUpdatedRemoteItems();
 
     const files = result.files.map<ServerFile>((updatedFile) => {
       return {
@@ -21,7 +21,7 @@ export class SQLiteRemoteItemsGenerator implements RemoteItemsGenerator {
         name: updatedFile.name,
         plainName: updatedFile.plainName,
         size: updatedFile.size,
-        type: updatedFile.type ?? null,
+        type: updatedFile.type ?? '',
         updatedAt: updatedFile.updatedAt,
         userId: updatedFile.userId,
         status: updatedFile.status as ServerFileStatus,
@@ -47,6 +47,6 @@ export class SQLiteRemoteItemsGenerator implements RemoteItemsGenerator {
   }
 
   async forceRefresh(): Promise<void> {
-    await startRemoteSync();
+    await getRemoteSyncService().startRemoteSync();
   }
 }
