@@ -16,7 +16,6 @@ export const defaults: AppStore = {
   backupInterval: 86_400_000, // 24h
   lastBackup: -1,
   syncRoot: '',
-  logEnginePath: '',
   lastSavedListing: '',
   lastSync: -1,
 

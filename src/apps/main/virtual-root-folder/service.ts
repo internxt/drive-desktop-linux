@@ -1,15 +1,13 @@
-import { app, dialog, shell } from 'electron';
+import { dialog, shell } from 'electron';
 import fs from 'fs/promises';
-import path from 'path';
+import path from 'node:path';
 import configStore from '../config';
 import eventBus from '../event-bus';
 import { exec } from 'child_process';
 import { ensureFolderExists } from '../../shared/fs/ensure-folder-exists';
+import { PATHS } from '../../../core/electron/paths';
 
-const ROOT_FOLDER_NAME = 'Internxt Drive';
-const HOME_FOLDER_PATH = app.getPath('home');
-
-const VIRTUAL_DRIVE_FOLDER = path.join(HOME_FOLDER_PATH, ROOT_FOLDER_NAME);
+const VIRTUAL_DRIVE_FOLDER = PATHS.ROOT_DRIVE_FOLDER;
 
 async function existsFolder(pathname: string): Promise<boolean> {
   try {
@@ -40,8 +38,6 @@ async function isEmptyFolder(pathname: string): Promise<boolean> {
 
 function setSyncRoot(pathname: string): void {
   const pathNameWithSepInTheEnd = pathname[pathname.length - 1] === path.sep ? pathname : pathname + path.sep;
-  const logEnginePath = path.join(app.getPath('appData'), 'internxt-drive', 'logs', 'node-win.txt');
-  configStore.set('logEnginePath', logEnginePath);
   configStore.set('syncRoot', pathNameWithSepInTheEnd);
   configStore.set('lastSavedListing', '');
 }
@@ -60,19 +56,6 @@ export function getRootVirtualDrive(): string {
 export async function setupRootFolder(n = 0): Promise<void> {
   setSyncRoot(VIRTUAL_DRIVE_FOLDER);
   return;
-  const folderName = ROOT_FOLDER_NAME;
-
-  const rootFolderName = folderName + (n ? ` (${n})` : '');
-  const rootFolderPath = path.join(HOME_FOLDER_PATH, rootFolderName);
-
-  const notExistsOrIsEmpty = !(await existsFolder(rootFolderPath)) || (await isEmptyFolder(rootFolderPath));
-
-  if (notExistsOrIsEmpty) {
-    await fs.mkdir(rootFolderPath, { recursive: true });
-    setSyncRoot(rootFolderPath);
-  } else {
-    return setupRootFolder(n + 1);
-  }
 }
 
 export async function chooseSyncRootWithDialog(): Promise<string | null> {

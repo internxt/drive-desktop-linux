@@ -19,7 +19,6 @@ const schema: Schema<AppStore> = {
   backupInterval: { type: 'number' },
   lastBackup: { type: 'number' },
   syncRoot: { type: 'string' },
-  logEnginePath: { type: 'string' },
   lastSavedListing: { type: 'string' },
   lastSync: { type: 'number' },
 
