@@ -1,6 +1,5 @@
 import { Environment } from '@internxt/inxt-js';
 import { ContainerBuilder } from 'diod';
-import path from 'node:path';
 import { StorageClearer } from '../../../../context/storage/StorageFiles/application/delete/StorageClearer';
 import { StorageFileDeleter } from '../../../../context/storage/StorageFiles/application/delete/StorageFileDeleter';
 import { MakeStorageFileAvaliableOffline } from '../../../../context/storage/StorageFiles/application/offline/MakeStorageFileAvaliableOffline';
@@ -17,13 +16,11 @@ import { PATHS } from '../../../../core/electron/paths';
 export async function registerStorageFilesServices(builder: ContainerBuilder): Promise<void> {
   // Infra
 
-  const local = path.join(PATHS.INTERNXT_DRIVE, 'downloaded');
-
   const user = DependencyInjectionUserProvider.get();
 
   const dataSource = await TypeOrmStorageFilesDataSourceFactory.create();
 
-  const repo = new TypeOrmAndNodeFsStorageFilesRepository(local, dataSource);
+  const repo = new TypeOrmAndNodeFsStorageFilesRepository(PATHS.DOWNLOADED, dataSource);
   await repo.init();
 
   builder.register(StorageFilesRepository).useInstance(repo);

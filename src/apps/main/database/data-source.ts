@@ -5,19 +5,16 @@ import { DriveFolder } from './entities/DriveFolder';
 import { ScannedItem } from './entities/ScannedItem';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../core/electron/paths';
-import path from 'node:path';
-
-const dbPath = path.join(PATHS.INTERNXT_DRIVE, 'internxt_desktop.db');
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
-  database: dbPath,
+  database: PATHS.DATABASE,
   logging: false,
   synchronize: true,
   entities: [DriveFile, DriveFolder, ScannedItem],
 });
 
-logger.debug({ msg: `Using database file at ${dbPath}` });
+logger.debug({ msg: `Using database file at ${PATHS.DATABASE}` });
 
 eventBus.on('USER_LOGGED_OUT', () => {
   AppDataSource.dropDatabase().catch((error) => {
