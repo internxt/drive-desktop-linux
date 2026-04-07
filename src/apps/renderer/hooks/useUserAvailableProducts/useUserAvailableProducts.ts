@@ -10,7 +10,7 @@ export function useUserAvailableProducts() {
       .get()
       .then(setProducts)
       .catch((error) => {
-        console.error('Failed to fetch user available products:', error);
+        reportError(`Failed to fetch user available products: ${error}`);
       });
 
     userAvailableProducts.subscribe();
