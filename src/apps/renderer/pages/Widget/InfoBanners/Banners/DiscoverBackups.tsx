@@ -28,7 +28,12 @@ export function DiscoverBackups() {
             </div>
             <div className="mb-4 mt-1 text-xs">{translate('widget.banners.discover-backups.body')}</div>
           </div>
-          <X size={50} className="-mt-3 hover:cursor-pointer" onClick={discover} />
+          <button
+            onClick={discover}
+            className="ml-2 shrink-0 self-start rounded-md p-1 text-gray-50 transition-colors hover:bg-black/5 hover:text-gray-80"
+            aria-label="Dismiss">
+            <X size={18} />
+          </button>
         </div>
         <Button size="sm" className="mt-auto" onClick={openBackupsSettings}>
           <span className="text-xs">{translate('widget.banners.discover-backups.action')}</span>
