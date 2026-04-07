@@ -1,12 +1,10 @@
 import fs from 'node:fs';
 import { PassThrough } from 'node:stream';
-import * as ensureFolderExistsModule from '../../../../apps/shared/fs/ensure-folder-exists';
 import { streamFileToDisk } from './stream-file-to-disk';
 import { call, calls, partialSpyOn } from '../../../../../tests/vitest/utils.helper';
 
 describe('stream-file-to-disk', () => {
   const createWriteStreamMock = partialSpyOn(fs, 'createWriteStream');
-  const ensureFolderExistsMock = partialSpyOn(ensureFolderExistsModule, 'ensureFolderExists');
 
   let fakeWriteStream: PassThrough & { bytesWritten: number };
 
@@ -23,7 +21,6 @@ describe('stream-file-to-disk', () => {
     streamFileToDisk(readable, '/home/dev/.config/internxt/downloaded/file-id', vi.fn());
 
     // Then
-    call(ensureFolderExistsMock).toBe('/home/dev/.config/internxt/downloaded');
     call(createWriteStreamMock).toBe('/home/dev/.config/internxt/downloaded/file-id');
   });
 
