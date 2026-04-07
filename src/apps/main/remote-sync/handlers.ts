@@ -6,6 +6,7 @@ import { remoteSyncManager, resyncRemoteSync, startRemoteSync } from './service'
 
 ipcMain.handle('START_REMOTE_SYNC', async () => {
   await startRemoteSync();
+  eventBus.emit('REMOTE_CHANGES_SYNCHED');
 });
 
 ipcMain.handle('get-remote-sync-status', () => remoteSyncManager.getSyncStatus());
