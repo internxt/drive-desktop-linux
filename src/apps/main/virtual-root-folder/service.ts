@@ -7,7 +7,6 @@ import { exec } from 'child_process';
 import { ensureFolderExists } from '../../shared/fs/ensure-folder-exists';
 import { PATHS } from '../../../core/electron/paths';
 
-
 const VIRTUAL_DRIVE_FOLDER = PATHS.ROOT_DRIVE_FOLDER;
 
 async function existsFolder(pathname: string): Promise<boolean> {
