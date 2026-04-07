@@ -20,22 +20,18 @@ export function convertToReadableStream(readStream: Readable): ReadableStream<Ui
   return new ReadableStream<Uint8Array>({
     start(controller) {
       readStream.on('data', (chunk) => {
-        // Convertir el chunk a Uint8Array y pasarlo al controller
         controller.enqueue(new Uint8Array(chunk));
       });
 
       readStream.on('end', () => {
-        // Señalar que la transmisión ha finalizado
         controller.close();
       });
 
       readStream.on('error', (err) => {
-        // Señalar un error al controller
         controller.error(err);
       });
     },
     cancel() {
-      // Abortar la lectura del ReadStream de fs
       readStream.destroy();
     },
   });

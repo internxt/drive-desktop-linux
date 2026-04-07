@@ -1,6 +1,12 @@
 import axios, { AxiosBasicCredentials, AxiosRequestConfig } from 'axios';
 import { createHash } from 'crypto';
 
+/**
+ * v.2.5.5
+ * Esteban Galvis Triana
+ * TODO: Move this request logic to driveServerClient
+ */
+
 export interface FileInfo {
   bucket: string;
   mimetype: string;
