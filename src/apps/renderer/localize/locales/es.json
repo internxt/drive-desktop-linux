@@ -188,7 +188,7 @@
     },
     "banners": {
       "update-available": {
-        "body": "Hay una nueva versión de Internxt disponible.",
+        "body": "Hay una nueva versión disponible.",
         "action": "Descargar actualización"
       },
       "discover-backups": {
