@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 
 type Pops = {
@@ -30,6 +31,7 @@ const ANTIVIRUS_MESSAGE_PATTERNS = [
   /\bantivirus\b/i,
 ];
 const ELECTRON_LOG_MODULE_IDS = ['electron-log', '@internxt/drive-desktop-core/node_modules/electron-log'];
+const moduleRequire = createRequire(__filename);
 
 export function setupAppLogRouting({ logsPath }: Pops) {
   for (const electronLog of getElectronLogModules()) {
@@ -70,8 +72,8 @@ function getElectronLogModules() {
 
   for (const moduleId of ELECTRON_LOG_MODULE_IDS) {
     try {
-      const electronLog = require(moduleId) as ElectronLogModule;
-      const resolvedModulePath = require.resolve(moduleId);
+      const electronLog = moduleRequire(moduleId) as ElectronLogModule;
+      const resolvedModulePath = moduleRequire.resolve(moduleId);
       modules.set(resolvedModulePath, electronLog);
     } catch {
       continue;

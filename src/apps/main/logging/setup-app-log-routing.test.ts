@@ -10,7 +10,7 @@ describe('setup-app-log-routing', () => {
         logsPath,
         message: {
           level: 'debug',
-          data: ["{ header: '  - b - anti', msg: '[CLAM_AVD] Starting clamd server...' }"],
+          data: ['{ header: \'  - b - anti\', msg: \'[CLAM_AVD] Starting clamd server...\' }'],
         },
       });
 
@@ -24,7 +24,7 @@ describe('setup-app-log-routing', () => {
         logsPath,
         message: {
           level: 'info',
-          data: ["{ header: 'E - b - anti', msg: '[CLAM_AVD] clamd process unexpectedly exited' }"],
+          data: ['{ header: \'E - b - anti\', msg: \'[CLAM_AVD] clamd process unexpectedly exited\' }'],
         },
       });
 
@@ -38,7 +38,7 @@ describe('setup-app-log-routing', () => {
         logsPath,
         message: {
           level: 'debug',
-          data: ["{ header: '  - b - auth', msg: 'Starting app' }"],
+          data: ['{ header: \'  - b - auth\', msg: \'Starting app\' }'],
         },
       });
 
@@ -52,7 +52,7 @@ describe('setup-app-log-routing', () => {
         logsPath,
         message: {
           level: 'debug',
-          data: ["{ header: '  - b -     ', msg: '[Main] Antivirus IPC handlers setup complete' }"],
+          data: ['{ header: \'  - b -     \', msg: \'[Main] Antivirus IPC handlers setup complete\' }'],
         },
       });
 
