@@ -30,7 +30,9 @@ func main() {
 
 	if err := client.NotifyReady(logger); err != nil {
 		logger.Error("failed to notify electron of readiness", "error", err)
-		server.Unmount()
+		if err := server.Unmount(); err != nil {
+      logger.Error("failed to unmount fuse filesystem", "error", err)
+    }
 		os.Exit(1)
 	}
 

@@ -35,7 +35,17 @@ Install the linter (required for `make lint` and the pre-push hook):
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
 ```
 
-This installs the binary to `$GOPATH/bin` (usually `~/go/bin`). Make sure that is on your `$PATH`.
+This installs the binary to `$GOPATH/bin` (usually `~/go/bin`). If `golangci-lint` is not found after installing, add this to your `~/.bashrc`:
+
+```bash
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+
+Then reload:
+
+```bash
+source ~/.bashrc
+```
 
 ### Available commands
 
