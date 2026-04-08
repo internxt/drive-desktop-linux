@@ -25,6 +25,26 @@ Then reload:
 source ~/.bashrc
 ```
 
+## Development
+
+### Installing dev tools
+
+Install the linter (required for `make lint` and the pre-push hook):
+
+```bash
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
+```
+
+This installs the binary to `$GOPATH/bin` (usually `~/go/bin`). Make sure that is on your `$PATH`.
+
+### Available commands
+
+```bash
+make build   # compile the daemon binary to ../../dist/fuse-daemon
+make test    # run all Go tests
+make lint    # run golangci-lint
+```
+
 ## Building
 
 From the repository root:
