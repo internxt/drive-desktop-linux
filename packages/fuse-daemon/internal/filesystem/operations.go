@@ -6,6 +6,7 @@ import (
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
 	"github.com/hanwen/go-fuse/v2/fuse/pathfs"
+	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 )
 
 // InternxtFilesystem is the FUSE filesystem implementation.
@@ -14,20 +15,21 @@ import (
 // To implement an operation:
 //  1. Add the method below with its correct signature
 //  2. Remove the log line and ENOSYS return
-//  3. Call the corresponding endpoint via the HTTP client: client.Post("/op/<name>", ...)
+//  3. Call the corresponding endpoint via the HTTP client: fs.client.Post("/op/<name>", ...)
 //  4. Map the HTTP response back to the correct fuse.Status
 type InternxtFilesystem struct {
 	pathfs.FileSystem
 	logger *slog.Logger
+	client *client.Client
 }
 
-func NewInternxtFilesystem(logger *slog.Logger) *InternxtFilesystem {
+func NewInternxtFilesystem(logger *slog.Logger, client *client.Client) *InternxtFilesystem {
 	return &InternxtFilesystem{
 		FileSystem: pathfs.NewDefaultFileSystem(),
 		logger:     logger,
+		client:     client,
 	}
 }
-
 func (fs *InternxtFilesystem) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.Status) {
 	fs.logger.Warn("not implemented", "op", "GetAttr", "path", name)
 	return nil, fuse.ENOSYS

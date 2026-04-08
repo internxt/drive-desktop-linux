@@ -53,22 +53,13 @@ INTERNXT_LOG_FILE=~/.config/internxt/logs/fuse-daemon.log \
 ./dist/fuse-daemon
 ```
 
-Or using CLI flags (take precedence over env vars):
-
-```bash
-./dist/fuse-daemon \
-  --mount /home/[user]/Internxt \
-  --socket /run/[user]/1000/internxt-fuse.sock \
-  --log-file ~/.config/internxt/logs/fuse-daemon.log
-```
-
 ## Configuration
 
-| Config | Env var | CLI flag | Required |
-|--------|---------|----------|----------|
-| Mount point | `INTERNXT_MOUNT` | `--mount` | Yes |
-| Socket path | `INTERNXT_SOCKET` | `--socket` | Yes |
-| Log file path | `INTERNXT_LOG_FILE` | `--log-file` | Yes |
+| Config | Env var | Required |
+|--------|---------|----------|
+| Mount point | `INTERNXT_MOUNT` | Yes |
+| Unix socket path | `INTERNXT_SOCKET` | Yes |
+| Log file path | `INTERNXT_LOG_FILE` | Yes |
 
 ## Logs
 

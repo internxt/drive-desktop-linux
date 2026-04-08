@@ -18,7 +18,9 @@ func main() {
 
 	logger.Info("starting fuse daemon", "mount", config.MountPoint, "socket", config.SocketPath)
 
-	server, done, err := filesystem.Mount(config.MountPoint, logger)
+	client := client.NewClient(config.SocketPath)
+
+	server, done, err := filesystem.Mount(config.MountPoint, logger, client)
 	if err != nil {
 		logger.Error("failed to mount fuse filesystem", "error", err)
 		os.Exit(1)
@@ -26,7 +28,7 @@ func main() {
 
 	logger.Info("fuse filesystem mounted", "mount", config.MountPoint)
 
-	if err := client.NotifyReady(config.SocketPath, logger); err != nil {
+	if err := client.NotifyReady(logger); err != nil {
 		logger.Error("failed to notify electron of readiness", "error", err)
 		server.Unmount()
 		os.Exit(1)

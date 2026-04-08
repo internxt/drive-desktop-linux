@@ -9,8 +9,20 @@ import (
 	"time"
 )
 
-// New returns an HTTP client configured to talk to Electron over the Unix socket.
-func New(socketPath string) *http.Client {
+type Client struct {
+    http *http.Client
+    socketPath string
+}
+
+func NewClient(socketPath string) *Client {
+    return &Client{
+        http:       NewUnixSocketClient(socketPath),
+        socketPath: socketPath,
+    }
+}
+
+
+func NewUnixSocketClient(socketPath string) *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
@@ -21,9 +33,7 @@ func New(socketPath string) *http.Client {
 }
 
 // NotifyReady sends POST /daemon/ready to Electron to signal the daemon is up.
-func NotifyReady(socketPath string, logger *slog.Logger) error {
-	client := New(socketPath)
-
+func (client *Client) NotifyReady(logger *slog.Logger) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -32,7 +42,7 @@ func NotifyReady(socketPath string, logger *slog.Logger) error {
 		return fmt.Errorf("creating ready request: %w", err)
 	}
 
-	resp, err := client.Do(req)
+	resp, err := client.http.Do(req)
 	if err != nil {
 		return fmt.Errorf("sending ready request: %w", err)
 	}
