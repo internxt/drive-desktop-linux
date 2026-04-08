@@ -10,10 +10,10 @@ import 'dotenv/config';
 // ***** APP BOOTSTRAPPING ****************************************************** //
 import { PATHS } from '../../core/electron/paths';
 import { setupElectronLog } from '@internxt/drive-desktop-core/build/backend';
+import { setupAppLogRouting } from './logging/setup-app-log-routing';
 
-setupElectronLog({
-  logsPath: PATHS.LOGS,
-});
+setupElectronLog({ logsPath: PATHS.LOGS });
+setupAppLogRouting({ logsPath: PATHS.LOGS });
 
 import './virtual-root-folder/handlers';
 import './auto-launch/handlers';
