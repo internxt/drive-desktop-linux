@@ -1,5 +1,14 @@
 import { resolveAppLogFilePath } from './setup-app-log-routing';
 
+type Pops = {
+  header: string;
+  msg: string;
+};
+
+function createSerializedLogMessage({ header, msg }: Pops) {
+  return `{ header: '${header}', msg: '${msg}' }`;
+}
+
 describe('setup-app-log-routing', () => {
   const logsPath = '/tmp/internxt-logs';
 
@@ -10,7 +19,7 @@ describe('setup-app-log-routing', () => {
         logsPath,
         message: {
           level: 'debug',
-          data: ['{ header: \'  - b - anti\', msg: \'[CLAM_AVD] Starting clamd server...\' }'],
+          data: [createSerializedLogMessage({ header: '  - b - anti', msg: '[CLAM_AVD] Starting clamd server...' })],
         },
       });
 
@@ -24,7 +33,9 @@ describe('setup-app-log-routing', () => {
         logsPath,
         message: {
           level: 'info',
-          data: ['{ header: \'E - b - anti\', msg: \'[CLAM_AVD] clamd process unexpectedly exited\' }'],
+          data: [
+            createSerializedLogMessage({ header: 'E - b - anti', msg: '[CLAM_AVD] clamd process unexpectedly exited' }),
+          ],
         },
       });
 
@@ -38,7 +49,7 @@ describe('setup-app-log-routing', () => {
         logsPath,
         message: {
           level: 'debug',
-          data: ['{ header: \'  - b - auth\', msg: \'Starting app\' }'],
+          data: [createSerializedLogMessage({ header: '  - b - auth', msg: 'Starting app' })],
         },
       });
 
@@ -52,7 +63,9 @@ describe('setup-app-log-routing', () => {
         logsPath,
         message: {
           level: 'debug',
-          data: ['{ header: \'  - b -     \', msg: \'[Main] Antivirus IPC handlers setup complete\' }'],
+          data: [
+            createSerializedLogMessage({ header: '  - b -     ', msg: '[Main] Antivirus IPC handlers setup complete' }),
+          ],
         },
       });
 
