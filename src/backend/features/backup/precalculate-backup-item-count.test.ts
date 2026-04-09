@@ -48,7 +48,7 @@ describe('precalculateBackupItemCount', () => {
 
     expect(result.data).toBe(10);
     expect(localTreeBuilder.run).toBeCalledWith(backupInfo.pathname);
-    expect(remoteTreeBuilder.run).toBeCalledWith(backupInfo.folderId, backupInfo.folderUuid);
+    expect(remoteTreeBuilder.run).toBeCalledWith(backupInfo.folderId, backupInfo.folderUuid, true);
   });
 
   it('returns an error when local tree build returns left', async () => {
