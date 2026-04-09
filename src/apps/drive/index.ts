@@ -52,8 +52,8 @@ export function getFuseDriveState() {
 
 export async function stopHydrationApi() {
   // if (!hydrationApi) {
-    logger.debug({ msg: 'HydrationApi not initialized, skipping stop.' });
-    return;
+  logger.debug({ msg: 'HydrationApi not initialized, skipping stop.' });
+  return;
   // }
 
   // try {
