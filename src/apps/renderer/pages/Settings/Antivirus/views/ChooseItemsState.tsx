@@ -35,7 +35,6 @@ export const ChooseItemsState = () => {
       <div className="mb-2 flex w-full flex-row items-center justify-between border-b border-gray-10 pb-4">
         <div className="flex items-center gap-2">
           <p className="font-medium text-gray-80">{translate('settings.antivirus.realtimeProtection.title')}</p>
-          {!isAntivirusEnabled && (
             <div className="group relative">
               <button
                 type="button"
@@ -47,7 +46,6 @@ export const ChooseItemsState = () => {
                 {translate('settings.antivirus.realtimeProtection.tooltip')}
               </div>
             </div>
-          )}
         </div>
 
         <button
