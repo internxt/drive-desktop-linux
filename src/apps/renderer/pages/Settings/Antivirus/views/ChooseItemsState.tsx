@@ -35,17 +35,17 @@ export const ChooseItemsState = () => {
       <div className="mb-2 flex w-full flex-row items-center justify-between border-b border-gray-10 pb-4">
         <div className="flex items-center gap-2">
           <p className="font-medium text-gray-80">{translate('settings.antivirus.realtimeProtection.title')}</p>
-            <div className="group relative">
-              <button
-                type="button"
-                className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-40 text-[10px] text-gray-60"
-                aria-label={translate('settings.antivirus.realtimeProtection.infoAriaLabel')}>
-                i
-              </button>
-              <div className="pointer-events-none absolute left-1/2 top-6 z-10 hidden w-64 -translate-x-1/2 rounded-md bg-gray-100 px-3 py-2 text-xs text-white shadow-md group-hover:block">
-                {translate('settings.antivirus.realtimeProtection.tooltip')}
-              </div>
+          <div className="group relative">
+            <button
+              type="button"
+              className="flex h-4 w-4 items-center justify-center rounded-full border border-gray-40 bg-surface text-[10px] text-gray-60 dark:border-gray-30 dark:bg-gray-5 dark:text-gray-40"
+              aria-label={translate('settings.antivirus.realtimeProtection.infoAriaLabel')}>
+              i
+            </button>
+            <div className="pointer-events-none absolute left-1/2 top-6 z-10 hidden w-64 -translate-x-1/2 rounded-md border border-gray-80/10 bg-gray-100 px-3 py-2 text-xs text-white shadow-md group-hover:block dark:border-gray-30 dark:bg-gray-5 dark:text-gray-80">
+              {translate('settings.antivirus.realtimeProtection.tooltip')}
             </div>
+          </div>
         </div>
 
         <button
