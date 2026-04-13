@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { DriveFile } from './entities/DriveFile';
 import { DriveFolder } from './entities/DriveFolder';
 import { ScannedItem } from './entities/ScannedItem';
+import { TypeOrmStorageFile } from '../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/entities/TypeOrmStorageFile';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../core/electron/paths';
 
@@ -10,7 +11,7 @@ export const AppDataSource = new DataSource({
   database: PATHS.DATABASE,
   logging: false,
   synchronize: true,
-  entities: [DriveFile, DriveFolder, ScannedItem],
+  entities: [DriveFile, DriveFolder, ScannedItem, TypeOrmStorageFile],
 });
 
 logger.debug({ msg: `Using database file at ${PATHS.DATABASE}` });
