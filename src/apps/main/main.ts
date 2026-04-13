@@ -193,7 +193,6 @@ eventBus.on('USER_LOGGED_IN', async () => {
       msg: 'Error on main process while handling USER_LOGGED_IN event:',
       error,
     });
-    reportError(error as Error);
   }
 });
 
