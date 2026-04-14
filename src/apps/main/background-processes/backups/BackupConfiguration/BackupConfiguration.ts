@@ -33,7 +33,8 @@ export class BackupConfiguration {
     const { error, data } = await DeviceModule.getOrCreateDevice();
     if (error) return [];
 
-    const enabledBackupEntries = await DeviceModule.getBackupsFromDevice(data, true);
+    const { error: backupsError, data: enabledBackupEntries } = await DeviceModule.getBackupsFromDevice(data, true);
+    if (backupsError || !enabledBackupEntries) return [];
 
     return this.map(enabledBackupEntries, data.bucket);
   }
