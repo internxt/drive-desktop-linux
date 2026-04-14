@@ -1,15 +1,14 @@
-import { Device } from '../backup/types/Device';
-import { left, right } from './../../../context/shared/domain/Either';
+import { Device } from './../../../apps/main/device/service';
+import { Result } from '../../../context/shared/domain/Result';
 import { driveServerModule } from './../../../infra/drive-server/drive-server.module';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { BackupError } from '../../../infra/drive-server/services/backup/backup.error';
-import { Either } from './../../../context/shared/domain/Either';
 import { DeviceIdentifierDTO } from './device.types';
 
 export async function tryCreateDevice(
   deviceName: string,
   deviceIdentifier: DeviceIdentifierDTO,
-): Promise<Either<Error, Device>> {
+): Promise<Result<Device, Error>> {
   const createDeviceEither = await driveServerModule.backup.createDeviceWithIdentifier({
     name: deviceName,
     key: deviceIdentifier.key,
@@ -17,21 +16,24 @@ export async function tryCreateDevice(
     platform: deviceIdentifier.platform,
   });
 
-  if (createDeviceEither.isRight()) return right(createDeviceEither.getRight());
+  if (createDeviceEither.isRight()) {
+    return { data: createDeviceEither.getRight() };
+  }
 
   const createDeviceError = createDeviceEither.getLeft();
-  if (createDeviceError instanceof BackupError && createDeviceError?.code === 'ALREADY_EXISTS') {
+  if (createDeviceError instanceof BackupError && createDeviceError.code === 'ALREADY_EXISTS') {
     logger.debug({
       tag: 'BACKUPS',
       msg: 'Device name already exists',
       deviceName,
     });
-    return left(createDeviceEither.getLeft());
+    return { error: createDeviceError };
   }
 
-  const error = logger.error({
+  logger.error({
     tag: 'BACKUPS',
     msg: 'Error creating device',
+    error: createDeviceError,
   });
-  return left(error);
+  return { error: createDeviceError };
 }
