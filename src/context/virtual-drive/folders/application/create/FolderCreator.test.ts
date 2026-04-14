@@ -9,6 +9,7 @@ import { FolderRemoteFileSystemMock } from '../../__mocks__/FolderRemoteFileSyst
 import { FolderRepositoryMock } from '../../__mocks__/FolderRepositoryMock';
 import { FolderPathMother } from '../../domain/__test-helpers__/FolderPathMother';
 import { FolderMother } from '../../domain/__test-helpers__/FolderMother';
+import { PendingFolderCreationTracker } from './PendingFolderCreationTracker';
 
 describe('Folder Creator', () => {
   let repository: FolderRepositoryMock;
@@ -21,10 +22,11 @@ describe('Folder Creator', () => {
     repository = new FolderRepositoryMock();
     remote = new FolderRemoteFileSystemMock();
     eventBus = new EventBusMock();
+    const pendingFolderCreationTracker = new PendingFolderCreationTracker();
 
     const parentFolderFinder = new ParentFolderFinder(repository);
 
-    SUT = new FolderCreator(repository, parentFolderFinder, remote, eventBus);
+    SUT = new FolderCreator(repository, parentFolderFinder, remote, eventBus, pendingFolderCreationTracker);
   });
 
   it('throws an InvalidArgument error if the path is not a valid posix path', async () => {
@@ -105,5 +107,34 @@ describe('Folder Creator', () => {
     expect(eventBus.publishMock).toBeCalledWith(
       expect.arrayContaining([expect.objectContaining({ aggregateId: createdFolder.uuid })]),
     );
+  });
+
+  it('throws when remote folder creation fails with non-recoverable error', async () => {
+    const path = FolderPathMother.any();
+    const parent = FolderMother.fromPartial({ path: path.dirname() });
+
+    remote.shouldFailPersistWith(path.name(), parent.uuid, 'UNHANDLED');
+    repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parent]).mockReturnValueOnce([parent]);
+
+    await expect(SUT.run(path.value)).rejects.toThrow(`Could not create folder ${path.value}: UNHANDLED`);
+  });
+
+  it('recovers from ALREADY_EXISTS by finding the folder remotely', async () => {
+    const path = FolderPathMother.any();
+    const parent = FolderMother.fromPartial({ path: path.dirname() });
+    const existingFolder = FolderMother.fromPartial({
+      path: path.value,
+      parentId: parent.id,
+    });
+
+    remote.shouldFailPersistWith(path.name(), parent.uuid, 'ALREADY_EXISTS');
+    remote.shouldFindFolder(existingFolder);
+
+    repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parent]).mockReturnValueOnce([parent]);
+
+    await SUT.run(path.value);
+
+    expect(repository.addMock).toBeCalledWith(expect.objectContaining({ uuid: existingFolder.uuid }));
+    expect(eventBus.publishMock).not.toBeCalled();
   });
 });

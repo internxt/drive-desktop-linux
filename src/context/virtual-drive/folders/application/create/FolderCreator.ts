@@ -12,6 +12,7 @@ import { FolderUuid } from '../../domain/FolderUuid';
 import { FolderInPathAlreadyExistsError } from '../../domain/errors/FolderInPathAlreadyExistsError';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { ParentFolderFinder } from '../ParentFolderFinder';
+import { PendingFolderCreationTracker } from './PendingFolderCreationTracker';
 
 @Service()
 export class FolderCreator {
@@ -20,6 +21,7 @@ export class FolderCreator {
     private readonly parentFolderFinder: ParentFolderFinder,
     private readonly remote: RemoteFileSystem,
     private readonly eventBus: EventBus,
+    private readonly pendingFolderCreationTracker: PendingFolderCreationTracker,
   ) {}
 
   private async ensureItDoesNotExists(path: FolderPath): Promise<void> {
@@ -39,36 +41,53 @@ export class FolderCreator {
   }
 
   async run(path: string): Promise<void> {
-    const folderPath = new FolderPath(path);
+    await this.pendingFolderCreationTracker.runTrackingCreation({
+      path,
+      action: async () => {
+        const folderPath = new FolderPath(path);
 
-    await this.ensureItDoesNotExists(folderPath);
-    const parent = await this.parentFolderFinder.run(folderPath);
-    const parentId = await this.findParentId(folderPath);
+        await this.ensureItDoesNotExists(folderPath);
+        const parent = await this.parentFolderFinder.run(folderPath);
+        const parentId = await this.findParentId(folderPath);
 
-    const response = await this.remote.persist(folderPath.name(), parent.uuid);
+        const response = await this.remote.persist(folderPath.name(), parent.uuid);
 
-    if (response.isLeft()) {
-      logger.error({
-        msg: 'Error creating folder:',
-        error: response.getLeft(),
-      });
-      return;
-    }
+        if (response.isLeft()) {
+          const error = response.getLeft();
 
-    const dto = response.getRight();
+          logger.error({
+            msg: 'Error creating folder:',
+            error,
+          });
 
-    const folder = Folder.create(
-      new FolderId(dto.id),
-      new FolderUuid(dto.uuid),
-      folderPath,
-      parentId,
-      FolderCreatedAt.fromString(dto.createdAt),
-      FolderUpdatedAt.fromString(dto.updatedAt),
-    );
+          if (error === 'ALREADY_EXISTS') {
+            const existingFolder = await this.remote.searchWith(parentId, folderPath);
 
-    await this.repository.add(folder);
+            if (existingFolder) {
+              await this.repository.add(existingFolder);
+              return;
+            }
+          }
 
-    const events = folder.pullDomainEvents();
-    this.eventBus.publish(events);
+          throw new Error(`Could not create folder ${folderPath.value}: ${error}`);
+        }
+
+        const dto = response.getRight();
+
+        const folder = Folder.create(
+          new FolderId(dto.id),
+          new FolderUuid(dto.uuid),
+          folderPath,
+          parentId,
+          FolderCreatedAt.fromString(dto.createdAt),
+          FolderUpdatedAt.fromString(dto.updatedAt),
+        );
+
+        await this.repository.add(folder);
+
+        const events = folder.pullDomainEvents();
+        this.eventBus.publish(events);
+      },
+    });
   }
 }
