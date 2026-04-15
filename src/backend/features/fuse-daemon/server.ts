@@ -1,6 +1,6 @@
-import fs from 'fs';
+import { rmSync } from 'node:fs';
 import express from 'express';
-import { Server } from 'http';
+import { Server } from 'node:http';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../core/electron/paths';
 import { buildDaemonRouter } from './routes/daemon.routes';
@@ -16,7 +16,7 @@ export function startFuseDaemonServer(): Promise<void> {
     app.use('/daemon', buildDaemonRouter());
     app.use('/op', buildOperationsRouter());
 
-    fs.rmSync(PATHS.FUSE_DAEMON_SOCKET, { force: true });
+    rmSync(PATHS.FUSE_DAEMON_SOCKET, { force: true });
 
     server = app.listen(PATHS.FUSE_DAEMON_SOCKET, () => {
       logger.debug({ msg: '[FUSE DAEMON] server listening', socket: PATHS.FUSE_DAEMON_SOCKET });
@@ -37,7 +37,7 @@ export function stopFuseDaemonServer(): Promise<void> {
         reject(err);
         return;
       }
-      fs.rmSync(PATHS.FUSE_DAEMON_SOCKET, { force: true });
+      rmSync(PATHS.FUSE_DAEMON_SOCKET, { force: true });
       server = null;
       resolve();
     });
