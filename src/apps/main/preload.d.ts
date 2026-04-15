@@ -150,6 +150,7 @@ declare interface Window {
     onVirtualDriveStatusChange(
       callback: (event: { status: import('../drive/fuse/FuseDriveStatus').FuseDriveStatus }) => void,
     ): () => void;
+    onVirtualDriveFolderOpenError(callback: () => void): () => void;
     startRemoteSync: () => Promise<void>;
     openUrl: (url: string) => Promise<void>;
     getPreferredAppLanguage: () => Promise<Array<string>>;

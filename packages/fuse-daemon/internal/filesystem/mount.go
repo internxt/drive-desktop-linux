@@ -22,6 +22,7 @@ func Mount(mountPoint string, logger *slog.Logger, client *client.Client) (*fuse
 		MaxReadAhead:  128 * 1024,
 		DisableXAttrs: false,
 		Debug:         false,
+		DirectMount:   true,
 	}
 
 	server, _, err := nodefs.Mount(mountPoint, nodeFileSystem.Root(), mountOptions, nil)

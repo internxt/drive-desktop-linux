@@ -72,6 +72,16 @@ export default function App() {
     return cleanup;
   }, []);
 
+  useEffect(() => {
+    const cleanup = window.electron.onVirtualDriveFolderOpenError(() => {
+      new Notification(i18next.t('widget.virtual-drive-folder-open-error.title'), {
+        body: i18next.t('widget.virtual-drive-folder-open-error.message'),
+      });
+    });
+
+    return cleanup;
+  }, []);
+
   return (
     <Router>
       <Suspense fallback={<Loader />}>

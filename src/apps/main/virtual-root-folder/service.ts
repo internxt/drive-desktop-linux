@@ -1,11 +1,13 @@
-import { dialog, shell } from 'electron';
+import { dialog } from 'electron';
 import fs from 'fs/promises';
-import path from 'node:path';
+import { sep } from 'node:path';
 import configStore from '../config';
 import eventBus from '../event-bus';
-import { exec } from 'child_process';
+import { execFile } from 'node:child_process';
 import { ensureFolderExists } from '../../shared/fs/ensure-folder-exists';
 import { PATHS } from '../../../core/electron/paths';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { broadcastToWindows } from '../windows';
 
 const VIRTUAL_DRIVE_FOLDER = PATHS.ROOT_DRIVE_FOLDER;
 
@@ -37,7 +39,7 @@ async function isEmptyFolder(pathname: string): Promise<boolean> {
 }
 
 function setSyncRoot(pathname: string): void {
-  const pathNameWithSepInTheEnd = pathname[pathname.length - 1] === path.sep ? pathname : pathname + path.sep;
+  const pathNameWithSepInTheEnd = pathname[pathname.length - 1] === sep ? pathname : pathname + sep;
   configStore.set('syncRoot', pathNameWithSepInTheEnd);
   configStore.set('lastSavedListing', '');
 }
@@ -72,16 +74,15 @@ export async function chooseSyncRootWithDialog(): Promise<string | null> {
   return null;
 }
 
-export async function openVirtualDriveRootFolder() {
+export async function openVirtualDriveRootFolder(): Promise<void> {
   const syncFolderPath = getRootVirtualDrive();
 
-  if (process.platform === 'linux') {
-    // shell.openPath is not working as intended with the mounted directory
-    // this is only a workaround to fix it
+  function openWithXdg(targetPath: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      exec(`xdg-open "${syncFolderPath}"`, (error) => {
+      execFile('xdg-open', [targetPath], (error) => {
         if (error) {
           reject(error);
+          return;
         }
 
         resolve();
@@ -89,7 +90,16 @@ export async function openVirtualDriveRootFolder() {
     });
   }
 
-  const errorMessage = await shell.openPath(syncFolderPath);
+  try {
+    await openWithXdg(syncFolderPath);
+    return;
+  } catch (error) {
+    logger.warn({
+      msg: '[VIRTUAL DRIVE] opening mountpoint failed',
+      syncFolderPath,
+      error,
+    });
 
-  if (errorMessage) throw new Error(errorMessage);
+    broadcastToWindows('virtual-drive-folder-open-error', undefined);
+  }
 }

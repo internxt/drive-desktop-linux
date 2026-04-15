@@ -186,6 +186,10 @@
       "mounting": "Montage...",
       "button": "Monter"
     },
+    "virtual-drive-folder-open-error": {
+      "title": "Internxt Drive",
+      "message": "Le dossier Internxt Drive n'est pas disponible pour le moment."
+    },
     "banners": {
       "update-available": {
         "body": "Une nouvelle version est disponible.",

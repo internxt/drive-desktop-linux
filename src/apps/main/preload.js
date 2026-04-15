@@ -275,6 +275,15 @@ contextBridge.exposeInMainWorld('electron', {
 
     return () => ipcRenderer.removeListener(eventName, callbackWrapper);
   },
+  onVirtualDriveFolderOpenError(callback) {
+    const eventName = 'virtual-drive-folder-open-error';
+    const callbackWrapper = () => {
+      callback();
+    };
+    ipcRenderer.on(eventName, callbackWrapper);
+
+    return () => ipcRenderer.removeListener(eventName, callbackWrapper);
+  },
   openUrl: (url) => {
     ipcRenderer.invoke('open-url', url);
   },

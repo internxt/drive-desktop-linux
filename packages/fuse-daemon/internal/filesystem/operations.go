@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"log/slog"
+	"syscall"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
@@ -30,14 +31,29 @@ func NewInternxtFilesystem(logger *slog.Logger, client *client.Client) *Internxt
 		client:     client,
 	}
 }
+
+func isRootPath(name string) bool {
+	return name == "" || name == "/"
+}
+
 func (fs *InternxtFilesystem) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.Status) {
-	fs.logger.Warn("not implemented", "op", "GetAttr", "path", name)
-	return nil, fuse.ENOSYS
+	if isRootPath(name) {
+		return &fuse.Attr{
+			Mode:  uint32(syscall.S_IFDIR | 0o755),
+			Nlink: 2,
+			Owner: fuse.Owner{Uid: context.Owner.Uid, Gid: context.Owner.Gid},
+		}, fuse.OK
+	}
+
+	return nil, fuse.ENOENT
 }
 
 func (fs *InternxtFilesystem) OpenDir(name string, context *fuse.Context) ([]fuse.DirEntry, fuse.Status) {
-	fs.logger.Warn("not implemented", "op", "OpenDir", "path", name)
-	return nil, fuse.ENOSYS
+	if isRootPath(name) {
+		return []fuse.DirEntry{}, fuse.OK
+	}
+
+	return nil, fuse.ENOENT
 }
 // Open returns a file handle for the given path.
 // When implementing: return a nodefs.File handle that implements Read, Write, Release, and Flush.

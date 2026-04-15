@@ -67,6 +67,7 @@ export interface IElectronAPI {
   onRemoteChanges(func: (value: import('../main/realtime').EventPayload) => void): () => void;
 
   openVirtualDriveFolder(): Promise<void>;
+  onVirtualDriveFolderOpenError(callback: () => void): () => void;
 
   openProcessIssuesWindow(): void;
 
