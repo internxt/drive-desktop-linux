@@ -19,7 +19,6 @@ export class TemporalFileUploader {
   ) {}
 
   async run(temporalFile: TemporalFile, replaces?: Replaces): Promise<string> {
-
     const stream = await this.repository.stream(temporalFile.path);
 
     const controller = new AbortController();

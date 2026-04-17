@@ -22,7 +22,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     ensureFolderExists(this.folder);
   }
 
-async exits(documentPath: TemporalFilePath): Promise<boolean> {
+  async exits(documentPath: TemporalFilePath): Promise<boolean> {
     const pathToRead = this.map.get(documentPath.value);
 
     if (!pathToRead) {
@@ -132,7 +132,7 @@ async exits(documentPath: TemporalFilePath): Promise<boolean> {
     return readFile(id);
   }
 
-async write(documentPath: TemporalFilePath, buffer: Buffer, length: number, position: number): Promise<void> {
+  async write(documentPath: TemporalFilePath, buffer: Buffer, length: number, position: number): Promise<void> {
     const pathToWrite = this.map.get(documentPath.value);
 
     if (!pathToWrite) {
