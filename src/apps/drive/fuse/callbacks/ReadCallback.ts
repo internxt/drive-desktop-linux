@@ -4,15 +4,15 @@ import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFi
 import { TemporalFileChunkReader } from '../../../../context/storage/TemporalFiles/application/read/TemporalFileChunkReader';
 import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { StorageFilesRepository } from '../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
-import { StorageFileId } from '../../../../context/storage/StorageFiles/domain/StorageFileId';
 import { StorageFile } from '../../../../context/storage/StorageFiles/domain/StorageFile';
-import { StorageFileDownloader } from '../../../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
 import { DownloadProgressTracker } from '../../../../context/shared/domain/DownloadProgressTracker';
-import { type File } from '../../../../context/virtual-drive/files/domain/File';
 import {
   handleReadCallback,
   type HandleReadCallbackDeps,
 } from '../../../../backend/features/fuse/on-read/handle-read-callback';
+import { buildNetworkClient } from '../../../../infra/environment/download-file/build-network-client';
+import { getCredentials } from '../../../main/auth/get-credentials';
+import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 
 import Fuse from '@gcas/fuse';
 
@@ -21,15 +21,17 @@ export class ReadCallback {
 
   async execute(
     path: string,
-    _fd: any,
+    _fd: unknown,
     buf: Buffer,
     len: number,
     pos: number,
-    cb: (code: number, params?: any) => void,
+    cb: (code: number, params?: unknown) => void,
   ) {
     try {
+      const { mnemonic } = getCredentials();
+      const user = DependencyInjectionUserProvider.get();
+      const network = buildNetworkClient({ bridgeUser: user.bridgeUser, userId: user.userId });
       const repo = this.container.get(StorageFilesRepository);
-      const downloader = this.container.get(StorageFileDownloader);
       const tracker = this.container.get(DownloadProgressTracker);
 
       const deps: HandleReadCallbackDeps = {
@@ -39,30 +41,20 @@ export class ReadCallback {
           const result = await this.container.get(TemporalFileChunkReader).run(p, length, position);
           return result.isPresent() ? result.get() : undefined;
         },
-        existsOnDisk: (contentsId: string) => repo.exists(new StorageFileId(contentsId)),
-
-        startDownload: async (virtualFile: File) => {
-          const storage = StorageFile.from({
-            id: virtualFile.contentsId,
-            virtualId: virtualFile.uuid,
-            size: virtualFile.size,
+        onDownloadProgress: (name, extension, bytesDownloaded, fileSize, elapsedTime) => {
+          tracker.downloadUpdate(name, extension, {
+            percentage: Math.min(bytesDownloaded / fileSize, 1),
+            elapsedTime,
           });
-          tracker.downloadStarted(virtualFile.name, virtualFile.type);
-          const { stream, handler } = await downloader.run(storage, virtualFile);
-          return { stream, elapsedTime: () => handler.elapsedTime() };
-        },
-        onDownloadProgress: (name, extension, progress) => {
-          tracker.downloadUpdate(name, extension, progress);
         },
         saveToRepository: async (contentsId, size, uuid, name, extension) => {
-          const storage = StorageFile.from({
-            id: contentsId,
-            virtualId: uuid,
-            size,
-          });
+          const storage = StorageFile.from({ id: contentsId, virtualId: uuid, size });
           await repo.register(storage);
           tracker.downloadFinished(name, extension);
         },
+        bucketId: user.bucket,
+        mnemonic,
+        network,
       };
 
       const result = await handleReadCallback(deps, path, len, pos);

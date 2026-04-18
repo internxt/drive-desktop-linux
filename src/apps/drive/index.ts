@@ -28,7 +28,14 @@ export async function startVirtualDrive() {
   fuseApp.on('mount-error', () => broadcastToWindows('virtual-drive-status-change', 'ERROR'));
 
   await hydrationApi.start({ debug: false, timeElapsed: false });
-
+  /**
+   * v2.5.4
+   * Alexis Mora
+   * If a user abruptly quits the app, all the hydrated files will be orphaned.
+   * Hence why we clear the cache before starting up the virtual drive.
+   * To ensure that every time we get a fresh start.
+   */
+  fuseApp.clearCache();
   await fuseApp.start();
 }
 
