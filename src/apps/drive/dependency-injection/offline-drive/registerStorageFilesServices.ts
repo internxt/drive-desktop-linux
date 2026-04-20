@@ -9,18 +9,20 @@ import { StorageFilesRepository } from '../../../../context/storage/StorageFiles
 import { DownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
 import { EnvironmentFileDownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
 import { TypeOrmAndNodeFsStorageFilesRepository } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmAndNodeFsStorageFilesRepository';
-import { TypeOrmStorageFilesDataSourceFactory } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmStorageFilesDataSourceFactory';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { PATHS } from '../../../../core/electron/paths';
+import { AppDataSource } from '../../../main/database/data-source';
 
 export async function registerStorageFilesServices(builder: ContainerBuilder): Promise<void> {
   // Infra
 
   const user = DependencyInjectionUserProvider.get();
 
-  const dataSource = await TypeOrmStorageFilesDataSourceFactory.create();
+  if (!AppDataSource.isInitialized) {
+    throw new Error('AppDataSource must be initialized before registerStorageFilesServices');
+  }
 
-  const repo = new TypeOrmAndNodeFsStorageFilesRepository(PATHS.DOWNLOADED, dataSource);
+  const repo = new TypeOrmAndNodeFsStorageFilesRepository(PATHS.DOWNLOADED, AppDataSource);
   await repo.init();
 
   builder.register(StorageFilesRepository).useInstance(repo);
