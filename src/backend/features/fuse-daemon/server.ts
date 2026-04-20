@@ -1,6 +1,7 @@
 import { rmSync } from 'node:fs';
 import express from 'express';
 import { Server } from 'node:http';
+import { Container } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../core/electron/paths';
 import { buildDaemonRouter } from './routes/daemon.routes';
@@ -8,13 +9,13 @@ import { buildOperationsRouter } from './routes/operations.routes';
 
 let server: Server | null = null;
 
-export function startFuseDaemonServer(): Promise<void> {
+export function startFuseDaemonServer(container: Container): Promise<void> {
   return new Promise((resolve) => {
     const app = express();
     app.use(express.json());
 
     app.use('/daemon', buildDaemonRouter());
-    app.use('/op', buildOperationsRouter());
+    app.use('/op', buildOperationsRouter(container));
 
     rmSync(PATHS.FUSE_DAEMON_SOCKET, { force: true });
 
