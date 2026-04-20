@@ -114,7 +114,7 @@ describe('UploadOnRename', () => {
 
     expect(result.isRight()).toBe(true);
     expect(result.getRight()).toBe('success');
-    call(temporalFileUploaderMock.run).toMatchObject([src, { contentsId }]);
+    call(temporalFileUploaderMock.run).toMatchObject([temporalFile, { contentsId }]);
     call(temporalFileDeleterMock.run).toBe(src);
   });
 
@@ -140,7 +140,7 @@ describe('UploadOnRename', () => {
     expect(result.getRight()).toBe('success');
     call(relativePathToAbsoluteConverterMock.run).toBe(contentsId);
     calls(temporalFileByteByByteComparatorMock.run).toHaveLength(1);
-    call(temporalFileUploaderMock.run).toMatchObject([src, { contentsId }]);
+    call(temporalFileUploaderMock.run).toMatchObject([temporalFile, { contentsId }]);
     call(temporalFileDeleterMock.run).toBe(src);
   });
 
