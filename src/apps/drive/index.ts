@@ -2,7 +2,7 @@ import { getRootVirtualDrive } from '../main/virtual-root-folder/service';
 import { broadcastToWindows } from '../main/windows';
 // import { DependencyInjectionUserProvider } from '../shared/dependency-injection/DependencyInjectionUserProvider';
 // import { VirtualDrive } from './virtual-drive/VirtualDrive';
-// import { DriveDependencyContainerFactory } from './dependency-injection/DriveDependencyContainerFactory';
+import { DriveDependencyContainerFactory } from './dependency-injection/DriveDependencyContainerFactory';
 // import { FuseApp } from './fuse/FuseApp';
 // import { HydrationApi } from './hydration-api/HydrationApi';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
@@ -15,7 +15,7 @@ import { startDaemon, stopDaemon } from '../../backend/features/fuse-daemon/daem
 export async function startVirtualDrive() {
   const localRoot = getRootVirtualDrive();
 
-  // const container = await DriveDependencyContainerFactory.build();
+  const container = await DriveDependencyContainerFactory.build();
   // const user = DependencyInjectionUserProvider.get();
   // const virtualDrive = new VirtualDrive(container);
   // hydrationApi = new HydrationApi(container);
@@ -25,7 +25,7 @@ export async function startVirtualDrive() {
   // await hydrationApi.start({ debug: false, timeElapsed: false });
   // await fuseApp.start();
 
-  await startFuseDaemonServer();
+  await startFuseDaemonServer(container);
   await startDaemon(localRoot);
 
   broadcastToWindows('virtual-drive-status-change', 'MOUNTED');
