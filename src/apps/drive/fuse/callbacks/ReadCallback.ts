@@ -1,7 +1,6 @@
 import { Container } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
-import { TemporalFileChunkReader } from '../../../../context/storage/TemporalFiles/application/read/TemporalFileChunkReader';
 import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { StorageFilesRepository } from '../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
 import { StorageFileId } from '../../../../context/storage/StorageFiles/domain/StorageFileId';
@@ -35,10 +34,6 @@ export class ReadCallback {
       const deps: HandleReadCallbackDeps = {
         findVirtualFile: (p: string) => this.container.get(FirstsFileSearcher).run({ path: p }),
         findTemporalFile: (p: string) => this.container.get(TemporalFileByPathFinder).run(p),
-        readTemporalFileChunk: async (p: string, length: number, position: number) => {
-          const result = await this.container.get(TemporalFileChunkReader).run(p, length, position);
-          return result.isPresent() ? result.get() : undefined;
-        },
         existsOnDisk: (contentsId: string) => repo.exists(new StorageFileId(contentsId)),
 
         startDownload: async (virtualFile: File) => {

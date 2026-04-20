@@ -16,7 +16,6 @@ import { formatBytes } from '../../../../shared/format-bytes';
 export type HandleReadCallbackDeps = {
   findVirtualFile: (path: string) => Promise<File | undefined>;
   findTemporalFile: (path: string) => Promise<TemporalFile | undefined>;
-  readTemporalFileChunk: (path: string, length: number, position: number) => Promise<Buffer | undefined>;
   existsOnDisk: (contentsId: string) => Promise<boolean>;
   startDownload: (virtualFile: File) => Promise<{ stream: Readable; elapsedTime: () => number }>;
   onDownloadProgress: (name: string, extension: string, progress: { percentage: number; elapsedTime: number }) => void;
@@ -69,13 +68,13 @@ export async function handleReadCallback(
   if (!virtualFile) {
     const temporalFile = await deps.findTemporalFile(path);
 
-    if (!temporalFile) {
+    if (!temporalFile || !temporalFile.contentFilePath) {
       logger.error({ msg: '[ReadCallback] File not found', path });
       return left(new FuseNoSuchFileOrDirectoryError(path));
     }
 
-    const chunk = await deps.readTemporalFileChunk(temporalFile.path.value, length, position);
-    return right(chunk ?? EMPTY);
+    const chunk = await readChunkFromDisk(temporalFile.contentFilePath, length, position);
+    return right(chunk);
   }
 
   if (!shouldDownload(path)) {
