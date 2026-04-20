@@ -37,7 +37,7 @@ import './virtual-drive';
 
 import { app, ipcMain } from 'electron';
 import eventBus from './event-bus';
-import { AppDataSource } from './database/data-source';
+import { AppDataSource, resetAppDataSourceOnLogout } from './database/data-source';
 import { getIsLoggedIn } from './auth/handlers';
 import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from './windows/widget';
 import { createAuthWindow, getAuthWindow } from './windows/auth';
@@ -193,7 +193,6 @@ eventBus.on('USER_LOGGED_IN', async () => {
       msg: 'Error on main process while handling USER_LOGGED_IN event:',
       error,
     });
-    reportError(error as Error);
   }
 });
 
@@ -212,9 +211,7 @@ eventBus.on('USER_LOGGED_OUT', async () => {
   if (widget) {
     widget.destroy();
   }
-  if (AppDataSource.isInitialized) {
-    await AppDataSource.destroy();
-  }
+  await resetAppDataSourceOnLogout();
 
   // await uninstallNautilusExtension();
 });

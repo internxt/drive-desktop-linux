@@ -27,7 +27,6 @@ function createDeps(overrides: Partial<HandleReadCallbackDeps> = {}): HandleRead
   return {
     findVirtualFile: vi.fn().mockResolvedValue(virtualFile),
     findTemporalFile: vi.fn().mockResolvedValue(undefined),
-    readTemporalFileChunk: vi.fn().mockResolvedValue(undefined),
     existsOnDisk: vi.fn().mockResolvedValue(false),
     startDownload: vi.fn().mockResolvedValue({ stream: new PassThrough(), elapsedTime: () => 0 }),
     onDownloadProgress: vi.fn(),
@@ -67,30 +66,32 @@ describe('handleReadCallback', () => {
 
     it('should read from temporal file when virtual file is not found but temporal exists', async () => {
       const chunk = Buffer.from('temporal-data');
+      readChunkFromDiskMock.mockResolvedValue(chunk);
       const deps = createDeps({
         findVirtualFile: vi.fn().mockResolvedValue(undefined),
-        findTemporalFile: vi.fn().mockResolvedValue({ path: { value: '/tmp/internxt/uuid' } }),
-        readTemporalFileChunk: vi.fn().mockResolvedValue(chunk),
+        findTemporalFile: vi.fn().mockResolvedValue({
+          path: { value: '/virtual/file.txt' },
+          contentFilePath: '/tmp/internxt-drive-tmp/uuid',
+        }),
       });
 
       const result = await handleReadCallback(deps, '/file.txt', 13, 0);
 
       expect(result.isRight()).toBe(true);
       expect(result.getRight()).toBe(chunk);
-      call(deps.readTemporalFileChunk as ReturnType<typeof vi.fn>).toStrictEqual(['/tmp/internxt/uuid', 13, 0]);
+      call(readChunkFromDiskMock).toStrictEqual(['/tmp/internxt-drive-tmp/uuid', 13, 0]);
     });
 
-    it('should return empty buffer when temporal file chunk is undefined', async () => {
+    it('should return ENOENT when temporal file has no content path', async () => {
       const deps = createDeps({
         findVirtualFile: vi.fn().mockResolvedValue(undefined),
-        findTemporalFile: vi.fn().mockResolvedValue({ path: { value: '/tmp/internxt/uuid' } }),
-        readTemporalFileChunk: vi.fn().mockResolvedValue(undefined),
+        findTemporalFile: vi.fn().mockResolvedValue({ path: { value: '/virtual/file.txt' } }),
       });
 
       const result = await handleReadCallback(deps, '/file.txt', 10, 0);
 
-      expect(result.isRight()).toBe(true);
-      expect(result.getRight()).toHaveLength(0);
+      expect(result.isLeft()).toBe(true);
+      expect(result.getLeft()).toBeInstanceOf(FuseNoSuchFileOrDirectoryError);
     });
   });
 

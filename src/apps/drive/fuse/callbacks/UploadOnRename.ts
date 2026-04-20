@@ -67,7 +67,7 @@ export class UploadOnRename {
       return right(UploadOnRename.SUCCESS);
     }
 
-    await this.container.get(TemporalFileUploader).run(document.path.value, {
+    await this.container.get(TemporalFileUploader).run(document, {
       contentsId: fileToOverride.contentsId,
       name: fileToOverride.name,
       extension: fileToOverride.type,
