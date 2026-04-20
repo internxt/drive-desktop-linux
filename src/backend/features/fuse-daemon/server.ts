@@ -1,6 +1,6 @@
 import { rmSync } from 'node:fs';
 import express from 'express';
-import { Server } from 'http';
+import { Server } from 'node:http';
 import { Container } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../core/electron/paths';
