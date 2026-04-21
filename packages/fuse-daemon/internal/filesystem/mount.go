@@ -2,11 +2,13 @@ package filesystem
 
 import (
 	"log/slog"
+	"syscall"
+
+	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
 	"github.com/hanwen/go-fuse/v2/fuse/pathfs"
-	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 )
 
 // Mount attaches InternxtFilesystem to mountPoint and starts serving FUSE operations.
@@ -24,6 +26,8 @@ func Mount(mountPoint string, logger *slog.Logger, client *client.Client) (*fuse
 		Debug:         false,
 		DirectMount:   true,
 	}
+
+	_ = syscall.Unmount(mountPoint, 0)
 
 	server, _, err := nodefs.Mount(mountPoint, nodeFileSystem.Root(), mountOptions, nil)
 	if err != nil {

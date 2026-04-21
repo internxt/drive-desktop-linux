@@ -1,8 +1,11 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -54,4 +57,37 @@ func (client *Client) NotifyReady(logger *slog.Logger) error {
 
 	logger.Info("notified electron of readiness")
 	return nil
+}
+
+ func (client *Client) Post(context context.Context, path OperationPath, in any, out any) error {
+  body, err := json.Marshal(in)
+  if err != nil {
+    return fmt.Errorf("failed to marshal request: %w", err)
+  }
+  url := serverURL + string(path)
+  req, err := http.NewRequestWithContext(context, http.MethodPost, url, bytes.NewBuffer(body))
+  if err != nil {
+		return fmt.Errorf("Error creating Post request: %w", err)
+	}
+
+  req.Header.Set("Content-Type", "application/json")
+
+  resp, err := client.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("sending Post request: %w", err)
+	}
+  defer resp.Body.Close()
+
+  if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status from Post endpoint: %d", resp.StatusCode)
+	}
+  resBody, err := io.ReadAll(resp.Body)
+  if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+  err = json.Unmarshal(resBody, out)
+  if err != nil {
+		return fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+  return nil
 }

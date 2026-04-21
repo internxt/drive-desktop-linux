@@ -4,10 +4,11 @@ import (
 	"log/slog"
 	"syscall"
 
+	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
+
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
 	"github.com/hanwen/go-fuse/v2/fuse/pathfs"
-	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 )
 
 // InternxtFilesystem is the FUSE filesystem implementation.
@@ -37,15 +38,28 @@ func isRootPath(name string) bool {
 }
 
 func (fs *InternxtFilesystem) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.Status) {
-	if isRootPath(name) {
-		return &fuse.Attr{
-			Mode:  uint32(syscall.S_IFDIR | 0o755),
-			Nlink: 2,
-			Owner: fuse.Owner{Uid: context.Owner.Uid, Gid: context.Owner.Gid},
-		}, fuse.OK
-	}
-
-	return nil, fuse.ENOENT
+  fs.logger.Debug("Recieved GetAttr call: ", "name", name)
+  body := struct { Path string `json:"path"` }{ Path: name }
+  response := GetAttributesCallbackData{}
+  err := fs.client.Post(context,client.OperationGetAttr, body, &response)
+  if err != nil {
+    fs.logger.Error("Error occurred while fetching attributes", "error", err)
+    return nil, fuse.EIO
+  }
+  var atime uint64
+  if response.Atime != nil {
+      atime = uint64(response.Atime.Unix())
+  }
+	attr := &fuse.Attr{
+    Mode:  response.Mode,
+    Size:  response.Size,
+    Mtime: uint64(response.Mtime.Unix()),
+    Ctime: uint64(response.Ctime.Unix()),
+    Atime: atime,
+    Owner: fuse.Owner{Uid: response.Uid, Gid: response.Gid},
+    Nlink: response.Nlink,
+  }
+  return attr, fuse.OK
 }
 
 func (fs *InternxtFilesystem) OpenDir(name string, context *fuse.Context) ([]fuse.DirEntry, fuse.Status) {

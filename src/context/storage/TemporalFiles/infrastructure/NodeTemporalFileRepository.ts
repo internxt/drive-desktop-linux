@@ -173,6 +173,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
       modifiedAt: stat.mtime,
       path: documentPath.value,
       size: stat.size,
+      contentFilePath: pathToSearch,
     });
 
     return Optional.of(doc);
