@@ -68,6 +68,8 @@ For the best experience with SSO authentication, we recommend using the .deb pac
 - [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager)
 - Node.js 18
 
+If working on the FUSE daemon (Go), see [packages/fuse-daemon/README.md](packages/fuse-daemon/README.md) for Go and linting tool prerequisites.
+
 ### Install
 
 Clone the repo and install dependencies:
