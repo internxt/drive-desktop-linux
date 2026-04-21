@@ -67,7 +67,8 @@
     "linux": {
       "target": [
         "AppImage",
-        "deb"
+        "deb",
+        "rpm"
       ],
       "category": "Development"
     },
@@ -75,6 +76,14 @@
       "depends": [
         "libfuse2",
         "python3-nautilus"
+      ]
+    },
+    "rpm": {
+      "depends": [
+        "fuse-libs"
+      ],
+      "fpm": [
+        "--rpm-tag", "Recommends: nautilus-python"
       ]
     },
     "directories": {
