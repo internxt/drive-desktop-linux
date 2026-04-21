@@ -10,7 +10,10 @@ export function useUserAvailableProducts() {
       .get()
       .then(setProducts)
       .catch((error) => {
-        reportError(`Failed to fetch user available products: ${error}`);
+        window.electron.logger.error({
+          msg: '[RENDERER] Failed to fetch user available products',
+          error,
+        });
       });
 
     userAvailableProducts.subscribe();

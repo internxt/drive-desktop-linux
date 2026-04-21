@@ -70,7 +70,10 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
     try {
       window.electron.cleaner.startCleanup(viewModel);
     } catch (error) {
-      reportError(`Failed to start cleanup: ${error}`);
+      window.electron.logger.error({
+        msg: '[RENDERER] Failed to start cleanup',
+        error,
+      });
     }
   };
 
@@ -78,7 +81,10 @@ export function CleanerProvider({ children }: { children: ReactNode }) {
     try {
       window.electron.cleaner.stopCleanup();
     } catch (error) {
-      reportError(`Failed to stop cleanup: ${error}`);
+      window.electron.logger.error({
+        msg: '[RENDERER] Failed to stop cleanup',
+        error,
+      });
     }
   };
 

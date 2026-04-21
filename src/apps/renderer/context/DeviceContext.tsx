@@ -64,7 +64,10 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
       setCurrent(updatedDevice);
       setSelected(updatedDevice);
     } catch (err) {
-      reportError(err);
+      window.electron.logger.error({
+        msg: '[RENDERER] Failed to rename device',
+        error: err,
+      });
       setDeviceState({ status: 'ERROR' });
     }
   };

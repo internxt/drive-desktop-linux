@@ -41,8 +41,10 @@ export const BackupsFoldersSelector: React.FC<BackupsFoldersSelectorProps> = (pr
       const folder = await window.electron.getFolderPath();
 
       if (!folder?.path) {
-        // eslint-disable-next-line no-console
-        return console.warn('No folder selected by the user');
+        return window.electron.logger.warn({
+          tag: 'BACKUPS',
+          msg: '[RENDERER] No folder selected by the user',
+        });
       }
 
       const match = backupFolders.find((backupFolder) => backupFolder.path === folder.path);
@@ -53,7 +55,11 @@ export const BackupsFoldersSelector: React.FC<BackupsFoldersSelectorProps> = (pr
 
       setBackupFolders(backupFolders.concat(folder));
     } catch (error) {
-      reportError(error);
+      window.electron.logger.error({
+        tag: 'BACKUPS',
+        msg: '[RENDERER] Failed to add backup folder',
+        error,
+      });
     } finally {
       setIsLoading(false);
     }

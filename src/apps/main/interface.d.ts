@@ -30,6 +30,7 @@ export interface IElectronAPI {
 
   finishOnboarding: () => void;
   getBackupsInterval(): Promise<number>;
+  getFolderPath(): Promise<{ path: string; itemName: string } | null>;
 
   setBackupsInterval(value: number): Promise<void>;
 
@@ -38,6 +39,8 @@ export interface IElectronAPI {
   getBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<Array<BackupInfo>>;
 
   addBackup: () => Promise<BackupInfo | undefined>;
+
+  addBackupsFromLocalPaths: (localPaths: string[]) => Promise<void>;
 
   deleteBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<void>;
 
@@ -69,6 +72,8 @@ export interface IElectronAPI {
   openVirtualDriveFolder(): Promise<void>;
 
   openProcessIssuesWindow(): void;
+
+  openLogs(): void;
 
   openSettingsWindow(section?: 'BACKUPS' | 'GENERAL' | 'ACCOUNT' | 'ANTIVIRUS' | 'CLEANER'): void;
 

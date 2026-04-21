@@ -12,7 +12,10 @@ export default function Login() {
       setIsLoading(true);
       await window.electron.openUrl(URL);
     } catch (error) {
-      reportError(error);
+      window.electron.logger.error({
+        msg: '[RENDERER] Failed to open URL from login screen',
+        error,
+      });
     } finally {
       setIsLoading(false);
     }

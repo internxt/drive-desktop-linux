@@ -23,7 +23,10 @@ export default function Usage({ isInfinite, offerUpgrade, usageInBytes, limitInB
     try {
       await window.electron.openUrl('https://drive.internxt.com/preferences?tab=plans');
     } catch (error) {
-      reportError(error);
+      window.electron.logger.error({
+        msg: '[RENDERER] Failed to open upgrade URL from usage section',
+        error,
+      });
     }
   };
 
