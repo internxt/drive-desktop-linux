@@ -2,7 +2,7 @@ import * as addFolderToTrashModule from '../../../infra/drive-server/services/fo
 import * as getBackupFolderTreeSnapshotModule from './get-backup-folder-tree-snapshot';
 import * as deleteBackupModule from './delete-backup';
 import * as DeviceModuleModule from '../device/device.module';
-import { toAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { calls, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { deleteDeviceBackups } from './delete-device-backups';
 
@@ -31,7 +31,7 @@ describe('delete-device-backups', () => {
         folderId: 10,
         tmpPath: '/tmp',
         backupsBucket: 'bucket',
-        pathname: toAbsolutePath({ path: '/home/dev/Documents' }),
+        pathname: createAbsolutePath('/home/dev/Documents'),
         name: 'Documents',
       },
     ];
@@ -61,7 +61,7 @@ describe('delete-device-backups', () => {
         folderId: 10,
         tmpPath: '/tmp',
         backupsBucket: 'bucket',
-        pathname: toAbsolutePath({ path: '/home/dev/Documents' }),
+        pathname: createAbsolutePath('/home/dev/Documents'),
         name: 'Documents',
       },
     ];

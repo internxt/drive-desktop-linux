@@ -1,6 +1,6 @@
 import * as addFolderToTrashModule from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
 import configStoreModule from '../../../apps/main/config';
-import { toAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { deleteBackup } from './delete-backup';
@@ -15,7 +15,7 @@ describe('delete-backup', () => {
     folderId: 1,
     tmpPath: '/tmp',
     backupsBucket: 'bucket',
-    pathname: toAbsolutePath({ path: '/home/dev/Documents' }),
+    pathname: createAbsolutePath('/home/dev/Documents'),
     name: 'Documents',
   };
 
@@ -43,7 +43,7 @@ describe('delete-backup', () => {
         ...backup,
         folderId: 2,
         folderUuid: 'folder-uuid-2',
-        pathname: toAbsolutePath({ path: '/home/dev/Pictures' }),
+        pathname: createAbsolutePath('/home/dev/Pictures'),
         name: 'Pictures',
       },
     } as never);
@@ -57,7 +57,7 @@ describe('delete-backup', () => {
           ...backup,
           folderId: 2,
           folderUuid: 'folder-uuid-2',
-          pathname: toAbsolutePath({ path: '/home/dev/Pictures' }),
+          pathname: createAbsolutePath('/home/dev/Pictures'),
           name: 'Pictures',
         },
       },

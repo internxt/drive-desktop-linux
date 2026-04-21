@@ -1,7 +1,7 @@
 import * as createBackupModule from '../../../apps/main/backups/create-backup';
 import * as DeviceModuleModule from '../device/device.module';
 import configStoreModule from '../../../apps/main/config';
-import { toAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { call, calls, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { createBackupsFromLocalPaths } from './create-backups-from-local-paths';
 
@@ -21,8 +21,8 @@ describe('create-backups-from-local-paths', () => {
     };
 
     const folderPaths = [
-      toAbsolutePath({ path: '/home/dev/Documents' }),
-      toAbsolutePath({ path: '/home/dev/Pictures' }),
+      createAbsolutePath('/home/dev/Documents'),
+      createAbsolutePath('/home/dev/Pictures'),
     ];
 
     getOrCreateDeviceMock.mockResolvedValue({ data: device });
@@ -40,7 +40,7 @@ describe('create-backups-from-local-paths', () => {
 
   it('should throw when no device can be created or fetched', async () => {
     const error = new Error('Device error');
-    const folderPaths = [toAbsolutePath({ path: '/home/dev/Documents' })];
+    const folderPaths = [createAbsolutePath('/home/dev/Documents')];
 
     getOrCreateDeviceMock.mockResolvedValue({ error });
 

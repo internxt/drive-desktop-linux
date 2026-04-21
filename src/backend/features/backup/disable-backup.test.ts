@@ -2,7 +2,7 @@ import * as findBackupPathnameFromIdModule from './find-backup-pathname-from-id'
 import * as getBackupFolderTreeSnapshotModule from './get-backup-folder-tree-snapshot';
 import * as deleteBackupModule from './delete-backup';
 import configStoreModule from '../../../apps/main/config';
-import { toAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { loggerMock } from '../../../../tests/vitest/mocks.helper';
 import { disableBackup } from './disable-backup';
@@ -22,7 +22,7 @@ describe('disable-backup', () => {
     folderId: 1,
     tmpPath: '/tmp',
     backupsBucket: 'bucket',
-    pathname: toAbsolutePath({ path: '/home/dev/Documents' }),
+    pathname: createAbsolutePath('/home/dev/Documents'),
     name: 'Documents',
   };
 

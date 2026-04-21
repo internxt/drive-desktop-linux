@@ -4,8 +4,8 @@ import { fetchFolder } from '../../../infra/drive-server/services/folder/service
 import { createBackup } from './create-backup';
 import { migrateBackupEntryIfNeeded } from '../../../backend/features/backup/migrate-backup-entry-if-needed';
 import { PATHS } from '../../../core/electron/paths';
-import { toAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
+import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 
 vi.mock('../config');
 vi.mock('../../../infra/drive-server/services/folder/services/fetch-folder');
@@ -27,7 +27,7 @@ describe('enable-existing-backup', () => {
     hasBackups: false,
   };
 
-  const pathname = toAbsolutePath({ path: '/path/to/backup' });
+  const pathname = createAbsolutePath('/path/to/backup');
   const existingBackupData = {
     folderUuid: 'existing-uuid',
     folderId: 456,

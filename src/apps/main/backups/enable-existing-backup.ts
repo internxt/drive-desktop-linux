@@ -1,6 +1,6 @@
 import configStore from '../config';
 import { BackupInfo } from 'src/apps/backups/BackupInfo';
-import path from 'node:path';
+import { parse } from 'node:path';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import { createBackup } from './create-backup';
 import { migrateBackupEntryIfNeeded } from '../../../backend/features/backup/migrate-backup-entry-if-needed';
@@ -29,11 +29,11 @@ export async function enableExistingBackup({ pathname, device }: Props) {
   updatedBackupList[pathname].enabled = true;
   configStore.set('backupList', updatedBackupList);
 
-  const { base } = path.parse(pathname);
+  const { base } = parse(pathname);
   const backupInfo: BackupInfo = {
     folderUuid: migratedBackup.folderUuid,
     folderId: migratedBackup.folderId,
-    pathname: pathname,
+    pathname,
     name: base,
     tmpPath: PATHS.TEMPORAL_FOLDER,
     backupsBucket: device.bucket,

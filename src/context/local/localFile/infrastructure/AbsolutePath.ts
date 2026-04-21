@@ -1,10 +1,11 @@
 import { Brand } from '../../../shared/domain/Brand';
+import { posix } from 'path';
 
 export type AbsolutePath = Brand<string, 'AbsolutePath'>;
 
-export function toAbsolutePath({ path }: { path: string }): AbsolutePath {
-  if (!path.startsWith('/') && !path.includes(':/')) {
-    throw new Error('No es una ruta absoluta válida');
-  }
+export function createAbsolutePath(...parts: string[]): AbsolutePath {
+  let path = posix.join(...parts);
+  path = posix.normalize(path);
+  if (path.endsWith(posix.sep)) path = path.slice(0, -1);
   return path as AbsolutePath;
 }

@@ -4,7 +4,7 @@ import { DeviceModule } from '../../../backend/features/device/device.module';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { enableExistingBackup } from './enable-existing-backup';
 import { getPathFromDialog } from '../../../core/utils/get-path-from-dialog';
-import { toAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 
 export async function addBackup() {
   const { error, data } = await DeviceModule.getOrCreateDevice();
@@ -15,7 +15,7 @@ export async function addBackup() {
   const chosenItem = await getPathFromDialog();
   if (!chosenItem || !chosenItem.path) return;
 
-  const chosenPath = toAbsolutePath({ path: chosenItem.path });
+  const chosenPath = createAbsolutePath(chosenItem.path);
   const backupList = configStore.get('backupList');
   const existingBackup = backupList[chosenPath];
 
