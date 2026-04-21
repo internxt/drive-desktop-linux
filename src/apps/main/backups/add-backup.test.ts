@@ -4,6 +4,7 @@ import * as DeviceModuleModule from './../../../backend/features/device/device.m
 import * as enableExistingBackupModule from './enable-existing-backup';
 import * as fetchDeviceModule from '../../../backend/features/device/fetchDevice';
 import configStoreModule from '../config';
+import { toAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { addBackup } from './add-backup';
 import { loggerMock } from 'tests/vitest/mocks.helper';
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
@@ -49,7 +50,7 @@ describe('addBackup', () => {
   });
 
   it('should create new backup when backup does not exist', async () => {
-    const chosenPath = '/path/to/backup';
+    const chosenPath = toAbsolutePath({ path: '/path/to/backup' });
     const mockBackupInfo = {
       folderUuid: 'folder-uuid',
       folderId: 123,
@@ -74,7 +75,7 @@ describe('addBackup', () => {
   });
 
   it('should enable existing backup when backup exists', async () => {
-    const chosenPath = '/path/to/existing';
+    const chosenPath = toAbsolutePath({ path: '/path/to/existing' });
     const existingBackupData = {
       folderUuid: 'existing-uuid',
       folderId: 456,
@@ -96,7 +97,10 @@ describe('addBackup', () => {
 
     const result = await addBackup();
 
-    call(mockedEnableExistingBackup).toMatchObject([chosenPath, mockDevice]);
+    call(mockedEnableExistingBackup).toMatchObject({
+      pathname: chosenPath,
+      device: mockDevice,
+    });
     expect(result).toStrictEqual(mockBackupInfo);
   });
 });

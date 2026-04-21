@@ -1,13 +1,14 @@
 import configStoreModule from '../../../apps/main/config';
 import * as getBackupFolderUuidModule from '../../../infra/drive-server/services/folder/services/fetch-backup-folder-uuid';
+import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
-import { loggerMock } from 'tests/vitest/mocks.helper';
 
 describe('migrate-backup-entry-if-needed', () => {
   const getBackupFolderUuidMock = partialSpyOn(getBackupFolderUuidModule, 'getBackupFolderUuid');
   const configStoreGetMock = partialSpyOn(configStoreModule, 'get');
   const configStoreSetMock = partialSpyOn(configStoreModule, 'set');
+  const loggerErrorMock = partialSpyOn(logger, 'error');
 
   it('should return backup as-is when folderUuid already exists', async () => {
     const backup = { folderId: 1, folderUuid: 'existing-uuid', enabled: true };
@@ -42,6 +43,6 @@ describe('migrate-backup-entry-if-needed', () => {
     await expect(migrateBackupEntryIfNeeded({ pathname: '/home/dev/Documents', backup })).rejects.toThrow(
       error.message,
     );
-    expect(loggerMock.error).toBeCalled();
+    expect(loggerErrorMock).toBeCalled();
   });
 });
