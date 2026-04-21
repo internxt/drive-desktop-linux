@@ -10,8 +10,9 @@ describe('driveServerClient instance', () => {
     await import('./drive-server.client.instance');
 
     const authServiceModule = await import('../../../apps/main/auth/service');
+    const authHandlersModule = await import('../../../apps/main/auth/handlers');
 
-    return { createClientMock, authServiceModule };
+    return { createClientMock, authServiceModule, authHandlersModule };
   }
 
   beforeEach(() => {
@@ -46,11 +47,11 @@ describe('driveServerClient instance', () => {
     expect(clientOptions.authHeadersProvider).toBe(authServiceModule.getNewApiHeaders);
   });
 
-  it('should use logout as onUnauthorized', async () => {
-    const { createClientMock, authServiceModule } = await importAndSpy();
+  it('should use closeUserSession as onUnauthorized', async () => {
+    const { createClientMock, authHandlersModule } = await importAndSpy();
     const clientOptions = createClientMock.mock.lastCall![0]!;
 
-    expect(clientOptions.onUnauthorized).toBe(authServiceModule.logout);
+    expect(clientOptions.onUnauthorized).toBe(authHandlersModule.closeUserSession);
   });
 
   it('should use process.env.NEW_DRIVE_URL as baseUrl', async () => {

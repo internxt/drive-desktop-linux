@@ -8,12 +8,6 @@ import { getCredentials } from './get-credentials';
 
 let isLoggedIn = false;
 
-export function setIsLoggedIn(value: boolean) {
-  isLoggedIn = value;
-
-  getWidget()?.webContents.send('user-logged-in-changed', value);
-}
-
 function initializeLoginState() {
   const { newToken } = getCredentials();
   if (getUser() && newToken) {
