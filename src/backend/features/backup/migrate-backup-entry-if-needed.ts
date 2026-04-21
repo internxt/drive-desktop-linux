@@ -1,20 +1,22 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
-import configStore from '../config';
+import configStore from '../../../apps/main/config';
 import { getBackupFolderUuid } from '../../../infra/drive-server/services/folder/services/fetch-backup-folder-uuid';
 
-export async function migrateBackupEntryIfNeeded(
-  pathname: string,
-  backup: {
-    enabled: boolean;
-    folderId: number;
-    folderUuid: string;
-  },
-): Promise<{
+type BackupEntry = {
   enabled: boolean;
   folderId: number;
   folderUuid: string;
-}> {
-  if (backup.folderUuid) return backup;
+};
+
+type Props = {
+  pathname: string;
+  backup: BackupEntry;
+};
+
+export async function migrateBackupEntryIfNeeded({ pathname, backup }: Props): Promise<BackupEntry> {
+  if (backup.folderUuid) {
+    return backup;
+  }
 
   try {
     const getFolderUuidResponse = await getBackupFolderUuid({ folderId: String(backup.folderId) });
@@ -26,16 +28,19 @@ export async function migrateBackupEntryIfNeeded(
       });
       throw getFolderUuidResponse.error;
     }
+
     const { data: folderUuid } = getFolderUuidResponse;
     backup.folderUuid = folderUuid;
 
     const backupList = configStore.get('backupList');
     backupList[pathname] = backup;
     configStore.set('backupList', backupList);
+
     logger.debug({
       tag: 'BACKUPS',
       msg: `Successfully migrated backup entry for ${pathname} with UUID ${folderUuid}`,
     });
+
     return backup;
   } catch (error) {
     logger.error({

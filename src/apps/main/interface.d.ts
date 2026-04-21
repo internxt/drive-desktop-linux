@@ -2,7 +2,7 @@ import { BackupInfo } from './../backups/BackupInfo';
 import { Usage } from '../../backend/features/usage/usage.types';
 import { Result } from './../../context/shared/domain/Result';
 import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
-import { Device } from './device/service';
+import { Device } from '../../context/shared/domain/device/Device';
 import {
   AuthAccessResponseViewModel,
   AuthLoginResponseViewModel,
@@ -11,6 +11,7 @@ import {
 import { TLoggerBody } from '@internxt/drive-desktop-core/build/backend';
 import { CleanerReport, CleanerViewModel, CleanupProgress } from '../../backend/features/cleaner/cleaner.types';
 import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
+import { AbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
 import { StoredValues } from './config/service.types';
 import { AppStore } from './config';
 import { ConfigTheme } from '../shared/types/Theme';
@@ -39,8 +40,6 @@ export interface IElectronAPI {
   getBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<Array<BackupInfo>>;
 
   addBackup: () => Promise<BackupInfo | undefined>;
-
-  addBackupsFromLocalPaths: (localPaths: string[]) => Promise<void>;
 
   deleteBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<void>;
 

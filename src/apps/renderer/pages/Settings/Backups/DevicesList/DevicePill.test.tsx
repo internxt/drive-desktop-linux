@@ -1,4 +1,4 @@
-import { Device } from '../../../../../main/device/service';
+import { Device } from '../../../../../../context/shared/domain/device/Device';
 import { screen, render, fireEvent } from '@testing-library/react';
 import DevicePill from './DevicePill';
 

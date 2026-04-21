@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { BackupInfo } from '../../../backups/BackupInfo';
 import { DeviceContext } from '../../context/DeviceContext';
-import { Device } from '../../../main/device/service';
+import { Device } from '../../../../context/shared/domain/device/Device';
 
 export type BackupsState = 'LOADING' | 'ERROR' | 'SUCCESS';
 

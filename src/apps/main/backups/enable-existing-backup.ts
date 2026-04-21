@@ -1,17 +1,23 @@
 import configStore from '../config';
 import { BackupInfo } from 'src/apps/backups/BackupInfo';
 import path from 'node:path';
-import { app } from 'electron';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import { createBackup } from './create-backup';
-import { migrateBackupEntryIfNeeded } from '../device/migrate-backup-entry-if-needed';
-import { Device } from '../device/service';
+import { migrateBackupEntryIfNeeded } from '../../../backend/features/backup/migrate-backup-entry-if-needed';
+import { Device } from '../../../context/shared/domain/device/Device';
+import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { PATHS } from '../../../core/electron/paths';
 
-export async function enableExistingBackup(pathname: string, device: Device) {
+type Props = {
+  pathname: AbsolutePath;
+  device: Device;
+};
+
+export async function enableExistingBackup({ pathname, device }: Props) {
   const backupList = configStore.get('backupList');
   const existingBackup = backupList[pathname];
 
-  const migratedBackup = await migrateBackupEntryIfNeeded(pathname, existingBackup);
+  const migratedBackup = await migrateBackupEntryIfNeeded({ pathname, backup: existingBackup });
 
   const { error } = await fetchFolder(migratedBackup.folderUuid);
 
@@ -27,9 +33,9 @@ export async function enableExistingBackup(pathname: string, device: Device) {
   const backupInfo: BackupInfo = {
     folderUuid: migratedBackup.folderUuid,
     folderId: migratedBackup.folderId,
-    pathname,
+    pathname: pathname,
     name: base,
-    tmpPath: app.getPath('temp'),
+    tmpPath: PATHS.TEMPORAL_FOLDER,
     backupsBucket: device.bucket,
   };
 

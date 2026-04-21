@@ -1,5 +1,5 @@
 import { components } from '../../../../infra/schemas';
-import { Device } from '../../../../apps/main/device/service';
+import { Device } from '../../../../context/shared/domain/device/Device';
 
 /**
  * Maps a DeviceAsFolder from the API to the internal Device type

@@ -1,5 +1,5 @@
 import { createContext, Dispatch, ReactNode, SetStateAction, useEffect, useState } from 'react';
-import { Device } from '../../main/device/service';
+import { Device } from '../../../context/shared/domain/device/Device';
 import { useDevices } from '../hooks/devices/useDevices';
 
 export type DeviceState = { status: 'LOADING' | 'ERROR' } | { status: 'SUCCESS'; device: Device };

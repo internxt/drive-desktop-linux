@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Device } from '../../../main/device/service';
+import { Device } from '../../../../context/shared/domain/device/Device';
 
 export function useDevices() {
   const [devices, setDevices] = useState<Array<Device>>([]);

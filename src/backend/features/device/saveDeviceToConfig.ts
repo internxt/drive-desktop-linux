@@ -1,5 +1,5 @@
 import configStore from '../../../apps/main/config';
-import { Device } from '../../../apps/main/device/service';
+import { Device } from '../../../context/shared/domain/device/Device';
 
 export function saveDeviceToConfig(device: Device) {
   configStore.set('deviceId', -1);

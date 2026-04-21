@@ -1,0 +1,76 @@
+import * as findBackupPathnameFromIdModule from './find-backup-pathname-from-id';
+import * as getBackupFolderTreeSnapshotModule from './get-backup-folder-tree-snapshot';
+import * as deleteBackupModule from './delete-backup';
+import configStoreModule from '../../../apps/main/config';
+import { toAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
+import { loggerMock } from '../../../../tests/vitest/mocks.helper';
+import { disableBackup } from './disable-backup';
+
+describe('disable-backup', () => {
+  const findBackupPathnameFromIdMock = partialSpyOn(findBackupPathnameFromIdModule, 'findBackupPathnameFromId');
+  const getBackupFolderTreeSnapshotMock = partialSpyOn(
+    getBackupFolderTreeSnapshotModule,
+    'getBackupFolderTreeSnapshot',
+  );
+  const deleteBackupMock = partialSpyOn(deleteBackupModule, 'deleteBackup');
+  const configStoreGetMock = partialSpyOn(configStoreModule, 'get');
+  const configStoreSetMock = partialSpyOn(configStoreModule, 'set');
+
+  const backup = {
+    folderUuid: 'folder-uuid',
+    folderId: 1,
+    tmpPath: '/tmp',
+    backupsBucket: 'bucket',
+    pathname: toAbsolutePath({ path: '/home/dev/Documents' }),
+    name: 'Documents',
+  };
+
+  it('should return when backup pathname is not found', async () => {
+    configStoreGetMock.mockReturnValue({});
+    findBackupPathnameFromIdMock.mockReturnValue(undefined);
+
+    await disableBackup({ backup });
+
+    expect(configStoreSetMock).not.toBeCalled();
+    expect(getBackupFolderTreeSnapshotMock).not.toBeCalled();
+  });
+
+  it('should disable backup and delete it when tree size is zero', async () => {
+    const backupList = {
+      '/home/dev/Documents': { folderId: 1, folderUuid: 'folder-uuid', enabled: true },
+    };
+
+    configStoreGetMock.mockReturnValue(backupList);
+    findBackupPathnameFromIdMock.mockReturnValue('/home/dev/Documents');
+    getBackupFolderTreeSnapshotMock.mockResolvedValue({ size: 0 } as never);
+    deleteBackupMock.mockResolvedValue(undefined);
+
+    await disableBackup({ backup });
+
+    call(configStoreSetMock).toStrictEqual([
+      'backupList',
+      {
+        '/home/dev/Documents': { folderId: 1, folderUuid: 'folder-uuid', enabled: false },
+      },
+    ]);
+    call(deleteBackupMock).toStrictEqual({ backup, isCurrent: true });
+  });
+
+  it('should log and swallow errors while disabling backup', async () => {
+    configStoreGetMock.mockReturnValue({
+      '/home/dev/Documents': { folderId: 1, folderUuid: 'folder-uuid', enabled: true },
+    });
+    findBackupPathnameFromIdMock.mockReturnValue('/home/dev/Documents');
+    configStoreSetMock.mockImplementation(() => {
+      throw new Error('config failed');
+    });
+
+    await disableBackup({ backup });
+
+    call(loggerMock.error).toMatchObject({
+      tag: 'BACKUPS',
+      msg: 'Error disabling backup folder',
+    });
+  });
+});

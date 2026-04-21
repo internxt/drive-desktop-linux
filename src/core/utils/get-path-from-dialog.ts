@@ -1,5 +1,5 @@
 import { BrowserWindow, dialog } from 'electron';
-import { PathInfo } from '../../../apps/main/device/service';
+import { PathInfo } from '../../context/shared/domain/system-path/PathInfo';
 import path from 'node:path';
 
 export async function getPathFromDialog(): Promise<Omit<PathInfo, 'isDirectory'> | null> {

@@ -1,12 +1,13 @@
 import path from 'node:path';
-import { Device } from '../device/service';
+import { Device } from '../../../context/shared/domain/device/Device';
 import configStore from '../config';
 import { BackupInfo } from 'src/apps/backups/BackupInfo';
 import { app } from 'electron';
 import { createBackupFolder } from './create-backup-folder';
+import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 
 type Props = {
-  pathname: string;
+  pathname: AbsolutePath;
   device: Device;
 };
 

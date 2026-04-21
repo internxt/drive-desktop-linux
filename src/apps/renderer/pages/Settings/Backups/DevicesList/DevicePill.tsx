@@ -1,4 +1,4 @@
-import { Device } from '../../../../../main/device/service';
+import { Device } from '../../../../../../context/shared/domain/device/Device';
 import { type FC } from 'react';
 import { useTranslationContext } from '../../../../context/LocalContext';
 
