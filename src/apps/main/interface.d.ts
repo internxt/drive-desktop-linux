@@ -40,6 +40,10 @@ export interface IElectronAPI {
 
   addBackup: () => Promise<Result<BackupInfo, Error>>;
 
+  changeBackupPath: ({ currentPath, newPath }: { currentPath: AbsolutePath; newPath: AbsolutePath }) => Promise<Result<boolean, Error>>;
+
+  startBackupsProcess: () => void;
+
   getFolderPath: () => Promise<{ path: AbsolutePath; itemName: string } | null>;
 
   addBackupsFromLocalPaths: (folderPaths: string[]) => Promise<void>;

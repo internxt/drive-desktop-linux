@@ -3,56 +3,55 @@ import { basename } from 'node:path';
 import configStore from '../../../apps/main/config';
 import { getBackupFolderUuid } from '../../../infra/drive-server/services/folder/services/fetch-backup-folder-uuid';
 import { renameFolder } from '../../../infra/drive-server/services/folder/services/rename-folder';
-import { getPathFromDialog } from '../../../core/utils/get-path-from-dialog';
 import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
+import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { Result } from '../../../context/shared/domain/Result';
 
 type Props = {
-  currentPath: string;
+  currentPath: AbsolutePath;
+  newPath: AbsolutePath;
 };
 
-export async function changeBackupPath({ currentPath }: Props): Promise<boolean> {
+export async function changeBackupPath({ currentPath, newPath }: Props): Promise<Result<boolean, Error>> {
   const backupsList = configStore.get('backupList');
   const existingBackup = backupsList[currentPath];
 
   if (!existingBackup) {
-    throw new Error('Backup no longer exists');
+    return { error: new Error('No backup found with the provided path') };
   }
 
-  const chosen = await getPathFromDialog();
-  if (!chosen || !chosen.path) {
-    return false;
-  }
-
-  const chosenPath = chosen.path;
-  if (backupsList[chosenPath]) {
-    throw new Error('A backup with this path already exists');
+  if (backupsList[newPath]) {
+    return { error: new Error('A backup with this path already exists') };
   }
 
   const oldFolderName = basename(currentPath);
-  const newFolderName = basename(chosenPath);
+  const newFolderName = basename(newPath);
   if (oldFolderName !== newFolderName) {
     logger.debug({ tag: 'BACKUPS', msg: 'Renaming backup', existingBackup });
 
     const getFolderUuidResponse = await getBackupFolderUuid({ folderId: String(existingBackup.folderId) });
     if (getFolderUuidResponse.error) {
-      throw getFolderUuidResponse.error;
+      return { error: getFolderUuidResponse.error };
     }
     const { data: folderUuid } = getFolderUuidResponse;
 
     const res = await renameFolder({ uuid: folderUuid, plainName: newFolderName });
     if (res.error) {
-      throw new Error('Error in the request to rename a backup');
+      return { error: new Error('Error in the request to rename a backup') };
     }
 
     delete backupsList[currentPath];
 
-    const migratedExistingBackup = await migrateBackupEntryIfNeeded({ pathname: chosenPath, backup: existingBackup });
-    backupsList[chosenPath] = migratedExistingBackup;
+    const migratedExistingBackup = await migrateBackupEntryIfNeeded({
+      pathname: newPath,
+      backup: existingBackup,
+    });
+    backupsList[newPath] = migratedExistingBackup;
 
     configStore.set('backupList', backupsList);
 
-    return true;
+    return { data: true };
   }
 
-  return false;
+  return { data: false };
 }

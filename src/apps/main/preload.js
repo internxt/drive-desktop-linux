@@ -223,8 +223,8 @@ contextBridge.exposeInMainWorld('electron', {
   getLastBackupHadIssues() {
     return ipcRenderer.invoke('get-last-backup-had-issues');
   },
-  changeBackupPath(currentPath) {
-    return ipcRenderer.invoke('change-backup-path', currentPath);
+  changeBackupPath({ currentPath, newPath }) {
+    return ipcRenderer.invoke('change-backup-path', { currentPath, newPath });
   },
   getFolderPath() {
     return ipcRenderer.invoke('get-folder-path');

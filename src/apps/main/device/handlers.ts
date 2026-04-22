@@ -30,7 +30,7 @@ ipcMain.handle('delete-backups-from-device', (_, v, c?) => deleteDeviceBackups({
 
 ipcMain.handle('disable-backup', (_, v) => disableBackup({ backup: v }));
 
-ipcMain.handle('change-backup-path', (_, v) => changeBackupPath({ currentPath: v }));
+ipcMain.handle('change-backup-path', (_, { currentPath, newPath }) => changeBackupPath({ currentPath, newPath }));
 
 ipcMain.on('add-device-issue', (_, e) => DeviceModule.addUnknownDeviceIssue(e));
 
