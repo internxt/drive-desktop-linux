@@ -34,9 +34,11 @@ describe('addBackup', () => {
     const mockError = new Error('Device not found');
     mockedGetOrCreateDevice.mockResolvedValue({ error: mockError, data: undefined });
 
-    await expect(addBackup()).rejects.toThrow('Error message');
+    const result = await addBackup();
+
+    expect(result).toMatchObject({ error: expect.any(Error) });
     call(loggerMock.error).toMatchObject({
-      msg: 'Error adding backup: No device found',
+      msg: 'Error fetching or creating device',
     });
   });
 
@@ -46,7 +48,7 @@ describe('addBackup', () => {
 
     const result = await addBackup();
 
-    expect(result).toBeUndefined();
+    expect(result).toMatchObject({ error: expect.any(Error) });
   });
 
   it('should create new backup when backup does not exist', async () => {
@@ -71,7 +73,7 @@ describe('addBackup', () => {
       pathname: chosenPath,
       device: mockDevice,
     });
-    expect(result).toStrictEqual(mockBackupInfo);
+    expect(result).toStrictEqual({ data: mockBackupInfo });
   });
 
   it('should enable existing backup when backup exists', async () => {
@@ -101,6 +103,6 @@ describe('addBackup', () => {
       pathname: chosenPath,
       device: mockDevice,
     });
-    expect(result).toStrictEqual(mockBackupInfo);
+    expect(result).toStrictEqual({ data: mockBackupInfo });
   });
 });
