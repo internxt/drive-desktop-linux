@@ -10,8 +10,7 @@ type Props = {
 };
 
 export async function migrateBackupEntryIfNeeded({ pathname, backup }: Props): Promise<Result<BackupEntry, Error>> {
-
-  const {error, data: folderUuid} = await getBackupFolderUuid({ folderId: String(backup.folderId) });
+  const { error, data: folderUuid } = await getBackupFolderUuid({ folderId: String(backup.folderId) });
   if (error) {
     logger.error({
       tag: 'BACKUPS',

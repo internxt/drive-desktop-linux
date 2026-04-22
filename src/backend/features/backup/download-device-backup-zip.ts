@@ -20,9 +20,8 @@ export async function downloadDeviceBackupZip({
   device,
   path,
   updateProgress,
-  abortController
+  abortController,
 }: Props): Promise<Result<boolean, Error>> {
-
   const { data: folder, error } = await fetchFolder(device.uuid);
   if (error) {
     logger.error({ tag: 'BACKUPS', msg: 'Unsuccesful request to fetch folder', error });

@@ -69,7 +69,7 @@ export async function downloadBackup({ device, pathname }: Props): Promise<void>
       },
       abortController,
     });
-  } catch(error) {
+  } catch (error) {
     logger.error({ tag: 'BACKUPS', msg: 'Error downloading backup for device', deviceName: device.name, error });
     await rm(zipFilePath, { force: true });
   }

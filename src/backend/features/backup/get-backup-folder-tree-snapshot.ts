@@ -11,7 +11,7 @@ type Props = {
 export async function getBackupFolderTreeSnapshot({
   folderUuid,
 }: Props): Promise<Result<BackupFolderTreeSnapshot, Error>> {
-  const { data , error } = await fetchFolderTreeByUuid({ uuid: folderUuid });
+  const { data, error } = await fetchFolderTreeByUuid({ uuid: folderUuid });
 
   if (error) {
     return { error: new Error('Unsuccesful request to fetch folder tree') };

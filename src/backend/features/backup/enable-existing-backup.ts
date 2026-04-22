@@ -15,8 +15,13 @@ type Props = {
   device: Device;
 };
 
-async function resolveBackupEntry({ pathname, backup }: { pathname: AbsolutePath, backup: BackupEntry}): Promise<Result<BackupEntry, Error>> {
-
+async function resolveBackupEntry({
+  pathname,
+  backup,
+}: {
+  pathname: AbsolutePath;
+  backup: BackupEntry;
+}): Promise<Result<BackupEntry, Error>> {
   if (backup.folderUuid) {
     return { data: backup };
   }
@@ -29,7 +34,15 @@ function markBackupAsEnabled({ pathname }: { pathname: AbsolutePath }) {
   configStore.set('backupList', { ...backupList, [pathname]: { ...backupList[pathname], enabled: true } });
 }
 
-function buildBackupInfo({ pathname, backup, device }: { pathname: AbsolutePath; backup: BackupEntry; device: Device }): BackupInfo {
+function buildBackupInfo({
+  pathname,
+  backup,
+  device,
+}: {
+  pathname: AbsolutePath;
+  backup: BackupEntry;
+  device: Device;
+}): BackupInfo {
   const { base } = parse(pathname);
   return {
     folderUuid: backup.folderUuid,

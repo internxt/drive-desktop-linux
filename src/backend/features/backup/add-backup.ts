@@ -8,7 +8,6 @@ import { createAbsolutePath } from '../../../context/local/localFile/infrastruct
 import { Result } from '../../../context/shared/domain/Result';
 import { BackupInfo } from '../../../apps/backups/BackupInfo';
 
-
 export async function addBackup(): Promise<Result<BackupInfo, Error>> {
   const { error, data } = await DeviceModule.getOrCreateDevice();
   if (error) {
@@ -31,7 +30,10 @@ export async function addBackup(): Promise<Result<BackupInfo, Error>> {
     }
     return { data: newBackup };
   } else {
-    const { data: existingBackupInfo, error: enableError } = await enableExistingBackup({ pathname: chosenPath, device: data });
+    const { data: existingBackupInfo, error: enableError } = await enableExistingBackup({
+      pathname: chosenPath,
+      device: data,
+    });
     if (enableError) {
       logger.error({ tag: 'BACKUPS', msg: 'Error enabling existing backup', error: enableError });
       return { error: enableError };

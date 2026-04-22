@@ -57,7 +57,7 @@ export function useBackups(): BackupContextProps {
   }, [selected, devices]);
 
   async function addBackup() {
-    const {data: newBackup, error} = await window.electron.addBackup();
+    const { data: newBackup, error } = await window.electron.addBackup();
     if (error) return;
 
     setBackups((prevBackups) => {
