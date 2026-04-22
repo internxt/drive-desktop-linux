@@ -6,7 +6,7 @@ on:
 
 jobs:
   test:
-    name: 🧪 Golang Test
+    name: 🐹 Golang Test
     runs-on: ubuntu-latest
 
     steps:

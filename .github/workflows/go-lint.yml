@@ -6,7 +6,7 @@ on:
 
 jobs:
   lint:
-    name: 🔍 Golang Lint
+    name: 🐹 Golang Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +19,7 @@ jobs:
           go-version-file: packages/fuse-daemon/go.mod
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
           version: v2.11.4
           working-directory: packages/fuse-daemon
