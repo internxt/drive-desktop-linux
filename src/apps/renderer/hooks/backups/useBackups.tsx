@@ -93,15 +93,7 @@ export function useBackups(): BackupContextProps {
   }
 
   async function downloadBackups(device: Device, pathName: AbsolutePath) {
-    try {
-      await window.electron.downloadBackup(device, pathName);
-    } catch (error) {
-      window.electron.logger.error({
-        tag: 'BACKUPS',
-        msg: '[RENDERER] Error downloading backups',
-        error,
-      });
-    }
+    await window.electron.downloadBackup(device, pathName);
   }
 
   function abortDownloadBackups(device: Device) {

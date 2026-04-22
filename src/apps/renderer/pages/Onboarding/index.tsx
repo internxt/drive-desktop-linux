@@ -23,7 +23,7 @@ export default function Onboarding() {
           if (error) {
             window.electron.logger.error({ msg: 'Failed to add backup folders during onboarding', error });
           }
-        })
+        });
     }
 
     window.electron.finishOnboarding();

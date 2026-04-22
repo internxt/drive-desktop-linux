@@ -14,23 +14,22 @@ export async function disableBackup({ backup }: Props): Promise<void> {
   const pathname = findBackupPathnameFromId({ id: backup.folderId });
 
   if (!pathname) {
-    return;
+    throw logger.error({ tag: 'BACKUPS', msg: 'Error finding backup pathname to disable backup' });
   }
 
-    backupsList[pathname].enabled = false;
-    configStore.set('backupList', backupsList);
+  backupsList[pathname].enabled = false;
+  configStore.set('backupList', backupsList);
 
-    const { error, data } = await getBackupFolderTreeSnapshot({ folderUuid: backup.folderUuid });
+  const { error, data } = await getBackupFolderTreeSnapshot({ folderUuid: backup.folderUuid });
+  if (error) {
+    throw logger.error({ tag: 'BACKUPS', msg: 'Error fetching backup folder tree snapshot', error });
+  }
+
+  const { size } = data;
+  if (size === 0) {
+    const { error } = await deleteBackup({ backup, isCurrent: true });
     if (error) {
-      logger.error({ tag: 'BACKUPS', msg: 'Error fetching backup folder tree snapshot', error });
-      return;
+      throw logger.error({ tag: 'BACKUPS', msg: 'Error deleting backup after disabling it', error });
     }
-
-    const { size } = data;
-    if (size === 0) {
-      const { error } = await deleteBackup({ backup, isCurrent: true });
-      if (error) {
-        logger.error({ tag: 'BACKUPS', msg: 'Error deleting backup after disabling it', error });
-      }
-    }
+  }
 }
