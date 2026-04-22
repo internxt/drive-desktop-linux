@@ -49,7 +49,7 @@ func (client *Client) NotifyReady(logger *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("sending ready request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status from ready endpoint: %d", resp.StatusCode)
@@ -67,7 +67,7 @@ func (client *Client) NotifyReady(logger *slog.Logger) error {
   url := serverURL + string(path)
   req, err := http.NewRequestWithContext(context, http.MethodPost, url, bytes.NewBuffer(body))
   if err != nil {
-		return fmt.Errorf("Error creating Post request: %w", err)
+		return fmt.Errorf("error creating Post request: %w", err)
 	}
 
   req.Header.Set("Content-Type", "application/json")
@@ -76,7 +76,7 @@ func (client *Client) NotifyReady(logger *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("sending Post request: %w", err)
 	}
-  defer resp.Body.Close()
+  defer func() { _ = resp.Body.Close() }()
 
   if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status from Post endpoint: %d", resp.StatusCode)

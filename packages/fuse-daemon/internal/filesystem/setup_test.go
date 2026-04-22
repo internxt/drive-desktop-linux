@@ -54,8 +54,8 @@ func (serverMock *mockServer) setHandler(path client.OperationPath, handler http
 }
 
 func (serverMock *mockServer) close() {
-	serverMock.server.Close()
-	serverMock.socket.Close()
+	_ = serverMock.server.Close()
+	_ = serverMock.socket.Close()
 }
 
 // respondJSON writes body as a JSON response.
@@ -75,7 +75,7 @@ func TestMain(runner *testing.M) {
 	if err != nil {
 		panic("create mount dir: " + err.Error())
 	}
-	defer os.RemoveAll(mountPoint)
+	defer func() { _ = os.RemoveAll(mountPoint) }()
 
 	socketPath := filepath.Join(os.TempDir(), "fuse-test.sock")
 	_ = os.Remove(socketPath)
