@@ -28,8 +28,9 @@ describe('create-backups-from-local-paths', () => {
     getOrCreateDeviceMock.mockResolvedValue({ data: device });
     createBackupMock.mockResolvedValue(undefined as never);
 
-    await createBackupsFromLocalPaths({ folderPaths });
+    const result = await createBackupsFromLocalPaths({ folderPaths });
 
+    expect(result).toStrictEqual({ data: true });
     call(configStoreSetMock).toStrictEqual(['backupsEnabled', true]);
     call(getOrCreateDeviceMock).toStrictEqual([]);
     calls(createBackupMock).toStrictEqual([
@@ -38,13 +39,34 @@ describe('create-backups-from-local-paths', () => {
     ]);
   });
 
-  it('should throw when no device can be created or fetched', async () => {
+  it('should return an error when no device can be created or fetched', async () => {
     const error = new Error('Device error');
     const folderPaths = [createAbsolutePath('/home/dev/Documents')];
 
     getOrCreateDeviceMock.mockResolvedValue({ error });
 
-    await expect(createBackupsFromLocalPaths({ folderPaths })).rejects.toThrow(error.message);
+    await expect(createBackupsFromLocalPaths({ folderPaths })).resolves.toStrictEqual({ error });
     calls(createBackupMock).toHaveLength(0);
+    calls(configStoreSetMock).toHaveLength(0);
+  });
+
+  it('should return an error when creating a backup fails', async () => {
+    const error = new Error('Backup error');
+    const device = {
+      id: 1,
+      uuid: 'device-uuid',
+      name: 'Device',
+      bucket: 'bucket',
+      removed: false,
+      hasBackups: true,
+    };
+    const folderPaths = [createAbsolutePath('/home/dev/Documents')];
+
+    getOrCreateDeviceMock.mockResolvedValue({ data: device });
+    createBackupMock.mockRejectedValue(error);
+
+    await expect(createBackupsFromLocalPaths({ folderPaths })).resolves.toStrictEqual({ error });
+    call(createBackupMock).toStrictEqual({ pathname: folderPaths[0], device });
+    calls(configStoreSetMock).toHaveLength(0);
   });
 });

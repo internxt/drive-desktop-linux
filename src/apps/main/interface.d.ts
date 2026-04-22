@@ -46,7 +46,7 @@ export interface IElectronAPI {
 
   getFolderPath: () => Promise<{ path: AbsolutePath; itemName: string } | null>;
 
-  addBackupsFromLocalPaths: (folderPaths: string[]) => Promise<void>;
+  addBackupsFromLocalPaths: (folderPaths: string[]) => Promise<Result<boolean, Error>>;
 
   deleteBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<void>;
 
