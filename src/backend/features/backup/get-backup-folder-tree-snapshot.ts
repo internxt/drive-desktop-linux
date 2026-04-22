@@ -8,7 +8,9 @@ type Props = {
   folderUuid: string;
 };
 
-export async function getBackupFolderTreeSnapshot({ folderUuid }: Props): Promise<Result<BackupFolderTreeSnapshot, Error>> {
+export async function getBackupFolderTreeSnapshot({
+  folderUuid,
+}: Props): Promise<Result<BackupFolderTreeSnapshot, Error>> {
   const { data, error } = await fetchFolderTreeByUuid({ uuid: folderUuid });
 
   if (error) {

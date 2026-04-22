@@ -24,4 +24,3 @@ export async function deleteBackup({ backup, isCurrent }: Props): Promise<Result
 
   return { data: true };
 }
-

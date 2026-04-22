@@ -26,11 +26,11 @@ describe('disable-backup', () => {
     name: 'Documents',
   };
 
-  it('should return when backup pathname is not found', async () => {
+  it('should throw when backup pathname is not found', async () => {
     configStoreGetMock.mockReturnValue({});
     findBackupPathnameFromIdMock.mockReturnValue(undefined);
 
-    await disableBackup({ backup });
+    await expect(disableBackup({ backup })).rejects.toBeUndefined();
 
     expect(configStoreSetMock).not.toBeCalled();
     expect(getBackupFolderTreeSnapshotMock).not.toBeCalled();
@@ -65,7 +65,7 @@ describe('disable-backup', () => {
     findBackupPathnameFromIdMock.mockReturnValue('/home/dev/Documents');
     getBackupFolderTreeSnapshotMock.mockResolvedValue({ error } as never);
 
-    await disableBackup({ backup });
+    await expect(disableBackup({ backup })).rejects.toBeUndefined();
 
     call(loggerMock.error).toMatchObject({
       tag: 'BACKUPS',

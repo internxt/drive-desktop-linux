@@ -20,10 +20,7 @@ describe('create-backups-from-local-paths', () => {
       hasBackups: true,
     };
 
-    const folderPaths = [
-      createAbsolutePath('/home/dev/Documents'),
-      createAbsolutePath('/home/dev/Pictures'),
-    ];
+    const folderPaths = [createAbsolutePath('/home/dev/Documents'), createAbsolutePath('/home/dev/Pictures')];
 
     getOrCreateDeviceMock.mockResolvedValue({ data: device });
     createBackupMock.mockResolvedValue(undefined as never);
@@ -65,7 +62,7 @@ describe('create-backups-from-local-paths', () => {
     getOrCreateDeviceMock.mockResolvedValue({ data: device });
     createBackupMock.mockRejectedValue(error);
 
-    await expect(createBackupsFromLocalPaths({ folderPaths })).resolves.toStrictEqual({ error });
+    await expect(createBackupsFromLocalPaths({ folderPaths })).rejects.toThrow('Backup error');
     call(createBackupMock).toStrictEqual({ pathname: folderPaths[0], device });
     calls(configStoreSetMock).toHaveLength(0);
   });

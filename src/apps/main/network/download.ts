@@ -284,7 +284,7 @@ export async function downloadFolderAsZip(
 
   const { abortController, updateProgress } = opts;
   const { bridgeUser, bridgePass, encryptionKey } = environment;
-  const {data, error} = await getBackupFolderTreeSnapshot({ folderUuid });
+  const { data, error } = await getBackupFolderTreeSnapshot({ folderUuid });
   if (error) {
     throw logger.error({ tag: 'BACKUPS', msg: 'Error fetching backup folder tree snapshot', error });
   }
