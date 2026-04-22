@@ -8,7 +8,7 @@ import { deleteBackup } from '../../../backend/features/backup/delete-backup';
 import { deleteDeviceBackups } from '../../../backend/features/backup/delete-device-backups';
 import { disableBackup } from '../../../backend/features/backup/disable-backup';
 import { changeBackupPath } from '../../../backend/features/backup/change-backup-path';
-import { downloadBackup } from './ipc/download-backup';
+import { downloadBackup } from '../../../backend/features/backup/download-backup';
 
 ipcMain.handle('devices.get-all', () => getActiveBackupDevices());
 
@@ -22,7 +22,7 @@ ipcMain.handle('add-backup', () => addBackup());
 
 ipcMain.handle('add-multiple-backups', (_, folderPaths) => createBackupsFromLocalPaths({ folderPaths }));
 
-ipcMain.handle('download-backup', (_, v) => downloadBackup({ device: v }));
+ipcMain.handle('download-backup', (_, device, pathname) => downloadBackup({ device, pathname }));
 
 ipcMain.handle('delete-backup', (_, v, c?) => deleteBackup({ backup: v, isCurrent: c }));
 

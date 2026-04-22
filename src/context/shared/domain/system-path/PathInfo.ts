@@ -1,5 +1,7 @@
+import { AbsolutePath } from '../../../local/localFile/infrastructure/AbsolutePath';
+
 export type PathInfo = {
-  path: string;
+  path: AbsolutePath;
   itemName: string;
   isDirectory?: boolean;
 };

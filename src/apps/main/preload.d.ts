@@ -114,7 +114,10 @@ declare interface Window {
 
     addBackup: typeof import('../main/backups/add-backup').addBackup;
 
-    downloadBackup: typeof import('../main/device/ipc/download-backup').downloadBackup;
+    downloadBackup: (
+      device: import('../../context/shared/domain/device/Device').Device,
+      pathname: import('../../context/local/localFile/infrastructure/AbsolutePath').AbsolutePath,
+    ) => Promise<void>;
 
     abortDownloadBackups: (deviceId: string) => void;
 

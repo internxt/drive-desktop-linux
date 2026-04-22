@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { BackupInfo } from '../../../backups/BackupInfo';
 import { DeviceContext } from '../../context/DeviceContext';
 import { Device } from '../../../../context/shared/domain/device/Device';
+import { AbsolutePath } from '../../../../context/local/localFile/infrastructure/AbsolutePath';
 
 export type BackupsState = 'LOADING' | 'ERROR' | 'SUCCESS';
 
@@ -11,7 +12,7 @@ export interface BackupContextProps {
   disableBackup: (backup: BackupInfo) => Promise<void>;
   addBackup: () => Promise<void>;
   deleteBackups: (device: Device, isCurrent?: boolean) => Promise<boolean>;
-  downloadBackups: (device: Device) => Promise<void>;
+  downloadBackups: (device: Device, pathName: AbsolutePath) => Promise<void>;
   abortDownloadBackups: (device: Device) => void;
   hasExistingBackups: boolean;
 }
@@ -91,9 +92,9 @@ export function useBackups(): BackupContextProps {
     }
   }
 
-  async function downloadBackups(device: Device) {
+  async function downloadBackups(device: Device, pathName: AbsolutePath) {
     try {
-      await window.electron.downloadBackup(device);
+      await window.electron.downloadBackup(device, pathName);
     } catch (error) {
       window.electron.logger.error({
         tag: 'BACKUPS',

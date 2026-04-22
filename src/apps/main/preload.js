@@ -164,8 +164,8 @@ contextBridge.exposeInMainWorld('electron', {
   addBackup() {
     return ipcRenderer.invoke('add-backup');
   },
-  downloadBackup(backup) {
-    return ipcRenderer.invoke('download-backup', backup);
+  downloadBackup(backup, pathname) {
+    return ipcRenderer.invoke('download-backup', backup, pathname);
   },
   addBackupsFromLocalPaths(localPaths) {
     return ipcRenderer.invoke('add-multiple-backups', localPaths);

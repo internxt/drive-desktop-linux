@@ -1,39 +1,40 @@
-import { unlink } from 'node:fs/promises';
+import { rm } from 'node:fs/promises';
 import { IpcMainEvent, ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import type { Device } from '../../../../context/shared/domain/device/Device';
-import { getPathFromDialog } from '../../../../core/utils/get-path-from-dialog';
-import { broadcastToWindows } from '../../windows';
-import { downloadDeviceBackupZip } from '../../../../backend/features/backup/download-device-backup-zip';
+import type { Device } from '../../../context/shared/domain/device/Device';
+import { broadcastToWindows } from '../../../apps/main/windows';
+import { downloadDeviceBackupZip } from './download-device-backup-zip';
+import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import path from 'node:path';
+
+function createBackupZipFilePath({ pathname }: { pathname: AbsolutePath }) {
+  const date = new Date();
+  const timestamp = [
+    String(date.getFullYear()),
+    String(date.getMonth() + 1),
+    String(date.getDate()),
+    String(date.getHours()),
+    String(date.getMinutes()),
+    String(date.getSeconds()),
+  ].join('');
+
+  return path.join(pathname, `Backup_${timestamp}.zip`);
+}
 
 type Props = {
   device: Device;
+  pathname: AbsolutePath;
 };
 
-export async function downloadBackup({ device }: Props): Promise<void> {
-  const chosenItem = await getPathFromDialog();
-  if (!chosenItem || !chosenItem.path) {
-    return;
-  }
-
-  const chosenPath = chosenItem.path;
+export async function downloadBackup({ device, pathname }: Props): Promise<void> {
   logger.debug({
     tag: 'BACKUPS',
     msg: '[BACKUPS] Downloading Device',
     deviceName: device.name,
-    chosenPath,
+    pathname,
   });
 
-  const date = new Date();
-  const now =
-    String(date.getFullYear()) +
-    String(date.getMonth() + 1) +
-    String(date.getDay()) +
-    String(date.getHours()) +
-    String(date.getMinutes()) +
-    String(date.getSeconds());
-  const zipFilePath = chosenPath + 'Backup_' + now + '.zip';
-
+  const zipFilePath = createBackupZipFilePath({ pathname });
   const abortController = new AbortController();
 
   const abortListener = (_: IpcMainEvent, abortDeviceUuid: string) => {
@@ -62,11 +63,7 @@ export async function downloadBackup({ device }: Props): Promise<void> {
       abortController,
     });
   } catch {
-    try {
-      await unlink(zipFilePath);
-    } catch {
-      /* noop */
-    }
+    await rm(zipFilePath, { force: true });
   }
 
   removeListenerIpc.removeListener(listenerName, abortListener);
