@@ -1,16 +1,17 @@
 import configStore from '../../../apps/main/config';
 import { BackupInfo } from '../../../apps/backups/BackupInfo';
 import { addFolderToTrash } from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
+import { Result } from 'src/context/shared/domain/Result';
 
 type Props = {
   backup: BackupInfo;
   isCurrent?: boolean;
 };
 
-export async function deleteBackup({ backup, isCurrent }: Props): Promise<void> {
+export async function deleteBackup({ backup, isCurrent }: Props): Promise<Result<boolean, Error>> {
   const { error } = await addFolderToTrash(backup.folderUuid);
   if (error) {
-    throw new Error('Request to delete backup wasnt succesful');
+    return { error: new Error('Request to delete backup wasnt succesful') };
   }
 
   if (isCurrent) {
@@ -20,4 +21,7 @@ export async function deleteBackup({ backup, isCurrent }: Props): Promise<void> 
 
     configStore.set('backupList', backupListFiltered);
   }
+
+  return { data: true };
 }
+

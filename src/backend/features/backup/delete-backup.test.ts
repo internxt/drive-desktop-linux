@@ -19,10 +19,12 @@ describe('delete-backup', () => {
     name: 'Documents',
   };
 
-  it('should throw when request to trash folder fails', async () => {
+  it('should return an error when request to trash folder fails', async () => {
     addFolderToTrashMock.mockResolvedValue({ error: new DriveServerError('UNKNOWN', undefined, 'request failed') });
 
-    await expect(deleteBackup({ backup })).rejects.toThrow('Request to delete backup wasnt succesful');
+    const result = await deleteBackup({ backup });
+
+    expect(result).toMatchObject({ error: { message: 'Request to delete backup wasnt succesful' } });
   });
 
   it('should not update backup list when isCurrent is false', async () => {

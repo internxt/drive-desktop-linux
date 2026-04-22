@@ -17,16 +17,20 @@ export async function disableBackup({ backup }: Props): Promise<void> {
     return;
   }
 
-  try {
     backupsList[pathname].enabled = false;
     configStore.set('backupList', backupsList);
 
-    const { size } = await getBackupFolderTreeSnapshot({ folderUuid: backup.folderUuid });
-
-    if (size === 0) {
-      await deleteBackup({ backup, isCurrent: true });
+    const { error, data } = await getBackupFolderTreeSnapshot({ folderUuid: backup.folderUuid });
+    if (error) {
+      logger.error({ tag: 'BACKUPS', msg: 'Error fetching backup folder tree snapshot', error });
+      return;
     }
-  } catch (error) {
-    logger.error({ tag: 'BACKUPS', msg: 'Error disabling backup folder', error });
-  }
+
+    const { size } = data;
+    if (size === 0) {
+      const { error } = await deleteBackup({ backup, isCurrent: true });
+      if (error) {
+        logger.error({ tag: 'BACKUPS', msg: 'Error deleting backup after disabling it', error });
+      }
+    }
 }

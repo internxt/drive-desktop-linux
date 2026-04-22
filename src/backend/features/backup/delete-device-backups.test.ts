@@ -39,12 +39,14 @@ describe('delete-device-backups', () => {
     getBackupsFromDeviceMock.mockResolvedValue(backups);
     deleteBackupMock.mockResolvedValue(undefined);
     getBackupFolderTreeSnapshotMock.mockResolvedValue({
-      tree: {
-        children: [
-          { id: 10, uuid: 'folder-uuid-1' },
-          { id: 20, uuid: 'folder-uuid-2' },
-        ],
-      } as never,
+      data: {
+        tree: {
+          children: [
+            { id: 10, uuid: 'folder-uuid-1' },
+            { id: 20, uuid: 'folder-uuid-2' },
+          ],
+        },
+      },
     } as never);
     addFolderToTrashMock.mockResolvedValue({ data: undefined as never });
 
@@ -69,7 +71,7 @@ describe('delete-device-backups', () => {
     getBackupsFromDeviceMock.mockResolvedValue(backups);
     deleteBackupMock.mockResolvedValue(undefined);
     getBackupFolderTreeSnapshotMock.mockResolvedValue({
-      tree: { children: [{ id: 10, uuid: 'folder-uuid-1' }] } as never,
+      data: { tree: { children: [{ id: 10, uuid: 'folder-uuid-1' }] } },
     } as never);
 
     await deleteDeviceBackups({ device, isCurrent: false });

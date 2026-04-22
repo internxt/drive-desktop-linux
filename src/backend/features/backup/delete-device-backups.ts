@@ -10,18 +10,24 @@ type Props = {
   isCurrent?: boolean;
 };
 
-export async function deleteDeviceBackups({ device, isCurrent }: Props): Promise<void> {
+export async function deleteDeviceBackups({ device, isCurrent }: Props) {
   const backups = await DeviceModule.getBackupsFromDevice(device, isCurrent);
   logger.debug({ tag: 'BACKUPS', msg: '[BACKUPS] Deleting backups from device', count: backups.length });
   logger.debug({ tag: 'BACKUPS', msg: '[BACKUPS] Backups details', backups });
 
-  let deletionPromises: Array<Promise<void>> = backups.map((backup) => deleteBackup({ backup, isCurrent }));
-  await Promise.all(deletionPromises);
+  const backupDeletionPromises = backups.map((backup) => deleteBackup({ backup, isCurrent }));
+  await Promise.all(backupDeletionPromises);
 
-  const { tree } = await getBackupFolderTreeSnapshot({ folderUuid: device.uuid });
+  const { error, data } = await getBackupFolderTreeSnapshot({ folderUuid: device.uuid });
+  if (error) {
+    logger.error({ tag: 'BACKUPS', msg: 'Error fetching backup folder tree snapshot', error });
+    return;
+  }
+
+  const { tree } = data;
   const foldersToDelete = tree.children.filter((folder) => !backups.some((backup) => backup.folderId === folder.id));
-  deletionPromises = foldersToDelete.map(async (folder) => {
+  const folderDeletionPromises = foldersToDelete.map(async (folder) => {
     await addFolderToTrash(folder.uuid);
   });
-  await Promise.all(deletionPromises);
+  await Promise.all(folderDeletionPromises);
 }

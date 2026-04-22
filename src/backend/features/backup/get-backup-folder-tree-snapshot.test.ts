@@ -12,12 +12,11 @@ describe('get-backup-folder-tree-snapshot', () => {
   );
   const aesDecryptMock = partialSpyOn(aes, 'decrypt');
 
-  it('should throw when fetching folder tree fails', async () => {
+  it('should return an error when fetching folder tree fails', async () => {
+    const error = new Error('Unsuccesful request to fetch folder tree');
     fetchFolderTreeByUuidMock.mockResolvedValue({ error: new Error('fetch failed') } as never);
 
-    await expect(getBackupFolderTreeSnapshot({ folderUuid: 'folder-uuid' })).rejects.toThrow(
-      'Unsuccesful request to fetch folder tree',
-    );
+    await expect(getBackupFolderTreeSnapshot({ folderUuid: 'folder-uuid' })).resolves.toStrictEqual({ error });
   });
 
   it('should build backup tree snapshot and provide decrypt function', async () => {
@@ -36,6 +35,6 @@ describe('get-backup-folder-tree-snapshot', () => {
 
     call(fetchFolderTreeByUuidMock).toStrictEqual({ uuid: 'folder-uuid' });
     call(aesDecryptMock).toStrictEqual(['encrypted-name', 'crypto-key-10']);
-    expect(result).toStrictEqual(expectedSnapshot);
+    expect(result).toStrictEqual({ data: expectedSnapshot });
   });
 });

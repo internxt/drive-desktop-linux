@@ -43,8 +43,8 @@ describe('disable-backup', () => {
 
     configStoreGetMock.mockReturnValue(backupList);
     findBackupPathnameFromIdMock.mockReturnValue('/home/dev/Documents');
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({ size: 0 } as never);
-    deleteBackupMock.mockResolvedValue(undefined);
+    getBackupFolderTreeSnapshotMock.mockResolvedValue({ data: { size: 0 } } as never);
+    deleteBackupMock.mockResolvedValue({ data: true });
 
     await disableBackup({ backup });
 
@@ -57,20 +57,19 @@ describe('disable-backup', () => {
     call(deleteBackupMock).toStrictEqual({ backup, isCurrent: true });
   });
 
-  it('should log and swallow errors while disabling backup', async () => {
+  it('should log error when fetching the backup folder tree snapshot fails', async () => {
+    const error = new Error('snapshot failed');
     configStoreGetMock.mockReturnValue({
       '/home/dev/Documents': { folderId: 1, folderUuid: 'folder-uuid', enabled: true },
     });
     findBackupPathnameFromIdMock.mockReturnValue('/home/dev/Documents');
-    configStoreSetMock.mockImplementation(() => {
-      throw new Error('config failed');
-    });
+    getBackupFolderTreeSnapshotMock.mockResolvedValue({ error } as never);
 
     await disableBackup({ backup });
 
     call(loggerMock.error).toMatchObject({
       tag: 'BACKUPS',
-      msg: 'Error disabling backup folder',
+      msg: 'Error fetching backup folder tree snapshot',
     });
   });
 });
