@@ -3,9 +3,10 @@ import express from 'express';
 import { Server } from 'node:http';
 import { Container } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { PATHS } from '../../../core/electron/paths';
-import { buildDaemonRouter } from './routes/daemon.routes';
-import { buildOperationsRouter } from './routes/operations.routes';
+import { PATHS } from '../../../../core/electron/paths';
+import { DAEMON_ROUTE, OPERATIONS_ROUTE } from '../constants';
+import { buildDaemonRouter } from '../routes/daemon.routes';
+import { buildOperationsRouter } from '../routes/operations.routes';
 
 let server: Server | null = null;
 
@@ -14,8 +15,8 @@ export function startFuseDaemonServer(container: Container): Promise<void> {
     const app = express();
     app.use(express.json());
 
-    app.use('/daemon', buildDaemonRouter());
-    app.use('/op', buildOperationsRouter(container));
+    app.use(DAEMON_ROUTE, buildDaemonRouter());
+    app.use(OPERATIONS_ROUTE, buildOperationsRouter(container));
 
     rmSync(PATHS.FUSE_DAEMON_SOCKET, { force: true });
 

@@ -1,7 +1,17 @@
+export const DAEMON_ROUTE = '/daemon';
+export const OPERATIONS_ROUTE = '/op';
+export const DAEMON_PATHS = {
+  READY: '/ready',
+} as const;
+
+export const OPERATION_PATHS = {
+  GET_ATTR: '/getattributes',
+} as const;
 /**
  * property to define a regular file when requesting in the get attributes fuse request.
  * encodes both file type and permissions
  */
+
 export const FILE_MODE = 33188;
 /**
  * property to define a folder when requesting in the get attributes fuse request.

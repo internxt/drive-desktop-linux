@@ -6,8 +6,12 @@ import { DriveDependencyContainerFactory } from './dependency-injection/DriveDep
 // import { FuseApp } from './fuse/FuseApp';
 // import { HydrationApi } from './hydration-api/HydrationApi';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { startFuseDaemonServer, stopFuseDaemonServer } from '../../backend/features/fuse-daemon/server';
-import { startDaemon, stopDaemon } from '../../backend/features/fuse-daemon/daemon';
+import {
+  startFuseDaemonServer,
+  stopFuseDaemonServer,
+  startDaemon,
+  stopDaemon,
+} from '../../backend/features/virtual-drive';
 
 // let fuseApp: FuseApp;
 // let hydrationApi: HydrationApi;

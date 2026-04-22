@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { getAttributes } from '../services/operations.service';
+import { getAttributes } from '../../services/operations/get-attributes.service';
+import { Request, Response } from 'express';
 import { Container } from 'diod';
 
 export async function getAttributesController(req: Request, res: Response, container: Container) {
