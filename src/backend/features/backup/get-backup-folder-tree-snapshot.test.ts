@@ -1,6 +1,6 @@
 import { aes } from '@internxt/lib';
 import * as fetchFolderTreeByUuidModule from '../../../infra/drive-server/services/folder/services/fetch-folder-tree-by-uuid';
-import * as buildBackupFolderTreeSnapshotModule from '../../../context/shared/domain/backup/build-backup-folder-tree-snapshot';
+import * as buildBackupFolderTreeSnapshotModule from './build-backup-folder-tree-snapshot';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { getBackupFolderTreeSnapshot } from './get-backup-folder-tree-snapshot';
 

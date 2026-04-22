@@ -1,7 +1,7 @@
 import { aes } from '@internxt/lib';
 import { fetchFolderTreeByUuid } from '../../../infra/drive-server/services/folder/services/fetch-folder-tree-by-uuid';
-import { buildBackupFolderTreeSnapshot } from '../../../context/shared/domain/backup/build-backup-folder-tree-snapshot';
-import { BackupFolderTreeSnapshot } from '../../../context/shared/domain/backup/BackupFolderTreeSnapshot';
+import { buildBackupFolderTreeSnapshot } from './build-backup-folder-tree-snapshot';
+import { BackupFolderTreeSnapshot } from './types/BackupFolderTreeSnapshot';
 import { Result } from '../../../context/shared/domain/Result';
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
 export async function getBackupFolderTreeSnapshot({
   folderUuid,
 }: Props): Promise<Result<BackupFolderTreeSnapshot, Error>> {
-  const { data, error } = await fetchFolderTreeByUuid({ uuid: folderUuid });
+  const { data , error } = await fetchFolderTreeByUuid({ uuid: folderUuid });
 
   if (error) {
     return { error: new Error('Unsuccesful request to fetch folder tree') };

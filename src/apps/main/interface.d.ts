@@ -2,7 +2,7 @@ import { BackupInfo } from './../backups/BackupInfo';
 import { Usage } from '../../backend/features/usage/usage.types';
 import { Result } from './../../context/shared/domain/Result';
 import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
-import { Device } from '../../context/shared/domain/device/Device';
+import { Device } from '../../backend/features/backup/types/Device';
 import {
   AuthAccessResponseViewModel,
   AuthLoginResponseViewModel,

@@ -2,7 +2,7 @@ import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backen
 import { AuthLoginResponseViewModel } from '../../infra/drive-server/services/auth/auth.types';
 import { CleanerReport } from '../../backend/features/cleaner/cleaner.types';
 import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
-import type { Device } from '../../context/shared/domain/device/Device';
+import type { Device } from '../../backend/features/backup/types/Device';
 
 declare interface Window {
   electron: {
@@ -112,10 +112,10 @@ declare interface Window {
 
     getBackupsFromDevice: typeof import('../../backend/features/device/device.module').DeviceModule.getBackupsFromDevice;
 
-    addBackup: typeof import('../main/backups/add-backup').addBackup;
+    addBackup: typeof import('../../backend/features/backup/add-backup').addBackup;
 
     downloadBackup: (
-      device: import('../../context/shared/domain/device/Device').Device,
+      device: import('../../backend/features/backup/types/Device').Device,
       pathname: import('../../context/local/localFile/infrastructure/AbsolutePath').AbsolutePath,
     ) => Promise<void>;
 

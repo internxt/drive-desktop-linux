@@ -1,7 +1,7 @@
 import configStore from '../../../apps/main/config';
 import { BackupInfo } from '../../../apps/backups/BackupInfo';
 import { addFolderToTrash } from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
-import { Result } from 'src/context/shared/domain/Result';
+import { Result } from '../../../context/shared/domain/Result';
 
 type Props = {
   backup: BackupInfo;

@@ -1,14 +1,14 @@
-import { enableExistingBackup } from '../../../backend/features/backup/enable-existing-backup';
-import configStore from '../config';
+import { enableExistingBackup } from './enable-existing-backup';
+import configStore from '../../../apps/main/config';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
-import { createBackup } from '../../../backend/features/backup/create-backup';
-import { migrateBackupEntryIfNeeded } from '../../../backend/features/backup/migrate-backup-entry-if-needed';
+import { createBackup } from './create-backup';
+import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 import { PATHS } from '../../../core/electron/paths';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 
-vi.mock('../config');
+vi.mock('../../../apps/main/config');
 vi.mock('../../../infra/drive-server/services/folder/services/fetch-folder');
-vi.mock('../../../backend/features/backup/create-backup');
+vi.mock('./create-backup');
 vi.mock('../../../backend/features/backup/migrate-backup-entry-if-needed');
 
 const mockedConfigStore = vi.mocked(configStore);
@@ -60,16 +60,6 @@ describe('enable-existing-backup', () => {
   });
 
   it('should enable existing backup when folder still exists', async () => {
-    const migratedBackup = {
-      folderUuid: 'migrated-uuid',
-      folderId: 456,
-      enabled: false,
-    };
-
-    const updatedBackupList = {
-      [pathname]: { ...migratedBackup, enabled: true },
-    };
-
     mockedConfigStore.get
       .mockReturnValueOnce({ [pathname]: existingBackupData })
       .mockReturnValueOnce({ [pathname]: existingBackupData });

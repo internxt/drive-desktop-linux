@@ -2,7 +2,7 @@ import { FolderDtoWithPathname } from './device.types';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import configStore from '../../../apps/main/config';
 import { BackupInfo } from './../../../apps/backups/BackupInfo';
-import { Device } from '../../../context/shared/domain/device/Device';
+import { Device } from '../backup/types/Device';
 import { FolderDto } from '../../../infra/drive-server/out/dto';
 import { mapFolderDtoToBackupInfo } from './utils/mapFolderDtoToBackupInfo';
 import { findBackupPathnameFromId } from '../backup/find-backup-pathname-from-id';

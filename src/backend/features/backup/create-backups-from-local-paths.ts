@@ -1,8 +1,8 @@
 import configStore from '../../../apps/main/config';
-import { createBackup } from '../../../apps/main/backups/create-backup';
+import { createBackup } from './create-backup';
 import { DeviceModule } from '../device/device.module';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
-import { Result } from 'src/context/shared/domain/Result';
+import { Result } from '../../../context/shared/domain/Result';
 
 type Props = {
   folderPaths: string[];

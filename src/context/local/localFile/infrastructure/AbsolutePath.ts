@@ -1,5 +1,5 @@
 import { Brand } from '../../../shared/domain/Brand';
-import { posix } from 'path';
+import { posix } from 'node:path';
 
 export type AbsolutePath = Brand<string, 'AbsolutePath'>;
 

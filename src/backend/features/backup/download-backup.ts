@@ -1,11 +1,12 @@
 import { rm } from 'node:fs/promises';
 import { IpcMainEvent, ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import type { Device } from '../../../context/shared/domain/device/Device';
+import type { Device } from './types/Device';
 import { broadcastToWindows } from '../../../apps/main/windows';
 import { downloadDeviceBackupZip } from './download-device-backup-zip';
 import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import path from 'node:path';
+import { getUser } from '../../../apps/main/auth/service';
 
 function createBackupZipFilePath({ pathname }: { pathname: AbsolutePath }) {
   const date = new Date();
@@ -27,6 +28,11 @@ type Props = {
 };
 
 export async function downloadBackup({ device, pathname }: Props): Promise<void> {
+  const user = getUser();
+  if (!user) {
+    throw logger.error({ tag: 'BACKUPS', msg: 'No user found when trying to download backup' });
+  }
+
   logger.debug({
     tag: 'BACKUPS',
     msg: '[BACKUPS] Downloading Device',
@@ -48,6 +54,7 @@ export async function downloadBackup({ device, pathname }: Props): Promise<void>
 
   try {
     await downloadDeviceBackupZip({
+      user,
       device,
       path: zipFilePath,
       updateProgress: (progress) => {
@@ -62,7 +69,8 @@ export async function downloadBackup({ device, pathname }: Props): Promise<void>
       },
       abortController,
     });
-  } catch {
+  } catch(error) {
+    logger.error({ tag: 'BACKUPS', msg: 'Error downloading backup for device', deviceName: device.name, error });
     await rm(zipFilePath, { force: true });
   }
 

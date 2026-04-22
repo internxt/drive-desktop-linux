@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { DeviceModule } from '../../../backend/features/device/device.module';
-import { addBackup } from '../backups/add-backup';
+import { addBackup } from '../../../backend/features/backup/add-backup';
 import { getPathFromDialog } from '../../../core/utils/get-path-from-dialog';
 import { getActiveBackupDevices } from '../../../backend/features/device/get-active-backup-devices';
 import { createBackupsFromLocalPaths } from '../../../backend/features/backup/create-backups-from-local-paths';

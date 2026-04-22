@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { BackupInfo } from '../../../backups/BackupInfo';
 import { DeviceContext } from '../../context/DeviceContext';
-import { Device } from '../../../../context/shared/domain/device/Device';
+import { Device } from '../../../../backend/features/backup/types/Device';
 import { AbsolutePath } from '../../../../context/local/localFile/infrastructure/AbsolutePath';
 
 export type BackupsState = 'LOADING' | 'ERROR' | 'SUCCESS';
@@ -57,8 +57,8 @@ export function useBackups(): BackupContextProps {
   }, [selected, devices]);
 
   async function addBackup() {
-    const newBackup = await window.electron.addBackup();
-    if (!newBackup) return;
+    const {data: newBackup, error} = await window.electron.addBackup();
+    if (error) return;
 
     setBackups((prevBackups) => {
       const existingIndex = prevBackups.findIndex((backup) => backup.folderId === newBackup.folderId);
@@ -93,10 +93,12 @@ export function useBackups(): BackupContextProps {
   }
 
   async function downloadBackups(device: Device, pathName: AbsolutePath) {
+    if (!selected) return;
     await window.electron.downloadBackup(device, pathName);
   }
 
   function abortDownloadBackups(device: Device) {
+    if (!selected) return;
     return window.electron.abortDownloadBackups(device.uuid);
   }
 

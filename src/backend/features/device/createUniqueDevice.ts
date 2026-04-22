@@ -1,4 +1,4 @@
-import { Device } from '../../../context/shared/domain/device/Device';
+import { Device } from '../backup/types/Device';
 import { hostname } from 'node:os';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { tryCreateDevice } from './tryCreateDevice';

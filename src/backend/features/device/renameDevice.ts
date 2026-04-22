@@ -1,4 +1,4 @@
-import { Device } from '../../../context/shared/domain/device/Device';
+import { Device } from '../backup/types/Device';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { getDeviceIdentifier } from './getDeviceIdentifier';
 

@@ -21,7 +21,7 @@ describe('get-active-backup-devices', () => {
   });
 
   it('should return empty array when service returns left response', async () => {
-    getDevicesMock.mockResolvedValue({ isLeft: () => true } as never);
+    getDevicesMock.mockResolvedValue({ isLeft: () => true, getLeft: () => new Error('left error') } as never);
 
     const result = await getActiveBackupDevices();
 

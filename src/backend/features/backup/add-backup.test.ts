@@ -3,7 +3,7 @@ import * as createBackupModule from './create-backup';
 import * as DeviceModuleModule from './../../../backend/features/device/device.module';
 import * as enableExistingBackupModule from './enable-existing-backup';
 import * as fetchDeviceModule from '../../../backend/features/device/fetchDevice';
-import configStoreModule from '../config';
+import configStoreModule from '../../../apps/main/config';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { addBackup } from './add-backup';
 import { loggerMock } from 'tests/vitest/mocks.helper';
@@ -63,7 +63,7 @@ describe('addBackup', () => {
     mockedGetOrCreateDevice.mockResolvedValue({ error: undefined, data: mockDevice });
     mockedGetPathFromDialog.mockResolvedValue({ path: chosenPath, itemName: 'backup' });
     mockedConfigStoreGet.mockReturnValue({});
-    mockedCreateBackup.mockResolvedValue(mockBackupInfo);
+    mockedCreateBackup.mockResolvedValue({ data: mockBackupInfo } as never);
 
     const result = await addBackup();
 
@@ -93,7 +93,7 @@ describe('addBackup', () => {
     mockedGetOrCreateDevice.mockResolvedValue({ error: undefined, data: mockDevice });
     mockedGetPathFromDialog.mockResolvedValue({ path: chosenPath, itemName: 'existing' });
     mockedConfigStoreGet.mockReturnValue({ [chosenPath]: existingBackupData });
-    mockedEnableExistingBackup.mockResolvedValue(mockBackupInfo);
+    mockedEnableExistingBackup.mockResolvedValue({ data: mockBackupInfo } as never);
 
     const result = await addBackup();
 

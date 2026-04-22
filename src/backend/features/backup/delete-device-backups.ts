@@ -1,5 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import type { Device } from '../../../context/shared/domain/device/Device';
+import type { Device } from './types/Device';
 import { DeviceModule } from '../device/device.module';
 import { addFolderToTrash } from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
 import { getBackupFolderTreeSnapshot } from './get-backup-folder-tree-snapshot';

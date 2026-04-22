@@ -1,4 +1,4 @@
-import { Device } from '../../../../../../context/shared/domain/device/Device';
+import { Device } from '../../../../../../backend/features/backup/types/Device';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { DeviceContext, DeviceState } from '../../../../context/DeviceContext';
 import { DevicesList } from './DevicesList';

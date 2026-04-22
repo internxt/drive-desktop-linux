@@ -1,4 +1,4 @@
-import * as createBackupModule from '../../../apps/main/backups/create-backup';
+import * as createBackupModule from './create-backup';
 import * as DeviceModuleModule from '../device/device.module';
 import configStoreModule from '../../../apps/main/config';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';

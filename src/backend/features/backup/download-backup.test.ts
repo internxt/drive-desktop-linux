@@ -6,6 +6,7 @@ import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { loggerMock } from '../../../../tests/vitest/mocks.helper';
 import * as windowsModule from '../../../apps/main/windows';
 import * as downloadDeviceBackupZipModule from './download-device-backup-zip';
+import * as authServiceModule from '../../../apps/main/auth/service';
 import { downloadBackup } from './download-backup';
 
 vi.mock('node:fs/promises', () => ({
@@ -15,9 +16,12 @@ vi.mock('node:fs/promises', () => ({
 describe('download-backup', () => {
   const broadcastToWindowsMock = partialSpyOn(windowsModule, 'broadcastToWindows');
   const downloadDeviceBackupZipMock = partialSpyOn(downloadDeviceBackupZipModule, 'downloadDeviceBackupZip');
+  const getUserMock = partialSpyOn(authServiceModule, 'getUser');
 
   const ipcMainOnMock = vi.mocked(ipcMain.on);
   const rmMock = vi.mocked(rm);
+
+  const user = { bridgeUser: 'bridge-user', userId: 'user-id' };
 
   const device = {
     id: 1,
@@ -39,6 +43,7 @@ describe('download-backup', () => {
     removeListenerMock = vi.fn();
     ipcMainOnMock.mockReturnValue({ removeListener: removeListenerMock } as never);
     rmMock.mockResolvedValue(undefined as never);
+    getUserMock.mockReturnValue(user as never);
   });
 
   afterEach(() => {
