@@ -16,7 +16,7 @@ setupElectronLog({ logsPath: PATHS.LOGS });
 setupAppLogRouting({ logsPath: PATHS.LOGS });
 
 import './virtual-root-folder/handlers';
-import './auto-launch/handlers';
+import '../../core/auto-launch/handlers';
 import './auth/handlers';
 import './windows/settings';
 import './windows/process-issues';
