@@ -24,8 +24,7 @@ export const openOnboardingWindow = () => {
       nodeIntegration: true,
       devTools: isDev(),
     },
-    titleBarStyle: process.platform === 'darwin' ? 'hidden' : undefined,
-    frame: process.platform !== 'darwin' ? false : undefined,
+    frame: false,
     resizable: false,
     maximizable: false,
   });

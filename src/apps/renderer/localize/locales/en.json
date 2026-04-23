@@ -44,9 +44,7 @@
       "skip": "Skip",
       "open-drive": "Open Internxt Drive",
       "new": "New",
-      "platform-phrase": {
-        "windows": "file explorer"
-      }
+      "platform-phrase": "file explorer"
     }
   },
   "widget": {

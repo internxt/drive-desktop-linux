@@ -44,9 +44,7 @@
       "continue": "Continuer",
       "skip": "Sauter",
       "new": "Nouveau",
-      "platform-phrase": {
-        "windows": "navigateur de fichiers"
-      }
+      "platform-phrase": "navigateur de fichiers"
     }
   },
   "widget": {
