@@ -44,7 +44,7 @@ export function setupAppLogRouting({ logsPath }: Pops) {
 }
 
 export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: LogMessage }) {
-  if (message?.level === 'info') {
+  if (message?.level === 'error') {
     return join(logsPath, IMPORTANT_LOG_FILE_NAME);
   }
 

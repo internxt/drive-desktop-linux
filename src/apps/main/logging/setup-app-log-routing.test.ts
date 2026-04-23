@@ -32,7 +32,7 @@ describe('setup-app-log-routing', () => {
       const result = resolveAppLogFilePath({
         logsPath,
         message: {
-          level: 'info',
+          level: 'error',
           data: [
             createSerializedLogMessage({ header: 'E - b - anti', msg: '[CLAM_AVD] clamd process unexpectedly exited' }),
           ],
