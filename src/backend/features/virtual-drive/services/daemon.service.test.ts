@@ -7,7 +7,6 @@ vi.mock('node:child_process', () => ({
 }));
 
 describe('daemon.service', () => {
-
   describe('resolveDaemonReady', () => {
     it('should resolve the daemonReady promise', async () => {
       resolveDaemonReady();
