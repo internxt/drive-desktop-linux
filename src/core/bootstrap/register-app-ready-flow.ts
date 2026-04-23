@@ -1,15 +1,15 @@
 import { app } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import eventBus from '../event-bus';
-import { getIsLoggedIn } from '../auth/handlers';
-import { createAuthWindow } from '../windows/auth';
-import { setTrayStatus } from '../tray/tray';
-import { broadcastToWindows } from '../windows';
-import { setupThemeListener } from '../../../core/theme';
-import { registerAvailableUserProductsHandlers } from '../../../backend/features/payments/ipc/register-available-user-products-handlers';
-import { setupAppImageDeeplink } from '../auth/deeplink/setup-appimage-deeplink';
-import { INTERNXT_VERSION } from '../../../core/utils/utils';
-import { checkForUpdates } from '../auto-update/check-for-updates';
+import eventBus from '../../apps/main/event-bus';
+import { getIsLoggedIn } from '../../apps/main/auth/handlers';
+import { createAuthWindow } from '../../apps/main/windows/auth';
+import { setTrayStatus } from '../../apps/main/tray/tray';
+import { broadcastToWindows } from '../../apps/main/windows';
+import { setupThemeListener } from '../theme';
+import { registerAvailableUserProductsHandlers } from '../../backend/features/payments/ipc/register-available-user-products-handlers';
+import { setupAppImageDeeplink } from '../../apps/main/auth/deeplink/setup-appimage-deeplink';
+import { INTERNXT_VERSION } from '../utils/utils';
+import { checkForUpdates } from '../../apps/main/auto-update/check-for-updates';
 import { setPendingUpdateInfo } from './bootstrap-runtime-state';
 
 export function registerAppReadyFlow() {

@@ -38,7 +38,7 @@ import { registerQuitHandler } from '../../core/quit/quit.handler';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { version, release } from 'node:os';
 import { INTERNXT_VERSION } from '../../core/utils/utils';
-import { bootstrapMainProcess } from './bootstrap/main-process-bootstrap';
+import { bootstrapMainProcess } from '../../core/bootstrap/main-process-bootstrap';
 
 const gotTheLock = app.requestSingleInstanceLock();
 app.setAsDefaultProtocolClient('internxt');

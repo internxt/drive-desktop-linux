@@ -1,17 +1,17 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import eventBus from '../event-bus';
-import { AppDataSource, resetAppDataSourceOnLogout } from '../database/data-source';
-import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from '../windows/widget';
-import { createAuthWindow, getAuthWindow } from '../windows/auth';
-import configStore from '../config';
-import { getTray, setTrayStatus } from '../tray/tray';
-import { openOnboardingWindow } from '../windows/onboarding';
-import { getTheme } from '../../../core/theme';
-import { getAntivirusManager } from '../antivirus/antivirusManager';
-import { trySetupAntivirusIpcAndInitialize } from '../background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
-import { getUserAvailableProductsAndStore } from '../../../backend/features/payments/services/get-user-available-products-and-store';
-import { registerBackupHandlers } from '../../../backend/features/backup/register-backup-handlers';
-import { startBackupsIfAvailable } from '../../../backend/features/backup/start-backups-if-available';
+import eventBus from '../../apps/main/event-bus';
+import { AppDataSource, resetAppDataSourceOnLogout } from '../../apps/main/database/data-source';
+import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from '../../apps/main/windows/widget';
+import { createAuthWindow, getAuthWindow } from '../../apps/main/windows/auth';
+import configStore from '../../apps/main/config';
+import { getTray, setTrayStatus } from '../../apps/main/tray/tray';
+import { openOnboardingWindow } from '../../apps/main/windows/onboarding';
+import { getTheme } from '../theme';
+import { getAntivirusManager } from '../../apps/main/antivirus/antivirusManager';
+import { trySetupAntivirusIpcAndInitialize } from '../../apps/main/background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
+import { getUserAvailableProductsAndStore } from '../../backend/features/payments/services/get-user-available-products-and-store';
+import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
+import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
 
 function onWidgetIsReady() {
   registerBackupHandlers();

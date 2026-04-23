@@ -1,6 +1,6 @@
 import { app } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { handleDeeplink } from '../auth/deeplink/handle-deeplink';
+import { handleDeeplink } from '../../apps/main/auth/deeplink/handle-deeplink';
 
 export function registerSecondInstanceFlow() {
   app.on('second-instance', async (_, argv) => {
