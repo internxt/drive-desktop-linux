@@ -18,14 +18,7 @@ import Fuse from '@gcas/fuse';
 export class ReadCallback {
   constructor(private readonly container: Container) {}
 
-  async execute(
-    path: string,
-    _fd: any,
-    buf: Buffer,
-    len: number,
-    pos: number,
-    cb: (code: number, params?: any) => void,
-  ) {
+  async execute(path: string, _fd: number, buf: Buffer, len: number, pos: number, cb: (bytesRead?: number) => void) {
     try {
       const repo = this.container.get(StorageFilesRepository);
       const downloader = this.container.get(StorageFileDownloader);

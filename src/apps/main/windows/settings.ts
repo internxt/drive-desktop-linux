@@ -9,8 +9,6 @@ import isDev from '../../../core/isDev/isDev';
 let settingsWindow: BrowserWindow | null = null;
 export const getSettingsWindow = () => (settingsWindow?.isDestroyed() ? null : settingsWindow);
 
-ipcMain.on('open-settings-window', (_, section) => openSettingsWindow(section));
-
 async function openSettingsWindow(section?: string) {
   if (settingsWindow) {
     settingsWindow.focus();
@@ -54,6 +52,8 @@ async function openSettingsWindow(section?: string) {
 
   setUpCommonWindowHandlers(settingsWindow);
 }
+
+ipcMain.on('open-settings-window', (_, section) => openSettingsWindow(section));
 
 ipcMain.on('settings-window-resized', (_, { height }: { width: number; height: number }) => {
   if (settingsWindow) {

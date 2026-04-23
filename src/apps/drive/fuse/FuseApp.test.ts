@@ -99,10 +99,7 @@ describe('FuseApp', () => {
       mountPromiseMock.mockRejectedValue(new Error('mount failed'));
 
       const startPromise = fuseApp.start();
-      // eslint-disable-next-line no-await-in-loop
-      for (let i = 0; i < 5; i++) {
-        await vi.advanceTimersByTimeAsync(3000);
-      }
+      await vi.runAllTimersAsync();
       await startPromise;
 
       expect(fuseApp.getStatus()).toBe('ERROR');
@@ -118,10 +115,7 @@ describe('FuseApp', () => {
       fuseApp.on('mount-error', mountErrorHandler);
 
       const startPromise = fuseApp.start();
-      // eslint-disable-next-line no-await-in-loop
-      for (let i = 0; i < 5; i++) {
-        await vi.advanceTimersByTimeAsync(3000);
-      }
+      await vi.runAllTimersAsync();
       await startPromise;
 
       expect(mountErrorHandler).toHaveBeenCalled();

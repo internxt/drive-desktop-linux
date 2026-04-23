@@ -4,6 +4,7 @@ import * as handleReadModule from '../../../../backend/features/fuse/on-read/han
 import { partialSpyOn } from '../../../../../tests/vitest/utils.helper';
 import { left, right } from '../../../../context/shared/domain/Either';
 import { FuseNoSuchFileOrDirectoryError } from './FuseErrors';
+import { type Container } from 'diod';
 
 const handleReadCallbackMock = partialSpyOn(handleReadModule, 'handleReadCallback');
 
@@ -18,7 +19,7 @@ function createMockContainer() {
       downloadFinished: vi.fn(),
       elapsedTime: vi.fn(),
     }),
-  } as any;
+  } as Partial<Container> as Container;
 }
 
 describe('ReadCallback', () => {
