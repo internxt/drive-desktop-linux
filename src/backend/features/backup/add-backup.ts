@@ -16,7 +16,7 @@ export async function addBackup(): Promise<Result<BackupInfo, Error>> {
   }
 
   const chosenItem = await getPathFromDialog();
-  if (!chosenItem || !chosenItem.path) return { error: new Error('No path chosen') };
+  if (!chosenItem) return { error: new Error('No path chosen') };
 
   const chosenPath = createAbsolutePath(chosenItem.path);
   const backupList = configStore.get('backupList');
