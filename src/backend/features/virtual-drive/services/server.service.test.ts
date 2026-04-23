@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { rmSync } from 'node:fs';
@@ -33,7 +32,6 @@ describe('server.service', () => {
   let container: ReturnType<typeof mockDeep<Container>>;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     container = mockDeep<Container>();
     mockListen.mockImplementation((_path: string, callback: () => void) => {
       callback();

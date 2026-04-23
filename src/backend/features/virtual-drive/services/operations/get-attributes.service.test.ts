@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { getAttributes } from './get-attributes.service';
@@ -18,7 +17,6 @@ describe('getAttributes', () => {
   const temporalFinder = mockDeep<TemporalFileByPathFinder>();
 
   beforeEach(() => {
-    vi.clearAllMocks();
     now = new Date();
     container = mockDeep<Container>();
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);

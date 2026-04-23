@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
 import { Request, Response } from 'express';
 import { daemonReadyController } from './daemon.controller';

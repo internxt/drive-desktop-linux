@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { daemonReadyController } from '../controllers/daemon.controller';
 import { buildDaemonRouter } from './daemon.routes';
 import { DAEMON_PATHS } from '../constants';

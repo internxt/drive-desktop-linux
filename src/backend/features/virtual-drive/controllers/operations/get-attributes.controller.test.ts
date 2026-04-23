@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
 import { Request, Response } from 'express';
 import { Container } from 'diod';
@@ -19,7 +18,6 @@ describe('getAttributesController', () => {
   let container: ReturnType<typeof mockDeep<Container>>;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     req = mockDeep<Request>();
     res = mockDeep<Response>();
     container = mockDeep<Container>();

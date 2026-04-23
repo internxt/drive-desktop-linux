@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EventEmitter } from 'node:events';
 import { spawn } from 'node:child_process';
 import { resolveDaemonReady, daemonReady, stopDaemon, startDaemon } from './daemon.service';
@@ -8,9 +7,6 @@ vi.mock('node:child_process', () => ({
 }));
 
 describe('daemon.service', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
 
   describe('resolveDaemonReady', () => {
     it('should resolve the daemonReady promise', async () => {
