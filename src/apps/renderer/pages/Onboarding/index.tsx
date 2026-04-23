@@ -17,11 +17,12 @@ export default function Onboarding() {
        * if this fails, the user can fix this
        * from the Desktop settings
        */
-      window.electron
-        .addBackupsFromLocalPaths(backupFolders.map((backupFolder) => backupFolder.path))
-        .catch((err: unknown) => {
-          reportError(err);
+      window.electron.addBackupsFromLocalPaths(backupFolders.map((backupFolder) => backupFolder.path)).catch((err) => {
+        window.electron.logger.error({
+          msg: '[RENDERER] Failed to add backups from onboarding',
+          error: err,
         });
+      });
     }
 
     window.electron.finishOnboarding();

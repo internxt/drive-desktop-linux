@@ -32,7 +32,7 @@ export function DiscoverBackups() {
             onClick={discover}
             className="ml-2 shrink-0 self-start rounded-md p-1 text-gray-50 transition-colors hover:bg-black/5 hover:text-gray-80"
             aria-label="Dismiss">
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
         <Button size="sm" className="mt-auto" onClick={openBackupsSettings}>

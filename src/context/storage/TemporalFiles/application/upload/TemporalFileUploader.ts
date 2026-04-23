@@ -8,6 +8,7 @@ import { TemporalFileUploaderFactory } from '../../domain/upload/TemporalFileUpl
 import { TemporalFileUploadedDomainEvent } from '../../domain/upload/TemporalFileUploadedDomainEvent';
 import { EventBus } from '../../../../virtual-drive/shared/domain/EventBus';
 import { Replaces } from '../../domain/upload/Replaces';
+import { TemporalFile } from '../../domain/TemporalFile';
 
 @Service()
 export class TemporalFileUploader {
@@ -17,38 +18,33 @@ export class TemporalFileUploader {
     private readonly eventBus: EventBus,
   ) {}
 
-  async run(path: string, replaces?: Replaces): Promise<string> {
-    const documentPath = new TemporalFilePath(path);
-
-    const documentOption = await this.repository.find(documentPath);
-
-    if (!documentOption.isPresent()) {
-      throw new Error(`Could not find ${path}`);
-    }
-
-    const document = documentOption.get();
-
-    const stream = await this.repository.stream(documentPath);
+  async run(temporalFile: TemporalFile, replaces?: Replaces): Promise<string> {
+    const stream = await this.repository.stream(temporalFile.path);
 
     const controller = new AbortController();
 
-    const stopWatching = this.repository.watchFile(documentPath, () => controller.abort());
+    const stopWatching = this.repository.watchFile(temporalFile.path, () => controller.abort());
 
-    const uploader = this.uploaderFactory.read(stream).document(document).replaces(replaces).abort(controller).build();
+    const uploader = this.uploaderFactory
+      .read(stream)
+      .document(temporalFile)
+      .replaces(replaces)
+      .abort(controller)
+      .build();
 
     const contentsId = await uploader();
 
     stopWatching();
 
-    logger.debug({ msg: `${documentPath.value} uploaded with id ${contentsId}` });
+    logger.debug({ msg: `${temporalFile.path.value} uploaded with id ${contentsId}` });
 
-    const ext = extname(document.path.value).replace('.', '').toLowerCase();
-    const fileBuffer = canGenerateThumbnail(ext) ? await this.repository.read(documentPath) : undefined;
+    const ext = extname(temporalFile.path.value).replace('.', '').toLowerCase();
+    const fileBuffer = canGenerateThumbnail(ext) ? await this.repository.read(temporalFile.path) : undefined;
 
     const contentsUploadedEvent = new TemporalFileUploadedDomainEvent({
       aggregateId: contentsId,
-      size: document.size.value,
-      path: document.path.value,
+      size: temporalFile.size.value,
+      path: temporalFile.path.value,
       replaces: replaces?.contentsId,
       fileBuffer,
     });

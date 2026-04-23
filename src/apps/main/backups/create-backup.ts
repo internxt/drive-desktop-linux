@@ -27,7 +27,7 @@ export async function createBackup({ pathname, device }: Props) {
   const createdBackup: BackupInfo = {
     folderUuid: newBackup.uuid,
     folderId: newBackup.id,
-    pathname: pathname,
+    pathname,
     name: base,
     tmpPath: app.getPath('temp'),
     backupsBucket: device.bucket,

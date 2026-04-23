@@ -3,6 +3,7 @@ import { createBackupFolder } from './create-backup-folder';
 import configStore from '../config';
 import { app } from 'electron';
 import path from 'node:path';
+import { DriveServerError } from 'src/infra/drive-server/drive-server.error';
 
 vi.mock('./create-backup-folder');
 vi.mock('../config');
@@ -77,7 +78,7 @@ describe('createBackup', () => {
 
   it('should return undefined when createBackupFolder fails', async () => {
     mockPostBackup.mockResolvedValue({
-      error: new Error('Failed to create backup folder') as any,
+      error: new DriveServerError('NOT_FOUND'),
     });
 
     const result = await createBackup({

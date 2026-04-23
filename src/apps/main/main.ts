@@ -10,13 +10,13 @@ import 'dotenv/config';
 // ***** APP BOOTSTRAPPING ****************************************************** //
 import { PATHS } from '../../core/electron/paths';
 import { setupElectronLog } from '@internxt/drive-desktop-core/build/backend';
+import { setupAppLogRouting } from './logging/setup-app-log-routing';
 
-setupElectronLog({
-  logsPath: PATHS.LOGS,
-});
+setupElectronLog({ logsPath: PATHS.LOGS });
+setupAppLogRouting({ logsPath: PATHS.LOGS });
 
 import './virtual-root-folder/handlers';
-import './auto-launch/handlers';
+import '../../core/auto-launch/handlers';
 import './auth/handlers';
 import './windows/settings';
 import './windows/process-issues';
@@ -37,7 +37,7 @@ import './virtual-drive';
 
 import { app, ipcMain } from 'electron';
 import eventBus from './event-bus';
-import { AppDataSource } from './database/data-source';
+import { AppDataSource, resetAppDataSourceOnLogout } from './database/data-source';
 import { getIsLoggedIn } from './auth/handlers';
 import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from './windows/widget';
 import { createAuthWindow, getAuthWindow } from './windows/auth';
@@ -193,7 +193,6 @@ eventBus.on('USER_LOGGED_IN', async () => {
       msg: 'Error on main process while handling USER_LOGGED_IN event:',
       error,
     });
-    reportError(error as Error);
   }
 });
 
@@ -212,9 +211,7 @@ eventBus.on('USER_LOGGED_OUT', async () => {
   if (widget) {
     widget.destroy();
   }
-  if (AppDataSource.isInitialized) {
-    await AppDataSource.destroy();
-  }
+  await resetAppDataSourceOnLogout();
 
   // await uninstallNautilusExtension();
 });
