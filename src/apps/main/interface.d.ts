@@ -62,6 +62,8 @@ export interface IElectronAPI {
 
   abortDownloadBackups: (deviceId: string) => void;
 
+  addBackupsFromLocalPaths: (folderPaths: string[]) => Promise<void>;
+
   renameDevice: (deviceName: string) => Promise<Device>;
   devices: {
     getDevices: () => Promise<Array<Device>>;
