@@ -12,7 +12,7 @@ import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { FileContentsId } from '../../domain/FileContentsId';
 import { FileFolderId } from '../../domain/FileFolderId';
-import { PendingFolderCreationTracker } from '../../../folders/application/create/PendingFolderCreationTracker';
+import { runAfterParentCreations } from '../../../folders/application/create/PendingFolderCreationTracker';
 
 @Service()
 export class FileCreator {
@@ -22,12 +22,11 @@ export class FileCreator {
     private readonly parentFolderFinder: ParentFolderFinder,
     private readonly eventBus: EventBus,
     private readonly notifier: SyncFileMessenger,
-    private readonly pendingFolderCreationTracker: PendingFolderCreationTracker,
   ) {}
 
   async run(path: string, contentsId: string, size: number): Promise<File> {
     try {
-      const file = await this.pendingFolderCreationTracker.runAfterParentCreations({
+      const file = await runAfterParentCreations({
         path,
         action: async () => {
           const fileSize = new FileSize(size);

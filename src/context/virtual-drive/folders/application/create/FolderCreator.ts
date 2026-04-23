@@ -12,7 +12,7 @@ import { FolderUuid } from '../../domain/FolderUuid';
 import { FolderInPathAlreadyExistsError } from '../../domain/errors/FolderInPathAlreadyExistsError';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { ParentFolderFinder } from '../ParentFolderFinder';
-import { PendingFolderCreationTracker } from './PendingFolderCreationTracker';
+import { runTrackingCreation } from './PendingFolderCreationTracker';
 
 @Service()
 export class FolderCreator {
@@ -21,7 +21,6 @@ export class FolderCreator {
     private readonly parentFolderFinder: ParentFolderFinder,
     private readonly remote: RemoteFileSystem,
     private readonly eventBus: EventBus,
-    private readonly pendingFolderCreationTracker: PendingFolderCreationTracker,
   ) {}
 
   private async ensureItDoesNotExists(path: FolderPath): Promise<void> {
@@ -41,7 +40,7 @@ export class FolderCreator {
   }
 
   async run(path: string): Promise<void> {
-    await this.pendingFolderCreationTracker.runTrackingCreation({
+    await runTrackingCreation({
       path,
       action: async () => {
         const folderPath = new FolderPath(path);

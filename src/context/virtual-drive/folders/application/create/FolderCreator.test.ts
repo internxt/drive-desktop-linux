@@ -9,7 +9,7 @@ import { FolderRemoteFileSystemMock } from '../../__mocks__/FolderRemoteFileSyst
 import { FolderRepositoryMock } from '../../__mocks__/FolderRepositoryMock';
 import { FolderPathMother } from '../../domain/__test-helpers__/FolderPathMother';
 import { FolderMother } from '../../domain/__test-helpers__/FolderMother';
-import { PendingFolderCreationTracker } from './PendingFolderCreationTracker';
+import { clearPendingCreations } from './PendingFolderCreationTracker';
 
 describe('Folder Creator', () => {
   let repository: FolderRepositoryMock;
@@ -22,11 +22,11 @@ describe('Folder Creator', () => {
     repository = new FolderRepositoryMock();
     remote = new FolderRemoteFileSystemMock();
     eventBus = new EventBusMock();
-    const pendingFolderCreationTracker = new PendingFolderCreationTracker();
+    clearPendingCreations();
 
     const parentFolderFinder = new ParentFolderFinder(repository);
 
-    SUT = new FolderCreator(repository, parentFolderFinder, remote, eventBus, pendingFolderCreationTracker);
+    SUT = new FolderCreator(repository, parentFolderFinder, remote, eventBus);
   });
 
   it('throws an InvalidArgument error if the path is not a valid posix path', async () => {

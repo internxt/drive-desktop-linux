@@ -10,7 +10,7 @@ import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { FileSizeMother } from '../../domain/__test-helpers__/FileSizeMother';
 import { right } from '../../../../shared/domain/Either';
 import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mocks__/EventBusMock';
-import { PendingFolderCreationTracker } from '../../../folders/application/create/PendingFolderCreationTracker';
+import { clearPendingCreations } from '../../../folders/application/create/PendingFolderCreationTracker';
 
 describe('File Creator', () => {
   let remoteFileSystemMock: RemoteFileSystemMock;
@@ -26,16 +26,9 @@ describe('File Creator', () => {
     const parentFolderFinder = FolderFinderFactory.existingFolder();
     eventBus = new EventBusMock();
     notifier = new FileSyncNotifierMock();
-    const pendingFolderCreationTracker = new PendingFolderCreationTracker();
+    clearPendingCreations();
 
-    SUT = new FileCreator(
-      remoteFileSystemMock,
-      fileRepository,
-      parentFolderFinder,
-      eventBus,
-      notifier,
-      pendingFolderCreationTracker,
-    );
+    SUT = new FileCreator(remoteFileSystemMock, fileRepository, parentFolderFinder, eventBus, notifier);
   });
 
   it('creates the file on the drive server', async () => {

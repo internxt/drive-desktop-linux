@@ -1,13 +1,15 @@
-import { PendingFolderCreationTracker } from './PendingFolderCreationTracker';
+import { clearPendingCreations, runAfterParentCreations, runTrackingCreation } from './PendingFolderCreationTracker';
 
 describe('PendingFolderCreationTracker', () => {
-  it('waits for a parent folder creation before running child action', async () => {
-    const tracker = new PendingFolderCreationTracker();
+  beforeEach(() => {
+    clearPendingCreations();
+  });
 
+  it('waits for a parent folder creation before running child action', async () => {
     let resolveParentCreation: (() => void) | undefined;
     const events: string[] = [];
 
-    const parentPromise = tracker.runTrackingCreation({
+    const parentPromise = runTrackingCreation({
       path: '/Documents',
       action: async () => {
         events.push('parent-started');
@@ -20,7 +22,7 @@ describe('PendingFolderCreationTracker', () => {
       },
     });
 
-    const childPromise = tracker.runAfterParentCreations({
+    const childPromise = runAfterParentCreations({
       path: '/Documents/Taxes/file.txt',
       action: async () => {
         events.push('child-started');

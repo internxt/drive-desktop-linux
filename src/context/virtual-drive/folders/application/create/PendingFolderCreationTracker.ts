@@ -1,10 +1,11 @@
 import { posix } from 'node:path';
-import { Service } from 'diod';
 
-type RunAfterParentCreationsPops<T> = {
+type ActionProps<T> = {
   path: string;
   action: () => Promise<T>;
 };
+
+const pendingFolderCreationByPath = new Map<string, Promise<void>>();
 
 function normalizePath(path: string): string {
   const normalizedPath = posix.normalize(path);
@@ -30,52 +31,51 @@ function getParentPaths(path: string): string[] {
   return parentPaths;
 }
 
-@Service()
-export class PendingFolderCreationTracker {
-  private readonly pendingFolderCreationByPath = new Map<string, Promise<void>>();
+function getPendingParentCreations(path: string): Promise<void>[] {
+  const parentPaths = getParentPaths(path);
 
-  async runAfterParentCreations<T>({ path, action }: RunAfterParentCreationsPops<T>): Promise<T> {
-    const pendingParentCreations = this.getPendingParentCreations(path);
+  return parentPaths
+    .map((parentPath) => pendingFolderCreationByPath.get(parentPath))
+    .filter((pending): pending is Promise<void> => Boolean(pending));
+}
 
-    if (pendingParentCreations.length > 0) {
-      await Promise.all(pendingParentCreations);
+function track<T>(path: string, creationPromise: Promise<T>): void {
+  const normalizedPath = normalizePath(path);
+
+  const pendingPromise = creationPromise.then(() => undefined).catch(() => undefined);
+
+  pendingFolderCreationByPath.set(normalizedPath, pendingPromise);
+
+  void pendingPromise.finally(() => {
+    if (pendingFolderCreationByPath.get(normalizedPath) === pendingPromise) {
+      pendingFolderCreationByPath.delete(normalizedPath);
     }
+  });
+}
 
-    return action();
+export async function runAfterParentCreations<T>({ path, action }: ActionProps<T>): Promise<T> {
+  const pendingParentCreations = getPendingParentCreations(path);
+
+  if (pendingParentCreations.length > 0) {
+    await Promise.all(pendingParentCreations);
   }
 
-  async runTrackingCreation<T>({ path, action }: RunAfterParentCreationsPops<T>): Promise<T> {
-    const pendingParentCreations = this.getPendingParentCreations(path);
+  return action();
+}
 
-    if (pendingParentCreations.length > 0) {
-      await Promise.all(pendingParentCreations);
-    }
+export async function runTrackingCreation<T>({ path, action }: ActionProps<T>): Promise<T> {
+  const pendingParentCreations = getPendingParentCreations(path);
 
-    const creationPromise = action();
-    this.track(path, creationPromise);
-
-    return creationPromise;
+  if (pendingParentCreations.length > 0) {
+    await Promise.all(pendingParentCreations);
   }
 
-  private track<T>(path: string, creationPromise: Promise<T>): void {
-    const normalizedPath = normalizePath(path);
+  const creationPromise = action();
+  track(path, creationPromise);
 
-    const pendingPromise = creationPromise.then(() => undefined).catch(() => undefined);
+  return creationPromise;
+}
 
-    this.pendingFolderCreationByPath.set(normalizedPath, pendingPromise);
-
-    void pendingPromise.finally(() => {
-      if (this.pendingFolderCreationByPath.get(normalizedPath) === pendingPromise) {
-        this.pendingFolderCreationByPath.delete(normalizedPath);
-      }
-    });
-  }
-
-  private getPendingParentCreations(path: string): Promise<void>[] {
-    const parentPaths = getParentPaths(path);
-
-    return parentPaths
-      .map((parentPath) => this.pendingFolderCreationByPath.get(parentPath))
-      .filter((pending): pending is Promise<void> => Boolean(pending));
-  }
+export function clearPendingCreations(): void {
+  pendingFolderCreationByPath.clear();
 }

@@ -2,7 +2,6 @@ import { ContainerBuilder } from 'diod';
 import { AllParentFoldersStatusIsExists } from '../../../../context/virtual-drive/folders/application/AllParentFoldersStatusIsExists';
 import { FolderCreator } from '../../../../context/virtual-drive/folders/application/create/FolderCreator';
 import { FolderCreatorFromOfflineFolder } from '../../../../context/virtual-drive/folders/application/create/FolderCreatorFromOfflineFolder';
-import { PendingFolderCreationTracker } from '../../../../context/virtual-drive/folders/application/create/PendingFolderCreationTracker';
 import { FolderDeleter } from '../../../../context/virtual-drive/folders/application/FolderDeleter';
 import { FolderMover } from '../../../../context/virtual-drive/folders/application/FolderMover';
 import { FolderPathUpdater } from '../../../../context/virtual-drive/folders/application/FolderPathUpdater';
@@ -56,8 +55,6 @@ export async function registerFolderServices(builder: ContainerBuilder): Promise
   builder.registerAndUse(AllParentFoldersStatusIsExists);
 
   builder.registerAndUse(FolderCreatorFromOfflineFolder);
-
-  builder.register(PendingFolderCreationTracker).use(PendingFolderCreationTracker).asSingleton().private();
 
   builder.registerAndUse(FolderCreator);
 
