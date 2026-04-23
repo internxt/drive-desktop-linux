@@ -1,11 +1,18 @@
 import { spawn, ChildProcess } from 'node:child_process';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { PATHS } from '../../../core/electron/paths';
-import { daemonReady } from './services/daemon.service';
+import { PATHS } from '../../../../core/electron/paths';
 
+let resolveReady: () => void;
+let daemon: ChildProcess | null = null;
 const SIGKILL_TIMEOUT_MS = 5_000;
 
-let daemon: ChildProcess | null = null;
+export const daemonReady = new Promise<void>((resolve) => {
+  resolveReady = resolve;
+});
+
+export function resolveDaemonReady(): void {
+  resolveReady();
+}
 
 export function startDaemon(mountPoint: string): Promise<void> {
   const spawnedDaemon = spawn(PATHS.FUSE_DAEMON_BINARY, [], {

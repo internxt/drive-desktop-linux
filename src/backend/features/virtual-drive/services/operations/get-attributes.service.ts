@@ -1,13 +1,13 @@
 import { Container } from 'diod';
-import { FILE_MODE, FOLDER_MODE, GetAttributesCallbackData } from '../constants';
-import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
-import { FileStatuses } from '../../../../context/virtual-drive/files/domain/FileStatus';
-import { SingleFolderMatchingSearcher } from '../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
-import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
-import { FuseCodes } from '../../../../apps/drive/fuse/callbacks/FuseCodes';
+import { Result } from '../../../../../context/shared/domain/Result';
+import { FILE_MODE, FOLDER_MODE, GetAttributesCallbackData } from '../../constants';
+import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
+import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
+import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
+import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
+import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
+import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { Result } from '../../../../context/shared/domain/Result';
-import { FuseError } from '../../../../apps/drive/fuse/callbacks/FuseErrors';
 
 export async function getAttributes(
   path: string,
