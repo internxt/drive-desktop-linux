@@ -122,7 +122,7 @@ export const BackupsFoldersSelector: React.FC<BackupsFoldersSelectorProps> = (pr
         <div className="flex w-full flex-row justify-between">
           <h1 className="font-medium text-gray-80">{translate('settings.backups.title')}</h1>
           <h4 className="text-gray-50">
-            {translate('settings.backups.selected-folders', {
+            {translate('settings.backups.selected-folder', {
               count: backupFolders.length,
             })}
           </h4>
@@ -160,7 +160,7 @@ export const BackupsFoldersSelector: React.FC<BackupsFoldersSelectorProps> = (pr
             </Button>
 
             <Button onClick={handleOnCompleted} variant="primary">
-              {translate('settings.backups.folders.done')}
+              {translate('settings.backups.folders.save')}
             </Button>
           </div>
         </div>
