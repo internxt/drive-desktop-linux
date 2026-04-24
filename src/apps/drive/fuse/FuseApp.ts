@@ -71,25 +71,25 @@ export class FuseApp extends EventEmitter {
     };
   }
 
-  async start() {
-    const ops = this.getOpt();
+  // async start() {
+  //   const ops = this.getOpt();
 
-    this._fuse = new Fuse(this.localRoot, ops, {
-      debug: false,
-      force: true,
-      autoUnmount: true,
-      maxRead: FuseApp.MAX_INT_32,
-    });
+  //   this._fuse = new Fuse(this.localRoot, ops, {
+  //     debug: false,
+  //     force: true,
+  //     autoUnmount: true,
+  //     maxRead: FuseApp.MAX_INT_32,
+  //   });
 
-    const mountSuccessful = await this.mountWithRetries();
-    if (!mountSuccessful) {
-      logger.error({ msg: '[FUSE] mount error after max retries' });
-      this.emit('mount-error');
-      return;
-    }
+  //   const mountSuccessful = await this.mountWithRetries();
+  //   if (!mountSuccessful) {
+  //     logger.error({ msg: '[FUSE] mount error after max retries' });
+  //     this.emit('mount-error');
+  //     return;
+  //   }
 
-    await this.update();
-  }
+  //   await this.update();
+  // }
 
   async stop() {
     if (!this._fuse) {
@@ -128,21 +128,22 @@ export class FuseApp extends EventEmitter {
     await this.container.get(StorageClearer).run();
   }
 
-  async update() {
-    try {
-      const tree = await this.container.get(RemoteTreeBuilder).run(this.remoteRoot, this.remoteRootUuid);
+  // async update() {
+  //   try {
+  //     const tree = await this.container.get(RemoteTreeBuilder)
+  //     .run(this.remoteRoot, this.remoteRootUuid);
 
-      Promise.all([
-        this.container.get(FileRepositorySynchronizer).run(tree.files),
-        this.container.get(FolderRepositorySynchronizer).run(tree.folders),
-        this.container.get(StorageRemoteChangesSyncher).run(),
-      ]);
+  //     Promise.all([
+  //       this.container.get(FileRepositorySynchronizer).run(tree.files),
+  //       this.container.get(FolderRepositorySynchronizer).run(tree.folders),
+  //       this.container.get(StorageRemoteChangesSyncher).run(),
+  //     ]);
 
-      logger.debug({ msg: '[FUSE] Tree updated successfully' });
-    } catch (err) {
-      logger.error({ msg: '[FUSE] Error Updating the tree:', error: err });
-    }
-  }
+  //     logger.debug({ msg: '[FUSE] Tree updated successfully' });
+  //   } catch (err) {
+  //     logger.error({ msg: '[FUSE] Error Updating the tree:', error: err });
+  //   }
+  // }
 
   getStatus() {
     return this.status;
@@ -171,18 +172,18 @@ export class FuseApp extends EventEmitter {
     return this.status;
   }
 
-  private async mountWithRetries(): Promise<boolean> {
-    for (let attempt = 1; attempt <= FuseApp.MAX_RETRIES; attempt++) {
-      const status = await this.mount();
+  // private async mountWithRetries(): Promise<boolean> {
+  //   for (let attempt = 1; attempt <= FuseApp.MAX_RETRIES; attempt++) {
+  //     const status = await this.mount();
 
-      if (status === 'MOUNTED') return true;
+  //     if (status === 'MOUNTED') return true;
 
-      if (attempt < FuseApp.MAX_RETRIES) {
-        const delay = Math.min(1000 * attempt, 3000);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
+  //     if (attempt < FuseApp.MAX_RETRIES) {
+  //       const delay = Math.min(1000 * attempt, 3000);
+  //       await new Promise((resolve) => setTimeout(resolve, delay));
+  //     }
+  //   }
 
-    return false;
-  }
+  //   return false;
+  // }
 }

@@ -30,7 +30,6 @@ import './config/handlers';
 import './app-info/handlers';
 import './remote-sync/handlers';
 import './../../backend/features/cleaner/ipc/handlers';
-import './virtual-drive';
 
 import { app } from 'electron';
 import { registerAuthIPCHandlers } from '../../infra/ipc/auth-ipc-handlers';
@@ -39,6 +38,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { version, release } from 'node:os';
 import { INTERNXT_VERSION } from '../../core/utils/utils';
 import { bootstrapMainProcess } from '../../core/bootstrap/main-process-bootstrap';
+import { registerVirtualDriveHandlers } from '../../backend/features/virtual-drive/ipc/handlers';
 
 const gotTheLock = app.requestSingleInstanceLock();
 app.setAsDefaultProtocolClient('internxt');
@@ -49,6 +49,7 @@ if (!gotTheLock) {
 
 registerAuthIPCHandlers();
 registerQuitHandler();
+registerVirtualDriveHandlers();
 
 logger.debug({
   msg: 'Starting app',
