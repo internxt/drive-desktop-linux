@@ -4,7 +4,7 @@ import { AppDataSource, resetAppDataSourceOnLogout } from '../../apps/main/datab
 import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from '../../apps/main/windows/widget';
 import { createAuthWindow, getAuthWindow } from '../../apps/main/windows/auth';
 import configStore from '../../apps/main/config';
-import { getTray, setTrayStatus } from '../../apps/main/tray/tray';
+import { getTray, setTrayStatus } from '../../apps/main/tray/tray-setup';
 import { openOnboardingWindow } from '../../apps/main/windows/onboarding';
 import { getTheme } from '../theme';
 import { getAntivirusManager } from '../../apps/main/antivirus/antivirusManager';

@@ -5,6 +5,7 @@ import { getOrCreateWidged, setBoundsOfWidgetByPath, toggleWidgetVisibility } fr
 import { getIsLoggedIn } from '../auth/handlers';
 import { getAuthWindow } from '../windows/auth';
 import { TrayMenuState } from './types';
+import { PATHS } from '../../../core/electron/paths';
 
 let tray: TrayMenu | null = null;
 
@@ -16,33 +17,29 @@ export function setTrayStatus(status: TrayMenuState) {
   tray?.setState(status);
 }
 
+async function onTrayClick() {
+  const isLoggedIn = getIsLoggedIn();
+  if (!isLoggedIn) {
+    getAuthWindow()?.show();
+    return;
+  }
+
+  const widgetWindow = await getOrCreateWidged();
+  if (tray && widgetWindow) {
+    setBoundsOfWidgetByPath(widgetWindow, tray);
+  }
+
+  if (widgetWindow) toggleWidgetVisibility();
+}
+
+async function onQuitClick() {
+  app.quit();
+}
+
 export function setupTrayIcon() {
   if (tray) return tray;
 
-  const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../../../assets');
-
-  const iconsPath = path.join(RESOURCES_PATH, 'tray');
-
-  async function onTrayClick() {
-    const isLoggedIn = getIsLoggedIn();
-    if (!isLoggedIn) {
-      getAuthWindow()?.show();
-      return;
-    }
-
-    const widgetWindow = await getOrCreateWidged();
-    if (tray && widgetWindow) {
-      setBoundsOfWidgetByPath(widgetWindow, tray);
-    }
-
-    if (widgetWindow) toggleWidgetVisibility();
-  }
-
-  async function onQuitClick() {
-    app.quit();
-  }
+  const iconsPath = path.join(PATHS.RESOURCES_PATH, 'tray');
 
   tray = new TrayMenu(iconsPath, onTrayClick, onQuitClick);
 
