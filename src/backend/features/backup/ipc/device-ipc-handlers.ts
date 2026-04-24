@@ -1,14 +1,14 @@
 import { ipcMain } from 'electron';
-import { DeviceModule } from '../../../backend/features/device/device.module';
-import { addBackup } from '../../../backend/features/backup/add-backup';
-import { getPathFromDialog } from '../../../core/utils/get-path-from-dialog';
-import { getActiveBackupDevices } from '../../../backend/features/device/get-active-backup-devices';
-import { createBackupsFromLocalPaths } from '../../../backend/features/backup/create-backups-from-local-paths';
-import { deleteBackup } from '../../../backend/features/backup/delete-backup';
-import { deleteDeviceBackups } from '../../../backend/features/backup/delete-device-backups';
-import { disableBackup } from '../../../backend/features/backup/disable-backup';
-import { changeBackupPath } from '../../../backend/features/backup/change-backup-path';
-import { downloadBackup } from '../../../backend/features/backup/download-backup';
+import { DeviceModule } from '../../device/device.module';
+import { addBackup } from '../add-backup';
+import { getPathFromDialog } from '../../../../core/utils/get-path-from-dialog';
+import { getActiveBackupDevices } from '../../device/get-active-backup-devices';
+import { createBackupsFromLocalPaths } from '../create-backups-from-local-paths';
+import { deleteBackup } from '../delete-backup';
+import { deleteDeviceBackups } from '../delete-device-backups';
+import { disableBackup } from '../disable-backup';
+import { changeBackupPath } from '../change-backup-path';
+import { downloadBackup } from '../download-backup';
 
 ipcMain.handle('devices.get-all', () => getActiveBackupDevices());
 

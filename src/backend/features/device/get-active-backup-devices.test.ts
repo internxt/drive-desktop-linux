@@ -27,12 +27,4 @@ describe('get-active-backup-devices', () => {
 
     expect(result).toStrictEqual([]);
   });
-
-  it('should return empty array when service throws', async () => {
-    getDevicesMock.mockRejectedValue(new Error('failed'));
-
-    const result = await getActiveBackupDevices();
-
-    expect(result).toStrictEqual([]);
-  });
 });

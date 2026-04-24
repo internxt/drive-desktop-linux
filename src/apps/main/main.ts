@@ -18,7 +18,7 @@ import './auth/handlers';
 import './windows/settings';
 import './windows/process-issues';
 import './issues/virtual-drive';
-import './device/handlers';
+import '../../backend/features/backup/ipc/device-ipc-handlers';
 import './../../backend/features/usage/handlers/handlers';
 import './realtime';
 import './tray/tray';
