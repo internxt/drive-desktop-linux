@@ -11,6 +11,7 @@ export class StorageFilesRepositoryMock implements StorageFilesRepository {
   private deleteMock = vi.fn();
   private deleteAllMock = vi.fn();
   private allMock = vi.fn();
+  private registerMock = vi.fn();
 
   async exists(id: StorageFileId): Promise<boolean> {
     return this.existsMock(id);
@@ -35,8 +36,8 @@ export class StorageFilesRepositoryMock implements StorageFilesRepository {
     this.retrieveMock.mockReturnValueOnce(file);
   }
 
-  async store(file: StorageFile, readable: Readable): Promise<void> {
-    return this.storeMock(file, readable);
+  async store(file: StorageFile, readable: Readable, onProgress: (bytesWritten: number) => void): Promise<void> {
+    return this.storeMock(file, readable, onProgress);
   }
 
   async read(id: StorageFileId): Promise<Buffer> {
@@ -63,6 +64,10 @@ export class StorageFilesRepositoryMock implements StorageFilesRepository {
 
   async all(): Promise<StorageFile[]> {
     return this.allMock();
+  }
+
+  async register(file: StorageFile): Promise<void> {
+    return this.registerMock(file);
   }
 
   returnAll(files: Awaited<ReturnType<StorageFilesRepository['all']>>) {

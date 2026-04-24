@@ -4,7 +4,7 @@ import { BackupProgressTracker } from '../backup-progress-tracker';
 import { LocalFile } from '../../../../context/local/localFile/domain/LocalFile';
 import { Result } from '../../../../context/shared/domain/Result';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
-import { relative } from 'node:path';
+import { relative } from '../../../../apps/backups/utils/relative';
 import { uploadFileToBackup } from './upload-file-to-backup';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { isFatalError } from '../../../../shared/issues/SyncErrorCause';

@@ -95,7 +95,11 @@ export function useBackups(): BackupContextProps {
     try {
       await window.electron.downloadBackup(device);
     } catch (error) {
-      reportError(error);
+      window.electron.logger.error({
+        tag: 'BACKUPS',
+        msg: '[RENDERER] Error downloading backups',
+        error,
+      });
     }
   }
 

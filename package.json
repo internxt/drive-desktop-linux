@@ -9,12 +9,13 @@
     "url": "https://github.com/internxt/drive-desktop-linux"
   },
   "scripts": {
-    "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
+    "build": "concurrently \"npm run build:main\" \"npm run build:renderer\" \"npm run build:daemon\"",
+    "build:daemon": "cd packages/fuse-daemon && go build -ldflags='-s -w' -o ../../dist/fuse-daemon ./cmd/daemon",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir .",
     "reinstall:nautilus-extension": "NODE_ENV=development ts-node src/apps/nautilus-extension/reload.ts",
-    "lint": "cross-env NODE_ENV=development eslint . --ext .ts,.tsx --max-warnings=210",
+    "lint": "cross-env NODE_ENV=development eslint . --ext .ts,.tsx --max-warnings=60",
     "lint:fix": "npm run lint --fix",
     "format": "prettier src --check",
     "format:fix": "prettier src --write",
@@ -22,6 +23,7 @@
     "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never",
     "publish": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish always",
     "postinstall": "electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts && opencollective-postinstall",
+    "prestart": "npm run build:daemon",
     "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ts-node/register/transpile-only ./src/apps/main/main.ts",
     "start:main:debug": "cross-env NODE_ENV=development electron --inspect=5858 -r ts-node/register/transpile-only ./src/apps/main/main.ts",
@@ -65,7 +67,8 @@
     "linux": {
       "target": [
         "AppImage",
-        "deb"
+        "deb",
+        "rpm"
       ],
       "category": "Development"
     },
@@ -75,6 +78,14 @@
         "python3-nautilus"
       ]
     },
+    "rpm": {
+      "depends": [
+        "fuse-libs"
+      ],
+      "fpm": [
+        "--rpm-tag", "Recommends: nautilus-python"
+      ]
+    },
     "directories": {
       "buildResources": "assets",
       "output": "build"
@@ -82,7 +93,8 @@
     "extraResources": [
       "./assets/**",
       "./clamAV/**",
-      "./src/apps/nautilus-extension/internxt-virtual-drive.py"
+      "./src/apps/nautilus-extension/internxt-virtual-drive.py",
+      "./dist/fuse-daemon"
     ],
     "publish": {
       "provider": "github"
@@ -133,11 +145,10 @@
     "detect-port": "^1.3.0",
     "dotenv": "^10.0.0",
     "dotenv-webpack": "^7.0.3",
-    "electron": "^19.1.9",
+    "electron": "^21.4.4",
     "electron-builder": "^23.6.0",
     "electron-debug": "^3.2.0",
     "electron-fetch": "^1.9.1",
-    "electron-notarize": "^1.1.1",
     "electron-rebuild": "^3.2.9",
     "electron-store": "^8.0.1",
     "eslint": "^8.5.0",
@@ -195,7 +206,7 @@
   "dependencies": {
     "@gcas/fuse": "^2.4.2",
     "@internxt/drive-desktop-core": "0.1.7",
-    "@internxt/inxt-js": "^2.2.10",
+    "@internxt/inxt-js": "^2.2.13",
     "@internxt/scan": "^1.0.7",
     "@internxt/sdk": "1.11.17",
     "async": "^3.2.4",

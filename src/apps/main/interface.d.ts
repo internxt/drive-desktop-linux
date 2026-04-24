@@ -30,6 +30,7 @@ export interface IElectronAPI {
 
   finishOnboarding: () => void;
   getBackupsInterval(): Promise<number>;
+  getFolderPath(): Promise<{ path: string; itemName: string } | null>;
 
   setBackupsInterval(value: number): Promise<void>;
 
@@ -39,6 +40,8 @@ export interface IElectronAPI {
 
   addBackup: () => Promise<BackupInfo | undefined>;
 
+  addBackupsFromLocalPaths: (localPaths: string[]) => Promise<void>;
+
   deleteBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<void>;
 
   disableBackup: (backup: BackupInfo) => Promise<void>;
@@ -46,6 +49,8 @@ export interface IElectronAPI {
   downloadBackup: (device: Device) => Promise<void>;
 
   abortDownloadBackups: (deviceId: string) => void;
+
+  addBackupsFromLocalPaths: (folderPaths: string[]) => Promise<void>;
 
   renameDevice: (deviceName: string) => Promise<Device>;
   devices: {
@@ -64,11 +69,17 @@ export interface IElectronAPI {
 
   onUserLoggedInChanged(func: (value: boolean) => void): void;
 
+  closeWindow(): void;
+
+  minimizeWindow(): void;
+
   onRemoteChanges(func: (value: import('../main/realtime').EventPayload) => void): () => void;
 
   openVirtualDriveFolder(): Promise<void>;
 
   openProcessIssuesWindow(): void;
+
+  openLogs(): void;
 
   openSettingsWindow(section?: 'BACKUPS' | 'GENERAL' | 'ACCOUNT' | 'ANTIVIRUS' | 'CLEANER'): void;
 
@@ -129,15 +140,22 @@ export interface IElectronAPI {
   };
   chooseSyncRootWithDialog(): Promise<string | null>;
   getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
+  changeBackupPath: typeof import('./device/service').changeBackupPath;
+  startBackupsProcess(): void;
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
   onBackupProgress(func: (value: number) => void): () => void;
+  getFolderPath: typeof import('../../backend/features/backup/get-path-from-dialog').getPathFromDialog;
   startRemoteSync(): Promise<void>;
   getUpdateStatus(): Promise<{ version: string } | null>;
   onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
   getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
   onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
+  getVirtualDriveStatus(): Promise<import('../drive/fuse/FuseDriveStatus').FuseDriveStatus>;
+  onVirtualDriveStatusChange(
+    callback: (event: { status: import('../drive/fuse/FuseDriveStatus').FuseDriveStatus }) => void,
+  ): () => void;
 
   pathChanged(path: string): void;
   isUserLoggedIn(): Promise<boolean>;

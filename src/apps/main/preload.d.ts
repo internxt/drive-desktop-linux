@@ -5,7 +5,9 @@ import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
 
 declare interface Window {
   electron: {
-    getConfigKey(key: import('./config/service.types').StoredValues): Promise<any>;
+    getConfigKey<T extends import('./config/service.types').StoredValues>(
+      key: T,
+    ): Promise<import('../../core/electron/store/app-store.interface').AppStore[T]>;
 
     listenToConfigKeyChange<T>(key: import('./config/service.types').StoredValues, fn: (value: T) => void): () => void;
 
@@ -143,7 +145,6 @@ declare interface Window {
 
     getUsage: () => Promise<import('../../backend/features/usage/usage.types').Usage>;
 
-    getPlatform: () => Promise<import('../main/platform/DesktopPlatform').DesktopPlatform>;
     onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
     getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
     getVirtualDriveStatus(): Promise<import('../drive/fuse/FuseDriveStatus').FuseDriveStatus>;

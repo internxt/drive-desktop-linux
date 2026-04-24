@@ -35,7 +35,7 @@ export class MainProcessSyncFolderMessenger implements SyncFolderMessenger {
     virtualDriveUpdate({
       action: 'CREATING_FOLDER',
       oldName: undefined,
-      name: name,
+      name,
       progress: undefined,
     });
   }
@@ -46,7 +46,7 @@ export class MainProcessSyncFolderMessenger implements SyncFolderMessenger {
     virtualDriveUpdate({
       action: 'FOLDER_CREATED',
       oldName: undefined,
-      name: name,
+      name,
       progress: undefined,
     });
   }
