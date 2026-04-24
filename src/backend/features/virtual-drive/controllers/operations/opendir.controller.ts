@@ -9,7 +9,7 @@ export async function openDirController(req: Request, res: Response, container: 
   logger.debug({ msg: `[FUSE DAEMON] OpenDir signal received for path: ${rawPath}` });
   const normalizedPath = ensureLeadingSlash(rawPath);
 
-  const {data, error} = await opendir(normalizedPath, container);
+  const { data, error } = await opendir(normalizedPath, container);
 
   if (error) {
     logger.error({ msg: error.message });

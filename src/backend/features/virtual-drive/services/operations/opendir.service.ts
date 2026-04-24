@@ -18,10 +18,7 @@ export type OpenDirData = {
   entries: DirEntry[];
 };
 
-export async function opendir(
-  path: string,
-  container: Container,
-): Promise<Result<OpenDirData, FuseError>> {
+export async function opendir(path: string, container: Container): Promise<Result<OpenDirData, FuseError>> {
   try {
     const [fileNames, folderNames, temporalFiles] = await Promise.all([
       container.get(FilesByFolderPathSearcher).run(path),
@@ -32,9 +29,7 @@ export async function opendir(
     const entries: DirEntry[] = [
       ...fileNames.map((name) => ({ name, mode: FILE_MODE })),
       ...folderNames.map((name) => ({ name, mode: FOLDER_MODE })),
-      ...temporalFiles
-        .filter((f) => f.isAuxiliary())
-        .map((f) => ({ name: f.name, mode: FILE_MODE })),
+      ...temporalFiles.filter((f) => f.isAuxiliary()).map((f) => ({ name: f.name, mode: FILE_MODE })),
     ];
 
     return { data: { entries } };

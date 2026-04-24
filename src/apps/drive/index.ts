@@ -17,23 +17,23 @@
 // let hydrationApi: HydrationApi;
 
 // export async function startVirtualDrive() {
-  // const localRoot = getRootVirtualDrive();
+// const localRoot = getRootVirtualDrive();
 
-  // const container = await DriveDependencyContainerFactory.build();
-  // const user = DependencyInjectionUserProvider.get();
-  // const virtualDrive = new VirtualDrive(container);
-  // hydrationApi = new HydrationApi(container);
-  // fuseApp = new FuseApp(virtualDrive, container, localRoot, user.root_folder_id, user.rootFolderId);
-  // fuseApp.on('mounted', () => broadcastToWindows('virtual-drive-status-change', 'MOUNTED'));
-  // fuseApp.on('mount-error', () => broadcastToWindows('virtual-drive-status-change', 'ERROR'));
-  // await hydrationApi.start({ debug: false, timeElapsed: false });
-  // await fuseApp.start();
+// const container = await DriveDependencyContainerFactory.build();
+// const user = DependencyInjectionUserProvider.get();
+// const virtualDrive = new VirtualDrive(container);
+// hydrationApi = new HydrationApi(container);
+// fuseApp = new FuseApp(virtualDrive, container, localRoot, user.root_folder_id, user.rootFolderId);
+// fuseApp.on('mounted', () => broadcastToWindows('virtual-drive-status-change', 'MOUNTED'));
+// fuseApp.on('mount-error', () => broadcastToWindows('virtual-drive-status-change', 'ERROR'));
+// await hydrationApi.start({ debug: false, timeElapsed: false });
+// await fuseApp.start();
 
-  // await startFuseDaemonServer(container);
-  // await startDaemon(localRoot);
+// await startFuseDaemonServer(container);
+// await startDaemon(localRoot);
 
-  // broadcastToWindows('virtual-drive-status-change', 'MOUNTED');
-  // logger.debug({ msg: '[FUSE DAEMON] virtual drive mounted and ready' });
+// broadcastToWindows('virtual-drive-status-change', 'MOUNTED');
+// logger.debug({ msg: '[FUSE DAEMON] virtual drive mounted and ready' });
 // }
 
 // export async function stopAndClearFuseApp() {
