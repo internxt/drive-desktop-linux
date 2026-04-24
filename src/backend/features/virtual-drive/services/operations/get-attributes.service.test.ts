@@ -6,6 +6,10 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
+import { File } from '../../../../../context/virtual-drive/files/domain/File';
+import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
+import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
+import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 
 vi.mock('@internxt/drive-desktop-core/build/backend');
 
@@ -42,7 +46,20 @@ describe('getAttributes', () => {
 
   describe('when a file is found', () => {
     it('should return file attributes', async () => {
-      fileSearcher.run.mockResolvedValue({ size: 4096, createdAt: now, updatedAt: now } as any);
+      fileSearcher.run.mockResolvedValue(
+        File.from({
+          id: 1,
+          uuid: '550e8400-e29b-41d4-a716-446655440001',
+          contentsId: 'aabbccddeeff001122334455',
+          folderId: 1,
+          createdAt: now.toISOString(),
+          modificationTime: now.toISOString(),
+          path: '/some/file.txt',
+          size: 4096,
+          updatedAt: now.toISOString(),
+          status: FileStatuses.EXISTS,
+        }),
+      );
 
       const { data, error } = await getAttributes('/some/file.txt', container);
 
@@ -53,7 +70,17 @@ describe('getAttributes', () => {
 
   describe('when a folder is found', () => {
     it('should return folder attributes', async () => {
-      folderSearcher.run.mockResolvedValue({ createdAt: now, updatedAt: now } as any);
+      folderSearcher.run.mockResolvedValue(
+        Folder.from({
+          id: 1,
+          uuid: '550e8400-e29b-41d4-a716-446655440002',
+          parentId: null,
+          path: '/some/folder',
+          createdAt: now.toISOString(),
+          updatedAt: now.toISOString(),
+          status: 'EXISTS',
+        }),
+      );
       container.get.calledWith(SingleFolderMatchingSearcher).mockReturnValue(folderSearcher);
 
       const { data, error } = await getAttributes('/some/folder', container);
@@ -67,7 +94,14 @@ describe('getAttributes', () => {
     it('should return file attributes', async () => {
       container.get.calledWith(SingleFolderMatchingSearcher).mockReturnValue(folderSearcher);
 
-      temporalFinder.run.mockResolvedValue({ size: { value: 2048 }, createdAt: now } as any);
+      temporalFinder.run.mockResolvedValue(
+        TemporalFile.from({
+          createdAt: now,
+          modifiedAt: now,
+          path: '/some/temp.txt',
+          size: 2048,
+        }),
+      );
       container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
 
       const { data, error } = await getAttributes('/some/temp.txt', container);

@@ -33,40 +33,6 @@ const ANTIVIRUS_MESSAGE_PATTERNS = [
 const ELECTRON_LOG_MODULE_IDS = ['electron-log', '@internxt/drive-desktop-core/node_modules/electron-log'];
 const moduleRequire = createRequire(__filename);
 
-export function setupAppLogRouting({ logsPath }: Pops) {
-  for (const electronLog of getElectronLogModules()) {
-    electronLog.transports.file.resolvePathFn = (_, message) => {
-      return resolveAppLogFilePath({ logsPath, message });
-    };
-
-    electronLog.transports.file.resolvePath = electronLog.transports.file.resolvePathFn;
-  }
-}
-
-export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: LogMessage }) {
-  if (message?.level === 'error') {
-    return join(logsPath, IMPORTANT_LOG_FILE_NAME);
-  }
-
-  if (isAntivirusLogMessage({ message })) {
-    return join(logsPath, ANTIVIRUS_LOG_FILE_NAME);
-  }
-
-  return join(logsPath, DEFAULT_LOG_FILE_NAME);
-}
-
-function isAntivirusLogMessage({ message }: { message?: LogMessage }) {
-  return message?.data?.some((value) => isSerializedAntivirusLogEntry({ value })) ?? false;
-}
-
-function isSerializedAntivirusLogEntry({ value }: { value: unknown }) {
-  if (typeof value !== 'string') {
-    return false;
-  }
-
-  return ANTIVIRUS_HEADER_PATTERN.test(value) || ANTIVIRUS_MESSAGE_PATTERNS.some((pattern) => pattern.test(value));
-}
-
 function getElectronLogModules() {
   const modules = new Map<string, ElectronLogModule>();
 
@@ -82,3 +48,39 @@ function getElectronLogModules() {
 
   return [...modules.values()];
 }
+
+function isSerializedAntivirusLogEntry({ value }: { value: unknown }) {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  return ANTIVIRUS_HEADER_PATTERN.test(value) || ANTIVIRUS_MESSAGE_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function isAntivirusLogMessage({ message }: { message?: LogMessage }) {
+  return message?.data?.some((value) => isSerializedAntivirusLogEntry({ value })) ?? false;
+}
+
+export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: LogMessage }) {
+  if (message?.level === 'error') {
+    return join(logsPath, IMPORTANT_LOG_FILE_NAME);
+  }
+
+  if (isAntivirusLogMessage({ message })) {
+    return join(logsPath, ANTIVIRUS_LOG_FILE_NAME);
+  }
+
+  return join(logsPath, DEFAULT_LOG_FILE_NAME);
+}
+
+export function setupAppLogRouting({ logsPath }: Pops) {
+  for (const electronLog of getElectronLogModules()) {
+    electronLog.transports.file.resolvePathFn = (_, message) => {
+      return resolveAppLogFilePath({ logsPath, message });
+    };
+
+    electronLog.transports.file.resolvePath = electronLog.transports.file.resolvePathFn;
+  }
+}
+
+
