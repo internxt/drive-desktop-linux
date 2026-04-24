@@ -150,8 +150,6 @@ export interface IElectronAPI {
   };
   chooseSyncRootWithDialog(): Promise<string | null>;
   getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
-  changeBackupPath: typeof import('../../backend/features/backup/change-backup-path').changeBackupPath;
-  startBackupsProcess(): void;
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
