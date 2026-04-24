@@ -10,6 +10,8 @@ export const OPERATION_PATHS = {
   OPEN_DIR: '/opendir',
   READ: '/read',
   RELEASE: '/release',
+  UNLINK: '/unlink',
+  RMDIR: '/rmdir',
 } as const;
 /**
  * property to define a regular file when requesting in the get attributes fuse request.

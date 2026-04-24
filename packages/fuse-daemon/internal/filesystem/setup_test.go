@@ -48,8 +48,14 @@ func newMockServer(socketPath string) (*mockServer, error) {
 // the given path using the provided HandlerFunc. Call this at the start of
 // each test to control what the daemon receives back from the mock server.
 func (serverMock *mockServer) setHandler(path client.OperationPath, handler http.HandlerFunc) {
+	serverMock.setHandlers(map[client.OperationPath]http.HandlerFunc{path: handler})
+}
+
+func (serverMock *mockServer) setHandlers(handlers map[client.OperationPath]http.HandlerFunc) {
 	router := http.NewServeMux()
-	router.HandleFunc(string(path), handler)
+	for path, handler := range handlers {
+		router.HandleFunc(string(path), handler)
+	}
 	serverMock.server.Handler = router
 }
 

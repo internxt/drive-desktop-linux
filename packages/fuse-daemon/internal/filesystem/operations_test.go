@@ -280,3 +280,167 @@ func TestOpen(t *testing.T) {
 		}
 	})
 }
+
+func TestUnlink(t *testing.T) {
+	t.Run("returns OK when backend returns 200", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: func(response http.ResponseWriter, request *http.Request) {
+				respondJSON(response, GetAttributesCallbackData{
+					Mode:  0o100644,
+					Size:  0,
+					Mtime: time.Now(),
+					Ctime: time.Now(),
+					Uid:   uint32(os.Getuid()),
+					Gid:   uint32(os.Getgid()),
+					Nlink: 1,
+				})
+			},
+			client.OperationUnlink: func(response http.ResponseWriter, request *http.Request) {
+				response.WriteHeader(http.StatusOK)
+			},
+		})
+
+		err := syscall.Unlink(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("unlink-ok-%d.txt", time.Now().UnixNano())))
+		if err != nil {
+			t.Fatalf("unlink: %v", err)
+		}
+	})
+
+	t.Run("returns ENOENT when backend returns 404", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: func(response http.ResponseWriter, request *http.Request) {
+				respondJSON(response, GetAttributesCallbackData{
+					Mode:  0o100644,
+					Size:  0,
+					Mtime: time.Now(),
+					Ctime: time.Now(),
+					Uid:   uint32(os.Getuid()),
+					Gid:   uint32(os.Getgid()),
+					Nlink: 1,
+				})
+			},
+			client.OperationUnlink: func(response http.ResponseWriter, request *http.Request) {
+				response.WriteHeader(http.StatusNotFound)
+			},
+		})
+
+		err := syscall.Unlink(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("unlink-missing-%d.txt", time.Now().UnixNano())))
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if err != syscall.ENOENT {
+			t.Errorf("expected ENOENT, got %v", err)
+		}
+	})
+
+	t.Run("returns EIO when backend returns 500", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: func(response http.ResponseWriter, request *http.Request) {
+				respondJSON(response, GetAttributesCallbackData{
+					Mode:  0o100644,
+					Size:  0,
+					Mtime: time.Now(),
+					Ctime: time.Now(),
+					Uid:   uint32(os.Getuid()),
+					Gid:   uint32(os.Getgid()),
+					Nlink: 1,
+				})
+			},
+			client.OperationUnlink: func(response http.ResponseWriter, request *http.Request) {
+				response.WriteHeader(http.StatusInternalServerError)
+			},
+		})
+
+		err := syscall.Unlink(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("unlink-eio-%d.txt", time.Now().UnixNano())))
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if err != syscall.EIO {
+			t.Errorf("expected EIO, got %v", err)
+		}
+	})
+}
+
+func TestRmdir(t *testing.T) {
+	t.Run("returns OK when backend returns 200", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: func(response http.ResponseWriter, request *http.Request) {
+				respondJSON(response, GetAttributesCallbackData{
+					Mode:  0o040755,
+					Size:  0,
+					Mtime: time.Now(),
+					Ctime: time.Now(),
+					Uid:   uint32(os.Getuid()),
+					Gid:   uint32(os.Getgid()),
+					Nlink: 2,
+				})
+			},
+			client.OperationRmdir: func(response http.ResponseWriter, request *http.Request) {
+				response.WriteHeader(http.StatusOK)
+			},
+		})
+
+		err := syscall.Rmdir(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("rmdir-ok-%d", time.Now().UnixNano())))
+		if err != nil {
+			t.Fatalf("rmdir: %v", err)
+		}
+	})
+
+	t.Run("returns ENOENT when backend returns 404", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: func(response http.ResponseWriter, request *http.Request) {
+				respondJSON(response, GetAttributesCallbackData{
+					Mode:  0o040755,
+					Size:  0,
+					Mtime: time.Now(),
+					Ctime: time.Now(),
+					Uid:   uint32(os.Getuid()),
+					Gid:   uint32(os.Getgid()),
+					Nlink: 2,
+				})
+			},
+			client.OperationRmdir: func(response http.ResponseWriter, request *http.Request) {
+				response.WriteHeader(http.StatusNotFound)
+			},
+		})
+
+		err := syscall.Rmdir(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("rmdir-missing-%d", time.Now().UnixNano())))
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if err != syscall.ENOENT {
+			t.Errorf("expected ENOENT, got %v", err)
+		}
+	})
+
+	t.Run("returns EIO when backend returns 500", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: func(response http.ResponseWriter, request *http.Request) {
+				respondJSON(response, GetAttributesCallbackData{
+					Mode:  0o040755,
+					Size:  0,
+					Mtime: time.Now(),
+					Ctime: time.Now(),
+					Uid:   uint32(os.Getuid()),
+					Gid:   uint32(os.Getgid()),
+					Nlink: 2,
+				})
+			},
+			client.OperationRmdir: func(response http.ResponseWriter, request *http.Request) {
+				response.WriteHeader(http.StatusInternalServerError)
+			},
+		})
+
+		err := syscall.Rmdir(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("rmdir-eio-%d", time.Now().UnixNano())))
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if err != syscall.EIO {
+			t.Errorf("expected EIO, got %v", err)
+		}
+	})
+}

@@ -12,6 +12,8 @@ const (
 	OperationOpenDir OperationPath = "/op/opendir"
 	OperationRead    OperationPath = "/op/read"
 	OperationRelease OperationPath = "/op/release"
+	OperationUnlink  OperationPath = "/op/unlink"
+	OperationRmdir   OperationPath = "/op/rmdir"
 )
 
 const serverURL = "http://localhost"

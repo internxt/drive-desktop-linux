@@ -44,7 +44,7 @@ func NewInternxtFilesystem(logger *slog.Logger, client *client.Client) *Internxt
 }
 
 func (fs *InternxtFilesystem) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.Status) {
-	fs.logger.Debug("Received GetAttr call", "name", name)
+	fs.logger.Debug("Recieved GetAttr call: ", "name", name)
 	body := struct {
 		Path string `json:"path"`
 	}{Path: name}
@@ -119,16 +119,42 @@ func (fs *InternxtFilesystem) Rename(oldName string, newName string, context *fu
 }
 
 func (fs *InternxtFilesystem) Unlink(name string, context *fuse.Context) fuse.Status {
-	fs.logger.Warn("not implemented", "op", "Unlink", "path", name)
-	return fuse.ENOSYS
+	fs.logger.Debug("Received Unlink call", "path", name)
+	body := struct {
+		Path string `json:"path"`
+	}{Path: name}
+
+	status, err := fs.client.Post(context, client.OperationUnlink, body, nil)
+	if err != nil {
+		return mapOperationStatusToFuseStatus(status)
+	}
+
+	return fuse.OK
 }
 
 func (fs *InternxtFilesystem) Rmdir(name string, context *fuse.Context) fuse.Status {
-	fs.logger.Warn("not implemented", "op", "Rmdir", "path", name)
-	return fuse.ENOSYS
+	fs.logger.Debug("Received Rmdir call", "path", name)
+	body := struct {
+		Path string `json:"path"`
+	}{Path: name}
+
+	status, err := fs.client.Post(context, client.OperationRmdir, body, nil)
+	if err != nil {
+		return mapOperationStatusToFuseStatus(status)
+	}
+
+	return fuse.OK
 }
 
 func (fs *InternxtFilesystem) GetXAttr(name string, attr string, context *fuse.Context) ([]byte, fuse.Status) {
 	fs.logger.Warn("not implemented", "op", "GetXAttr", "path", name, "attr", attr)
 	return nil, fuse.ENOSYS
+}
+
+func mapOperationStatusToFuseStatus(status int) fuse.Status {
+	if status == http.StatusNotFound {
+		return fuse.ENOENT
+	}
+
+	return fuse.EIO
 }
