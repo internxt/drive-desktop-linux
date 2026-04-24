@@ -89,3 +89,96 @@ func TestGetAttr(t *testing.T) {
 		}
 	})
 }
+
+func TestGetXAttr(t *testing.T) {
+	t.Run("returns xattr bytes", func(t *testing.T) {
+		setDefaultGetAttrAndXAttrHandlers(func(response http.ResponseWriter, request *http.Request) {
+			respondJSON(response, GetXAttrCallbackData{Value: "on_local"})
+		})
+
+		buffer := make([]byte, 128)
+		path := filepath.Join(sharedMount.mountPoint, fmt.Sprintf("xattr-%d.txt", time.Now().UnixNano()))
+
+		size, err := syscall.Getxattr(path, "SYNC_STATUS", buffer)
+		if err != nil {
+			t.Fatalf("getxattr: %v", err)
+		}
+
+		if got := string(buffer[:size]); got != "on_local" {
+			t.Errorf("xattr value: got %q, want %q", got, "on_local")
+		}
+	})
+
+	t.Run("returns ENOENT when the server returns 404", func(t *testing.T) {
+		setDefaultGetAttrAndXAttrHandlers(func(response http.ResponseWriter, request *http.Request) {
+			response.WriteHeader(http.StatusNotFound)
+		})
+
+		buffer := make([]byte, 128)
+		path := filepath.Join(sharedMount.mountPoint, fmt.Sprintf("xattr-missing-%d.txt", time.Now().UnixNano()))
+
+		_, err := syscall.Getxattr(path, "SYNC_STATUS", buffer)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if err != syscall.ENOENT {
+			t.Errorf("expected ENOENT, got %v", err)
+		}
+	})
+
+	t.Run("returns ENOSYS when the server returns 501", func(t *testing.T) {
+		setDefaultGetAttrAndXAttrHandlers(func(response http.ResponseWriter, request *http.Request) {
+			response.WriteHeader(http.StatusNotImplemented)
+		})
+
+		buffer := make([]byte, 128)
+		path := filepath.Join(sharedMount.mountPoint, fmt.Sprintf("xattr-root-%d.txt", time.Now().UnixNano()))
+
+		_, err := syscall.Getxattr(path, "SYNC_STATUS", buffer)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if err != syscall.ENOTSUP {
+			t.Errorf("expected ENOTSUP, got %v", err)
+		}
+	})
+
+	t.Run("returns EIO when the server returns 500", func(t *testing.T) {
+		setDefaultGetAttrAndXAttrHandlers(func(response http.ResponseWriter, request *http.Request) {
+			response.WriteHeader(http.StatusInternalServerError)
+		})
+
+		buffer := make([]byte, 128)
+		path := filepath.Join(sharedMount.mountPoint, fmt.Sprintf("xattr-broken-%d.txt", time.Now().UnixNano()))
+
+		_, err := syscall.Getxattr(path, "SYNC_STATUS", buffer)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if err != syscall.ENOTSUP {
+			t.Errorf("expected ENOTSUP, got %v", err)
+		}
+	})
+}
+
+func setDefaultGetAttrAndXAttrHandlers(getXAttrHandler http.HandlerFunc) {
+	now := time.Now().Truncate(time.Second)
+
+	sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+		client.OperationGetAttr: func(response http.ResponseWriter, request *http.Request) {
+			respondJSON(response, GetAttributesCallbackData{
+				Mode:  0o100644,
+				Size:  1,
+				Mtime: now,
+				Ctime: now,
+				Uid:   uint32(os.Getuid()),
+				Gid:   uint32(os.Getgid()),
+				Nlink: 1,
+			})
+		},
+		client.OperationGetXAttr: getXAttrHandler,
+	})
+}

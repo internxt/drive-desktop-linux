@@ -6,6 +6,7 @@ export const DAEMON_PATHS = {
 
 export const OPERATION_PATHS = {
   GET_ATTR: '/getattributes',
+  GET_X_ATTR: '/getxattr',
 } as const;
 /**
  * property to define a regular file when requesting in the get attributes fuse request.
@@ -33,4 +34,8 @@ export type GetAttributesCallbackData = {
    * its a deleted file/folder
    * */
   nlink: number;
+};
+
+export type GetXAttrCallbackData = {
+  value: string;
 };

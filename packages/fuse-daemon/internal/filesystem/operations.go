@@ -1,7 +1,9 @@
 package filesystem
 
 import (
+	"errors"
 	"log/slog"
+	"net/http"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 
@@ -32,34 +34,37 @@ func NewInternxtFilesystem(logger *slog.Logger, client *client.Client) *Internxt
 	}
 }
 func (fs *InternxtFilesystem) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.Status) {
-  fs.logger.Debug("Recieved GetAttr call: ", "name", name)
-  body := struct { Path string `json:"path"` }{ Path: name }
-  response := GetAttributesCallbackData{}
-  err := fs.client.Post(context,client.OperationGetAttr, body, &response)
-  if err != nil {
-    fs.logger.Error("Error occurred while fetching attributes", "error", err)
-    return nil, fuse.EIO
-  }
-  var atime uint64
-  if response.Atime != nil {
-      atime = uint64(response.Atime.Unix())
-  }
+	fs.logger.Debug("Recieved GetAttr call: ", "name", name)
+	body := struct {
+		Path string `json:"path"`
+	}{Path: name}
+	response := GetAttributesCallbackData{}
+	err := fs.client.Post(context, client.OperationGetAttr, body, &response)
+	if err != nil {
+		fs.logger.Error("Error occurred while fetching attributes", "error", err)
+		return nil, fuse.EIO
+	}
+	var atime uint64
+	if response.Atime != nil {
+		atime = uint64(response.Atime.Unix())
+	}
 	attr := &fuse.Attr{
-    Mode:  response.Mode,
-    Size:  response.Size,
-    Mtime: uint64(response.Mtime.Unix()),
-    Ctime: uint64(response.Ctime.Unix()),
-    Atime: atime,
-    Owner: fuse.Owner{Uid: response.Uid, Gid: response.Gid},
-    Nlink: response.Nlink,
-  }
-  return attr, fuse.OK
+		Mode:  response.Mode,
+		Size:  response.Size,
+		Mtime: uint64(response.Mtime.Unix()),
+		Ctime: uint64(response.Ctime.Unix()),
+		Atime: atime,
+		Owner: fuse.Owner{Uid: response.Uid, Gid: response.Gid},
+		Nlink: response.Nlink,
+	}
+	return attr, fuse.OK
 }
 
 func (fs *InternxtFilesystem) OpenDir(name string, context *fuse.Context) ([]fuse.DirEntry, fuse.Status) {
 	fs.logger.Warn("not implemented", "op", "OpenDir", "path", name)
 	return nil, fuse.ENOSYS
 }
+
 // Open returns a file handle for the given path.
 // When implementing: return a nodefs.File handle that implements Read, Write, Release, and Flush.
 // File-level operations (Read, Write, Release) belong on that nodefs.File struct, not here.
@@ -97,6 +102,29 @@ func (fs *InternxtFilesystem) Rmdir(name string, context *fuse.Context) fuse.Sta
 }
 
 func (fs *InternxtFilesystem) GetXAttr(name string, attr string, context *fuse.Context) ([]byte, fuse.Status) {
-	fs.logger.Warn("not implemented", "op", "GetXAttr", "path", name, "attr", attr)
-	return nil, fuse.ENOSYS
+	body := struct {
+		Path string `json:"path"`
+		Attr string `json:"attr"`
+	}{
+		Path: name,
+		Attr: attr,
+	}
+	response := GetXAttrCallbackData{}
+	err := fs.client.Post(context, client.OperationGetXAttr, body, &response)
+	if err != nil {
+		var statusErr *client.HTTPStatusError
+		if errors.As(err, &statusErr) {
+			switch statusErr.StatusCode {
+			case http.StatusNotFound:
+				return nil, fuse.ENOENT
+			case http.StatusNotImplemented:
+				return nil, fuse.ENOSYS
+			}
+		}
+
+		fs.logger.Error("error occurred while fetching xattr", "path", name, "attr", attr, "error", err)
+		return nil, fuse.EIO
+	}
+
+	return []byte(response.Value), fuse.OK
 }

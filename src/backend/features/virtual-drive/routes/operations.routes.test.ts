@@ -11,5 +11,6 @@ describe('buildOperationsRouter', () => {
     const routes = router.stack.filter((layer) => layer.route).map((layer) => layer.route!.path);
 
     expect(routes).toContain(OPERATION_PATHS.GET_ATTR);
+    expect(routes).toContain(OPERATION_PATHS.GET_X_ATTR);
   });
 });

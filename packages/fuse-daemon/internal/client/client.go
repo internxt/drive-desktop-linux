@@ -12,18 +12,25 @@ import (
 	"time"
 )
 
+type HTTPStatusError struct {
+	StatusCode int
+}
+
+func (err *HTTPStatusError) Error() string {
+	return fmt.Sprintf("unexpected status from Post endpoint: %d", err.StatusCode)
+}
+
 type Client struct {
-    http *http.Client
-    socketPath string
+	http       *http.Client
+	socketPath string
 }
 
 func NewClient(socketPath string) *Client {
-    return &Client{
-        http:       NewUnixSocketClient(socketPath),
-        socketPath: socketPath,
-    }
+	return &Client{
+		http:       NewUnixSocketClient(socketPath),
+		socketPath: socketPath,
+	}
 }
-
 
 func NewUnixSocketClient(socketPath string) *http.Client {
 	return &http.Client{
@@ -59,35 +66,35 @@ func (client *Client) NotifyReady(logger *slog.Logger) error {
 	return nil
 }
 
- func (client *Client) Post(context context.Context, path OperationPath, in any, out any) error {
-  body, err := json.Marshal(in)
-  if err != nil {
-    return fmt.Errorf("failed to marshal request: %w", err)
-  }
-  url := serverURL + string(path)
-  req, err := http.NewRequestWithContext(context, http.MethodPost, url, bytes.NewBuffer(body))
-  if err != nil {
+func (client *Client) Post(context context.Context, path OperationPath, in any, out any) error {
+	body, err := json.Marshal(in)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request: %w", err)
+	}
+	url := serverURL + string(path)
+	req, err := http.NewRequestWithContext(context, http.MethodPost, url, bytes.NewBuffer(body))
+	if err != nil {
 		return fmt.Errorf("error creating Post request: %w", err)
 	}
 
-  req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 
-  resp, err := client.http.Do(req)
+	resp, err := client.http.Do(req)
 	if err != nil {
 		return fmt.Errorf("sending Post request: %w", err)
 	}
-  defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }()
 
-  if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status from Post endpoint: %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		return &HTTPStatusError{StatusCode: resp.StatusCode}
 	}
-  resBody, err := io.ReadAll(resp.Body)
-  if err != nil {
+	resBody, err := io.ReadAll(resp.Body)
+	if err != nil {
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
-  err = json.Unmarshal(resBody, out)
-  if err != nil {
+	err = json.Unmarshal(resBody, out)
+	if err != nil {
 		return fmt.Errorf("failed to unmarshal response: %w", err)
 	}
-  return nil
+	return nil
 }
