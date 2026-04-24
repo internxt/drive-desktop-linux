@@ -48,8 +48,12 @@ describe('enable-existing-backup', () => {
     };
 
     mockedConfigStore.get.mockReturnValue({ [pathname]: existingBackupData });
-    mockedFetchFolder.mockResolvedValue({ error: new Error('Folder not found') } as any);
-    mockedCreateBackup.mockResolvedValue({ data: mockNewBackupInfo } as any);
+    mockedFetchFolder.mockResolvedValue({ error: new Error('Folder not found') } as unknown as Awaited<
+      ReturnType<typeof fetchFolder>
+    >);
+    mockedCreateBackup.mockResolvedValue({ data: mockNewBackupInfo } as unknown as Awaited<
+      ReturnType<typeof createBackup>
+    >);
 
     const result = await enableExistingBackup({ pathname, device: mockDevice });
 
@@ -74,7 +78,9 @@ describe('enable-existing-backup', () => {
       .mockReturnValueOnce({ [pathname]: existingBackupData })
       .mockReturnValueOnce({ [pathname]: existingBackupData });
 
-    mockedFetchFolder.mockResolvedValue({ data: { id: existingBackupData.folderId } } as any);
+    mockedFetchFolder.mockResolvedValue({ data: { id: existingBackupData.folderId } } as unknown as Awaited<
+      ReturnType<typeof fetchFolder>
+    >);
 
     const result = await enableExistingBackup({ pathname, device: mockDevice });
 
