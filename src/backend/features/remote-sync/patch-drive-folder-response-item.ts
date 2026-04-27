@@ -24,5 +24,5 @@ export function patchDriveFolderResponseItem(payload: DriveFolderResponseItem) {
     ...payload,
     status,
     name: payload.name ?? undefined,
-  } as RemoteSyncedFolder;
+  };
 }

@@ -25,7 +25,7 @@ vi.mock('./service', () => ({
 async function loadHandlersModule() {
   vi.resetModules();
 
-  const eventBusModule = await import('../event-bus');
+  const eventBusModule = await import('../../../apps/main/event-bus');
   const initialSyncReadyModule = await import('./InitialSyncReady');
 
   const eventBusOnMock = partialSpyOn(eventBusModule.default, 'on', false);

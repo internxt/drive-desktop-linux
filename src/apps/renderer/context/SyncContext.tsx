@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { SyncStatus } from '../../../context/desktop/sync/domain/SyncStatus';
-import { RemoteSyncStatus } from '../../main/remote-sync/helpers';
+import { RemoteSyncStatus } from '../../../backend/features/remote-sync/helpers';
 
 const statusesMap: Record<RemoteSyncStatus, SyncStatus> = {
   SYNCING: 'RUNNING',

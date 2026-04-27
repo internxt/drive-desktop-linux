@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useOnSyncRunning } from './useOnSyncRunning';
 import { SyncProvider } from '../context/SyncContext';
-import { RemoteSyncStatus } from '../../main/remote-sync/helpers';
+import { RemoteSyncStatus } from '../../../backend/features/remote-sync/helpers';
 import { partialSpyOn } from '../../../../tests/vitest/utils.helper';
 
 describe('useOnSyncRunning', () => {

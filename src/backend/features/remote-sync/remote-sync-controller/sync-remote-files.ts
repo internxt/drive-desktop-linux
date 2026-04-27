@@ -17,11 +17,14 @@ export async function syncRemoteFiles({ state, db, config, errorHandler, syncCon
         collection: db.files,
         rewindMilliseconds: SIX_HOURS_IN_MILLISECONDS,
       }),
-    fetchRemoteItems: (updatedAtCheckpoint) =>
-      fetchRemoteFiles({
+    fetchRemoteItems: async (updatedAtCheckpoint) => {
+      const { error, data } = await fetchRemoteFiles({
         limit: config.fetchFilesLimitPerRequest,
         updatedAtCheckpoint,
-      }),
+      });
+      if (error) return { error };
+      return { data: { hasMore: data.hasMore, result: data.files } };
+    },
     persistRemoteItems: (items) => createOrUpdateFileByBatch({ files: items }),
     onSyncFailed: () => {
       state.filesSyncStatus = 'SYNC_FAILED';

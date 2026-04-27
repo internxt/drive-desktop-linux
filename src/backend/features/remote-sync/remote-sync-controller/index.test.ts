@@ -16,10 +16,11 @@ import { createRemoteSyncController, CreateRemoteSyncControllerPops, RemoteSyncC
 import { RemoteSyncErrorHandler } from '../remote-sync-error-handler';
 import { RemoteSyncedFile, RemoteSyncedFolder } from '../helpers';
 import { DriveServerError } from '../../../../infra/drive-server/drive-server.error';
+import { RemoteSyncServerError } from '../errors';
 import { driveServerClient } from '../../../../infra/drive-server/client/drive-server.client.instance';
-import { DatabaseCollectionAdapter } from '../../database/adapters/base';
-import { DriveFile } from '../../database/entities/DriveFile';
-import { DriveFolder } from '../../database/entities/DriveFolder';
+import { DatabaseCollectionAdapter } from '../../../../apps/main/database/adapters/base';
+import { DriveFile } from '../../../../apps/main/database/entities/DriveFile';
+import { DriveFolder } from '../../../../apps/main/database/entities/DriveFolder';
 import { createOrUpdateFileByBatch } from '../../../../infra/sqlite/services/file/create-or-update-file-by-batch';
 import { createOrUpdateFolderByBatch } from '../../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
 
@@ -113,7 +114,7 @@ describe('index.test', () => {
     };
 
     sut = createRemoteSyncController();
-    mockedGet.mockClear();
+    mockedGet.mockReset();
     mockedCreateOrUpdateFileByBatch.mockClear();
     mockedCreateOrUpdateFolderByBatch.mockClear();
   });
@@ -254,7 +255,7 @@ describe('index.test', () => {
 
     it('Should fail the sync if some files or folders cannot be retrieved', async () => {
       // Given
-      mockedGet.mockResolvedValueOnce({ error: new DriveServerError('UNKNOWN', undefined, 'Fail on purpose') });
+      mockedGet.mockResolvedValueOnce({ error: new RemoteSyncServerError(500, { message: 'Fail on purpose' }) });
 
       // When
       await sut.startRemoteSync(props);
@@ -274,7 +275,7 @@ describe('index.test', () => {
           syncFolders: false,
         },
       };
-      mockedGet.mockResolvedValueOnce({ error: new DriveServerError('UNKNOWN', undefined, 'Fail on purpose') });
+      mockedGet.mockResolvedValueOnce({ error: new RemoteSyncServerError(500, { message: 'Fail on purpose' }) });
 
       // When
       await sut.startRemoteSync(syncProps);
@@ -297,7 +298,7 @@ describe('index.test', () => {
         },
       };
 
-      mockedGet.mockResolvedValueOnce({ error: new DriveServerError('UNKNOWN', undefined, 'Fail on purpose') });
+      mockedGet.mockResolvedValueOnce({ error: new RemoteSyncServerError(500, { message: 'Fail on purpose' }) });
 
       // When
       await sut.startRemoteSync(syncProps);

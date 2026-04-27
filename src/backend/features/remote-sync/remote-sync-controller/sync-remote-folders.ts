@@ -17,11 +17,14 @@ export async function syncRemoteFolders({ state, db, config, errorHandler, syncC
         collection: db.folders,
         rewindMilliseconds: SIX_HOURS_IN_MILLISECONDS,
       }),
-    fetchRemoteItems: (updatedAtCheckpoint) =>
-      fetchRemoteFolders({
+    fetchRemoteItems: async (updatedAtCheckpoint) =>{
+      const { error, data } = await fetchRemoteFolders({
         limit: config.fetchFoldersLimitPerRequest,
         updatedAtCheckpoint,
-      }),
+      });
+      if (error) return { error };
+      return { data: { hasMore: data.hasMore, result: data.folders } };
+    },
     persistRemoteItems: (items) => createOrUpdateFolderByBatch({ folders: items }),
     onSyncFailed: () => {
       state.foldersSyncStatus = 'SYNC_FAILED';

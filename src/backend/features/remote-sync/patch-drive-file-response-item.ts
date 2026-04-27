@@ -11,5 +11,5 @@ export function patchDriveFileResponseItem(payload: DriveFileResponseItem) {
     fileId: payload.fileId ?? '',
     size: typeof payload.size === 'string' ? Number.parseInt(payload.size) : payload.size,
     name: payload.name ?? undefined,
-  } as RemoteSyncedFile;
+  };
 }

@@ -1,4 +1,4 @@
-import { RemoteSyncedFolder } from 'src/apps/main/remote-sync/helpers';
+import { RemoteSyncedFolder } from 'src/backend/features/remote-sync/helpers';
 import { FolderUuid, SimpleDriveFolder } from '../../../../apps/main/database/entities/DriveFolder';
 
 type TProps = {
