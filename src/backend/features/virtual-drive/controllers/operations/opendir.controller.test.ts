@@ -8,7 +8,6 @@ import { FILE_MODE, FOLDER_MODE } from '../../constants';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 
-
 describe('openDirController', () => {
   const opendirMock = partialSpyOn(openDirServiceModule, 'opendir');
   let req: ReturnType<typeof mockDeep<Request>>;
