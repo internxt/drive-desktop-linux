@@ -59,16 +59,6 @@ func (serverMock *mockServer) setHandlers(handlers map[client.OperationPath]http
 	serverMock.server.Handler = router
 }
 
-// setHandlers replaces the current request handler with one that responds to
-// multiple paths. Use this when a single test triggers more than one operation.
-func (serverMock *mockServer) setHandlers(handlers map[client.OperationPath]http.HandlerFunc) {
-	router := http.NewServeMux()
-	for path, handler := range handlers {
-		router.HandleFunc(string(path), handler)
-	}
-	serverMock.server.Handler = router
-}
-
 func (serverMock *mockServer) close() {
 	_ = serverMock.server.Close()
 	_ = serverMock.socket.Close()

@@ -306,7 +306,7 @@ func TestUnlink(t *testing.T) {
 		}
 	})
 
-	t.Run("returns ENOENT when backend returns 404", func(t *testing.T) {
+	t.Run("returns EIO when backend returns 404", func(t *testing.T) {
 		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
 			client.OperationGetAttr: func(response http.ResponseWriter, request *http.Request) {
 				respondJSON(response, GetAttributesCallbackData{
@@ -329,8 +329,8 @@ func TestUnlink(t *testing.T) {
 			t.Fatal("expected error, got nil")
 		}
 
-		if err != syscall.ENOENT {
-			t.Errorf("expected ENOENT, got %v", err)
+		if err != syscall.EIO {
+			t.Errorf("expected EIO, got %v", err)
 		}
 	})
 
@@ -388,7 +388,7 @@ func TestRmdir(t *testing.T) {
 		}
 	})
 
-	t.Run("returns ENOENT when backend returns 404", func(t *testing.T) {
+	t.Run("returns EIO when backend returns 404", func(t *testing.T) {
 		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
 			client.OperationGetAttr: func(response http.ResponseWriter, request *http.Request) {
 				respondJSON(response, GetAttributesCallbackData{
@@ -411,8 +411,8 @@ func TestRmdir(t *testing.T) {
 			t.Fatal("expected error, got nil")
 		}
 
-		if err != syscall.ENOENT {
-			t.Errorf("expected ENOENT, got %v", err)
+		if err != syscall.EIO {
+			t.Errorf("expected EIO, got %v", err)
 		}
 	})
 

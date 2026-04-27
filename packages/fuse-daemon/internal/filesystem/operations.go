@@ -124,9 +124,9 @@ func (fs *InternxtFilesystem) Unlink(name string, context *fuse.Context) fuse.St
 		Path string `json:"path"`
 	}{Path: name}
 
-	status, err := fs.client.Post(context, client.OperationUnlink, body, nil)
-	if err != nil {
-		return mapOperationStatusToFuseStatus(status)
+	status := fs.client.Post(context, client.OperationUnlink, body, nil)
+	if status != fuse.OK {
+		return status
 	}
 
 	return fuse.OK
@@ -138,9 +138,9 @@ func (fs *InternxtFilesystem) Rmdir(name string, context *fuse.Context) fuse.Sta
 		Path string `json:"path"`
 	}{Path: name}
 
-	status, err := fs.client.Post(context, client.OperationRmdir, body, nil)
-	if err != nil {
-		return mapOperationStatusToFuseStatus(status)
+	status := fs.client.Post(context, client.OperationRmdir, body, nil)
+	if status != fuse.OK {
+		return status
 	}
 
 	return fuse.OK
@@ -149,12 +149,4 @@ func (fs *InternxtFilesystem) Rmdir(name string, context *fuse.Context) fuse.Sta
 func (fs *InternxtFilesystem) GetXAttr(name string, attr string, context *fuse.Context) ([]byte, fuse.Status) {
 	fs.logger.Warn("not implemented", "op", "GetXAttr", "path", name, "attr", attr)
 	return nil, fuse.ENOSYS
-}
-
-func mapOperationStatusToFuseStatus(status int) fuse.Status {
-	if status == http.StatusNotFound {
-		return fuse.ENOENT
-	}
-
-	return fuse.EIO
 }
