@@ -12,6 +12,7 @@ import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { FileContentsId } from '../../domain/FileContentsId';
 import { FileFolderId } from '../../domain/FileFolderId';
+import { runAfterParentCreations } from '../../../folders/application/create/PendingFolderCreationTracker';
 
 @Service()
 export class FileCreator {
@@ -25,37 +26,42 @@ export class FileCreator {
 
   async run(path: string, contentsId: string, size: number): Promise<File> {
     try {
-      const fileSize = new FileSize(size);
-      const fileContentsId = new FileContentsId(contentsId);
-      const filePath = new FilePath(path);
+      const file = await runAfterParentCreations({
+        path,
+        action: async () => {
+          const fileSize = new FileSize(size);
+          const fileContentsId = new FileContentsId(contentsId);
+          const filePath = new FilePath(path);
 
-      const folder = await this.parentFolderFinder.run(filePath);
-      const fileFolderId = new FileFolderId(folder.id);
+          const folder = await this.parentFolderFinder.run(filePath);
+          const fileFolderId = new FileFolderId(folder.id);
 
-      const either = await this.remote.persist({
-        contentsId: fileContentsId,
-        path: filePath,
-        size: fileSize,
-        folderId: fileFolderId,
-        folderUuid: folder.uuid,
-      });
+          const either = await this.remote.persist({
+            contentsId: fileContentsId,
+            path: filePath,
+            size: fileSize,
+            folderId: fileFolderId,
+            folderUuid: folder.uuid,
+          });
 
-      if (either.isLeft()) {
-        throw either.getLeft();
-      }
+          if (either.isLeft()) {
+            throw either.getLeft();
+          }
 
-      const { modificationTime, id, uuid, createdAt } = either.getRight();
+          const { modificationTime, id, uuid, createdAt } = either.getRight();
 
-      const file = File.create({
-        id,
-        uuid,
-        contentsId: fileContentsId.value,
-        folderId: fileFolderId.value,
-        createdAt,
-        modificationTime,
-        path: filePath.value,
-        size: fileSize.value,
-        updatedAt: modificationTime,
+          return File.create({
+            id,
+            uuid,
+            contentsId: fileContentsId.value,
+            folderId: fileFolderId.value,
+            createdAt,
+            modificationTime,
+            path: filePath.value,
+            size: fileSize.value,
+            updatedAt: modificationTime,
+          });
+        },
       });
 
       await this.repository.upsert(file);
