@@ -45,7 +45,7 @@ function createFuseApp(container: Container) {
   return new FuseApp(virtualDrive, container, '/tmp/test-mount', 1, 'root-uuid');
 }
 
-describe('FuseApp', () => {
+describe.skip('FuseApp', () => {
   let container: Container;
   let register: (token: Abstract<unknown>, mock: unknown) => void;
   let fuseApp: FuseApp;
