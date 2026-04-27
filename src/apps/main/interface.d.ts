@@ -62,8 +62,6 @@ export interface IElectronAPI {
 
   abortDownloadBackups: (deviceId: string) => void;
 
-  addBackupsFromLocalPaths: (folderPaths: string[]) => Promise<void>;
-
   renameDevice: (deviceName: string) => Promise<Device>;
   devices: {
     getDevices: () => Promise<Array<Device>>;
@@ -156,7 +154,6 @@ export interface IElectronAPI {
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
   onBackupProgress(func: (value: number) => void): () => void;
-  getFolderPath: typeof import('../../backend/features/backup/get-path-from-dialog').getPathFromDialog;
   startRemoteSync(): Promise<void>;
   getUpdateStatus(): Promise<{ version: string } | null>;
   onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
