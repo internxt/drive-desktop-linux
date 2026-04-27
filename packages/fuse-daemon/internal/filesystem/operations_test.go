@@ -231,7 +231,7 @@ func TestOpen(t *testing.T) {
 		if err != nil {
 			t.Fatalf("open: %v", err)
 		}
-		f.Close()
+		_ = f.Close()
 	})
 
 	t.Run("returns EIO on transport failure", func(t *testing.T) {
