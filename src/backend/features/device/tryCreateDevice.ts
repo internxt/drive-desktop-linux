@@ -1,4 +1,4 @@
-import { Device } from './../../../apps/main/device/service';
+import { Device } from '../backup/types/Device';
 import { Result } from '../../../context/shared/domain/Result';
 import { driveServerModule } from './../../../infra/drive-server/drive-server.module';
 import { logger } from '@internxt/drive-desktop-core/build/backend';

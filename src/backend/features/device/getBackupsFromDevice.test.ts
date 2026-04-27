@@ -1,6 +1,6 @@
 import { app } from 'electron';
 import configStore from '../../../apps/main/config';
-import { findBackupPathnameFromId } from '../../../apps/main/device/service';
+import { findBackupPathnameFromId } from '../backup/find-backup-pathname-from-id';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import { getBackupsFromDevice } from './getBackupsFromDevice';
 
@@ -25,7 +25,7 @@ vi.mock('../../../infra/drive-server/services/folder/services/fetch-folder');
 vi.mock('../../../apps/main/config', () => ({
   default: { get: vi.fn() },
 }));
-vi.mock('../../../apps/main/device/service', () => ({
+vi.mock('../backup/find-backup-pathname-from-id', () => ({
   findBackupPathnameFromId: vi.fn(),
 }));
 
@@ -64,7 +64,7 @@ describe('getBackupsFromDevice', () => {
       data: [
         {
           name: 'Documents',
-          pathname: '',
+          pathname: '.',
           folderId: 1,
           folderUuid: 'folder-uuid',
           tmpPath: '',
@@ -79,9 +79,9 @@ describe('getBackupsFromDevice', () => {
       '/home/docs': { enabled: true, folderId: 1, folderUuid: 'folder-uuid-1' },
       '/home/photos': { enabled: false, folderId: 2, folderUuid: 'folder-uuid-2' },
     });
-    mockedFindBackupPathnameFromId.mockImplementation((backupId: number) => {
-      if (backupId === 1) return '/home/docs';
-      if (backupId === 2) return '/home/photos';
+    mockedFindBackupPathnameFromId.mockImplementation(({ id }: { id: number }) => {
+      if (id === 1) return '/home/docs';
+      if (id === 2) return '/home/photos';
       return undefined;
     });
     mockedFetchFolder.mockResolvedValue({
@@ -113,8 +113,8 @@ describe('getBackupsFromDevice', () => {
     mockedConfigStore.get.mockReturnValue({
       '/home/photos': { enabled: false, folderId: 2, folderUuid: 'folder-uuid-2' },
     });
-    mockedFindBackupPathnameFromId.mockImplementation((backupId: number) => {
-      if (backupId === 2) return '/home/photos';
+    mockedFindBackupPathnameFromId.mockImplementation(({ id }: { id: number }) => {
+      if (id === 2) return '/home/photos';
       return undefined;
     });
     mockedFetchFolder.mockResolvedValue({
