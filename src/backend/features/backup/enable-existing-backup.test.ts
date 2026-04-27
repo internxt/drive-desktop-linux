@@ -50,7 +50,7 @@ describe('enable-existing-backup', () => {
     };
 
     mockedConfigStore.get.mockReturnValue({ [pathname]: existingBackupData });
-    mockedFetchFolder.mockResolvedValue({ error: new DriveServerError('BAD_REQUEST', 400,'Folder not found') });
+    mockedFetchFolder.mockResolvedValue({ error: new DriveServerError('BAD_REQUEST', 400, 'Folder not found') });
     mockedCreateBackup.mockResolvedValue({ data: mockNewBackupInfo });
 
     const result = await enableExistingBackup({ pathname, device: mockDevice });
@@ -66,7 +66,9 @@ describe('enable-existing-backup', () => {
       .mockReturnValueOnce({ [pathname]: existingBackupData })
       .mockReturnValueOnce({ [pathname]: existingBackupData });
 
-    mockedFetchFolder.mockResolvedValue({ data: { id: existingBackupData.folderId } as unknown as GetFolderContentDto });
+    mockedFetchFolder.mockResolvedValue({
+      data: { id: existingBackupData.folderId } as unknown as GetFolderContentDto,
+    });
 
     const result = await enableExistingBackup({ pathname, device: mockDevice });
 
