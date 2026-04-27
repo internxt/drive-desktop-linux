@@ -10,7 +10,10 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/hanwen/go-fuse/v2/fuse"
 )
+
 
 type Client struct {
     http *http.Client
@@ -59,39 +62,47 @@ func (client *Client) NotifyReady(logger *slog.Logger) error {
 	return nil
 }
 
-// Post sends a JSON body to the given operation path and unmarshals the 200 response into out.
-// Returns the HTTP status code alongside any error so callers can map non-200 codes to fuse statuses.
-// status is http.StatusInternalServerError when an error occurs before a response is received.
-func (client *Client) Post(context context.Context, path OperationPath, in any, out any) (int, error) {
+// Post sends a JSON body to the given operation path and returns an errno.
+// A non-200 HTTP response means a transport failure so we return fuse.EIO without reading the body.
+// uppon 200, the response always contains an errno field: non-zero means the operation failed with that errno,
+// zero means success and the remaining fields are the operation's data, unmarshalled into out if non-nil.
+func (client *Client) Post(context context.Context, path OperationPath, in any, out any) fuse.Status {
 	body, err := json.Marshal(in)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("failed to marshal request: %w", err)
+		return fuse.EIO
 	}
 	url := serverURL + string(path)
 	req, err := http.NewRequestWithContext(context, http.MethodPost, url, bytes.NewBuffer(body))
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("error creating Post request: %w", err)
+		return fuse.EIO
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.http.Do(req)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("sending Post request: %w", err)
+		return fuse.EIO
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return resp.StatusCode, fmt.Errorf("unexpected status from Post endpoint: %d", resp.StatusCode)
+		return fuse.EIO
 	}
-	if out == nil {
-		return resp.StatusCode, nil
-	}
+
 	resBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return resp.StatusCode, fmt.Errorf("failed to read response body: %w", err)
+		return fuse.EIO
 	}
-	if err = json.Unmarshal(resBody, out); err != nil {
-		return resp.StatusCode, fmt.Errorf("failed to unmarshal response: %w", err)
+
+	var errResp ErrorResponse
+	if err = json.Unmarshal(resBody, &errResp); err == nil && errResp.Errno != 0 {
+		return fuse.Status(errResp.Errno)
 	}
-	return resp.StatusCode, nil
+
+	if out != nil {
+		if err = json.Unmarshal(resBody, out); err != nil {
+			return fuse.EIO
+		}
+	}
+
+	return fuse.OK
 }

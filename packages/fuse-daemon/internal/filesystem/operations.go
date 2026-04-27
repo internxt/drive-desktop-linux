@@ -3,9 +3,7 @@ package filesystem
 import (
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
-	"syscall"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 
@@ -51,10 +49,9 @@ func (fs *InternxtFilesystem) GetAttr(name string, context *fuse.Context) (*fuse
 		Path string `json:"path"`
 	}{Path: name}
 	response := GetAttributesCallbackData{}
-	_, err := fs.client.Post(context, client.OperationGetAttr, body, &response)
-	if err != nil {
-		fs.logger.Error("Error occurred while fetching attributes", "error", err)
-		return nil, fuse.EIO
+	if status := fs.client.Post(context, client.OperationGetAttr, body, &response); status != fuse.OK {
+		fs.logger.Error("Error occurred while fetching attributes", "status", status)
+		return nil, status
 	}
 	var atime uint64
 	if response.Atime != nil {
@@ -78,10 +75,9 @@ func (fs *InternxtFilesystem) OpenDir(name string, context *fuse.Context) ([]fus
 		Path string `json:"path"`
 	}{Path: name}
 	response := OpenDirCallbackData{}
-	_, err := fs.client.Post(context, client.OperationOpenDir, body, &response)
-	if err != nil {
-		fs.logger.Error("Error occurred while opening directory", "error", err)
-		return nil, fuse.EIO
+	if status := fs.client.Post(context, client.OperationOpenDir, body, &response); status != fuse.OK {
+		fs.logger.Error("Error occurred while opening directory", "status", status)
+		return nil, status
 	}
 	entries := make([]fuse.DirEntry, 0, len(response.Entries))
 	for _, entry := range response.Entries {
@@ -95,19 +91,12 @@ func (fs *InternxtFilesystem) Open(name string, flags uint32, context *fuse.Cont
 	processName := readProcessName(context.Pid)
 	body := struct {
 		Path        string `json:"path"`
-		Flag       uint32 `json:"flag"`
+		Flag        uint32 `json:"flag"`
 		ProcessName string `json:"processName"`
 	}{Path: name, Flag: flags, ProcessName: processName}
-	status, err := fs.client.Post(context, client.OperationOpen, body, nil)
-	if err != nil {
-		switch status {
-		case http.StatusNotFound:
-			return nil, fuse.ENOENT
-		case http.StatusConflict:
-			return nil, fuse.Status(syscall.EEXIST)
-		}
-		fs.logger.Error("Error occurred while opening file", "error", err)
-		return nil, fuse.EIO
+	if status := fs.client.Post(context, client.OperationOpen, body, nil); status != fuse.OK {
+		fs.logger.Error("Error occurred while opening file", "status", status)
+		return nil, status
 	}
 	return NewInternxtFile(name, flags, processName, fs.logger), fuse.OK
 }

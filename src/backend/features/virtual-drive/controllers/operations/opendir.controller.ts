@@ -13,9 +13,9 @@ export async function openDirController(req: Request, res: Response, container: 
 
   if (error) {
     logger.error({ msg: error.message });
-    res.status(500).send();
+    res.json({ errno: error.code });
     return;
   }
 
-  res.json(data);
+  res.json({ errno: 0, ...data });
 }
