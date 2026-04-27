@@ -21,7 +21,6 @@ import './issues/virtual-drive';
 import './device/handlers';
 import './../../backend/features/usage/handlers/handlers';
 import './realtime';
-import './tray/tray';
 import './tray/handlers';
 import './fordwardToWindows';
 import './analytics/handlers';

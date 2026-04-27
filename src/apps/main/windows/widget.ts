@@ -1,7 +1,7 @@
 import { BrowserWindow, ipcMain, screen } from 'electron';
 
 import eventBus from '../event-bus';
-import { TrayMenu } from '../tray/tray';
+import { TrayMenu } from '../tray/tray-menu';
 import { preloadPath, resolveHtmlPath } from '../util';
 import { setUpCommonWindowHandlers } from '.';
 import { getIsLoggedIn } from '../auth/handlers';
