@@ -2,16 +2,20 @@ import { RemoteSyncNetworkError } from './errors';
 import { RemoteSyncedFolder } from './helpers';
 import { patchDriveFolderResponseItem } from './patch-drive-folder-response-item';
 import { fetchFolders } from '../../../infra/drive-server/services/folder/services/fetch-folders';
+import { Result } from '../../../context/shared/domain/Result';
 
-type Pops = {
+type Props = {
   limit: number;
   updatedAtCheckpoint?: Date;
 };
 
-export async function fetchRemoteFolders({ limit, updatedAtCheckpoint }: Pops): Promise<{
+type FetchFoldersResponse = {
   hasMore: boolean;
-  result: RemoteSyncedFolder[];
-}> {
+  folders: RemoteSyncedFolder[];
+};
+
+export async function fetchRemoteFolders({ limit, updatedAtCheckpoint }: Props): Promise<Result<FetchFoldersResponse, Error>> {
+
   const { data, error } = await fetchFolders({
     limit,
     offset: 0,
@@ -19,12 +23,12 @@ export async function fetchRemoteFolders({ limit, updatedAtCheckpoint }: Pops): 
     updatedAt: updatedAtCheckpoint?.toISOString(),
   });
 
-  if (error) {
-    throw new RemoteSyncNetworkError(error.message, undefined, error.statusCode);
-  }
+  if (error) return { error };
 
   return {
-    hasMore: data.hasMore,
-    result: data.folders.map(patchDriveFolderResponseItem),
+    data: {
+      hasMore: data.hasMore,
+      folders: data.folders.map(patchDriveFolderResponseItem),
+    },
   };
 }

@@ -1,5 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { addVirtualDriveIssue } from '../issues/virtual-drive';
+import { addVirtualDriveIssue } from '../../../apps/main/issues/virtual-drive';
 import { RemoteSyncError } from './errors';
 import { getRemoteSyncErrorDetail, RemoteSyncItemType } from './get-remote-sync-error-detail';
 

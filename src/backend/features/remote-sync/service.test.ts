@@ -68,11 +68,11 @@ vi.mock('lodash', () => ({
   debounce: mocks.debounce,
 }));
 
-vi.mock('../database/collections/DriveFileCollection', () => ({
+vi.mock('../../../apps/main/database/collections/DriveFileCollection', () => ({
   DriveFilesCollection: vi.fn(() => mocks.filesCollection),
 }));
 
-vi.mock('../database/collections/DriveFolderCollection', () => ({
+vi.mock('../../../apps/main/database/collections/DriveFolderCollection', () => ({
   DriveFoldersCollection: vi.fn(() => mocks.foldersCollection),
 }));
 
@@ -91,9 +91,9 @@ type ServiceModule = typeof import('./service');
 async function loadServiceModule() {
   vi.resetModules();
 
-  const eventBusModule = await import('../event-bus');
+  const eventBusModule = await import('../../../apps/main/event-bus');
   const initialSyncReadyModule = await import('./InitialSyncReady');
-  const windowsModule = await import('../windows');
+  const windowsModule = await import('../../../apps/main/windows');
 
   const eventBusEmitMock = partialSpyOn(eventBusModule.default, 'emit');
   const broadcastToWindowsMock = partialSpyOn(windowsModule, 'broadcastToWindows');

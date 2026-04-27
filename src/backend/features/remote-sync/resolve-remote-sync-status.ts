@@ -1,13 +1,13 @@
 import { RemoteSyncStatus } from './helpers';
 
-type Pops = {
+type Props = {
   filesSyncStatus: RemoteSyncStatus;
   foldersSyncStatus: RemoteSyncStatus;
   syncFiles: boolean;
   syncFolders: boolean;
 };
 
-export function resolveRemoteSyncStatus({ filesSyncStatus, foldersSyncStatus, syncFiles, syncFolders }: Pops) {
+export function resolveRemoteSyncStatus({ filesSyncStatus, foldersSyncStatus, syncFiles, syncFolders }: Props) {
   if (syncFiles && !syncFolders && filesSyncStatus === 'SYNCED') {
     return 'SYNCED' as const;
   }

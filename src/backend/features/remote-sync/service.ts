@@ -1,9 +1,9 @@
 import { debounce } from 'lodash';
-import eventBus from '../event-bus';
-import { DriveFilesCollection } from '../database/collections/DriveFileCollection';
-import { DriveFoldersCollection } from '../database/collections/DriveFolderCollection';
+import eventBus from '../../../apps/main/event-bus';
+import { DriveFilesCollection } from '../../../apps/main/database/collections/DriveFileCollection';
+import { DriveFoldersCollection } from '../../../apps/main/database/collections/DriveFolderCollection';
 import { createRemoteSyncController } from './remote-sync-controller';
-import { broadcastToWindows } from '../windows';
+import { broadcastToWindows } from '../../../apps/main/windows';
 import { isInitialSyncReady, setInitialSyncState } from './InitialSyncReady';
 import { createRemoteSyncErrorHandler } from './remote-sync-error-handler';
 import { registerRemoteSyncService } from '../../../context/shared/application/sync/remote-sync-service';

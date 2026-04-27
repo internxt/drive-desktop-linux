@@ -1,17 +1,19 @@
-import { RemoteSyncNetworkError } from './errors';
 import { RemoteSyncedFile } from './helpers';
 import { patchDriveFileResponseItem } from './patch-drive-file-response-item';
 import { fetchFiles } from '../../../infra/drive-server/services/files/services/fetch-files';
+import { Result } from '../../../context/shared/domain/Result';
 
-type Pops = {
+type Props = {
   limit: number;
   updatedAtCheckpoint?: Date;
 };
 
-export async function fetchRemoteFiles({ limit, updatedAtCheckpoint }: Pops): Promise<{
+type FetchFilesResponse = {
   hasMore: boolean;
-  result: RemoteSyncedFile[];
-}> {
+  files: RemoteSyncedFile[];
+};
+
+export async function fetchRemoteFiles({ limit, updatedAtCheckpoint }: Props): Promise<Result<FetchFilesResponse, Error>> {
   const { data, error } = await fetchFiles({
     limit,
     offset: 0,
@@ -19,12 +21,12 @@ export async function fetchRemoteFiles({ limit, updatedAtCheckpoint }: Pops): Pr
     updatedAt: updatedAtCheckpoint?.toISOString(),
   });
 
-  if (error) {
-    throw new RemoteSyncNetworkError(error.message, undefined, error.statusCode);
-  }
+  if (error) return { error };
 
-  return {
-    hasMore: data.hasMore,
-    result: data.files.map(patchDriveFileResponseItem),
+  return { data:
+    {
+      hasMore: data.hasMore,
+      files: data.files.map(patchDriveFileResponseItem)
+    }
   };
 }

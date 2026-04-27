@@ -12,7 +12,7 @@ export async function startRemoteSync({ state, db, config, errorHandler }: Start
   if (state.status === 'SYNCING') {
     logger.warn({
       tag: 'SYNC-ENGINE',
-      msg: 'Remote sync controller should not be in SYNCING status to start, not starting again',
+      msg: 'Remote sync controller is already in SYNCING status, not starting again',
     });
 
     return;

@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import eventBus from '../event-bus';
+import eventBus from '../../../apps/main/event-bus';
 import { setInitialSyncState } from './InitialSyncReady';
 import { remoteSyncController, resyncRemoteSync, startRemoteSync } from './service';
 

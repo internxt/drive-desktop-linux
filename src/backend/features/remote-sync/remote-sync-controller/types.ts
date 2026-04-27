@@ -1,7 +1,7 @@
 import { SyncConfig, RemoteSyncStatus } from '../helpers';
-import { DatabaseCollectionAdapter } from '../../database/adapters/base';
-import { DriveFile } from '../../database/entities/DriveFile';
-import { DriveFolder } from '../../database/entities/DriveFolder';
+import { DatabaseCollectionAdapter } from '../../../../apps/main/database/adapters/base';
+import { DriveFile } from '../../../../apps/main/database/entities/DriveFile';
+import { DriveFolder } from '../../../../apps/main/database/entities/DriveFolder';
 import { RemoteSyncErrorHandler } from '../remote-sync-error-handler';
 
 export type RemoteSyncControllerConfig = {

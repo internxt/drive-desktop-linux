@@ -1,4 +1,4 @@
-import { DriveFile } from '../database/entities/DriveFile';
+import { DriveFile } from '../../../apps/main/database/entities/DriveFile';
 import { RemoteSyncFileDto } from '../../../context/shared/application/sync/remote-sync.contract';
 
 export function toRemoteSyncFileDto(file: DriveFile): RemoteSyncFileDto {

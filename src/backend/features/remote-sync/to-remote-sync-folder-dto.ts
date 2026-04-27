@@ -1,4 +1,4 @@
-import { DriveFolder } from '../database/entities/DriveFolder';
+import { DriveFolder } from '../../../apps/main/database/entities/DriveFolder';
 import { RemoteSyncFolderDto } from '../../../context/shared/application/sync/remote-sync.contract';
 
 export function toRemoteSyncFolderDto(folder: DriveFolder): RemoteSyncFolderDto {

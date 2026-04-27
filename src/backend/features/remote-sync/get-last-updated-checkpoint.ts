@@ -1,12 +1,12 @@
 import { rewind } from './helpers';
-import { DatabaseCollectionAdapter } from '../database/adapters/base';
-import { Nullable } from '../../shared/types/Nullable';
+import { DatabaseCollectionAdapter } from '../../../apps/main/database/adapters/base';
+import { Nullable } from '../../../apps/shared/types/Nullable';
 
 type DatabaseItemWithUpdatedAt = {
   updatedAt: string;
 };
 
-type Pops<TItem extends DatabaseItemWithUpdatedAt> = {
+type Props<TItem extends DatabaseItemWithUpdatedAt> = {
   collection: DatabaseCollectionAdapter<TItem>;
   rewindMilliseconds: number;
 };
@@ -14,7 +14,7 @@ type Pops<TItem extends DatabaseItemWithUpdatedAt> = {
 export async function getLastUpdatedCheckpoint<TItem extends DatabaseItemWithUpdatedAt>({
   collection,
   rewindMilliseconds,
-}: Pops<TItem>): Promise<Nullable<Date>> {
+}: Props<TItem>): Promise<Nullable<Date>> {
   const { success, result } = await collection.getLastUpdated();
 
   if (!success || !result) {

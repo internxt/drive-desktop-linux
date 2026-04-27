@@ -1,21 +1,22 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { Nullable } from '../../shared/types/Nullable';
+import { Nullable } from '../../../apps/shared/types/Nullable';
 import { RemoteSyncError } from './errors';
 import { SyncConfig } from './helpers';
 import { waitBeforeRetry } from './wait-before-retry';
+import { Result } from '../../../context/shared/domain/Result';
 
 type RemoteSyncItem = {
   updatedAt: string;
   name?: string;
 };
 
-type Pops<TItem extends RemoteSyncItem> = {
+type Props<TItem extends RemoteSyncItem> = {
   from?: Date;
   finishMessage: string;
   syncConfig: SyncConfig;
   syncItemType: 'files' | 'folders';
   getCheckpoint: () => Promise<Nullable<Date>>;
-  fetchRemoteItems: (updatedAtCheckpoint?: Date) => Promise<{ hasMore: boolean; result: TItem[] }>;
+  fetchRemoteItems: (updatedAtCheckpoint?: Date) => Promise<Result<{ hasMore: boolean; result: TItem[] }, Error>>;
   persistRemoteItems: (items: TItem[]) => Promise<unknown>;
   onSyncFailed: () => void;
   onSyncFinished: () => void;
@@ -37,7 +38,7 @@ export async function syncRemoteItems<TItem extends RemoteSyncItem>({
   onSyncProgress,
   onSyncStateChanged,
   handleSyncError,
-}: Pops<TItem>) {
+}: Props<TItem>) {
   let checkpoint = from ?? (await getCheckpoint());
   let hasMore = true;
   let retryCount = 0;
@@ -46,7 +47,10 @@ export async function syncRemoteItems<TItem extends RemoteSyncItem>({
     let lastSyncedItem: TItem | null = null;
 
     try {
-      const { hasMore: moreAvailable, result } = await fetchRemoteItems(checkpoint);
+      const { error, data } = await fetchRemoteItems(checkpoint);
+      if (error) throw error;
+
+      const { hasMore: moreAvailable, result } = data;
 
       await persistRemoteItems(result);
       onSyncProgress(result);
