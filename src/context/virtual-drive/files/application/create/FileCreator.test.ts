@@ -27,6 +27,7 @@ describe('File Creator', () => {
     const parentFolderFinder = FolderFinderFactory.existingFolder();
     eventBus = new EventBusMock();
     notifier = new FileSyncNotifierMock();
+    clearPendingCreations();
 
     SUT = new FileCreator(remoteFileSystemMock, fileRepository, parentFolderFinder, eventBus, notifier);
   });

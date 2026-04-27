@@ -10,6 +10,7 @@ import { FolderRemoteFileSystemMock } from '../../__mocks__/FolderRemoteFileSyst
 import { FolderRepositoryMock } from '../../__mocks__/FolderRepositoryMock';
 import { FolderPathMother } from '../../domain/__test-helpers__/FolderPathMother';
 import { FolderMother } from '../../domain/__test-helpers__/FolderMother';
+import { clearPendingCreations } from './PendingFolderCreationTracker';
 
 describe('Folder Creator', () => {
   let repository: FolderRepositoryMock;
@@ -22,6 +23,7 @@ describe('Folder Creator', () => {
     repository = new FolderRepositoryMock();
     remote = new FolderRemoteFileSystemMock();
     eventBus = new EventBusMock();
+    clearPendingCreations();
 
     const parentFolderFinder = new ParentFolderFinder(repository);
 
