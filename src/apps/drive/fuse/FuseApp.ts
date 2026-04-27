@@ -2,9 +2,6 @@ import { Container } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { StorageClearer } from '../../../context/storage/StorageFiles/application/delete/StorageClearer';
 import { destroyAllHydrations } from '../../../backend/features/fuse/on-read/hydration-registry';
-// import { FileRepositorySynchronizer } from '../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
-// import { FolderRepositorySynchronizer } from '../../../context/virtual-drive/folders/application/FolderRepositorySynchronizer/FolderRepositorySynchronizer';
-// import { RemoteTreeBuilder } from '../../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
 import { VirtualDrive } from '../virtual-drive/VirtualDrive';
 import { FuseDriveStatus } from './FuseDriveStatus';
 import { CreateCallback } from './callbacks/CreateCallback';
@@ -20,7 +17,6 @@ import { TrashFileCallback } from './callbacks/TrashFileCallback';
 import { TrashFolderCallback } from './callbacks/TrashFolderCallback';
 import { WriteCallback } from './callbacks/WriteCallback';
 import { mountPromise } from './helpers';
-// import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import { execFile } from 'node:child_process';
 import { EventEmitter } from 'stream';
 
