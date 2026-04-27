@@ -1,24 +1,22 @@
-import { enableExistingBackup } from './enable-existing-backup';
+import { enableExistingBackup } from '../../../backend/features/backup/enable-existing-backup';
 import configStore from '../config';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
-import { createBackup } from './create-backup';
-import { migrateBackupEntryIfNeeded } from '../device/migrate-backup-entry-if-needed';
-import { app } from 'electron';
-import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
-import { GetFolderContentDto } from '../../../infra/drive-server/out/dto';
+import { createBackup } from '../../../backend/features/backup/create-backup';
+import { migrateBackupEntryIfNeeded } from '../../../backend/features/backup/migrate-backup-entry-if-needed';
+import { PATHS } from '../../../core/electron/paths';
+import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 
 vi.mock('../config');
 vi.mock('../../../infra/drive-server/services/folder/services/fetch-folder');
-vi.mock('./create-backup');
-vi.mock('../device/migrate-backup-entry-if-needed');
+vi.mock('../../../backend/features/backup/create-backup');
+vi.mock('../../../backend/features/backup/migrate-backup-entry-if-needed');
 
 const mockedConfigStore = vi.mocked(configStore);
 const mockedFetchFolder = vi.mocked(fetchFolder);
 const mockedCreateBackup = vi.mocked(createBackup);
 const mockedMigrateBackupEntryIfNeeded = vi.mocked(migrateBackupEntryIfNeeded);
-const mockedApp = vi.mocked(app);
 
-describe('enableExistingBackup', () => {
+describe('enable-existing-backup', () => {
   const mockDevice = {
     id: 123,
     bucket: 'test-bucket',
@@ -28,7 +26,7 @@ describe('enableExistingBackup', () => {
     hasBackups: false,
   };
 
-  const pathname = '/path/to/backup';
+  const pathname = createAbsolutePath('/path/to/backup');
   const existingBackupData = {
     folderUuid: 'existing-uuid',
     folderId: 456,
@@ -50,16 +48,19 @@ describe('enableExistingBackup', () => {
     };
 
     mockedConfigStore.get.mockReturnValue({ [pathname]: existingBackupData });
-    mockedMigrateBackupEntryIfNeeded.mockResolvedValue(existingBackupData);
-    mockedFetchFolder.mockResolvedValue({ error: new DriveServerError('NOT_FOUND') });
-    mockedCreateBackup.mockResolvedValue(mockNewBackupInfo);
+    mockedFetchFolder.mockResolvedValue({ error: new Error('Folder not found') } as unknown as Awaited<
+      ReturnType<typeof fetchFolder>
+    >);
+    mockedCreateBackup.mockResolvedValue({ data: mockNewBackupInfo } as unknown as Awaited<
+      ReturnType<typeof createBackup>
+    >);
 
-    const result = await enableExistingBackup(pathname, mockDevice);
+    const result = await enableExistingBackup({ pathname, device: mockDevice });
 
-    expect(mockedMigrateBackupEntryIfNeeded).toBeCalledWith(pathname, existingBackupData);
+    expect(mockedMigrateBackupEntryIfNeeded).not.toBeCalled();
     expect(mockedFetchFolder).toBeCalledWith(existingBackupData.folderUuid);
     expect(mockedCreateBackup).toBeCalledWith({ pathname, device: mockDevice });
-    expect(result).toStrictEqual(mockNewBackupInfo);
+    expect(result).toStrictEqual({ data: mockNewBackupInfo });
   });
 
   it('should enable existing backup when folder still exists', async () => {
@@ -75,26 +76,29 @@ describe('enableExistingBackup', () => {
 
     mockedConfigStore.get
       .mockReturnValueOnce({ [pathname]: existingBackupData })
-      .mockReturnValueOnce(updatedBackupList);
+      .mockReturnValueOnce({ [pathname]: existingBackupData });
 
-    mockedMigrateBackupEntryIfNeeded.mockResolvedValue(migratedBackup);
-    mockedFetchFolder.mockResolvedValue({ data: { id: migratedBackup.folderId } as GetFolderContentDto });
-    mockedApp.getPath.mockReturnValue('/tmp');
+    mockedFetchFolder.mockResolvedValue({ data: { id: existingBackupData.folderId } } as unknown as Awaited<
+      ReturnType<typeof fetchFolder>
+    >);
 
-    const result = await enableExistingBackup(pathname, mockDevice);
+    const result = await enableExistingBackup({ pathname, device: mockDevice });
 
-    expect(mockedMigrateBackupEntryIfNeeded).toBeCalledWith(pathname, existingBackupData);
-    expect(mockedFetchFolder).toBeCalledWith(migratedBackup.folderUuid);
-    expect(mockedConfigStore.set).toBeCalledWith('backupList', updatedBackupList);
-    expect(mockedApp.getPath).toBeCalledWith('temp');
+    expect(mockedMigrateBackupEntryIfNeeded).not.toBeCalled();
+    expect(mockedFetchFolder).toBeCalledWith(existingBackupData.folderUuid);
+    expect(mockedConfigStore.set).toBeCalledWith('backupList', {
+      [pathname]: { ...existingBackupData, enabled: true },
+    });
 
-    expect(result).toEqual({
-      folderUuid: migratedBackup.folderUuid,
-      folderId: migratedBackup.folderId,
-      pathname,
-      name: 'backup',
-      tmpPath: '/tmp',
-      backupsBucket: mockDevice.bucket,
+    expect(result).toStrictEqual({
+      data: {
+        folderUuid: existingBackupData.folderUuid,
+        folderId: existingBackupData.folderId,
+        pathname,
+        name: 'backup',
+        tmpPath: PATHS.TEMPORAL_FOLDER,
+        backupsBucket: mockDevice.bucket,
+      },
     });
   });
 });

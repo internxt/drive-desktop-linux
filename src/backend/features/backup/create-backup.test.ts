@@ -1,12 +1,13 @@
 import { createBackup } from './create-backup';
-import { createBackupFolder } from './create-backup-folder';
-import configStore from '../config';
+import { createBackupFolder } from '../../../backend/features/backup/create-backup-folder';
+import configStore from '../../../apps/main/config';
+import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { app } from 'electron';
 import path from 'node:path';
 import { DriveServerError } from 'src/infra/drive-server/drive-server.error';
 
 vi.mock('./create-backup-folder');
-vi.mock('../config');
+vi.mock('../../../apps/main/config');
 vi.mock('node:path');
 
 const mockPostBackup = vi.mocked(createBackupFolder);
@@ -49,7 +50,7 @@ describe('createBackup', () => {
     });
 
     const result = await createBackup({
-      pathname: '/home/user/TestFolder',
+      pathname: '/home/user/TestFolder' as AbsolutePath,
       device: mockDevice,
     });
 
@@ -67,12 +68,14 @@ describe('createBackup', () => {
     });
 
     expect(result).toStrictEqual({
-      folderUuid: 'backup-uuid-456',
-      folderId: 123,
-      pathname: '/home/user/TestFolder',
-      name: 'TestFolder',
-      tmpPath: '/tmp',
-      backupsBucket: 'test-bucket',
+      data: {
+        folderUuid: 'backup-uuid-456',
+        folderId: 123,
+        pathname: '/home/user/TestFolder',
+        name: 'TestFolder',
+        tmpPath: '/tmp',
+        backupsBucket: 'test-bucket',
+      },
     });
   });
 
@@ -82,11 +85,11 @@ describe('createBackup', () => {
     });
 
     const result = await createBackup({
-      pathname: '/home/user/FailedFolder',
+      pathname: '/home/user/FailedFolder' as AbsolutePath,
       device: mockDevice,
     });
 
-    expect(result).toBeUndefined();
+    expect(result).toStrictEqual({ error: expect.any(Error) });
     expect(mockConfigStore.set).not.toBeCalled();
   });
 });

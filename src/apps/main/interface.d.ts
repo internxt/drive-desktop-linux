@@ -2,7 +2,7 @@ import { BackupInfo } from './../backups/BackupInfo';
 import { Usage } from '../../backend/features/usage/usage.types';
 import { Result } from './../../context/shared/domain/Result';
 import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
-import { Device } from './device/service';
+import { Device } from '../../backend/features/backup/types/Device';
 import {
   AuthAccessResponseViewModel,
   AuthLoginResponseViewModel,
@@ -11,6 +11,7 @@ import {
 import { TLoggerBody } from '@internxt/drive-desktop-core/build/backend';
 import { CleanerReport, CleanerViewModel, CleanupProgress } from '../../backend/features/cleaner/cleaner.types';
 import { BackupErrorRecord } from '../../backend/features/backup/backup.types';
+import { AbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
 import { StoredValues } from './config/service.types';
 import { AppStore } from './config';
 import { ConfigTheme } from '../shared/types/Theme';
@@ -30,7 +31,6 @@ export interface IElectronAPI {
 
   finishOnboarding: () => void;
   getBackupsInterval(): Promise<number>;
-  getFolderPath(): Promise<{ path: string; itemName: string } | null>;
 
   setBackupsInterval(value: number): Promise<void>;
 
@@ -38,19 +38,29 @@ export interface IElectronAPI {
 
   getBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<Array<BackupInfo>>;
 
-  addBackup: () => Promise<BackupInfo | undefined>;
+  addBackup: () => Promise<Result<BackupInfo, Error>>;
 
-  addBackupsFromLocalPaths: (localPaths: string[]) => Promise<void>;
+  changeBackupPath: ({
+    currentPath,
+    newPath,
+  }: {
+    currentPath: AbsolutePath;
+    newPath: AbsolutePath;
+  }) => Promise<Result<boolean, Error>>;
+
+  startBackupsProcess: () => void;
+
+  getFolderPath: () => Promise<{ path: AbsolutePath; itemName: string } | null>;
+
+  addBackupsFromLocalPaths: (folderPaths: string[]) => Promise<Result<boolean, Error>>;
 
   deleteBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<void>;
 
   disableBackup: (backup: BackupInfo) => Promise<void>;
 
-  downloadBackup: (device: Device) => Promise<void>;
+  downloadBackup: (device: Device, pathname: AbsolutePath) => Promise<void>;
 
   abortDownloadBackups: (deviceId: string) => void;
-
-  addBackupsFromLocalPaths: (folderPaths: string[]) => Promise<void>;
 
   renameDevice: (deviceName: string) => Promise<Device>;
   devices: {
@@ -140,13 +150,10 @@ export interface IElectronAPI {
   };
   chooseSyncRootWithDialog(): Promise<string | null>;
   getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
-  changeBackupPath: typeof import('./device/service').changeBackupPath;
-  startBackupsProcess(): void;
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
   onBackupProgress(func: (value: number) => void): () => void;
-  getFolderPath: typeof import('../../backend/features/backup/get-path-from-dialog').getPathFromDialog;
   startRemoteSync(): Promise<void>;
   getUpdateStatus(): Promise<{ version: string } | null>;
   onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
@@ -156,10 +163,6 @@ export interface IElectronAPI {
   onVirtualDriveStatusChange(
     callback: (event: { status: import('../drive/fuse/FuseDriveStatus').FuseDriveStatus }) => void,
   ): () => void;
-
-  pathChanged(path: string): void;
-  isUserLoggedIn(): Promise<boolean>;
-  onUserLoggedInChanged(func: (value: boolean) => void): void;
 }
 
 declare global {

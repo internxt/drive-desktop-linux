@@ -1,9 +1,10 @@
-import * as getPathFromDialogModule from '../../../backend/features/backup/get-path-from-dialog';
+import * as getPathFromDialogModule from '../../../core/utils/get-path-from-dialog';
 import * as createBackupModule from './create-backup';
 import * as DeviceModuleModule from './../../../backend/features/device/device.module';
 import * as enableExistingBackupModule from './enable-existing-backup';
 import * as fetchDeviceModule from '../../../backend/features/device/fetchDevice';
-import configStoreModule from '../config';
+import configStoreModule from '../../../apps/main/config';
+import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { addBackup } from './add-backup';
 import { loggerMock } from 'tests/vitest/mocks.helper';
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
@@ -33,9 +34,11 @@ describe('addBackup', () => {
     const mockError = new Error('Device not found');
     mockedGetOrCreateDevice.mockResolvedValue({ error: mockError, data: undefined });
 
-    await expect(addBackup()).rejects.toThrow('Error message');
+    const result = await addBackup();
+
+    expect(result).toMatchObject({ error: expect.any(Error) });
     call(loggerMock.error).toMatchObject({
-      msg: 'Error adding backup: No device found',
+      msg: 'Error fetching or creating device',
     });
   });
 
@@ -45,11 +48,11 @@ describe('addBackup', () => {
 
     const result = await addBackup();
 
-    expect(result).toBeUndefined();
+    expect(result).toMatchObject({ error: expect.any(Error) });
   });
 
   it('should create new backup when backup does not exist', async () => {
-    const chosenPath = '/path/to/backup';
+    const chosenPath = createAbsolutePath('/path/to/backup');
     const mockBackupInfo = {
       folderUuid: 'folder-uuid',
       folderId: 123,
@@ -62,7 +65,7 @@ describe('addBackup', () => {
     mockedGetOrCreateDevice.mockResolvedValue({ error: undefined, data: mockDevice });
     mockedGetPathFromDialog.mockResolvedValue({ path: chosenPath, itemName: 'backup' });
     mockedConfigStoreGet.mockReturnValue({});
-    mockedCreateBackup.mockResolvedValue(mockBackupInfo);
+    mockedCreateBackup.mockResolvedValue({ data: mockBackupInfo } as never);
 
     const result = await addBackup();
 
@@ -70,11 +73,11 @@ describe('addBackup', () => {
       pathname: chosenPath,
       device: mockDevice,
     });
-    expect(result).toStrictEqual(mockBackupInfo);
+    expect(result).toStrictEqual({ data: mockBackupInfo });
   });
 
   it('should enable existing backup when backup exists', async () => {
-    const chosenPath = '/path/to/existing';
+    const chosenPath = createAbsolutePath('/path/to/existing');
     const existingBackupData = {
       folderUuid: 'existing-uuid',
       folderId: 456,
@@ -92,11 +95,14 @@ describe('addBackup', () => {
     mockedGetOrCreateDevice.mockResolvedValue({ error: undefined, data: mockDevice });
     mockedGetPathFromDialog.mockResolvedValue({ path: chosenPath, itemName: 'existing' });
     mockedConfigStoreGet.mockReturnValue({ [chosenPath]: existingBackupData });
-    mockedEnableExistingBackup.mockResolvedValue(mockBackupInfo);
+    mockedEnableExistingBackup.mockResolvedValue({ data: mockBackupInfo } as never);
 
     const result = await addBackup();
 
-    call(mockedEnableExistingBackup).toMatchObject([chosenPath, mockDevice]);
-    expect(result).toStrictEqual(mockBackupInfo);
+    call(mockedEnableExistingBackup).toMatchObject({
+      pathname: chosenPath,
+      device: mockDevice,
+    });
+    expect(result).toStrictEqual({ data: mockBackupInfo });
   });
 });

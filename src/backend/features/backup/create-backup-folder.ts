@@ -1,8 +1,8 @@
-import { Device } from '../device/service';
-import { Backup } from './types';
+import { Device } from './types/Device';
+import { Backup } from '../../../apps/main/backups/types';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { createFolder } from '../../../infra/drive-server/services/folder/services/create-folder';
-import { findBackupFolderByName } from './find-backup-folder-by-name';
+import { findBackupFolderByName } from '../../../apps/main/backups/find-backup-folder-by-name';
 
 type Props = {
   folderName: string;

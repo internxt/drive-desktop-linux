@@ -1,19 +1,21 @@
 import path from 'node:path';
-import { Device } from '../device/service';
-import configStore from '../config';
-import { BackupInfo } from 'src/apps/backups/BackupInfo';
+import { Device } from './types/Device';
+import configStore from '../../../apps/main/config';
+import { BackupInfo } from '../../../apps/backups/BackupInfo';
 import { app } from 'electron';
-import { createBackupFolder } from './create-backup-folder';
+import { createBackupFolder } from '../../../backend/features/backup/create-backup-folder';
+import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { Result } from '../../../context/shared/domain/Result';
 
 type Props = {
-  pathname: string;
+  pathname: AbsolutePath;
   device: Device;
 };
 
-export async function createBackup({ pathname, device }: Props) {
+export async function createBackup({ pathname, device }: Props): Promise<Result<BackupInfo, Error>> {
   const { base } = path.parse(pathname);
   const { error, data: newBackup } = await createBackupFolder({ folderName: base, device });
-  if (error) return;
+  if (error) return { error };
 
   const backupList = configStore.get('backupList');
   backupList[pathname] = {
@@ -33,5 +35,5 @@ export async function createBackup({ pathname, device }: Props) {
     backupsBucket: device.bucket,
   };
 
-  return createdBackup;
+  return { data: createdBackup };
 }

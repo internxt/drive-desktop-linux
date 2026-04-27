@@ -13,12 +13,13 @@ import {
 import { GenerateFileKey } from '@internxt/inxt-js/build/lib/utils/crypto';
 import { createDecipheriv, Decipher } from 'crypto';
 import downloadFileV2 from './downloadv2';
-import { fetchFolderTree } from '../device/service';
+import { getBackupFolderTreeSnapshot } from '../../../backend/features/backup/get-backup-folder-tree-snapshot';
 import { FolderTree } from '@internxt/sdk/dist/drive/storage/types';
 import { ReadableStream, WritableStream } from 'node:stream/web';
 import { Readable } from 'node:stream';
 import fetch from 'electron-fetch';
 import { convertToReadableStream } from './NetworkFacade';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 interface MetadataRequiredForDownload {
   mirrors: Mirror[];
@@ -283,7 +284,12 @@ export async function downloadFolderAsZip(
 
   const { abortController, updateProgress } = opts;
   const { bridgeUser, bridgePass, encryptionKey } = environment;
-  const { tree, folderDecryptedNames, fileDecryptedNames, size } = await fetchFolderTree(folderUuid);
+  const { data, error } = await getBackupFolderTreeSnapshot({ folderUuid });
+  if (error) {
+    throw logger.error({ tag: 'BACKUPS', msg: 'Error fetching backup folder tree snapshot', error });
+  }
+
+  const { tree, folderDecryptedNames, fileDecryptedNames, size } = data;
   tree.plainName = deviceName;
   folderDecryptedNames[tree.id] = deviceName;
   const pendingFolders: { path: string; data: FolderTree }[] = [{ path: '', data: tree }];

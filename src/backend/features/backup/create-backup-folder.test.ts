@@ -4,7 +4,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { call } from '../../../../tests/vitest/utils.helper';
 import { partialSpyOn } from '../../../../tests/vitest/utils.helper';
-import * as findBackupFolderByNameModule from './find-backup-folder-by-name';
+import * as findBackupFolderByNameModule from '../../../apps/main/backups/find-backup-folder-by-name';
 
 vi.mock(import('@internxt/drive-desktop-core/build/backend'));
 

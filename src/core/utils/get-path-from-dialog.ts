@@ -1,6 +1,7 @@
-import { BrowserWindow, dialog } from 'electron';
-import { PathInfo } from '../../../apps/main/device/service';
 import path from 'node:path';
+import { BrowserWindow, dialog } from 'electron';
+import { PathInfo } from '../../context/shared/domain/system-path/PathInfo';
+import { createAbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
 
 export async function getPathFromDialog(): Promise<Omit<PathInfo, 'isDirectory'> | null> {
   const parentWindow = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows().find((w) => w.isVisible());
@@ -22,13 +23,10 @@ export async function getPathFromDialog(): Promise<Omit<PathInfo, 'isDirectory'>
   }
 
   const chosenPath = result.filePaths[0];
-
-  const itemPath = `${chosenPath}${chosenPath.endsWith(path.sep) ? '' : path.sep}`;
-
-  const itemName = path.basename(itemPath);
+  const itemName = path.basename(chosenPath);
 
   return {
-    path: itemPath,
+    path: createAbsolutePath(chosenPath),
     itemName,
   };
 }

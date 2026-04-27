@@ -1,7 +1,6 @@
 import { BrowserWindow, dialog } from 'electron';
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { getPathFromDialog } from './get-path-from-dialog';
-import path from 'node:path';
 import { mockDeep } from 'vitest-mock-extended';
 describe('getPathFromDialog', () => {
   const mockWindow = mockDeep<BrowserWindow>();
@@ -59,24 +58,24 @@ describe('getPathFromDialog', () => {
     expect(result).toBe(null);
   });
 
-  it('should return the path with a trailing separator and the item name', async () => {
+  it('should return the normalized path and item name', async () => {
     mockedDialog.mockResolvedValue({ canceled: false, filePaths: ['/home/user/Documents'] });
 
     const result = await getPathFromDialog();
 
     expect(result).toStrictEqual({
-      path: `/home/user/Documents${path.sep}`,
+      path: '/home/user/Documents',
       itemName: 'Documents',
     });
   });
 
-  it('should not duplicate the separator if the path already ends with one', async () => {
-    mockedDialog.mockResolvedValue({ canceled: false, filePaths: [`/home/user/Documents${path.sep}`] });
+  it('should normalize when the selected path ends with a separator', async () => {
+    mockedDialog.mockResolvedValue({ canceled: false, filePaths: ['/home/user/Documents/'] });
 
     const result = await getPathFromDialog();
 
     expect(result).toStrictEqual({
-      path: `/home/user/Documents${path.sep}`,
+      path: '/home/user/Documents',
       itemName: 'Documents',
     });
   });
@@ -100,7 +99,7 @@ describe('getPathFromDialog', () => {
     expect(mockWindow.hide).not.toHaveBeenCalled();
     expect(mockWindow.show).not.toHaveBeenCalled();
     expect(result).toStrictEqual({
-      path: `/home/user/folder${path.sep}`,
+      path: '/home/user/folder',
       itemName: 'folder',
     });
   });
