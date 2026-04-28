@@ -1,9 +1,12 @@
 import { spawn, ChildProcess } from 'node:child_process';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../../core/electron/paths';
+import { FuseDriveStatus } from '../../../../apps/drive/fuse/FuseDriveStatus';
+import { broadcastToWindows } from '../../../../apps/main/windows';
 
 let resolveReady: () => void;
 let daemon: ChildProcess | null = null;
+let status: FuseDriveStatus = 'UNMOUNTED';
 const SIGKILL_TIMEOUT_MS = 5_000;
 
 export const daemonReady = new Promise<void>((resolve) => {
@@ -12,6 +15,10 @@ export const daemonReady = new Promise<void>((resolve) => {
 
 export function resolveDaemonReady(): void {
   resolveReady();
+}
+
+export function getVirtualDriveState(): FuseDriveStatus {
+  return status;
 }
 
 export function startDaemon(mountPoint: string): Promise<void> {
@@ -30,6 +37,16 @@ export function startDaemon(mountPoint: string): Promise<void> {
     logger.debug({ msg: `[FUSE DAEMON] ${data.toString().trim()}` });
   });
 
+  spawnedDaemon.once('exit', (code: number | null) => {
+    if (code !== 0 && code !== null) {
+      status = 'ERROR';
+      broadcastToWindows('virtual-drive-status-change', 'ERROR');
+    } else {
+      status = 'UNMOUNTED';
+    }
+    daemon = null;
+  });
+
   return new Promise((resolve, reject) => {
     spawnedDaemon.once('exit', (code: number) => {
       if (code !== 0) {
@@ -37,13 +54,19 @@ export function startDaemon(mountPoint: string): Promise<void> {
       }
     });
 
-    daemonReady.then(resolve);
+    daemonReady.then(() => {
+      logger.debug({ msg: '[VIRTUAL DRIVE] virtual drive mounted and ready' });
+      status = 'MOUNTED';
+      broadcastToWindows('virtual-drive-status-change', 'MOUNTED');
+      resolve();
+    });
   });
 }
 
 export function stopDaemon(): Promise<void> {
   return new Promise((resolve) => {
     if (!daemon) {
+      status = 'UNMOUNTED';
       resolve();
       return;
     }
@@ -56,6 +79,7 @@ export function stopDaemon(): Promise<void> {
     daemon.once('exit', () => {
       clearTimeout(timeout);
       daemon = null;
+      status = 'UNMOUNTED';
       resolve();
     });
 

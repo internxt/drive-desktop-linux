@@ -2,7 +2,7 @@ package filesystem
 
 import (
 	"log/slog"
-	"syscall"
+	"os/exec"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 
@@ -27,7 +27,9 @@ func Mount(mountPoint string, logger *slog.Logger, client *client.Client) (*fuse
     DirectMount: true,
 	}
 
-	_ = syscall.Unmount(mountPoint, 0)
+	// Clear any stale FUSE mount left from a previous crash or unclean shutdown.
+	// fusermount3 -uz works as a regular user; errors are ignored since the mount may not exist.
+	_ = exec.Command("fusermount3", "-uz", mountPoint).Run()
 
 	server, _, err := nodefs.Mount(mountPoint, nodeFileSystem.Root(), mountOptions, nil)
 	if err != nil {
