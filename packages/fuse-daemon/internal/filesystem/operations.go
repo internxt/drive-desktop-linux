@@ -44,7 +44,7 @@ func NewInternxtFilesystem(logger *slog.Logger, client *client.Client) *Internxt
 }
 
 func (fs *InternxtFilesystem) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.Status) {
-	fs.logger.Debug("Recieved GetAttr call: ", "name", name)
+	fs.logger.Debug("Received GetAttr call: ", "name", name)
 	body := struct {
 		Path string `json:"path"`
 	}{Path: name}
