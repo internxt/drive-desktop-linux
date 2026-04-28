@@ -20,36 +20,32 @@ describe('rmdirController', () => {
     req = mockDeep<Request>();
     res = mockDeep<Response>();
     container = mockDeep<Container>();
-    res.status.mockReturnValue(res);
   });
 
-  it('should return 200 when rmdir succeeds', async () => {
+  it('should return errno 0 when rmdir succeeds', async () => {
     req.body = { path: '/some/folder' };
     rmdirMock.mockResolvedValue({ data: undefined });
 
     await rmdirController(req, res, container);
 
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ errno: 0 });
   });
 
-  it('should return 404 when rmdir returns ENOENT', async () => {
+  it('should return errno ENOENT when rmdir returns ENOENT', async () => {
     req.body = { path: '/missing/folder' };
     rmdirMock.mockResolvedValue({ error: new FuseError(FuseCodes.ENOENT, 'not found') });
 
     await rmdirController(req, res, container);
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.send).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ errno: FuseCodes.ENOENT });
   });
 
-  it('should return 500 when rmdir returns non-ENOENT error', async () => {
+  it('should return errno EIO when rmdir returns non-ENOENT error', async () => {
     req.body = { path: '/some/folder' };
     rmdirMock.mockResolvedValue({ error: new FuseError(FuseCodes.EIO, 'io error') });
 
     await rmdirController(req, res, container);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ errno: FuseCodes.EIO });
   });
 });

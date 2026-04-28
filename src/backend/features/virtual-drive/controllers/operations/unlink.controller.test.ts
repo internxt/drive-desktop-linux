@@ -20,36 +20,32 @@ describe('unlinkController', () => {
     req = mockDeep<Request>();
     res = mockDeep<Response>();
     container = mockDeep<Container>();
-    res.status.mockReturnValue(res);
   });
 
-  it('should return 200 when unlink succeeds', async () => {
+  it('should return errno 0 when unlink succeeds', async () => {
     req.body = { path: '/some/file.txt' };
     unlinkMock.mockResolvedValue({ data: undefined });
 
     await unlinkController(req, res, container);
 
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ errno: 0 });
   });
 
-  it('should return 404 when unlink returns ENOENT', async () => {
+  it('should return errno ENOENT when unlink returns ENOENT', async () => {
     req.body = { path: '/missing.txt' };
     unlinkMock.mockResolvedValue({ error: new FuseError(FuseCodes.ENOENT, 'not found') });
 
     await unlinkController(req, res, container);
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.send).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ errno: FuseCodes.ENOENT });
   });
 
-  it('should return 500 when unlink returns non-ENOENT error', async () => {
+  it('should return errno EIO when unlink returns non-ENOENT error', async () => {
     req.body = { path: '/some/file.txt' };
     unlinkMock.mockResolvedValue({ error: new FuseError(FuseCodes.EIO, 'io error') });
 
     await unlinkController(req, res, container);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ errno: FuseCodes.EIO });
   });
 });
