@@ -7,11 +7,7 @@ import { TemporalFileByPathFinder } from '../../../../../context/storage/Tempora
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
-export async function open(
-  path: string,
-  processName: string,
-  container: Container,
-): Promise<Result<void, FuseError>> {
+export async function open(path: string, processName: string, container: Container): Promise<Result<void, FuseError>> {
   try {
     const virtualFile = await container.get(FirstsFileSearcher).run({ path });
 
