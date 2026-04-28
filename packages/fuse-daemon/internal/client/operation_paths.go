@@ -11,6 +11,8 @@ const (
 	OperationOpen    OperationPath = "/op/open"
 	OperationOpenDir OperationPath = "/op/opendir"
 	OperationRead    OperationPath = "/op/read"
+	OperationCreate  OperationPath = "/op/create"
+	OperationWrite   OperationPath = "/op/write"
 	OperationRelease OperationPath = "/op/release"
 	OperationUnlink  OperationPath = "/op/unlink"
 	OperationRmdir   OperationPath = "/op/rmdir"

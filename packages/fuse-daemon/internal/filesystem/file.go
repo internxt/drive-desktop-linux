@@ -10,6 +10,10 @@ import (
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
 )
 
+type WriteCallbackData struct {
+	Written uint32 `json:"written"`
+}
+
 // InternxtFile is the file handle returned by Open.
 // It holds the context needed for future Read/Write implementation.
 // Operations with a path-based fallback (GetAttr, Chmod, Chown, Truncate, Utimens)
@@ -57,13 +61,36 @@ func (f *InternxtFile) Read(dest []byte, off int64) (fuse.ReadResult, fuse.Statu
 }
 
 func (f *InternxtFile) Write(data []byte, off int64) (uint32, fuse.Status) {
-	f.logger.Warn("not implemented", "op", "Write", "path", f.path)
-	return 0, fuse.ENOSYS
+	f.logger.Debug("Received Write call", "path", f.path, "offset", off, "length", len(data))
+	body := struct {
+		Path   string `json:"path"`
+		Offset int64  `json:"offset"`
+		Data   []byte `json:"data"`
+	}{Path: f.path, Offset: off, Data: data}
+
+	response := WriteCallbackData{}
+	if status := f.client.Post(context.Background(), client.OperationWrite, body, &response); status != fuse.OK {
+		f.logger.Error("Error occurred while writing file", "status", status)
+		return 0, status
+	}
+
+	if response.Written == 0 && len(data) > 0 {
+		return uint32(len(data)), fuse.OK
+	}
+
+	if response.Written > uint32(len(data)) {
+		f.logger.Error("Invalid bytes written from write callback", "written", response.Written, "requested", len(data))
+		return 0, fuse.EIO
+	}
+
+	return response.Written, fuse.OK
 }
 
+// Flush is called on each close(2) of the file descriptor.
+// Multiple flushes may occur if the file descriptor was duplicated.
+// Data is already persisted to the temporal file via Write, so no action is needed here.
 func (f *InternxtFile) Flush() fuse.Status {
-	f.logger.Warn("not implemented", "op", "Flush", "path", f.path)
-	return fuse.ENOSYS
+	return fuse.OK
 }
 
 func (f *InternxtFile) Release() {
