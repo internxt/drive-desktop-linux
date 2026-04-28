@@ -25,7 +25,7 @@ describe('get-backup-folder-tree-snapshot', () => {
     const expectedSnapshot = { tree, size: 0, folderDecryptedNames: {}, fileDecryptedNames: {} };
 
     fetchFolderTreeByUuidMock.mockResolvedValue({ data: { tree } } as never);
-    buildBackupFolderTreeSnapshotMock.mockImplementation(({ tree, decryptFileName }) => {
+    buildBackupFolderTreeSnapshotMock.mockImplementation(({ decryptFileName }) => {
       decryptFileName('encrypted-name', 10);
       return expectedSnapshot as never;
     });
