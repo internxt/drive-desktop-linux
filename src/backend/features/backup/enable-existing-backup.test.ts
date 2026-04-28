@@ -66,7 +66,9 @@ describe('enable-existing-backup', () => {
       .mockReturnValueOnce({ [pathname]: existingBackupData })
       .mockReturnValueOnce({ [pathname]: existingBackupData });
 
-    mockedFetchFolder.mockResolvedValue({ data: { id: existingBackupData.folderId } as unknown as GetFolderContentDto });
+    mockedFetchFolder.mockResolvedValue({
+      data: { id: existingBackupData.folderId } as unknown as GetFolderContentDto,
+    });
 
     const result = await enableExistingBackup({ pathname, device: mockDevice });
 
