@@ -98,7 +98,7 @@ func (fs *InternxtFilesystem) Open(name string, flags uint32, context *fuse.Cont
 		fs.logger.Error("Error occurred while opening file", "status", status)
 		return nil, status
 	}
-	return NewInternxtFile(name, flags, processName, fs.logger), fuse.OK
+	return NewInternxtFile(name, flags, processName, fs.logger, fs.client), fuse.OK
 }
 
 // Create creates a new file and returns a file handle.

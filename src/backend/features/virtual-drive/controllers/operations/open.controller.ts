@@ -6,12 +6,13 @@ import { ensureLeadingSlash } from '../ensure-leading-slash';
 
 export async function openController(req: Request, res: Response, container: Container) {
   const rawPath: string = req.body.path ?? '';
-  logger.debug({ msg: `[FUSE DAEMON] Open signal received for path: ${rawPath}` });
-  const flags: number = req.body.flags ?? 0;
+  logger.debug({
+    msg: `[FUSE DAEMON] Open signal received for path: ${rawPath} by process: ${req.body.processName ?? ''}`,
+  });
   const processName: string = req.body.processName ?? '';
   const normalizedPath = ensureLeadingSlash(rawPath);
 
-  const result = await open(normalizedPath, flags, processName, container);
+  const result = await open(normalizedPath, processName, container);
 
   if (result.error) {
     res.json({ errno: result.error.code });

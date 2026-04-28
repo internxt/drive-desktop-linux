@@ -5,17 +5,9 @@ import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
-import { trackOpen } from '../../../../features/fuse/on-open/open-flags-tracker';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
-export async function open(
-  path: string,
-  flags: number,
-  processName: string,
-  container: Container,
-): Promise<Result<void, FuseError>> {
-  trackOpen(path, flags);
-
+export async function open(path: string, processName: string, container: Container): Promise<Result<void, FuseError>> {
   try {
     const virtualFile = await container.get(FirstsFileSearcher).run({ path });
 

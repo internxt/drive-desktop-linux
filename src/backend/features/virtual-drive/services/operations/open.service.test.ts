@@ -24,7 +24,7 @@ describe('open', () => {
     it('should return success', async () => {
       fileSearcher.run.mockResolvedValue({} as unknown as File);
 
-      const { data, error } = await open('/some/file.txt', 0, 'cat', container);
+      const { data, error } = await open('/some/file.txt', 'cat', container);
 
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
@@ -35,7 +35,7 @@ describe('open', () => {
     it('should return success', async () => {
       temporalFinder.run.mockResolvedValue({} as unknown as TemporalFile);
 
-      const { data, error } = await open('/some/file.txt', 0, 'cat', container);
+      const { data, error } = await open('/some/file.txt', 'cat', container);
 
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
@@ -44,7 +44,7 @@ describe('open', () => {
 
   describe('when no file is found', () => {
     it('should return ENOENT', async () => {
-      const { data, error } = await open('/missing/file.txt', 0, 'cat', container);
+      const { data, error } = await open('/missing/file.txt', 'cat', container);
 
       expect(data).toBeUndefined();
       expect(error?.code).toBe(FuseCodes.ENOENT);
@@ -55,7 +55,7 @@ describe('open', () => {
     it('should return EIO', async () => {
       fileSearcher.run.mockRejectedValue(new Error('unexpected'));
 
-      const { data, error } = await open('/some/file.txt', 0, 'cat', container);
+      const { data, error } = await open('/some/file.txt', 'cat', container);
 
       expect(data).toBeUndefined();
       expect(error?.code).toBe(FuseCodes.EIO);
@@ -67,7 +67,7 @@ describe('open', () => {
       fileSearcher.run.mockRejectedValue(new Error('unexpected'));
       vi.spyOn(TemporalFile, 'isTemporaryPath').mockReturnValue(true);
 
-      const { data, error } = await open('/some/.tmp123', 0, 'cat', container);
+      const { data, error } = await open('/some/.tmp123', 'cat', container);
 
       expect(data).toBeUndefined();
       expect(error?.code).toBe(FuseCodes.EEXIST);

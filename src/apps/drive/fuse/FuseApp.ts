@@ -9,7 +9,7 @@ import { GetAttributesCallback } from './callbacks/GetAttributesCallback';
 import { GetXAttributeCallback } from './callbacks/GetXAttributeCallback';
 import { MakeDirectoryCallback } from './callbacks/MakeDirectoryCallback';
 import { OpenCallback } from './callbacks/OpenCallback';
-import { ReadCallback } from './callbacks/ReadCallback';
+// import { ReadCallback } from './callbacks/ReadCallback';
 import { ReaddirCallback } from './callbacks/ReaddirCallback';
 import { ReleaseCallback } from './callbacks/ReleaseCallback';
 import { RenameMoveOrTrashCallback } from './callbacks/RenameOrMoveCallback';
@@ -41,7 +41,7 @@ export class FuseApp extends EventEmitter {
     const readdir = new ReaddirCallback(this.container);
     const getattr = new GetAttributesCallback(this.container);
     const open = new OpenCallback(this.virtualDrive, this.container);
-    const read = new ReadCallback(this.container);
+    // const read = new ReadCallback(this.container);
     const renameOrMove = new RenameMoveOrTrashCallback(this.container);
     const create = new CreateCallback(this.container);
     const makeDirectory = new MakeDirectoryCallback(this.container);
@@ -55,7 +55,7 @@ export class FuseApp extends EventEmitter {
       getattr: getattr.handle.bind(getattr),
       readdir: readdir.handle.bind(readdir),
       open: open.handle.bind(open),
-      read: read.execute.bind(read),
+      // read: read.execute.bind(read),
       rename: renameOrMove.handle.bind(renameOrMove),
       create: create.handle.bind(create),
       write: write.execute.bind(write),
