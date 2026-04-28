@@ -1,7 +1,10 @@
 package filesystem
 
 import (
+	"context"
 	"log/slog"
+
+	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
@@ -15,18 +18,20 @@ import (
 type InternxtFile struct {
 	nodefs.File
 	path        string
-	flag       uint32
+	flag        uint32
 	processName string
 	logger      *slog.Logger
+	client      *client.Client
 }
 
-func NewInternxtFile(path string, flag uint32, processName string, logger *slog.Logger) *InternxtFile {
+func NewInternxtFile(path string, flag uint32, processName string, logger *slog.Logger, c *client.Client) *InternxtFile {
 	return &InternxtFile{
 		File:        nodefs.NewDefaultFile(),
 		path:        path,
-		flag:       flag,
+		flag:        flag,
 		processName: processName,
 		logger:      logger,
+		client:      c,
 	}
 }
 
@@ -35,8 +40,20 @@ func (f *InternxtFile) String() string {
 }
 
 func (f *InternxtFile) Read(dest []byte, off int64) (fuse.ReadResult, fuse.Status) {
-	f.logger.Warn("not implemented", "op", "Read", "path", f.path)
-	return nil, fuse.ENOSYS
+	f.logger.Debug("Received Read call", "path", f.path, "offset", off, "length", len(dest))
+	body := struct {
+		Path        string `json:"path"`
+		Offset      int64  `json:"offset"`
+		Length      int    `json:"length"`
+		ProcessName string `json:"processName"`
+	}{Path: f.path, Offset: off, Length: len(dest), ProcessName: f.processName}
+
+	bytesRead, status := f.client.PostBinary(context.Background(), client.OperationRead, body, dest)
+	if status != fuse.OK {
+		f.logger.Error("Error occurred while reading file", "status", status)
+		return nil, status
+	}
+	return fuse.ReadResultData(dest[:bytesRead]), fuse.OK
 }
 
 func (f *InternxtFile) Write(data []byte, off int64) (uint32, fuse.Status) {

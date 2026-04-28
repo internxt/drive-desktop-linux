@@ -106,3 +106,43 @@ func (client *Client) Post(context context.Context, path OperationPath, in any, 
 
 	return fuse.OK
 }
+
+// PostBinary sends a JSON body to the given operation path and returns raw binary data.
+// Errors are signaled via the X-Errno response header (non-zero = fuse.Status error code).
+// On success (X-Errno: 0) the response body is raw bytes copied into dest.
+// Returns the number of bytes read and a fuse.Status.
+func (client *Client) PostBinary(ctx context.Context, path OperationPath, in any, dest []byte) (int, fuse.Status) {
+	body, err := json.Marshal(in)
+	if err != nil {
+		return 0, fuse.EIO
+	}
+	url := serverURL + string(path)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(body))
+	if err != nil {
+		return 0, fuse.EIO
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.http.Do(req)
+	if err != nil {
+		return 0, fuse.EIO
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, fuse.EIO
+	}
+
+	if errnoStr := resp.Header.Get("X-Errno"); errnoStr != "" && errnoStr != "0" {
+		var errno int32
+		if _, err := fmt.Sscanf(errnoStr, "%d", &errno); err == nil && errno != 0 {
+			return 0, fuse.Status(errno)
+		}
+	}
+
+	bytesRead, err := io.ReadFull(resp.Body, dest)
+	if err != nil && err != io.ErrUnexpectedEOF {
+		return 0, fuse.EIO
+	}
+	return bytesRead, fuse.OK
+}

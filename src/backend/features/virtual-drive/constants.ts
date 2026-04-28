@@ -8,6 +8,7 @@ export const OPERATION_PATHS = {
   GET_ATTR: '/getattributes',
   OPEN: '/open',
   OPEN_DIR: '/opendir',
+  READ: '/read',
 } as const;
 /**
  * property to define a regular file when requesting in the get attributes fuse request.

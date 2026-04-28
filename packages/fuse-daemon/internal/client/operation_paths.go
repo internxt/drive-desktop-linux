@@ -10,6 +10,7 @@ const (
 	OperationGetAttr OperationPath = "/op/getattributes"
 	OperationOpen    OperationPath = "/op/open"
 	OperationOpenDir OperationPath = "/op/opendir"
+	OperationRead    OperationPath = "/op/read"
 )
 
 const serverURL = "http://localhost"
