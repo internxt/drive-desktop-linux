@@ -1,11 +1,9 @@
 // import { Container } from 'diod';
 // import { logger } from '@internxt/drive-desktop-core/build/backend';
-// import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 // import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 // import { StorageFilesRepository } from '../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
 // import { StorageFileId } from '../../../../context/storage/StorageFiles/domain/StorageFileId';
 // import { StorageFile } from '../../../../context/storage/StorageFiles/domain/StorageFile';
-// import { StorageFileDownloader } from '../../../../context/storage/StorageFiles/application/download/StorageFileDownloader/StorageFileDownloader';
 // import { DownloadProgressTracker } from '../../../../context/shared/domain/DownloadProgressTracker';
 // import { type File } from '../../../../context/virtual-drive/files/domain/File';
 // import {
