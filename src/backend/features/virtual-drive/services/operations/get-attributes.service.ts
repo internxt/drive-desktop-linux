@@ -7,7 +7,6 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 export async function getAttributes(
   path: string,
@@ -80,6 +79,5 @@ export async function getAttributes(
     };
   }
   const msg = `[FUSE - GetAttributes] File not found: ${path}`;
-  logger.error({ msg });
   return { error: new FuseError(FuseCodes.ENOENT, msg) };
 }
