@@ -121,8 +121,11 @@ func (fs *InternxtFilesystem) Create(name string, flags uint32, mode uint32, con
 }
 
 func (fs *InternxtFilesystem) Mkdir(name string, mode uint32, context *fuse.Context) fuse.Status {
-	fs.logger.Warn("not implemented", "op", "Mkdir", "path", name)
-	return fuse.ENOSYS
+	fs.logger.Debug("Received Mkdir call", "path", name)
+	body := struct {
+		Path string `json:"path"`
+	}{Path: name}
+	return fs.client.Post(context, client.OperationMkdir, body, nil)
 }
 
 func (fs *InternxtFilesystem) Rename(oldName string, newName string, context *fuse.Context) fuse.Status {
