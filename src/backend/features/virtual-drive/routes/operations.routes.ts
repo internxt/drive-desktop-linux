@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { raw, Router } from 'express';
 import { Container } from 'diod';
 import { OPERATION_PATHS } from '../constants';
 import { getAttributesController } from '../controllers/operations/get-attributes.controller';
@@ -20,7 +20,18 @@ export function buildOperationsRouter(container: Container): Router {
   router.post(OPERATION_PATHS.OPEN_DIR, (req, res) => openDirController(req, res, container));
   router.post(OPERATION_PATHS.READ, (req, res) => readController(req, res, container));
   router.post(OPERATION_PATHS.CREATE, (req, res) => createController(req, res, container));
-  router.post(OPERATION_PATHS.WRITE, (req, res) => writeController(req, res, container));
+  /**
+   * v.2.6.0
+   * Esteban Galvis Triana
+   * FUSE write operations can send chunks up to 128 KB.
+   * We keep the parser limit at 1 MB to avoid PayloadTooLarge errors
+   * and provide safe headroom for binary write payload handling.
+   */
+  router.post(
+    OPERATION_PATHS.WRITE,
+    raw({ type: 'application/octet-stream', limit: '1mb' }),
+    (req, res) => writeController(req, res, container),
+  );
   router.post(OPERATION_PATHS.RELEASE, (req, res) => releaseController(req, res, container));
   router.post(OPERATION_PATHS.UNLINK, (req, res) => unlinkController(req, res, container));
   router.post(OPERATION_PATHS.RMDIR, (req, res) => rmdirController(req, res, container));

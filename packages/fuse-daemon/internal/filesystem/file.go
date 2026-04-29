@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"context"
+	"strconv"
 	"log/slog"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
@@ -9,10 +10,6 @@ import (
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
 )
-
-type WriteCallbackData struct {
-	Written uint32 `json:"written"`
-}
 
 // InternxtFile is the file handle returned by Open.
 // It holds the context needed for future Read/Write implementation.
@@ -62,28 +59,17 @@ func (f *InternxtFile) Read(dest []byte, off int64) (fuse.ReadResult, fuse.Statu
 
 func (f *InternxtFile) Write(data []byte, off int64) (uint32, fuse.Status) {
 	f.logger.Debug("Received Write call", "path", f.path, "offset", off, "length", len(data))
-	body := struct {
-		Path   string `json:"path"`
-		Offset int64  `json:"offset"`
-		Data   []byte `json:"data"`
-	}{Path: f.path, Offset: off, Data: data}
+	headers := map[string]string{
+		"X-Path":   f.path,
+		"X-Offset": strconv.FormatInt(off, 10),
+	}
 
-	response := WriteCallbackData{}
-	if status := f.client.Post(context.Background(), client.OperationWrite, body, &response); status != fuse.OK {
+	if status := f.client.PostSendBinary(context.Background(), client.OperationWrite, data, headers); status != fuse.OK {
 		f.logger.Error("Error occurred while writing file", "status", status)
 		return 0, status
 	}
 
-	if response.Written == 0 && len(data) > 0 {
-		return uint32(len(data)), fuse.OK
-	}
-
-	if response.Written > uint32(len(data)) {
-		f.logger.Error("Invalid bytes written from write callback", "written", response.Written, "requested", len(data))
-		return 0, fuse.EIO
-	}
-
-	return response.Written, fuse.OK
+	return uint32(len(data)), fuse.OK
 }
 
 // Flush is called on each close(2) of the file descriptor.

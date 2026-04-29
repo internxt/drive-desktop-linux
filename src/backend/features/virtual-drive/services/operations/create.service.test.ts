@@ -4,8 +4,6 @@ import { TemporalFileCreator } from '../../../../../context/storage/TemporalFile
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { create } from './create.service';
 
-vi.mock('@internxt/drive-desktop-core/build/backend');
-
 describe('create', () => {
   let container: ReturnType<typeof mockDeep<Container>>;
   const temporalFileCreator = mockDeep<TemporalFileCreator>();

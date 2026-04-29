@@ -13,9 +13,7 @@ let server: Server | null = null;
 export function startFuseDaemonServer(container: Container): Promise<void> {
   return new Promise((resolve) => {
     const app = express();
-    // FUSE write chunks can be up to 128 KB; base64-encoded that reaches ~171 KB.
-    // Use 1 MB to give comfortable headroom above the kernel's max write buffer.
-    app.use(express.json({ limit: '1mb' }));
+    app.use(express.json());
 
     app.use(DAEMON_ROUTE, buildDaemonRouter());
     app.use(OPERATIONS_ROUTE, buildOperationsRouter(container));
