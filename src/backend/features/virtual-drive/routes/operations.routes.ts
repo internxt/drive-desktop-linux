@@ -7,7 +7,6 @@ import { openDirController } from '../controllers/operations/opendir.controller'
 import { readController } from '../controllers/operations/read.controller';
 import { createController } from '../controllers/operations/create.controller';
 import { writeController } from '../controllers/operations/write.controller';
-import { releaseController } from '../controllers/operations/release.controller';
 import { unlinkController } from '../controllers/operations/unlink.controller';
 import { rmdirController } from '../controllers/operations/rmdir.controller';
 
@@ -21,7 +20,6 @@ export function buildOperationsRouter(container: Container): Router {
   router.post(OPERATION_PATHS.READ, (req, res) => readController(req, res, container));
   router.post(OPERATION_PATHS.CREATE, (req, res) => createController(req, res, container));
   router.post(OPERATION_PATHS.WRITE, (req, res) => writeController(req, res, container));
-  router.post(OPERATION_PATHS.RELEASE, (req, res) => releaseController(req, res, container));
   router.post(OPERATION_PATHS.UNLINK, (req, res) => unlinkController(req, res, container));
   router.post(OPERATION_PATHS.RMDIR, (req, res) => rmdirController(req, res, container));
   return router;
