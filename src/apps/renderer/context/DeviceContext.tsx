@@ -58,18 +58,15 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   const deviceRename = async (deviceName: string) => {
     setDeviceState({ status: 'LOADING' });
 
-    try {
-      const updatedDevice = await window.electron.renameDevice(deviceName);
-      setDeviceState({ status: 'SUCCESS', device: updatedDevice });
-      setCurrent(updatedDevice);
-      setSelected(updatedDevice);
-    } catch (err) {
-      window.electron.logger.error({
-        msg: '[RENDERER] Failed to rename device',
-        error: err,
-      });
+    const { error, data: updatedDevice } = await window.electron.renameDevice(deviceName);
+    if (error || !updatedDevice) {
       setDeviceState({ status: 'ERROR' });
+      return;
     }
+
+    setDeviceState({ status: 'SUCCESS', device: updatedDevice });
+    setCurrent(updatedDevice);
+    setSelected(updatedDevice);
   };
 
   return (

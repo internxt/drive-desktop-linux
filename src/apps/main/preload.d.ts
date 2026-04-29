@@ -100,9 +100,13 @@ declare interface Window {
 
     path: typeof import('path');
 
-    getOrCreateDevice: typeof import('../../backend/features/device/device.module').DeviceModule.getOrCreateDevice;
+    getOrCreateDevice: () => Promise<
+      import('../../context/shared/domain/Result').Result<import('../main/device/service').Device, Error>
+    >;
 
-    renameDevice: typeof import('../../backend/features/device/device.module').DeviceModule.renameDevice;
+    renameDevice: (
+      deviceName: string,
+    ) => Promise<import('../../context/shared/domain/Result').Result<import('../main/device/service').Device, Error>>;
 
     devices: {
       getDevices: () => Promise<Array<Device>>;
@@ -110,7 +114,12 @@ declare interface Window {
 
     onDeviceCreated(func: (value: Device) => void): () => void;
 
-    getBackupsFromDevice: typeof import('../../backend/features/device/device.module').DeviceModule.getBackupsFromDevice;
+    getBackupsFromDevice: (
+      device: import('../main/device/service').Device,
+      isCurrent?: boolean,
+    ) => Promise<
+      import('../../context/shared/domain/Result').Result<import('../backups/BackupInfo').BackupInfo[], Error>
+    >;
 
     addBackup: typeof import('../../backend/features/backup/add-backup').addBackup;
 
