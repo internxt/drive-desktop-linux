@@ -14,6 +14,8 @@ describe('buildOperationsRouter', () => {
 
   it('should register POST /getattributes', () => {
     expect(routes).toContain(OPERATION_PATHS.GET_ATTR);
+    expect(routes).toContain(OPERATION_PATHS.CREATE);
+    expect(routes).toContain(OPERATION_PATHS.WRITE);
   });
 
   it('should register POST /open', () => {

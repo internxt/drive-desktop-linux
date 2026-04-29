@@ -104,8 +104,20 @@ func (fs *InternxtFilesystem) Open(name string, flags uint32, context *fuse.Cont
 // Create creates a new file and returns a file handle.
 // When implementing: return a nodefs.File handle for the new file.
 func (fs *InternxtFilesystem) Create(name string, flags uint32, mode uint32, context *fuse.Context) (nodefs.File, fuse.Status) {
-	fs.logger.Warn("not implemented", "op", "Create", "path", name)
-	return nil, fuse.ENOSYS
+	fs.logger.Debug("Received Create call", "name", name, "flags", flags, "mode", mode)
+	body := struct {
+		Path string `json:"path"`
+		Flag uint32 `json:"flag"`
+		Mode uint32 `json:"mode"`
+	}{Path: name, Flag: flags, Mode: mode}
+
+	if status := fs.client.Post(context, client.OperationCreate, body, nil); status != fuse.OK {
+		fs.logger.Error("Error occurred while creating file", "status", status)
+		return nil, status
+	}
+
+	processName := readProcessName(context.Pid)
+	return NewInternxtFile(name, flags, processName, fs.logger, fs.client), fuse.OK
 }
 
 func (fs *InternxtFilesystem) Mkdir(name string, mode uint32, context *fuse.Context) fuse.Status {

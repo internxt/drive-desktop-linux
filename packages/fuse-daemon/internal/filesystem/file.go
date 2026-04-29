@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"context"
+	"strconv"
 	"log/slog"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
@@ -57,13 +58,25 @@ func (f *InternxtFile) Read(dest []byte, off int64) (fuse.ReadResult, fuse.Statu
 }
 
 func (f *InternxtFile) Write(data []byte, off int64) (uint32, fuse.Status) {
-	f.logger.Warn("not implemented", "op", "Write", "path", f.path)
-	return 0, fuse.ENOSYS
+	f.logger.Debug("Received Write call", "path", f.path, "offset", off, "length", len(data))
+	headers := map[string]string{
+		"X-Path":   f.path,
+		"X-Offset": strconv.FormatInt(off, 10),
+	}
+
+	if status := f.client.PostSendBinary(context.Background(), client.OperationWrite, data, headers); status != fuse.OK {
+		f.logger.Error("Error occurred while writing file", "status", status)
+		return 0, status
+	}
+
+	return uint32(len(data)), fuse.OK
 }
 
+// Flush is called on each close(2) of the file descriptor.
+// Multiple flushes may occur if the file descriptor was duplicated.
+// Data is already persisted to the temporal file via Write, so no action is needed here.
 func (f *InternxtFile) Flush() fuse.Status {
-	f.logger.Warn("not implemented", "op", "Flush", "path", f.path)
-	return fuse.ENOSYS
+	return fuse.OK
 }
 
 func (f *InternxtFile) Release() {

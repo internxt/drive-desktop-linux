@@ -145,3 +145,38 @@ func (client *Client) PostBinary(ctx context.Context, path OperationPath, in any
 	}
 	return bytesRead, fuse.OK
 }
+
+// PostBinaryRequest sends raw binary payload to the given operation path.
+// Errors are signaled via the X-Errno response header (non-zero = fuse.Status error code).
+// On success it returns fuse.OK.
+func (client *Client) PostSendBinary(ctx context.Context, path OperationPath, payload []byte, headers map[string]string) fuse.Status {
+	url := serverURL + string(path)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(payload))
+	if err != nil {
+		return fuse.EIO
+	}
+	req.Header.Set("Content-Type", "application/octet-stream")
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	resp, err := client.http.Do(req)
+	if err != nil {
+		return fuse.EIO
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return fuse.EIO
+	}
+
+	if errnoStr := resp.Header.Get("X-Errno"); errnoStr != "" && errnoStr != "0" {
+		var errno int32
+		if _, err := fmt.Sscanf(errnoStr, "%d", &errno); err == nil && errno != 0 {
+			return fuse.Status(errno)
+		}
+		return fuse.EIO
+	}
+
+	return fuse.OK
+}
