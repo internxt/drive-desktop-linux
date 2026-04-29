@@ -44,7 +44,7 @@ describe('read', () => {
 
   describe('when handleReadCallback returns an error', () => {
     it('should propagate the error', async () => {
-      handleReadCallbackMock.mockResolvedValue({ error: { code: FuseCodes.ENOENT } as any });
+      handleReadCallbackMock.mockResolvedValue({ error: { code: FuseCodes.ENOENT } });
 
       const { data, error } = await read('/missing.mp4', 10, 0, 'vlc', container);
 
