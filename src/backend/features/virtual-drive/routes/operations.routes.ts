@@ -27,10 +27,8 @@ export function buildOperationsRouter(container: Container): Router {
    * We keep the parser limit at 1 MB to avoid PayloadTooLarge errors
    * and provide safe headroom for binary write payload handling.
    */
-  router.post(
-    OPERATION_PATHS.WRITE,
-    raw({ type: 'application/octet-stream', limit: '1mb' }),
-    (req, res) => writeController(req, res, container),
+  router.post(OPERATION_PATHS.WRITE, raw({ type: 'application/octet-stream', limit: '1mb' }), (req, res) =>
+    writeController(req, res, container),
   );
   router.post(OPERATION_PATHS.RELEASE, (req, res) => releaseController(req, res, container));
   router.post(OPERATION_PATHS.UNLINK, (req, res) => unlinkController(req, res, container));
