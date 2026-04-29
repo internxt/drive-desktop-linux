@@ -106,3 +106,13 @@ export function setupAppLogRouting({ logsPath }: Pops) {
 
   coreElectronLog.transports.file.resolvePath = coreElectronLog.transports.file.resolvePathFn;
 }
+
+export function setupAppLogRouting({ logsPath }: Pops) {
+  for (const electronLog of getElectronLogModules()) {
+    electronLog.transports.file.resolvePathFn = (_, message) => {
+      return resolveAppLogFilePath({ logsPath, message });
+    };
+
+    electronLog.transports.file.resolvePath = electronLog.transports.file.resolvePathFn;
+  }
+}
