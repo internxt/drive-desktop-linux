@@ -93,25 +93,23 @@ describe('handleReadCallback', () => {
   });
 
   describe('when process is blocklisted', () => {
-    it('should return empty buffer', async () => {
+    it('should return empty buffer when file is not on disk', async () => {
       isBlocklistedProcessMock.mockReturnValue(true);
-      const deps = createDeps();
+      const deps = createDeps({ existsOnDisk: vi.fn().mockResolvedValue(false) });
 
       const result = await handleReadCallback(deps, '/file.mp4', 10, 0, 'pool-org.gnome.');
 
       expect(result.data).toHaveLength(0);
+      expect(deps.startDownload).not.toHaveBeenCalled();
     });
-  });
 
-  describe('when file already exists on disk', () => {
-    it('should read chunk directly from disk', async () => {
+    it('should serve from disk when file is already downloaded', async () => {
+      isBlocklistedProcessMock.mockReturnValue(true);
       const chunk = Buffer.from('cached');
       readChunkFromDiskMock.mockResolvedValue(chunk);
-      const deps = createDeps({
-        existsOnDisk: vi.fn().mockResolvedValue(true),
-      });
+      const deps = createDeps({ existsOnDisk: vi.fn().mockResolvedValue(true) });
 
-      const result = await handleReadCallback(deps, '/file.mp4', 6, 100, 'vlc');
+      const result = await handleReadCallback(deps, '/file.mp4', 6, 0, 'pool-org.gnome.');
 
       expect(result.data).toBe(chunk);
       expect(deps.startDownload).not.toHaveBeenCalled();

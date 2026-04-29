@@ -13,6 +13,8 @@
  */
 const BLOCKLISTED_PROCESS_PREFIXES = [
   'pool-org.gnome', // GNOME thread pool — Nautilus thumbnail generation
+  'gdk-pixbuf-thum', // GDK pixbuf thumbnailer (truncated at 15 chars by kernel)
+  'EogJobScheduler', // Eye of GNOME (image viewer) background job scheduler
   // 'tumblerd', // Thunar, Caja, PCManFM thumbnail daemon (freedesktop spec)
   // 'kio_thumbnail', // Dolphin KIO thumbnail worker
   // 'thumbnail.so', // Dolphin KIO thumbnail worker (alternative name)

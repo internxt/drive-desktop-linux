@@ -67,7 +67,14 @@ func (f *InternxtFile) Flush() fuse.Status {
 }
 
 func (f *InternxtFile) Release() {
-	f.logger.Warn("not implemented", "op", "Release", "path", f.path)
+	f.logger.Debug("Received Release call:", "path", f.path)
+	body := struct {
+		Path        string `json:"path"`
+		ProcessName string `json:"processName"`
+	}{Path: f.path, ProcessName: f.processName}
+	if status := f.client.Post(context.Background(), client.OperationRelease, body, nil); status != fuse.OK {
+		f.logger.Warn("Release call failed", "path", f.path, "status", status)
+	}
 }
 
 func (f *InternxtFile) Fsync(flags int) fuse.Status {

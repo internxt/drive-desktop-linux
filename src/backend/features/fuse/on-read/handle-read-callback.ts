@@ -78,11 +78,6 @@ export async function handleReadCallback(
     return { data: chunk };
   }
 
-  if (isBlocklistedProcess(processName)) {
-    logger.debug({ msg: '[ReadCallback] Download blocked - blocklisted process', path, processName });
-    return { data: EMPTY };
-  }
-
   const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
 
   logger.debug({
@@ -94,8 +89,18 @@ export async function handleReadCallback(
   });
 
   if (await deps.existsOnDisk(virtualFile.contentsId)) {
+    if (isBlocklistedProcess(processName)) {
+      logger.debug({
+        msg: `[ReadCallback] Allowing read from disk for blocklisted process: ${processName} in ${path}`,
+      });
+    }
     const chunk = await readChunkFromDisk(filePath, length, position);
     return { data: chunk };
+  }
+
+  if (isBlocklistedProcess(processName)) {
+    logger.debug({ msg: '[ReadCallback] Download blocked - blocklisted process', path, processName });
+    return { data: EMPTY };
   }
 
   const hydration = getHydration(virtualFile.contentsId) ?? (await startHydration(deps, virtualFile, filePath));

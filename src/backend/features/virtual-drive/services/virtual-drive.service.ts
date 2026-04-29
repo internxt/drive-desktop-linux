@@ -6,6 +6,8 @@ import { startDaemon, stopDaemon } from './daemon.service';
 import { startFuseDaemonServer, stopFuseDaemonServer } from './server.service';
 import { updateVirtualDriveContainer } from './update-virtual-drive-container.service';
 import { DependencyInjectionUserProvider } from '../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import { StorageClearer } from '../../../../context/storage/StorageFiles/application/delete/StorageClearer';
+import { destroyAllHydrations } from '../../fuse/on-read/hydration-registry';
 
 let container: Container | undefined;
 
@@ -24,6 +26,11 @@ export async function startVirtualDrive() {
 export async function stopVirtualDrive() {
   logger.debug({ msg: '[VIRTUAL DRIVE] stopping daemon...' });
   await stopDaemon();
+  logger.debug({ msg: '[VIRTUAL DRIVE] clearing storage cache...' });
+  await destroyAllHydrations();
+  if (container) {
+    await container.get(StorageClearer).run();
+  }
   logger.debug({ msg: '[VIRTUAL DRIVE] stopping server...' });
   await stopFuseDaemonServer();
   logger.debug({ msg: '[VIRTUAL DRIVE] stopped' });
