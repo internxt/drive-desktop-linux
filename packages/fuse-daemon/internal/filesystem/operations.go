@@ -129,8 +129,18 @@ func (fs *InternxtFilesystem) Mkdir(name string, mode uint32, context *fuse.Cont
 }
 
 func (fs *InternxtFilesystem) Rename(oldName string, newName string, context *fuse.Context) fuse.Status {
-	fs.logger.Warn("not implemented", "op", "Rename", "oldPath", oldName, "newPath", newName)
-	return fuse.ENOSYS
+	fs.logger.Debug("Received Rename call", "oldPath", oldName, "newPath", newName)
+	body := struct {
+		OldPath string `json:"oldPath"`
+		NewPath string `json:"newPath"`
+	}{OldPath: oldName, NewPath: newName}
+
+	status := fs.client.Post(context, client.OperationRename, body, nil)
+	if status != fuse.OK {
+		return status
+	}
+
+	return fuse.OK
 }
 
 func (fs *InternxtFilesystem) Unlink(name string, context *fuse.Context) fuse.Status {
