@@ -137,7 +137,6 @@ describe('handleReadCallback', () => {
 
       expect(result.error).toBeInstanceOf(FuseIOError);
     });
-  });
 
   describe('when allocating the cache file', () => {
     it('returns EIO and does not download when allocation fails', async () => {
