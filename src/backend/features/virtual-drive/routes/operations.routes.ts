@@ -6,6 +6,8 @@ import { openController } from '../controllers/operations/open.controller';
 import { openDirController } from '../controllers/operations/opendir.controller';
 import { readController } from '../controllers/operations/read.controller';
 import { releaseController } from '../controllers/operations/release.controller';
+import { unlinkController } from '../controllers/operations/unlink.controller';
+import { rmdirController } from '../controllers/operations/rmdir.controller';
 
 // Routes for FUSE operation endpoints (POST /op/<name>).
 // Each operation will be registered here as it is implemented in PB-6161.
@@ -16,5 +18,7 @@ export function buildOperationsRouter(container: Container): Router {
   router.post(OPERATION_PATHS.OPEN_DIR, (req, res) => openDirController(req, res, container));
   router.post(OPERATION_PATHS.READ, (req, res) => readController(req, res, container));
   router.post(OPERATION_PATHS.RELEASE, (req, res) => releaseController(req, res, container));
+  router.post(OPERATION_PATHS.UNLINK, (req, res) => unlinkController(req, res, container));
+  router.post(OPERATION_PATHS.RMDIR, (req, res) => rmdirController(req, res, container));
   return router;
 }

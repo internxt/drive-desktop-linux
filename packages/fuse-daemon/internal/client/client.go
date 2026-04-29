@@ -16,17 +16,16 @@ import (
 
 
 type Client struct {
-    http *http.Client
-    socketPath string
+	http       *http.Client
+	socketPath string
 }
 
 func NewClient(socketPath string) *Client {
-    return &Client{
-        http:       NewUnixSocketClient(socketPath),
-        socketPath: socketPath,
-    }
+	return &Client{
+		http:       NewUnixSocketClient(socketPath),
+		socketPath: socketPath,
+	}
 }
-
 
 func NewUnixSocketClient(socketPath string) *http.Client {
 	return &http.Client{
