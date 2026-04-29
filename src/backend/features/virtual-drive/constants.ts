@@ -11,6 +11,7 @@ export const OPERATION_PATHS = {
   READ: '/read',
   CREATE: '/create',
   WRITE: '/write',
+  RELEASE: '/release',
   UNLINK: '/unlink',
   RMDIR: '/rmdir',
 } as const;
