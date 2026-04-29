@@ -150,7 +150,6 @@ describe('handleReadCallback', () => {
       expect(deps.saveToRepository).not.toHaveBeenCalled();
       expect(readChunkFromDiskMock).toHaveBeenCalledWith(expect.stringContaining(virtualFile.contentsId), 10, 0);
     });
-  });
 
   describe('when process is a thumbnail generator', () => {
     it('should download the exact requested range without block expansion', async () => {
