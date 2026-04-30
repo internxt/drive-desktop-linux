@@ -8,16 +8,16 @@ import { SyncError } from '../../../../../../shared/issues/SyncErrorCause';
 import { FuseError, FuseUnknownError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 
 type Props = {
-  folder: Folder;
-  container: Container;
+  folder: Folder,
+  container: Container
 };
 
 export async function trashFolder({ folder, container }: Props): Promise<Result<void, FuseError>> {
   try {
     await container.get(FolderDeleter).run(folder.uuid);
     return { data: undefined };
-  } catch (throwed: unknown) {
-    const cause: SyncError = throwed instanceof DriveDesktopError ? throwed.cause : 'UNKNOWN';
+  } catch (error) {
+    const cause: SyncError = error instanceof DriveDesktopError ? error.cause : 'UNKNOWN';
 
     await container.get(SyncFileMessenger).issues({
       error: 'DELETE_ERROR',
@@ -25,6 +25,6 @@ export async function trashFolder({ folder, container }: Props): Promise<Result<
       name: folder.name,
     });
 
-    return { error: throwed instanceof FuseError ? throwed : new FuseUnknownError() };
+    return { error: error instanceof FuseError ? error : new FuseUnknownError() };
   }
 }

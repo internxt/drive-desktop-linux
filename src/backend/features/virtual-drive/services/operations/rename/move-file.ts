@@ -1,5 +1,5 @@
 import { Container } from 'diod';
-import { basename } from 'path';
+import { basename } from 'node:path';
 import { DriveDesktopError } from '../../../../../../context/shared/domain/errors/DriveDesktopError';
 import { FilePathUpdater } from '../../../../../../context/virtual-drive/files/application/move/FilePathUpdater';
 import { File } from '../../../../../../context/virtual-drive/files/domain/File';
@@ -10,10 +10,10 @@ import { SyncError } from '../../../../../../shared/issues/SyncErrorCause';
 import { FuseError, FuseUnknownError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 
 type Props = {
-  file: File;
-  src: string;
-  dest: string;
-  container: Container;
+  file: File,
+  src: string,
+  dest: string,
+  container: Container
 };
 
 export async function moveFile({ file, src, dest, container }: Props): Promise<Result<void, FuseError>> {
