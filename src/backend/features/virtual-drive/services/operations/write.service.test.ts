@@ -4,8 +4,6 @@ import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { TemporalFileWriter } from '../../../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { write } from './write.service';
 
-vi.mock('@internxt/drive-desktop-core/build/backend');
-
 describe('write', () => {
   let container: ReturnType<typeof mockDeep<Container>>;
   const temporalFileWriter = mockDeep<TemporalFileWriter>();

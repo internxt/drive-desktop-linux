@@ -17,32 +17,43 @@ describe('writeController', () => {
     req = mockDeep<Request>();
     res = mockDeep<Response>();
     container = mockDeep<Container>();
+    res.set.mockReturnValue(res);
   });
 
   it('should return errno EINVAL when payload is invalid', async () => {
-    req.body = { path: '/some/file.txt', offset: 'wrong', data: 'aGVsbG8=' };
+    req.header.calledWith('X-Path').mockReturnValue('/some/file.txt');
+    req.header.calledWith('X-Offset').mockReturnValue('wrong');
+    req.body = Buffer.from('hello');
 
     await writeController(req, res, container);
 
-    expect(res.json).toHaveBeenCalledWith({ errno: FuseCodes.EINVAL });
+    expect(res.set).toHaveBeenCalledWith('X-Errno', String(FuseCodes.EINVAL));
+    expect(res.send).toHaveBeenCalledWith(Buffer.alloc(0));
     expect(writeMock).not.toHaveBeenCalled();
   });
 
   it('should return errno 0 and written bytes when write succeeds', async () => {
-    req.body = { path: '/some/file.txt', offset: 0, data: 'aGVsbG8=' };
+    req.header.calledWith('X-Path').mockReturnValue('/some/file.txt');
+    req.header.calledWith('X-Offset').mockReturnValue('0');
+    req.body = Buffer.from('hello');
     writeMock.mockResolvedValue({ data: 5 });
 
     await writeController(req, res, container);
 
-    expect(res.json).toHaveBeenCalledWith({ errno: 0, written: 5 });
+    expect(res.set).toHaveBeenCalledWith('X-Errno', '0');
+    expect(res.set).toHaveBeenCalledWith('X-Written', '5');
+    expect(res.send).toHaveBeenCalledWith(Buffer.alloc(0));
   });
 
   it('should return errno EIO when write fails', async () => {
-    req.body = { path: '/some/file.txt', offset: 0, data: 'aGVsbG8=' };
+    req.header.calledWith('X-Path').mockReturnValue('/some/file.txt');
+    req.header.calledWith('X-Offset').mockReturnValue('0');
+    req.body = Buffer.from('hello');
     writeMock.mockResolvedValue({ error: new FuseError(FuseCodes.EIO, 'io error') });
 
     await writeController(req, res, container);
 
-    expect(res.json).toHaveBeenCalledWith({ errno: FuseCodes.EIO });
+    expect(res.set).toHaveBeenCalledWith('X-Errno', String(FuseCodes.EIO));
+    expect(res.send).toHaveBeenCalledWith(Buffer.alloc(0));
   });
 });
