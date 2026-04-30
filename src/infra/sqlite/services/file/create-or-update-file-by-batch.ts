@@ -2,7 +2,7 @@ import { fileRepository } from '../drive-file';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { parseData } from './parse-data';
 import { SqliteError } from '../common/sqlite-error';
-import { RemoteSyncedFile } from 'src/apps/main/remote-sync/helpers';
+import { RemoteSyncedFile } from 'src/backend/features/remote-sync/helpers';
 
 const BATCH_SIZE = 500;
 

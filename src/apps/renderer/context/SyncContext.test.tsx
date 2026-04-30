@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { SyncProvider, useSyncContext } from './SyncContext';
-import { RemoteSyncStatus } from '../../main/remote-sync/helpers';
+import { RemoteSyncStatus } from '../../../backend/features/remote-sync/helpers';
 import { partialSpyOn } from '../../../../tests/vitest/utils.helper';
 
 describe('SyncContext', () => {

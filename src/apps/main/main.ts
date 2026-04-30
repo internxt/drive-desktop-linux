@@ -27,7 +27,7 @@ import './analytics/handlers';
 import './platform/handlers';
 import './config/handlers';
 import './app-info/handlers';
-import './remote-sync/handlers';
+import '../../backend/features/remote-sync/handlers';
 import './../../backend/features/cleaner/ipc/handlers';
 
 import { app } from 'electron';
