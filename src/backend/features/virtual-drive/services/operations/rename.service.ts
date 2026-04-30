@@ -1,46 +1,27 @@
 import { Container } from 'diod';
-import { FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
-import { RenameMoveOrTrashFile } from '../../../../../apps/drive/fuse/callbacks/RenameMoveOrTrashFile';
-import { RenameMoveOrTrashFolder } from '../../../../../apps/drive/fuse/callbacks/RenameMoveOrTrashFolder';
-import { UploadOnRename } from '../../../../../apps/drive/fuse/callbacks/UploadOnRename';
+import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
+import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../context/shared/domain/Result';
+import { handleFileRenameIntent } from './rename/handle-file-rename-intent';
+import { handleFolderRenameIntent } from './rename/handle-folder-rename-intent';
+import { handleOfflineUploadOnRename } from './rename/handle-offline-upload-on-rename';
 
 type Props = {
-  src: string;
-  dest: string;
-  container: Container;
+  src: string,
+  dest: string,
+  container: Container
 };
 
 export async function rename({ src, dest, container }: Props): Promise<Result<void, FuseError>> {
-  const fileEither = await new RenameMoveOrTrashFile(container).execute(src, dest);
+  const { error: fileError } = await handleFileRenameIntent({ src, dest, container });
+  if (!fileError) return { data: undefined };
+  if (fileError.code !== FuseCodes.ENOENT) return { error: fileError };
 
-  if (fileEither.isLeft()) {
-    return { error: fileEither.getLeft() };
-  }
+  const { error: folderError } = await handleFolderRenameIntent({ src, dest, container });
+  if (!folderError) return { data: undefined };
+  if (folderError.code !== FuseCodes.ENOENT) return { error: folderError };
 
-  if (fileEither.getRight() === 'success') {
-    return { data: undefined };
-  }
-
-  const folderEither = await new RenameMoveOrTrashFolder(container).execute(src, dest);
-
-  if (folderEither.isLeft()) {
-    return { error: folderEither.getLeft() };
-  }
-
-  if (folderEither.getRight() === 'success') {
-    return { data: undefined };
-  }
-
-  const uploadEither = await new UploadOnRename(container).run(src, dest);
-
-  if (uploadEither.isLeft()) {
-    return { error: uploadEither.getLeft() };
-  }
-
-  if (uploadEither.getRight() === 'success') {
-    return { data: undefined };
-  }
-
-  return { error: new FuseNoSuchFileOrDirectoryError(src) };
+  const { error: uploadError } = await handleOfflineUploadOnRename({ src, dest, container });
+  if (uploadError) return { error: uploadError };
+  return { data: undefined };
 }
