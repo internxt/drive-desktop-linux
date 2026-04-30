@@ -8,8 +8,8 @@ import { SyncError } from '../../../../../../shared/issues/SyncErrorCause';
 import { FuseError, FuseUnknownError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 
 type Props = {
-  folder: Folder,
-  container: Container
+  folder: Folder;
+  container: Container;
 };
 
 export async function trashFolder({ folder, container }: Props): Promise<Result<void, FuseError>> {
