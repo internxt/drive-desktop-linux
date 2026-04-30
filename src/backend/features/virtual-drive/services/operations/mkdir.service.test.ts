@@ -5,8 +5,6 @@ import { FolderCreator } from '../../../../../context/virtual-drive/folders/appl
 import { SyncFolderMessenger } from '../../../../../context/virtual-drive/folders/domain/SyncFolderMessenger';
 import { mkdir } from './mkdir.service';
 
-vi.mock('@internxt/drive-desktop-core/build/backend');
-
 describe('mkdir', () => {
   let container: ReturnType<typeof mockDeep<Container>>;
   const folderCreator = mockDeep<FolderCreator>();
