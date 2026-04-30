@@ -10,10 +10,10 @@ import { SyncError } from '../../../../../../shared/issues/SyncErrorCause';
 import { FuseError, FuseUnknownError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 
 type Props = {
-  file: File;
-  src: string;
-  dest: string;
-  container: Container;
+  file: File,
+  src: string,
+  dest: string,
+  container: Container
 };
 
 export async function moveFile({ file, src, dest, container }: Props): Promise<Result<void, FuseError>> {
