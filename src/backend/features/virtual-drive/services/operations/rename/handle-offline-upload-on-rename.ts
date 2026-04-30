@@ -8,9 +8,9 @@ import { Result } from '../../../../../../context/shared/domain/Result';
 import { uploadTemporalFileOnRename } from './upload-temporal-file-on-rename';
 
 type Props = {
-    src: string,
-    dest: string,
-    container: Container
+  src: string;
+  dest: string;
+  container: Container;
 };
 
 export async function handleOfflineUploadOnRename({ src, dest, container }: Props): Promise<Result<void, FuseError>> {
@@ -33,4 +33,3 @@ export async function handleOfflineUploadOnRename({ src, dest, container }: Prop
 
   return uploadTemporalFileOnRename({ virtual: fileToOverride, document, src, container });
 }
-

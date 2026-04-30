@@ -7,9 +7,9 @@ import { handleFolderRenameIntent } from './rename/handle-folder-rename-intent';
 import { handleOfflineUploadOnRename } from './rename/handle-offline-upload-on-rename';
 
 type Props = {
-  src: string,
-  dest: string,
-  container: Container
+  src: string;
+  dest: string;
+  container: Container;
 };
 
 export async function rename({ src, dest, container }: Props): Promise<Result<void, FuseError>> {

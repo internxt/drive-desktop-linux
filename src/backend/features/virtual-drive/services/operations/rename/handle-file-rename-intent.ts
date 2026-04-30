@@ -7,9 +7,9 @@ import { trashFile } from './trash-file';
 import { moveFile } from './move-file';
 
 type Props = {
-    src: string,
-    dest: string,
-    container: Container
+  src: string;
+  dest: string;
+  container: Container;
 };
 
 export async function handleFileRenameIntent({ src, dest, container }: Props): Promise<Result<void, FuseError>> {
@@ -23,4 +23,3 @@ export async function handleFileRenameIntent({ src, dest, container }: Props): P
 
   return moveFile({ file, src, dest, container });
 }
-

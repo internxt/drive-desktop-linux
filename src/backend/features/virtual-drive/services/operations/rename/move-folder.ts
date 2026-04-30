@@ -8,10 +8,10 @@ import { Result } from '../../../../../../context/shared/domain/Result';
 import { FuseError, FuseUnknownError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 
 type Props = {
-    folder: Folder,
-    src: string,
-    dest: string,
-    container: Container
+  folder: Folder;
+  src: string;
+  dest: string;
+  container: Container;
 };
 
 export async function moveFolder({ folder, src, dest, container }: Props): Promise<Result<void, FuseError>> {

@@ -7,9 +7,9 @@ import { TemporalFileByteByByteComparator } from '../../../../../../context/stor
 import { TemporalFilePath } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFilePath';
 
 type Props = {
-    virtual: File,
-    document: TemporalFile,
-    container: Container
+  virtual: File;
+  document: TemporalFile;
+  container: Container;
 };
 
 export async function compareTemporalFile({ virtual, document, container }: Props): Promise<boolean> {

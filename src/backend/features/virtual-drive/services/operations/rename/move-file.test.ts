@@ -56,9 +56,15 @@ describe('move-file', () => {
   it('should notify renaming before and renamed after update', async () => {
     // Given
     const order: string[] = [];
-    messengerMock.renaming.mockImplementation(async () => { order.push('renaming'); });
-    updaterMock.run.mockImplementation(async () => { order.push('run'); });
-    messengerMock.renamed.mockImplementation(async () => { order.push('renamed'); });
+    messengerMock.renaming.mockImplementation(async () => {
+      order.push('renaming');
+    });
+    updaterMock.run.mockImplementation(async () => {
+      order.push('run');
+    });
+    messengerMock.renamed.mockImplementation(async () => {
+      order.push('renamed');
+    });
 
     // When
     await moveFile(props);

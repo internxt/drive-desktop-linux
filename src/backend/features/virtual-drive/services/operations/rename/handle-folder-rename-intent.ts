@@ -7,9 +7,9 @@ import { trashFolder } from './trash-folder';
 import { moveFolder } from './move-folder';
 
 type Props = {
-    src: string,
-    dest: string,
-    container: Container
+  src: string;
+  dest: string;
+  container: Container;
 };
 
 export async function handleFolderRenameIntent({ src, dest, container }: Props): Promise<Result<void, FuseError>> {

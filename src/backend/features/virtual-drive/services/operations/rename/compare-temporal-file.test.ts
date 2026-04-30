@@ -2,7 +2,10 @@ import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { File, FileAttributes } from '../../../../../../context/virtual-drive/files/domain/File';
 import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
-import { TemporalFile, TemporalFileAttributes } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import {
+  TemporalFile,
+  TemporalFileAttributes,
+} from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { TemporalFilePath } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFilePath';
 import { RelativePathToAbsoluteConverter } from '../../../../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
 import { TemporalFileByteByByteComparator } from '../../../../../../context/storage/TemporalFiles/application/comparation/TemporalFileByteByByteComparator';
@@ -69,10 +72,7 @@ describe('compare-temporal-file', () => {
 
     // Then
     expect(result).toBe(false);
-    call(comparatorMock.run).toStrictEqual([
-      expect.any(TemporalFilePath),
-      document.path,
-    ]);
+    call(comparatorMock.run).toStrictEqual([expect.any(TemporalFilePath), document.path]);
   });
 
   it('should return true when byte comparator says files differ', async () => {

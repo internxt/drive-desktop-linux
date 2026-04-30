@@ -2,7 +2,10 @@ import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { File, FileAttributes } from '../../../../../../context/virtual-drive/files/domain/File';
 import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
-import { TemporalFile, TemporalFileAttributes } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import {
+  TemporalFile,
+  TemporalFileAttributes,
+} from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { TemporalFileUploader } from '../../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileDeleter } from '../../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
 import { uploadTemporalFileOnRename } from './upload-temporal-file-on-rename';
@@ -90,7 +93,9 @@ describe('upload-temporal-file-on-rename', () => {
       order.push('upload');
       return 'uploaded-file-id';
     });
-    deleterMock.run.mockImplementation(async () => { order.push('delete'); });
+    deleterMock.run.mockImplementation(async () => {
+      order.push('delete');
+    });
 
     // When
     await uploadTemporalFileOnRename(props);

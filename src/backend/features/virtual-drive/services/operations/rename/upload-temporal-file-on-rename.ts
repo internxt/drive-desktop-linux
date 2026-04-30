@@ -8,13 +8,18 @@ import { Result } from '../../../../../../context/shared/domain/Result';
 import { compareTemporalFile } from './compare-temporal-file';
 
 type Props = {
-    virtual: File,
-    document: TemporalFile,
-    src: string,
-    container: Container
+  virtual: File;
+  document: TemporalFile;
+  src: string;
+  container: Container;
 };
 
-export async function uploadTemporalFileOnRename({ virtual, document, src, container }: Props): Promise<Result<void, FuseError>> {
+export async function uploadTemporalFileOnRename({
+  virtual,
+  document,
+  src,
+  container,
+}: Props): Promise<Result<void, FuseError>> {
   const hasDiff = await compareTemporalFile({ virtual, document, container });
 
   if (!hasDiff) {

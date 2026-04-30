@@ -3,7 +3,10 @@ import { Container } from 'diod';
 import { FirstsFileSearcher } from '../../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { File, FileAttributes } from '../../../../../../context/virtual-drive/files/domain/File';
 import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
-import { TemporalFile, TemporalFileAttributes } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import {
+  TemporalFile,
+  TemporalFileAttributes,
+} from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { TemporalFileByPathFinder } from '../../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { handleOfflineUploadOnRename } from './handle-offline-upload-on-rename';

@@ -52,9 +52,15 @@ describe('move-folder', () => {
   it('should notify rename before and renamed after update', async () => {
     // Given
     const order: string[] = [];
-    messengerMock.rename.mockImplementation(async () => { order.push('rename'); });
-    updaterMock.run.mockImplementation(async () => { order.push('run'); });
-    messengerMock.renamed.mockImplementation(async () => { order.push('renamed'); });
+    messengerMock.rename.mockImplementation(async () => {
+      order.push('rename');
+    });
+    updaterMock.run.mockImplementation(async () => {
+      order.push('run');
+    });
+    messengerMock.renamed.mockImplementation(async () => {
+      order.push('renamed');
+    });
 
     // When
     await moveFolder(props);
