@@ -11,6 +11,10 @@ import (
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
 )
 
+type WriteCallbackData struct {
+	Written uint32 `json:"written"`
+}
+
 // InternxtFile is the file handle returned by Open.
 // It holds the context needed for future Read/Write implementation.
 // Operations with a path-based fallback (GetAttr, Chmod, Chown, Truncate, Utimens)
