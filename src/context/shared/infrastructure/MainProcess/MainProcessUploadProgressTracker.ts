@@ -1,5 +1,5 @@
 import { Service } from 'diod';
-import { setTrayStatus } from '../../../../apps/main/tray/tray';
+import { setTrayStatus } from '../../../../apps/main/tray/tray-setup';
 import { broadcastToWindows } from '../../../../apps/main/windows';
 import { SyncMessenger } from '../../domain/SyncMessenger';
 import { UploadProgressTracker } from '../../domain/UploadProgressTracker';

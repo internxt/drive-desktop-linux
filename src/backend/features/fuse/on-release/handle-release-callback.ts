@@ -6,7 +6,7 @@ import { FuseError, FuseIOError } from '../../../../apps/drive/fuse/callbacks/Fu
 type Props = {
   path: string;
   findTemporalFile: (path: string) => Promise<TemporalFile | undefined>;
-  uploadTemporalFile: (path: string) => Promise<string>;
+  uploadTemporalFile: (temporalFile: TemporalFile) => Promise<string>;
   deleteTemporalFile: (path: string) => Promise<void>;
 };
 export async function handleReleaseCallback({
@@ -29,7 +29,7 @@ export async function handleReleaseCallback({
     }
 
     try {
-      await uploadTemporalFile(temporalFile.path.value);
+      await uploadTemporalFile(temporalFile);
       logger.debug({ msg: '[Release] Temporal file uploaded', path });
       return right(undefined);
     } catch (uploadError) {

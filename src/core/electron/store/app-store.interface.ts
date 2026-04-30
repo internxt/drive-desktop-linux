@@ -36,7 +36,6 @@ export type AppStore = {
   backupInterval: number;
   lastBackup: number;
   syncRoot: string;
-  logEnginePath: string;
   lastSavedListing: string;
   lastSync: number;
 

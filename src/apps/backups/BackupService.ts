@@ -76,8 +76,8 @@ export class BackupService {
       await this.isThereEnoughSpace(filesDiff);
       logger.debug({ tag: 'BACKUPS', msg: 'Space check completed' });
 
-      const itemsAlreadyBacked = filesDiff.unmodified.length + foldersDiff.unmodified.length;
-      tracker.addToTotal(filesDiff.total + foldersDiff.total);
+      const emptyAddedFiles = filesDiff.added.filter((f) => f.size === 0).length;
+      const itemsAlreadyBacked = filesDiff.unmodified.length + foldersDiff.unmodified.length + emptyAddedFiles;
       tracker.incrementProcessed(itemsAlreadyBacked);
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting folder backup' });
@@ -250,7 +250,7 @@ export class BackupService {
 
       // eslint-disable-next-line no-await-in-loop
       await addFileToTrash(file.uuid);
+      tracker.incrementProcessed(1);
     }
-    tracker.incrementProcessed(deleted.length);
   }
 }

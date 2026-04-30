@@ -8,7 +8,6 @@ import { TemporalFileDeleter } from '../../../../context/storage/TemporalFiles/a
 import { TemporalFileByFolderFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
 import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFilePathsByFolderFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFilePathsByFolderFinder';
-import { TemporalFileChunkReader } from '../../../../context/storage/TemporalFiles/application/read/TemporalFileChunkReader';
 import { TemporalFileUploader } from '../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileWriter } from '../../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { TemporalFileRepository } from '../../../../context/storage/TemporalFiles/domain/TemporalFileRepository';
@@ -48,7 +47,6 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
   builder.registerAndUse(TemporalFileDeleter);
   builder.registerAndUse(TemporalFilePathsByFolderFinder);
   builder.registerAndUse(TemporalFileByPathFinder);
-  builder.registerAndUse(TemporalFileChunkReader);
   builder.registerAndUse(TemporalFileUploader);
   builder.registerAndUse(TemporalFileWriter);
   builder.registerAndUse(TemporalFileByteByByteComparator);

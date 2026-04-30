@@ -25,7 +25,7 @@ function createAuxiliaryFile(path: string): TemporalFile {
 
 describe('handle-release-callback', () => {
   const findTemporalFile = vi.fn<(path: string) => Promise<TemporalFile | undefined>>();
-  const uploadTemporalFile = vi.fn<(path: string) => Promise<string>>();
+  const uploadTemporalFile = vi.fn<(temporalFile: TemporalFile) => Promise<string>>();
   const deleteTemporalFile = vi.fn<(path: string) => Promise<void>>();
 
   it('should return right when no temporal file is found', async () => {
@@ -59,7 +59,8 @@ describe('handle-release-callback', () => {
   });
 
   it('should upload temporal file and returns right on success', async () => {
-    findTemporalFile.mockResolvedValue(createTemporalFile('/Documents/report.pdf'));
+    const temporalFile = createTemporalFile('/Documents/report.pdf');
+    findTemporalFile.mockResolvedValue(temporalFile);
     uploadTemporalFile.mockResolvedValue('contents-id-123');
 
     const result = await handleReleaseCallback({
@@ -71,7 +72,7 @@ describe('handle-release-callback', () => {
 
     expect(result.isRight()).toBe(true);
     calls(findTemporalFile).toHaveLength(1);
-    call(uploadTemporalFile).toBe('/Documents/report.pdf');
+    call(uploadTemporalFile).toBe(temporalFile);
   });
 
   it('should delete temporal file and return left when upload fails', async () => {

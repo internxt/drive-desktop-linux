@@ -19,7 +19,7 @@ export class TypeOrmAndNodeFsStorageFilesRepository implements StorageFilesRepos
     private readonly baseFolder: string,
     dataSource: DataSource,
   ) {
-    this.db = dataSource.getRepository('storage_file');
+    this.db = dataSource.getRepository(TypeOrmStorageFile);
   }
 
   async init(): Promise<void> {

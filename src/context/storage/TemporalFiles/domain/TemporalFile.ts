@@ -6,6 +6,7 @@ export type TemporalFileAttributes = {
   modifiedAt: Date;
   path: string;
   size: number;
+  contentFilePath?: string;
 };
 
 /**
@@ -29,6 +30,7 @@ export class TemporalFile extends AggregateRoot {
     private _path: TemporalFilePath,
     private _size: TemporalFileSize,
     private readonly _modifiedTime: Date,
+    private readonly _contentFilePath?: string,
   ) {
     super();
   }
@@ -55,6 +57,10 @@ export class TemporalFile extends AggregateRoot {
     return this._modifiedTime;
   }
 
+  public get contentFilePath() {
+    return this._contentFilePath;
+  }
+
   static create(path: TemporalFilePath, size: TemporalFileSize): TemporalFile {
     const createdAt = new Date();
 
@@ -79,6 +85,7 @@ export class TemporalFile extends AggregateRoot {
       new TemporalFilePath(attributes.path),
       new TemporalFileSize(attributes.size),
       attributes.modifiedAt,
+      attributes.contentFilePath,
     );
   }
 
@@ -117,6 +124,7 @@ export class TemporalFile extends AggregateRoot {
       modifiedAt: this._modifiedTime,
       path: this._path.value,
       size: this._size.value,
+      contentFilePath: this._contentFilePath,
     };
   }
 }

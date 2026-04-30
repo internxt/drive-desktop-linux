@@ -10,6 +10,7 @@ import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { FileSizeMother } from '../../domain/__test-helpers__/FileSizeMother';
 import { right } from '../../../../shared/domain/Either';
 import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mocks__/EventBusMock';
+import { clearPendingCreations } from '../../../folders/application/create/PendingFolderCreationTracker';
 
 describe('File Creator', () => {
   let remoteFileSystemMock: RemoteFileSystemMock;
@@ -25,6 +26,7 @@ describe('File Creator', () => {
     const parentFolderFinder = FolderFinderFactory.existingFolder();
     eventBus = new EventBusMock();
     notifier = new FileSyncNotifierMock();
+    clearPendingCreations();
 
     SUT = new FileCreator(remoteFileSystemMock, fileRepository, parentFolderFinder, eventBus, notifier);
   });

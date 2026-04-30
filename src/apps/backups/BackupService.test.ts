@@ -1,3 +1,4 @@
+import { Environment } from '@internxt/inxt-js';
 import { Mock } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
 import { BackupService } from './BackupService';
@@ -16,6 +17,7 @@ import { BackupProgressTracker } from '../../backend/features/backup/backup-prog
 import * as executeAsyncQueueModule from '../../backend/common/async-queue/execute-async-queue';
 import * as addFileToTrashModule from '../../infra/drive-server/services/files/services/add-file-to-trash';
 import { partialSpyOn } from '../../../tests/vitest/utils.helper';
+import { AbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
 
 vi.mock(import('../../backend/features/usage/usage.module'));
 
@@ -27,12 +29,13 @@ describe('BackupService', () => {
   let localTreeBuilder: LocalTreeBuilder;
   let remoteTreeBuilder: RemoteTreeBuilder;
   let simpleFolderCreator: SimpleFolderCreator;
+  let environment: Environment;
   let mockValidateSpace: Mock;
   let abortController: AbortController;
   let tracker: BackupProgressTracker;
 
   const info: BackupInfo = {
-    pathname: '/path/to/backup',
+    pathname: '/path/to/backup' as AbsolutePath,
     folderId: 123,
     folderUuid: 'uuid',
     tmpPath: '/tmp/path',
@@ -44,6 +47,7 @@ describe('BackupService', () => {
     localTreeBuilder = mockDeep<LocalTreeBuilder>();
     remoteTreeBuilder = mockDeep<RemoteTreeBuilder>();
     simpleFolderCreator = mockDeep<SimpleFolderCreator>();
+    environment = mockDeep<Environment>();
     tracker = mockDeep<BackupProgressTracker>();
 
     mockValidateSpace = vi.mocked(UsageModule.validateSpace);
@@ -57,7 +61,7 @@ describe('BackupService', () => {
       localTreeBuilder,
       remoteTreeBuilder,
       simpleFolderCreator,
-      {} as any,
+      environment,
       'backups-bucket',
     );
 
@@ -77,7 +81,6 @@ describe('BackupService', () => {
     expect(result).toBeUndefined();
     expect(localTreeBuilder.run).toHaveBeenCalledWith(info.pathname);
     expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderId, info.folderUuid);
-    expect(tracker.addToTotal).toHaveBeenCalled();
     expect(tracker.incrementProcessed).toHaveBeenCalled();
   });
 

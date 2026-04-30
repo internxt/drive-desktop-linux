@@ -11,13 +11,12 @@ let isLoggedIn = false;
 function initializeLoginState() {
   const { newToken } = getCredentials();
   if (getUser() && newToken) {
-    setIsLoggedIn(true);
+    isLoggedIn = true;
   }
 }
 
 export function setIsLoggedIn(value: boolean) {
   isLoggedIn = value;
-
   getWidget()?.webContents.send('user-logged-in-changed', value);
 }
 

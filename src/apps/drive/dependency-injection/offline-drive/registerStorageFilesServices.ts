@@ -1,7 +1,5 @@
 import { Environment } from '@internxt/inxt-js';
 import { ContainerBuilder } from 'diod';
-import { app } from 'electron';
-import path from 'path';
 import { StorageClearer } from '../../../../context/storage/StorageFiles/application/delete/StorageClearer';
 import { StorageFileDeleter } from '../../../../context/storage/StorageFiles/application/delete/StorageFileDeleter';
 import { MakeStorageFileAvaliableOffline } from '../../../../context/storage/StorageFiles/application/offline/MakeStorageFileAvaliableOffline';
@@ -11,20 +9,20 @@ import { StorageFilesRepository } from '../../../../context/storage/StorageFiles
 import { DownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
 import { EnvironmentFileDownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
 import { TypeOrmAndNodeFsStorageFilesRepository } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmAndNodeFsStorageFilesRepository';
-import { TypeOrmStorageFilesDataSourceFactory } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmStorageFilesDataSourceFactory';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { PATHS } from '../../../../core/electron/paths';
+import { AppDataSource } from '../../../main/database/data-source';
 
 export async function registerStorageFilesServices(builder: ContainerBuilder): Promise<void> {
   // Infra
 
-  const appData = app.getPath('appData');
-  const local = path.join(appData, 'internxt-drive', 'downloaded');
-
   const user = DependencyInjectionUserProvider.get();
 
-  const dataSource = await TypeOrmStorageFilesDataSourceFactory.create();
+  if (!AppDataSource.isInitialized) {
+    throw new Error('AppDataSource must be initialized before registerStorageFilesServices');
+  }
 
-  const repo = new TypeOrmAndNodeFsStorageFilesRepository(local, dataSource);
+  const repo = new TypeOrmAndNodeFsStorageFilesRepository(PATHS.DOWNLOADED, AppDataSource);
   await repo.init();
 
   builder.register(StorageFilesRepository).useInstance(repo);

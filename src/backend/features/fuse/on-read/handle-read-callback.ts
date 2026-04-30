@@ -1,10 +1,10 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { type TemporalFile } from '../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { type File } from '../../../../context/virtual-drive/files/domain/File';
-import { left, right, type Either } from '../../../../context/shared/domain/Either';
 import { type FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../apps/drive/fuse/callbacks/FuseErrors';
+import { type Result } from '../../../../context/shared/domain/Result';
 import { readChunkFromDisk } from './read-chunk-from-disk';
-import { shouldDownload } from '../on-open/open-flags-tracker';
+import { isBlocklistedProcess } from '../../virtual-drive/utils/process-blocklist';
 import nodePath from 'node:path';
 import { PATHS } from '../../../../core/electron/paths';
 import { formatBytes } from '../../../../shared/format-bytes';
@@ -47,16 +47,16 @@ async function readFromTemporalFile(
   path: string,
   length: number,
   position: number,
-): Promise<Either<FuseError, Buffer>> {
+): Promise<Result<Buffer, FuseError>> {
   const temporalFile = await deps.findTemporalFile(path);
 
   if (!temporalFile) {
     logger.error({ msg: '[ReadCallback] File not found', path });
-    return left(new FuseNoSuchFileOrDirectoryError(path));
+    return { error: new FuseNoSuchFileOrDirectoryError(path) };
   }
 
   const chunk = await deps.readTemporalFileChunk(temporalFile.path.value, length, position);
-  return right(chunk ?? EMPTY);
+  return { data: chunk ?? EMPTY };
 }
 
 async function ensureFileAllocated(filePath: string, virtualFile: File): Promise<FileHydrationState> {
@@ -117,16 +117,12 @@ export async function handleReadCallback(
   path: string,
   length: number,
   position: number,
-): Promise<Either<FuseError, Buffer>> {
+  processName: string,
+): Promise<Result<Buffer, FuseError>> {
   const virtualFile = await deps.findVirtualFile(path);
 
   if (!virtualFile) {
     return readFromTemporalFile(deps, path, length, position);
-  }
-
-  if (!shouldDownload(path)) {
-    logger.debug({ msg: '[ReadCallback] Download blocked - system open', path });
-    return right(EMPTY);
   }
 
   logger.debug({
@@ -140,8 +136,18 @@ export async function handleReadCallback(
   const state = await ensureFileAllocated(filePath, virtualFile);
 
   if (isRangeHydrated(state, { position, length })) {
+    if (isBlocklistedProcess(processName)) {
+      logger.debug({
+        msg: `[ReadCallback] Allowing read from disk for blocklisted process: ${processName} in ${path}`,
+      });
+    }
     logger.debug({ msg: '[ReadCallback] serving from disk cache', file: virtualFile.nameWithExtension });
-    return right(await readChunkFromDisk(filePath, length, position));
+    return { data: await readChunkFromDisk(filePath, length, position) };
+  }
+  
+  if (isBlocklistedProcess(processName)) {
+    logger.debug({ msg: '[ReadCallback] Download blocked - blocklisted process', path, processName });
+    return { data: EMPTY };
   }
 
   await ensureRangeDownloaded(deps, virtualFile, filePath, state, position, length);
@@ -150,5 +156,5 @@ export async function handleReadCallback(
     await onFileFullyHydrated(deps, virtualFile);
   }
 
-  return right(await readChunkFromDisk(filePath, length, position));
+  return { data: await readChunkFromDisk(filePath, length, position) };
 }

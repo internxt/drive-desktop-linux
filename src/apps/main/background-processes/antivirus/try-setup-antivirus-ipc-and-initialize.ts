@@ -6,7 +6,7 @@ export async function trySetupAntivirusIpcAndInitialize() {
   try {
     logger.debug({ tag: 'ANTIVIRUS', msg: '[Main] Setting up antivirus IPC handlers' });
     setupAntivirusIpc();
-    logger.debug({ msg: '[Main] Antivirus IPC handlers setup complete' });
+    logger.debug({ tag: 'ANTIVIRUS', msg: '[Main] Antivirus IPC handlers setup complete' });
     await getAntivirusManager().initialize();
   } catch (error) {
     logger.error({ tag: 'ANTIVIRUS', msg: '[Main] Error setting up antivirus:', error });

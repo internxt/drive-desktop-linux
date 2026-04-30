@@ -51,3 +51,8 @@ clamAV/**
 CLAUDE.md
 
 enable-sso.sh
+
+# Local Copilot customization files
+.github/copilot-instructions.md
+.github/instructions/contributing.instructions.md
+.github/instructions/testing.instructions.md

@@ -22,7 +22,7 @@ import AntivirusDarkImageSpanish from '../../assets/onboarding/antivirus/ES-Dark
 import AntivirusDarkImageFrench from '../../assets/onboarding/antivirus/FR-Dark.svg';
 import AntivirusDarkImageEnglish from '../../assets/onboarding/antivirus/EN-Dark.svg';
 
-import FileExplorerLightImage from '../../assets/onboarding/finder/linux-ligth.svg';
+import FileExplorerLightImage from '../../assets/onboarding/finder/linux-light.svg';
 import FileExplorerDarkImage from '../../assets/onboarding/finder/linux-dark.svg';
 
 import BackupsLightSvg from '../../assets/onboarding/backups/backups-light.svg';
