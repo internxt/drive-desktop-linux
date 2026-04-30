@@ -7,8 +7,6 @@ import { partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 
-vi.mock('@internxt/drive-desktop-core/build/backend');
-
 describe('mkdirController', () => {
   const mkdirMock = partialSpyOn(mkdirServiceModule, 'mkdir');
   let req: ReturnType<typeof mockDeep<Request>>;
