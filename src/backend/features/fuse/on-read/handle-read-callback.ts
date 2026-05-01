@@ -28,7 +28,7 @@ import { EMPTY } from './constants';
 export type HandleReadCallbackDeps = {
   findVirtualFile: (path: string) => Promise<File | undefined>;
   findTemporalFile: (path: string) => Promise<TemporalFile | undefined>;
-  readTemporalFileChunk: (path: string, length: number, position: number) => Promise<Buffer | undefined>;
+  // readTemporalFileChunk: (path: string, length: number, position: number) => Promise<Buffer | undefined>;
   onDownloadProgress: (
     name: string,
     extension: string,
@@ -50,12 +50,12 @@ async function readFromTemporalFile(
 ): Promise<Result<Buffer, FuseError>> {
   const temporalFile = await deps.findTemporalFile(path);
 
-  if (!temporalFile) {
+  if (!temporalFile || !temporalFile.contentFilePath) {
     logger.error({ msg: '[ReadCallback] File not found', path });
     return { error: new FuseNoSuchFileOrDirectoryError(path) };
   }
 
-  const chunk = await deps.readTemporalFileChunk(temporalFile.path.value, length, position);
+  const chunk = await readChunkFromDisk(temporalFile.contentFilePath, length, position);
   return { data: chunk ?? EMPTY };
 }
 
@@ -131,7 +131,10 @@ export async function handleReadCallback(
     position: formatBytes(position),
     length: formatBytes(length),
   });
-
+  if (isBlocklistedProcess(processName)) {
+    logger.debug({ msg: '[ReadCallback] Download blocked - blocklisted process', path, processName });
+    return { data: EMPTY };
+  }
   const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
   const state = await ensureFileAllocated(filePath, virtualFile);
 
@@ -143,11 +146,6 @@ export async function handleReadCallback(
     }
     logger.debug({ msg: '[ReadCallback] serving from disk cache', file: virtualFile.nameWithExtension });
     return { data: await readChunkFromDisk(filePath, length, position) };
-  }
-  
-  if (isBlocklistedProcess(processName)) {
-    logger.debug({ msg: '[ReadCallback] Download blocked - blocklisted process', path, processName });
-    return { data: EMPTY };
   }
 
   await ensureRangeDownloaded(deps, virtualFile, filePath, state, position, length);
