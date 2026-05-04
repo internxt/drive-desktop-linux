@@ -7,7 +7,7 @@ import { FolderRepositorySynchronizer } from '../../../context/virtual-drive/fol
 import { RemoteTreeBuilder } from '../../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
 import { StorageRemoteChangesSyncher } from '../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import * as helpersModule from './helpers';
-import * as hydrationModule from '../../../backend/features/fuse/on-read/hydration-registry';
+import * as hydrationStateModule from '../../../backend/features/fuse/on-read/download-cache/hydration-state';
 import * as childProcess from 'child_process';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { loggerMock } from 'tests/vitest/mocks.helper';
@@ -21,7 +21,7 @@ vi.mock('child_process', () => ({
 }));
 
 const mountPromiseMock = partialSpyOn(helpersModule, 'mountPromise');
-const destroyAllHydrationsMock = partialSpyOn(hydrationModule, 'destroyAllHydrations');
+const clearHydrationStateMock = partialSpyOn(hydrationStateModule, 'clearHydrationState');
 const execFileMock = vi.mocked(childProcess.execFile);
 
 function createMockContainer() {
@@ -208,14 +208,13 @@ describe.skip('FuseApp', () => {
   });
 
   describe('clearCache', () => {
-    it('should destroy hydrations and clear storage', async () => {
+    it('should clear hydration state and storage', async () => {
       const storageClearer = { run: vi.fn().mockResolvedValue(undefined) };
       register(StorageClearer, storageClearer);
-      destroyAllHydrationsMock.mockResolvedValue(undefined);
 
       await fuseApp.clearCache();
 
-      expect(destroyAllHydrationsMock).toHaveBeenCalled();
+      expect(clearHydrationStateMock).toHaveBeenCalled();
       expect(storageClearer.run).toHaveBeenCalled();
     });
   });
