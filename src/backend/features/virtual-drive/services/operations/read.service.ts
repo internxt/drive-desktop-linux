@@ -27,34 +27,32 @@ export async function read(
     const repo = container.get(StorageFilesRepository);
     const tracker = container.get(DownloadProgressTracker);
 
-    return await handleReadCallback(
-      {
-        findVirtualFile: (p) => container.get(FirstsFileSearcher).run({ path: p }),
-        findTemporalFile: (p) => container.get(TemporalFileByPathFinder).run(p),
-        onDownloadProgress: (name, extension, bytesDownloaded, fileSize, elapsedTime) => {
-          tracker.downloadUpdate(name, extension, {
-            percentage: Math.min(bytesDownloaded / fileSize, 1),
-            elapsedTime,
-          });
-        },
-        saveToRepository: async (contentsId, size, uuid, name, extension) => {
-          const storage = StorageFile.from({
-            id: contentsId,
-            virtualId: uuid,
-            size,
-          });
-          await repo.register(storage);
-          tracker.downloadFinished(name, extension);
-        },
-        bucketId: user.bucket,
-        mnemonic,
-        network,
+    return await handleReadCallback({
+      findVirtualFile: (p) => container.get(FirstsFileSearcher).run({ path: p }),
+      findTemporalFile: (p) => container.get(TemporalFileByPathFinder).run(p),
+      onDownloadProgress: (name, extension, bytesDownloaded, fileSize, elapsedTime) => {
+        tracker.downloadUpdate(name, extension, {
+          percentage: Math.min(bytesDownloaded / fileSize, 1),
+          elapsedTime,
+        });
       },
+      saveToRepository: async (contentsId, size, uuid, name, extension) => {
+        const storage = StorageFile.from({
+          id: contentsId,
+          virtualId: uuid,
+          size,
+        });
+        await repo.register(storage);
+        tracker.downloadFinished(name, extension);
+      },
+      bucketId: user.bucket,
+      mnemonic,
+      network,
       path,
       length,
       position,
       processName,
-    );
+    });
   } catch (err) {
     logger.error({ msg: '[FUSE - Read] Unexpected error', error: err, path });
     return { error: new FuseError(FuseCodes.EIO, `[FUSE - Read] IO error: ${path}`) };

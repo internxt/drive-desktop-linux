@@ -24,8 +24,7 @@ import { startStopwatch, deleteStopwatch } from './download-cache/hydration-stop
 import { fileExistsOnDisk } from './download-cache/file-exists-on-disk';
 import { downloadAndCacheBlock } from './download-cache/download-and-save-block';
 import { EMPTY } from './constants';
-
-export type HandleReadCallbackDeps = {
+export type HandleReadCallbackProps = {
   findVirtualFile: (path: string) => Promise<File | undefined>;
   findTemporalFile: (path: string) => Promise<TemporalFile | undefined>;
   // readTemporalFileChunk: (path: string, length: number, position: number) => Promise<Buffer | undefined>;
@@ -40,89 +39,29 @@ export type HandleReadCallbackDeps = {
   bucketId: string;
   mnemonic: string;
   network: Network.Network;
+  path: string;
+  length: number;
+  position: number;
+  processName: string;
 };
 
-async function readFromTemporalFile(
-  deps: HandleReadCallbackDeps,
-  path: string,
-  length: number,
-  position: number,
-): Promise<Result<Buffer, FuseError>> {
-  const temporalFile = await deps.findTemporalFile(path);
-
-  if (!temporalFile || !temporalFile.contentFilePath) {
-    logger.error({ msg: '[ReadCallback] File not found', path });
-    return { error: new FuseNoSuchFileOrDirectoryError(path) };
-  }
-
-  const chunk = await readChunkFromDisk(temporalFile.contentFilePath, length, position);
-  return { data: chunk ?? EMPTY };
-}
-
-async function ensureFileAllocated(filePath: string, virtualFile: File): Promise<FileHydrationState> {
-  const allocated = await fileExistsOnDisk(filePath);
-  if (!allocated) {
-    await allocateFile(filePath, virtualFile.size);
-    startStopwatch(virtualFile.contentsId);
-  }
-  return getOrInitHydrationState(virtualFile.contentsId, virtualFile.size);
-}
-
-async function ensureRangeDownloaded(
-  deps: HandleReadCallbackDeps,
-  virtualFile: File,
-  filePath: string,
-  state: FileHydrationState,
-  position: number,
-  length: number,
-): Promise<void> {
-  const { blockStart, blockLength } = expandToBlockBoundaries(position, length, virtualFile.size);
-
-  const blocksBeingDownloaded = getBlocksBeingDownloaded(state, { position: blockStart, length: blockLength });
-  if (blocksBeingDownloaded.size > 0) {
-    logger.debug({ msg: '[ReadCallback] waiting for blocks being downloaded', file: virtualFile.nameWithExtension });
-    await Promise.all(blocksBeingDownloaded.values());
-  }
-
-  const missingBlocks = getMissingBlocks(state, { position: blockStart, length: blockLength });
-  if (missingBlocks.length > 0) {
-    logger.debug({
-      msg: '[ReadCallback] downloading missing blocks',
-      file: virtualFile.nameWithExtension,
-      blocks: missingBlocks,
-    });
-    await Promise.all(
-      missingBlocks.map((block) => {
-        const start = block * BLOCK_SIZE;
-        const end = Math.min(start + BLOCK_SIZE, virtualFile.size);
-        return downloadAndCacheBlock(deps, virtualFile, filePath, state, start, end - start);
-      }),
-    );
-  }
-}
-
-async function onFileFullyHydrated(deps: HandleReadCallbackDeps, virtualFile: File): Promise<void> {
-  deleteStopwatch(virtualFile.contentsId);
-  await deps.saveToRepository(
-    virtualFile.contentsId,
-    virtualFile.size,
-    virtualFile.uuid,
-    virtualFile.name,
-    virtualFile.type,
-  );
-}
-
-export async function handleReadCallback(
-  deps: HandleReadCallbackDeps,
-  path: string,
-  length: number,
-  position: number,
-  processName: string,
-): Promise<Result<Buffer, FuseError>> {
-  const virtualFile = await deps.findVirtualFile(path);
+export async function handleReadCallback({
+  findVirtualFile,
+  findTemporalFile,
+  onDownloadProgress,
+  saveToRepository,
+  bucketId,
+  mnemonic,
+  network,
+  path,
+  length,
+  position,
+  processName,
+}: HandleReadCallbackProps): Promise<Result<Buffer, FuseError>> {
+  const virtualFile = await findVirtualFile(path);
 
   if (!virtualFile) {
-    return readFromTemporalFile(deps, path, length, position);
+    return readFromTemporalFile(findTemporalFile, path, length, position);
   }
 
   logger.debug({
@@ -148,11 +87,117 @@ export async function handleReadCallback(
     return { data: await readChunkFromDisk(filePath, length, position) };
   }
 
-  await ensureRangeDownloaded(deps, virtualFile, filePath, state, position, length);
+  await ensureRangeDownloaded({
+    bucketId,
+    mnemonic,
+    network,
+    onDownloadProgress,
+    virtualFile,
+    filePath,
+    state,
+    position,
+    length,
+  });
 
   if (isFileHydrated(state)) {
-    await onFileFullyHydrated(deps, virtualFile);
+    await onFileFullyHydrated(saveToRepository, virtualFile);
   }
 
   return { data: await readChunkFromDisk(filePath, length, position) };
+}
+
+async function readFromTemporalFile(
+  findTemporalFile: HandleReadCallbackProps['findTemporalFile'],
+  path: string,
+  length: number,
+  position: number,
+): Promise<Result<Buffer, FuseError>> {
+  const temporalFile = await findTemporalFile(path);
+
+  if (!temporalFile || !temporalFile.contentFilePath) {
+    logger.error({ msg: '[ReadCallback] File not found', path });
+    return { error: new FuseNoSuchFileOrDirectoryError(path) };
+  }
+
+  const chunk = await readChunkFromDisk(temporalFile.contentFilePath, length, position);
+  return { data: chunk ?? EMPTY };
+}
+
+async function ensureFileAllocated(filePath: string, virtualFile: File): Promise<FileHydrationState> {
+  const allocated = await fileExistsOnDisk(filePath);
+  if (!allocated) {
+    await allocateFile(filePath, virtualFile.size);
+    startStopwatch(virtualFile.contentsId);
+  }
+  return getOrInitHydrationState(virtualFile.contentsId, virtualFile.size);
+}
+
+async function ensureRangeDownloaded({
+  bucketId,
+  mnemonic,
+  network,
+  onDownloadProgress,
+  virtualFile,
+  filePath,
+  state,
+  position,
+  length,
+}: {
+  bucketId: HandleReadCallbackProps['bucketId'];
+  mnemonic: HandleReadCallbackProps['mnemonic'];
+  network: HandleReadCallbackProps['network'];
+  onDownloadProgress: HandleReadCallbackProps['onDownloadProgress'];
+  virtualFile: File;
+  filePath: string;
+  state: FileHydrationState;
+  position: number;
+  length: number;
+}): Promise<void> {
+  const { blockStart, blockLength } = expandToBlockBoundaries(position, length, virtualFile.size);
+
+  const blocksBeingDownloaded = getBlocksBeingDownloaded(state, { position: blockStart, length: blockLength });
+  if (blocksBeingDownloaded.size > 0) {
+    logger.debug({ msg: '[ReadCallback] waiting for blocks being downloaded', file: virtualFile.nameWithExtension });
+    await Promise.all(blocksBeingDownloaded.values());
+  }
+
+  const missingBlocks = getMissingBlocks(state, { position: blockStart, length: blockLength });
+  if (missingBlocks.length > 0) {
+    logger.debug({
+      msg: '[ReadCallback] downloading missing blocks',
+      file: virtualFile.nameWithExtension,
+      blocks: missingBlocks,
+    });
+    await Promise.all(
+      missingBlocks.map((block) => {
+        const start = block * BLOCK_SIZE;
+        const end = Math.min(start + BLOCK_SIZE, virtualFile.size);
+        return downloadAndCacheBlock({
+          bucketId,
+          mnemonic,
+          network,
+          onDownloadProgress,
+          virtualFile,
+          filePath,
+          state,
+          blockStart: start,
+          blockLength: end - start,
+        });
+      }),
+    );
+  }
+}
+
+async function onFileFullyHydrated(
+  saveToRepository: HandleReadCallbackProps['saveToRepository'],
+  virtualFile: File,
+): Promise<void> {
+  deleteStopwatch(virtualFile.contentsId);
+  await saveToRepository(
+    virtualFile.contentsId,
+    virtualFile.size,
+    virtualFile.uuid,
+    virtualFile.name,
+    virtualFile.type,
+  );
 }
