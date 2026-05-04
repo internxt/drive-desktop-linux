@@ -81,10 +81,6 @@
     "rpm": {
       "depends": [
         "fuse-libs"
-      ],
-      "fpm": [
-        "--rpm-tag",
-        "Recommends: nautilus-python"
       ]
     },
     "directories": {

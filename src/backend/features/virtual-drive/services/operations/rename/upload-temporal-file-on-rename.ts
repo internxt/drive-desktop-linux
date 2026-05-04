@@ -5,7 +5,7 @@ import { TemporalFileUploader } from '../../../../../../context/storage/Temporal
 import { TemporalFileDeleter } from '../../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
 import { FuseError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../../context/shared/domain/Result';
-import { compareTemporalFile } from './compare-temporal-file';
+import { hasTemporalFileChanged } from './has-temporal-file-changed';
 
 type Props = {
   virtual: File;
@@ -20,9 +20,9 @@ export async function uploadTemporalFileOnRename({
   src,
   container,
 }: Props): Promise<Result<void, FuseError>> {
-  const hasDiff = await compareTemporalFile({ virtual, document, container });
+  const hasChanged = await hasTemporalFileChanged({ virtual, document, container });
 
-  if (!hasDiff) {
+  if (!hasChanged) {
     await container.get(TemporalFileDeleter).run(src);
     return { data: undefined };
   }

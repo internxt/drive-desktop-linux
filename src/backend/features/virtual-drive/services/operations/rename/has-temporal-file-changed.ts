@@ -12,7 +12,7 @@ type Props = {
   container: Container;
 };
 
-export async function compareTemporalFile({ virtual, document, container }: Props): Promise<boolean> {
+export async function hasTemporalFileChanged({ virtual, document, container }: Props): Promise<boolean> {
   if (virtual.size !== document.size.value) {
     return true;
   }

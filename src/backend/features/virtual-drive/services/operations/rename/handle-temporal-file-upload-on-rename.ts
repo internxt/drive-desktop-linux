@@ -13,7 +13,7 @@ type Props = {
   container: Container;
 };
 
-export async function handleOfflineUploadOnRename({ src, dest, container }: Props): Promise<Result<void, FuseError>> {
+export async function handleTemporalFileUploadOnRename({ src, dest, container }: Props): Promise<Result<void, FuseError>> {
   const fileToOverride = await container.get(FirstsFileSearcher).run({
     path: dest,
     status: FileStatuses.EXISTS,

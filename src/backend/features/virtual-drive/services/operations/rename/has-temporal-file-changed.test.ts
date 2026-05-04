@@ -9,7 +9,7 @@ import {
 import { TemporalFilePath } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFilePath';
 import { RelativePathToAbsoluteConverter } from '../../../../../../context/virtual-drive/shared/application/RelativePathToAbsoluteConverter';
 import { TemporalFileByteByByteComparator } from '../../../../../../context/storage/TemporalFiles/application/comparation/TemporalFileByteByByteComparator';
-import { compareTemporalFile } from './compare-temporal-file';
+import { hasTemporalFileChanged } from './has-temporal-file-changed';
 import { call, calls } from '../../../../../../../tests/vitest/utils.helper';
 
 const fileAttrs: FileAttributes = {
@@ -32,7 +32,7 @@ const temporalAttrs: TemporalFileAttributes = {
   size: 100,
 };
 
-describe('compare-temporal-file', () => {
+describe('has-temporal-file-changed', () => {
   const virtual = File.from(fileAttrs);
   const document = TemporalFile.from(temporalAttrs);
   let container: ReturnType<typeof mockDeep<Container>>;
@@ -55,7 +55,7 @@ describe('compare-temporal-file', () => {
     const differentSizeDoc = TemporalFile.from({ ...temporalAttrs, size: 200 });
 
     // When
-    const result = await compareTemporalFile({ virtual, document: differentSizeDoc, container });
+    const result = await hasTemporalFileChanged({ virtual, document: differentSizeDoc, container });
 
     // Then
     expect(result).toBe(true);
@@ -68,7 +68,7 @@ describe('compare-temporal-file', () => {
     comparatorMock.run.mockResolvedValue(true);
 
     // When
-    const result = await compareTemporalFile(props);
+    const result = await hasTemporalFileChanged(props);
 
     // Then
     expect(result).toBe(false);
@@ -81,7 +81,7 @@ describe('compare-temporal-file', () => {
     comparatorMock.run.mockResolvedValue(false);
 
     // When
-    const result = await compareTemporalFile(props);
+    const result = await hasTemporalFileChanged(props);
 
     // Then
     expect(result).toBe(true);
@@ -93,7 +93,7 @@ describe('compare-temporal-file', () => {
     comparatorMock.run.mockRejectedValue(new Error('disk error'));
 
     // When
-    const result = await compareTemporalFile(props);
+    const result = await hasTemporalFileChanged(props);
 
     // Then
     expect(result).toBe(false);

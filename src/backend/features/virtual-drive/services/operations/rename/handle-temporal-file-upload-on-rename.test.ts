@@ -9,7 +9,7 @@ import {
 } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { TemporalFileByPathFinder } from '../../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../../apps/drive/fuse/callbacks/FuseCodes';
-import { handleOfflineUploadOnRename } from './handle-offline-upload-on-rename';
+import { handleTemporalFileUploadOnRename } from './handle-temporal-file-upload-on-rename';
 import * as uploadTemporalFileOnRenameModule from './upload-temporal-file-on-rename';
 import { call, calls, partialSpyOn } from '../../../../../../../tests/vitest/utils.helper';
 
@@ -33,13 +33,13 @@ const temporalAttrs: TemporalFileAttributes = {
   size: 100,
 };
 
-describe('handle-offline-upload-on-rename', () => {
+describe('handle-temporal-file-upload-on-rename', () => {
   const uploadMock = partialSpyOn(uploadTemporalFileOnRenameModule, 'uploadTemporalFileOnRename');
   let container: ReturnType<typeof mockDeep<Container>>;
   let searcherMock: ReturnType<typeof mockDeep<FirstsFileSearcher>>;
   let finderMock: ReturnType<typeof mockDeep<TemporalFileByPathFinder>>;
 
-  const props: Parameters<typeof handleOfflineUploadOnRename>[0] = {
+  const props: Parameters<typeof handleTemporalFileUploadOnRename>[0] = {
     src: '/tmp/internxt/file.txt',
     dest: '/folder/file.txt',
     container: undefined as unknown as Container,
@@ -60,7 +60,7 @@ describe('handle-offline-upload-on-rename', () => {
     searcherMock.run.mockResolvedValue(undefined);
 
     // When
-    const result = await handleOfflineUploadOnRename(props);
+    const result = await handleTemporalFileUploadOnRename(props);
 
     // Then
     expect(result.error?.code).toBe(FuseCodes.ENOENT);
@@ -73,7 +73,7 @@ describe('handle-offline-upload-on-rename', () => {
     finderMock.run.mockResolvedValue(undefined);
 
     // When
-    const result = await handleOfflineUploadOnRename(props);
+    const result = await handleTemporalFileUploadOnRename(props);
 
     // Then
     expect(result.error?.code).toBe(FuseCodes.ENOENT);
@@ -88,7 +88,7 @@ describe('handle-offline-upload-on-rename', () => {
     finderMock.run.mockResolvedValue(document);
 
     // When
-    const result = await handleOfflineUploadOnRename(props);
+    const result = await handleTemporalFileUploadOnRename(props);
 
     // Then
     expect(result.data).toBeUndefined();
@@ -100,7 +100,7 @@ describe('handle-offline-upload-on-rename', () => {
     searcherMock.run.mockResolvedValue(undefined);
 
     // When
-    await handleOfflineUploadOnRename(props);
+    await handleTemporalFileUploadOnRename(props);
 
     // Then
     call(searcherMock.run).toStrictEqual({ path: props.dest, status: FileStatuses.EXISTS });
@@ -112,7 +112,7 @@ describe('handle-offline-upload-on-rename', () => {
     finderMock.run.mockResolvedValue(undefined);
 
     // When
-    await handleOfflineUploadOnRename(props);
+    await handleTemporalFileUploadOnRename(props);
 
     // Then
     call(finderMock.run).toBe(props.src);
