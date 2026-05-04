@@ -83,7 +83,8 @@
         "fuse-libs"
       ],
       "fpm": [
-        "--rpm-tag", "Recommends: nautilus-python"
+        "--rpm-tag",
+        "Recommends: nautilus-python"
       ]
     },
     "directories": {
