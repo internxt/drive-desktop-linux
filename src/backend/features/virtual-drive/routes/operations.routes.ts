@@ -37,7 +37,6 @@ export function buildOperationsRouter(container: Container): Router {
   );
   router.post(OPERATION_PATHS.RELEASE, (req, res) => releaseController(req, res, container));
   router.post(OPERATION_PATHS.MKDIR, (req, res) => mkdirController(req, res, container));
-  router.post(OPERATION_PATHS.RENAME, (req, res) => renameController(req, res, container));
   router.post(OPERATION_PATHS.UNLINK, (req, res) => unlinkController(req, res, container));
   router.post(OPERATION_PATHS.RMDIR, (req, res) => rmdirController(req, res, container));
   router.post(OPERATION_PATHS.RENAME, (req, res) => renameController(req, res, container));
