@@ -7,7 +7,6 @@ import { TemporalFileUploader } from '../../../../../context/storage/TemporalFil
 import { TemporalFileDeleter } from '../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
-
 type Props = {
   path: string;
   processName: string;
