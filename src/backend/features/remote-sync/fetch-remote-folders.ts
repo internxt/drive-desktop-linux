@@ -14,8 +14,10 @@ type FetchFoldersResponse = {
   folders: RemoteSyncedFolder[];
 };
 
-export async function fetchRemoteFolders({ limit, updatedAtCheckpoint }: Props): Promise<Result<FetchFoldersResponse, Error>> {
-
+export async function fetchRemoteFolders({
+  limit,
+  updatedAtCheckpoint,
+}: Props): Promise<Result<FetchFoldersResponse, Error>> {
   const { data, error } = await fetchFolders({
     limit,
     offset: 0,
