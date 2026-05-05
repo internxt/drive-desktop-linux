@@ -444,3 +444,65 @@ func TestRmdir(t *testing.T) {
 		}
 	})
 }
+
+func TestTruncate(t *testing.T) {
+	t.Run("returns OK when backend returns 200", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: fileAttrHandler,
+			client.OperationTruncate: func(response http.ResponseWriter, request *http.Request) {
+				response.WriteHeader(http.StatusOK)
+			},
+		})
+
+		err := os.Truncate(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("truncate-ok-%d.txt", time.Now().UnixNano())), 0)
+		if err != nil {
+			t.Fatalf("truncate: %v", err)
+		}
+	})
+
+	t.Run("returns EIO on transport failure", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: fileAttrHandler,
+			client.OperationTruncate: func(response http.ResponseWriter, request *http.Request) {
+				response.WriteHeader(http.StatusInternalServerError)
+			},
+		})
+
+		err := os.Truncate(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("truncate-eio-%d.txt", time.Now().UnixNano())), 0)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		pathErr, ok := err.(*os.PathError)
+		if !ok {
+			t.Fatalf("expected *os.PathError, got %T", err)
+		}
+
+		if pathErr.Err != syscall.EIO {
+			t.Errorf("expected EIO, got %v", pathErr.Err)
+		}
+	})
+
+	t.Run("returns ENOENT when backend returns errno 2", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: fileAttrHandler,
+			client.OperationTruncate: func(response http.ResponseWriter, request *http.Request) {
+				respondJSON(response, client.ErrorResponse{Errno: 2})
+			},
+		})
+
+		err := os.Truncate(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("truncate-missing-%d.txt", time.Now().UnixNano())), 0)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		pathErr, ok := err.(*os.PathError)
+		if !ok {
+			t.Fatalf("expected *os.PathError, got %T", err)
+		}
+
+		if pathErr.Err != syscall.ENOENT {
+			t.Errorf("expected ENOENT, got %v", pathErr.Err)
+		}
+	})
+}

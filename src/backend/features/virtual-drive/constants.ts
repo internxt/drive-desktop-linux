@@ -9,6 +9,7 @@ export const OPERATION_PATHS = {
   OPEN: '/open',
   OPEN_DIR: '/opendir',
   READ: '/read',
+  TRUNCATE: '/truncate',
   CREATE: '/create',
   WRITE: '/write',
   RELEASE: '/release',

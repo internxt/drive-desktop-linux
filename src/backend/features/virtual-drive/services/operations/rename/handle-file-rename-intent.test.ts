@@ -85,6 +85,21 @@ describe('handle-file-rename-intent', () => {
     calls(trashFileMock).toHaveLength(0);
   });
 
+  it('should return success without moving when dest is an auxiliary path', async () => {
+    // Given
+    const file = File.from(fileAttrs);
+    searcherMock.run.mockResolvedValue(file);
+
+    // When
+    const result = await handleFileRenameIntent({ ...props, dest: '/old/file.txt~' });
+
+    // Then
+    expect(result.error).toBeUndefined();
+    expect(result.data).toBeUndefined();
+    calls(moveFileMock).toHaveLength(0);
+    calls(trashFileMock).toHaveLength(0);
+  });
+
   it('should propagate error from trashFile', async () => {
     // Given
     const file = File.from(fileAttrs);

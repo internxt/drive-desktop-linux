@@ -8,6 +8,7 @@ import { Result } from '../../../../../context/shared/domain/Result';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FileTrasher } from '../../../../../context/virtual-drive/files/application/trash/FileTrasher';
 import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
+import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 
 export async function unlink(path: string, container: Container): Promise<Result<void, FuseError>> {
   const file = await container.get(FirstsFileSearcher).run({
@@ -18,13 +19,15 @@ export async function unlink(path: string, container: Container): Promise<Result
   if (!file) {
     const temporalFile = await container.get(TemporalFileByPathFinder).run(path);
 
-    if (!temporalFile) {
+    if (!temporalFile && !TemporalFile.isTemporaryPath(path)) {
       const msg = `[FUSE - Unlink] File not found: ${path}`;
       logger.error({ msg });
       return { error: new FuseError(FuseCodes.ENOENT, msg) };
     }
 
-    await container.get(TemporalFileDeleter).run(path);
+    if (temporalFile) {
+      await container.get(TemporalFileDeleter).run(path);
+    }
 
     return { data: undefined };
   }

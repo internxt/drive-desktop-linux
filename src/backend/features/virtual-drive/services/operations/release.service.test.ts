@@ -5,8 +5,24 @@ import { TemporalFileByPathFinder } from '../../../../../context/storage/Tempora
 import { TemporalFileUploader } from '../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileDeleter } from '../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
+import { File, FileAttributes } from '../../../../../context/virtual-drive/files/domain/File';
+import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { call, calls } from '../../../../../../tests/vitest/utils.helper';
+
+const fileAttrs: FileAttributes = {
+  id: 1,
+  uuid: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+  contentsId: 'aabbccddeeff001122334455',
+  folderId: 0,
+  createdAt: new Date().toISOString(),
+  modificationTime: new Date().toISOString(),
+  path: '/Documents/report.pdf',
+  size: 100,
+  updatedAt: new Date().toISOString(),
+  status: FileStatuses.EXISTS,
+};
 
 function createTemporalFile(path: string): TemporalFile {
   return TemporalFile.from({ path, size: 100, createdAt: new Date(), modifiedAt: new Date() });
@@ -21,12 +37,15 @@ describe('release', () => {
   const finder = mockDeep<TemporalFileByPathFinder>();
   const uploader = mockDeep<TemporalFileUploader>();
   const deleter = mockDeep<TemporalFileDeleter>();
+  const fileSearcher = mockDeep<FirstsFileSearcher>();
 
   beforeEach(() => {
     container = mockDeep<Container>();
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(finder);
     container.get.calledWith(TemporalFileUploader).mockReturnValue(uploader);
     container.get.calledWith(TemporalFileDeleter).mockReturnValue(deleter);
+    container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
+    fileSearcher.run.mockResolvedValue(undefined);
   });
 
   describe('when no temporal file is found', () => {
@@ -42,7 +61,7 @@ describe('release', () => {
   });
 
   describe('when an auxiliary file is found', () => {
-    it('should return success without uploading', async () => {
+    it('should return success, skip upload and delete it', async () => {
       finder.run.mockResolvedValue(createAuxiliaryFile('/Documents/.~lock.file.odt#'));
 
       const { data, error } = await release({ path: '/Documents/.~lock.file.odt#', processName: 'cat', container });
@@ -50,20 +69,39 @@ describe('release', () => {
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
       calls(uploader.run).toHaveLength(0);
+      call(deleter.run).toStrictEqual('/Documents/.~lock.file.odt#');
     });
   });
 
   describe('when a temporal file is found', () => {
-    it('should upload and return success', async () => {
+    it('should upload without replaces when no virtual file exists', async () => {
       const temporalFile = createTemporalFile('/Documents/report.pdf');
       finder.run.mockResolvedValue(temporalFile);
+      fileSearcher.run.mockResolvedValue(undefined);
       uploader.run.mockResolvedValue('contents-id-123');
 
       const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
 
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
-      call(uploader.run).toStrictEqual(temporalFile);
+      call(uploader.run).toStrictEqual([temporalFile, undefined]);
+    });
+
+    it('should upload with replaces when a virtual file exists at the same path', async () => {
+      const temporalFile = createTemporalFile('/Documents/report.pdf');
+      const existingFile = File.from(fileAttrs);
+      finder.run.mockResolvedValue(temporalFile);
+      fileSearcher.run.mockResolvedValue(existingFile);
+      uploader.run.mockResolvedValue('new-contents-id');
+
+      const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
+
+      expect(error).toBeUndefined();
+      expect(data).toBeUndefined();
+      call(uploader.run).toStrictEqual([
+        temporalFile,
+        { contentsId: existingFile.contentsId, name: existingFile.name, extension: existingFile.type },
+      ]);
     });
 
     it('should delete the file and return EIO when upload fails', async () => {

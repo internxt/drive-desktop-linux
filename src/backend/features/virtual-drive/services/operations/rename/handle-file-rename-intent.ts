@@ -1,5 +1,6 @@
 import { Container } from 'diod';
 import { FirstsFileSearcher } from '../../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
+import { TemporalFile } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
 import { FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../../context/shared/domain/Result';
@@ -20,6 +21,7 @@ export async function handleFileRenameIntent({ src, dest, container }: Props): P
 
   if (!file) return { error: new FuseNoSuchFileOrDirectoryError(src) };
   if (dest.startsWith('/.Trash')) return trashFile({ file, container });
+  if (TemporalFile.isTemporaryPath(dest)) return { data: undefined };
 
   return moveFile({ file, src, dest, container });
 }

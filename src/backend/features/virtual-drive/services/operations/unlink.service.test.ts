@@ -78,6 +78,14 @@ describe('unlink', () => {
     expect(error?.code).toBe(FuseCodes.ENOENT);
   });
 
+  it('should return success when a missing auxiliary file is unlinked', async () => {
+    const { data, error } = await unlink('/some/file.txt~', container);
+
+    expect(error).toBeUndefined();
+    expect(data).toBeUndefined();
+    expect(temporalDeleter.run).not.toHaveBeenCalled();
+  });
+
   it('should return EIO when file trash fails', async () => {
     fileSearcher.run.mockResolvedValue(
       File.from({
