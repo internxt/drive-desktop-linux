@@ -5,6 +5,7 @@ import { getAttributesController } from '../controllers/operations/get-attribute
 import { openController } from '../controllers/operations/open.controller';
 import { openDirController } from '../controllers/operations/opendir.controller';
 import { readController } from '../controllers/operations/read.controller';
+import { truncateController } from '../controllers/operations/truncate.controller';
 import { createController } from '../controllers/operations/create.controller';
 import { writeController } from '../controllers/operations/write.controller';
 import { releaseController } from '../controllers/operations/release.controller';
@@ -21,6 +22,7 @@ export function buildOperationsRouter(container: Container): Router {
   router.post(OPERATION_PATHS.OPEN, (req, res) => openController(req, res, container));
   router.post(OPERATION_PATHS.OPEN_DIR, (req, res) => openDirController(req, res, container));
   router.post(OPERATION_PATHS.READ, (req, res) => readController(req, res, container));
+  router.post(OPERATION_PATHS.TRUNCATE, (req, res) => truncateController(req, res, container));
   router.post(OPERATION_PATHS.CREATE, (req, res) => createController(req, res, container));
   /**
    * v.2.6.0

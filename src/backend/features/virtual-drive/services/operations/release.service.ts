@@ -5,6 +5,8 @@ import { FuseError, FuseIOError } from '../../../../../apps/drive/fuse/callbacks
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFileUploader } from '../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileDeleter } from '../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
+import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
+import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
 type Props = {
   path: string;
   processName: string;
@@ -20,12 +22,18 @@ export async function release({ path, processName, container }: Props): Promise<
     }
 
     if (temporalFile.isAuxiliary()) {
-      logger.debug({ msg: '[Release] Auxiliary file detected, skipping upload', path, processName });
+      logger.debug({ msg: '[Release] Auxiliary file detected, deleting without upload', path, processName });
+      await container.get(TemporalFileDeleter).run(path);
       return { data: undefined };
     }
 
+    const existingFile = await container.get(FirstsFileSearcher).run({ path, status: FileStatuses.EXISTS });
+    const replaces = existingFile
+      ? { contentsId: existingFile.contentsId, name: existingFile.name, extension: existingFile.type }
+      : undefined;
+
     try {
-      await container.get(TemporalFileUploader).run(temporalFile);
+      await container.get(TemporalFileUploader).run(temporalFile, replaces);
       logger.debug({ msg: '[Release] Temporal file uploaded', path, processName });
       return { data: undefined };
     } catch (uploadError) {

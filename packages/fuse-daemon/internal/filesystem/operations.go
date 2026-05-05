@@ -171,6 +171,16 @@ func (fs *InternxtFilesystem) Rmdir(name string, context *fuse.Context) fuse.Sta
 	return fuse.OK
 }
 
+func (fs *InternxtFilesystem) Truncate(name string, size uint64, context *fuse.Context) fuse.Status {
+	fs.logger.Debug("Received Truncate call", "path", name, "size", size)
+	body := struct {
+		Path string `json:"path"`
+		Size uint64 `json:"size"`
+	}{Path: name, Size: size}
+
+	return fs.client.Post(context, client.OperationTruncate, body, nil)
+}
+
 func (fs *InternxtFilesystem) GetXAttr(name string, attr string, context *fuse.Context) ([]byte, fuse.Status) {
 	fs.logger.Warn("not implemented", "op", "GetXAttr", "path", name, "attr", attr)
 	return nil, fuse.ENOSYS
