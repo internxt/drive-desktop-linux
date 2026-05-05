@@ -3,7 +3,6 @@ import { extname } from 'node:path';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { canGenerateThumbnail } from '../../../../../backend/features/thumbnails/thumbnail.extensions';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
-import { TemporalFilePath } from '../../domain/TemporalFilePath';
 import { TemporalFileUploaderFactory } from '../../domain/upload/TemporalFileUploaderFactory';
 import { TemporalFileUploadedDomainEvent } from '../../domain/upload/TemporalFileUploadedDomainEvent';
 import { EventBus } from '../../../../virtual-drive/shared/domain/EventBus';

@@ -66,7 +66,7 @@ describe('change-backup-path', () => {
 
     mockedConfigStoreGet.mockReturnValue(backupList);
     mockedGetBackupFolderUuid.mockResolvedValue({ data: 'remote-folder-uuid' });
-    mockedRenameFolder.mockResolvedValue({ data: {} as any });
+    mockedRenameFolder.mockResolvedValue({ data: {} });
     mockedMigrateBackupEntryIfNeeded.mockResolvedValue(migratedBackup);
 
     const result = await changeBackupPath({ currentPath, newPath });

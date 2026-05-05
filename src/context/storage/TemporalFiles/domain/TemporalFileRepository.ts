@@ -12,6 +12,8 @@ export abstract class TemporalFileRepository {
 
   abstract write(path: TemporalFilePath, buffer: Buffer, length: number, position: number): Promise<void>;
 
+  abstract truncate(path: TemporalFilePath, size: number): Promise<void>;
+
   abstract read(path: TemporalFilePath): Promise<Buffer>;
 
   abstract stream(path: TemporalFilePath): Promise<Readable>;

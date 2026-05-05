@@ -17,10 +17,12 @@ export class MainProcessSyncFileMessenger extends SyncMessenger implements SyncF
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async trashing(_name: string, _type: string, _size: number): Promise<void> {
     setTrayStatus('SYNCING');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async trashed(name: string, type: string, size: number): Promise<void> {
     const nameWithExtension = this.nameWithExtension(name, type);
 

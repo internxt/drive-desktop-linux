@@ -35,7 +35,7 @@ export async function handleDeeplink({ url }: Props) {
       logger.debug({ tag: 'AUTH', msg: 'Config restoration attempt on login', restored, uuid: userData.uuid });
     }
 
-    await setupRootFolder(PATHS.ROOT_DRIVE_FOLDER);
+    setupRootFolder(PATHS.ROOT_DRIVE_FOLDER);
 
     setIsLoggedIn(true);
 

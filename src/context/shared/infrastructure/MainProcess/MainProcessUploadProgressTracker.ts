@@ -7,6 +7,8 @@ import { UploadProgressTracker } from '../../domain/UploadProgressTracker';
 @Service()
 export class MainProcessUploadProgressTracker extends SyncMessenger implements UploadProgressTracker {
   uploadStarted(name: string, extension: string, size: number): void {
+    setTrayStatus('SYNCING');
+
     const nameWithExtension = this.nameWithExtension(name, extension);
 
     broadcastToWindows('sync-info-update', {
