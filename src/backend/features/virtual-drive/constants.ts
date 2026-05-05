@@ -13,6 +13,7 @@ export const OPERATION_PATHS = {
   WRITE: '/write',
   RELEASE: '/release',
   MKDIR: '/mkdir',
+  RENAME: '/rename',
   UNLINK: '/unlink',
   RMDIR: '/rmdir',
 } as const;
