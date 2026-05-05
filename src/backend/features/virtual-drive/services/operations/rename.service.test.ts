@@ -5,13 +5,13 @@ import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import * as handleFileRenameIntentModule from './rename/handle-file-rename-intent';
 import * as handleFolderRenameIntentModule from './rename/handle-folder-rename-intent';
-import * as handleOfflineUploadOnRenameModule from './rename/handle-offline-upload-on-rename';
+import * as handleOfflineUploadOnRenameModule from './rename/handle-temporal-file-upload-on-rename';
 import { call, calls, partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
 
 describe('rename', () => {
   const fileHandlerMock = partialSpyOn(handleFileRenameIntentModule, 'handleFileRenameIntent');
   const folderHandlerMock = partialSpyOn(handleFolderRenameIntentModule, 'handleFolderRenameIntent');
-  const uploadHandlerMock = partialSpyOn(handleOfflineUploadOnRenameModule, 'handleOfflineUploadOnRename');
+  const uploadHandlerMock = partialSpyOn(handleOfflineUploadOnRenameModule, 'handleTemporalFileUploadOnRename');
 
   let container: ReturnType<typeof mockDeep<Container>>;
 

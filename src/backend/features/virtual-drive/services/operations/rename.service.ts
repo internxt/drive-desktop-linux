@@ -4,7 +4,7 @@ import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { handleFileRenameIntent } from './rename/handle-file-rename-intent';
 import { handleFolderRenameIntent } from './rename/handle-folder-rename-intent';
-import { handleOfflineUploadOnRename } from './rename/handle-offline-upload-on-rename';
+import { handleTemporalFileUploadOnRename } from './rename/handle-temporal-file-upload-on-rename';
 
 type Props = {
   src: string;
@@ -21,7 +21,7 @@ export async function rename({ src, dest, container }: Props): Promise<Result<vo
   if (!folderError) return { data: undefined };
   if (folderError.code !== FuseCodes.ENOENT) return { error: folderError };
 
-  const { error: uploadError } = await handleOfflineUploadOnRename({ src, dest, container });
+  const { error: uploadError } = await handleTemporalFileUploadOnRename({ src, dest, container });
   if (uploadError) return { error: uploadError };
   return { data: undefined };
 }

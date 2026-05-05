@@ -9,7 +9,7 @@ import {
 import { TemporalFileUploader } from '../../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileDeleter } from '../../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
 import { uploadTemporalFileOnRename } from './upload-temporal-file-on-rename';
-import * as compareTemporalFileModule from './compare-temporal-file';
+import * as compareTemporalFileModule from './has-temporal-file-changed';
 import { call, calls, partialSpyOn } from '../../../../../../../tests/vitest/utils.helper';
 
 const fileAttrs: FileAttributes = {
@@ -33,7 +33,7 @@ const temporalAttrs: TemporalFileAttributes = {
 };
 
 describe('upload-temporal-file-on-rename', () => {
-  const compareTemporalFileMock = partialSpyOn(compareTemporalFileModule, 'compareTemporalFile');
+  const compareTemporalFileMock = partialSpyOn(compareTemporalFileModule, 'hasTemporalFileChanged');
   const virtual = File.from(fileAttrs);
   const document = TemporalFile.from(temporalAttrs);
   let container: ReturnType<typeof mockDeep<Container>>;
