@@ -17,7 +17,7 @@ export async function syncRemoteFolders({ state, db, config, errorHandler, syncC
         collection: db.folders,
         rewindMilliseconds: SIX_HOURS_IN_MILLISECONDS,
       }),
-    fetchRemoteItems: async (updatedAtCheckpoint) =>{
+    fetchRemoteItems: async (updatedAtCheckpoint) => {
       const { error, data } = await fetchRemoteFolders({
         limit: config.fetchFoldersLimitPerRequest,
         updatedAtCheckpoint,

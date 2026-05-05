@@ -13,7 +13,10 @@ type FetchFilesResponse = {
   files: RemoteSyncedFile[];
 };
 
-export async function fetchRemoteFiles({ limit, updatedAtCheckpoint }: Props): Promise<Result<FetchFilesResponse, Error>> {
+export async function fetchRemoteFiles({
+  limit,
+  updatedAtCheckpoint,
+}: Props): Promise<Result<FetchFilesResponse, Error>> {
   const { data, error } = await fetchFiles({
     limit,
     offset: 0,
@@ -23,10 +26,10 @@ export async function fetchRemoteFiles({ limit, updatedAtCheckpoint }: Props): P
 
   if (error) return { error };
 
-  return { data:
-    {
+  return {
+    data: {
       hasMore: data.hasMore,
-      files: data.files.map(patchDriveFileResponseItem)
-    }
+      files: data.files.map(patchDriveFileResponseItem),
+    },
   };
 }
