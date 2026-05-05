@@ -102,6 +102,46 @@ func TestRelease(t *testing.T) {
 	})
 }
 
+func TestFsync(t *testing.T) {
+	noopHandlers := map[client.OperationPath]http.HandlerFunc{
+		client.OperationGetAttr: fileAttrHandler,
+		client.OperationOpen: func(w http.ResponseWriter, r *http.Request) {
+			respondJSON(w, client.ErrorResponse{Errno: 0})
+		},
+		client.OperationRelease: func(w http.ResponseWriter, r *http.Request) {
+			respondJSON(w, client.ErrorResponse{Errno: 0})
+		},
+	}
+
+	t.Run("returns OK without calling the backend", func(t *testing.T) {
+		fsyncCalled := false
+		handlers := make(map[client.OperationPath]http.HandlerFunc, len(noopHandlers))
+		for k, v := range noopHandlers {
+			handlers[k] = v
+		}
+		handlers["/op/fsync"] = func(w http.ResponseWriter, r *http.Request) {
+			fsyncCalled = true
+			respondJSON(w, client.ErrorResponse{Errno: 0})
+		}
+		sharedMount.mockServer.setHandlers(handlers)
+
+		fileName := fmt.Sprintf("file-%d.txt", time.Now().UnixNano())
+		f, err := os.OpenFile(filepath.Join(sharedMount.mountPoint, fileName), os.O_WRONLY, 0)
+		if err != nil {
+			t.Fatalf("open: %v", err)
+		}
+		defer func() { _ = f.Close() }()
+
+		if err := f.Sync(); err != nil {
+			t.Fatalf("fsync: %v", err)
+		}
+
+		if fsyncCalled {
+			t.Error("expected Fsync to be handled locally — backend should not be called")
+		}
+	})
+}
+
 func TestRead(t *testing.T) {
 	noopRelease := func(w http.ResponseWriter, r *http.Request) {
 		respondJSON(w, client.ErrorResponse{Errno: 0})

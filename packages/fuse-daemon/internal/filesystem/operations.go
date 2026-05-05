@@ -1,6 +1,7 @@
 package filesystem
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -184,4 +185,30 @@ func (fs *InternxtFilesystem) Truncate(name string, size uint64, context *fuse.C
 func (fs *InternxtFilesystem) GetXAttr(name string, attr string, context *fuse.Context) ([]byte, fuse.Status) {
 	fs.logger.Warn("not implemented", "op", "GetXAttr", "path", name, "attr", attr)
 	return nil, fuse.ENOSYS
+}
+
+// v.2.6.0
+// Esteban Galvis Triana
+// StatFs returns filesystem-level statistics (total/free/available blocks and inodes).
+// These values are used by applications (vim, cp, df) to determine whether
+// there is sufficient space before writing. The backend queries the local
+// disk where temporal files are stored and returns the real available space.
+func (fs *InternxtFilesystem) StatFs(name string) *fuse.StatfsOut {
+	fs.logger.Debug("Received StatFs call", "name", name)
+	body := struct {
+		Path string `json:"path"`
+	}{Path: name}
+	response := StatFsCallbackData{}
+	if status := fs.client.Post(context.Background(), client.OperationStatFs, body, &response); status != fuse.OK {
+		fs.logger.Error("Error occurred while getting filesystem stats", "status", status)
+		return nil
+	}
+	return &fuse.StatfsOut{
+		Blocks: response.Blocks,
+		Bfree:  response.Bfree,
+		Bavail: response.Bavail,
+		Files:  response.Files,
+		Ffree:  response.Ffree,
+		Bsize:  response.Bsize,
+	}
 }

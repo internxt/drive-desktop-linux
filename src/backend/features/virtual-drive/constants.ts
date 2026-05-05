@@ -17,6 +17,7 @@ export const OPERATION_PATHS = {
   RENAME: '/rename',
   UNLINK: '/unlink',
   RMDIR: '/rmdir',
+  STAT_FS: '/statfs',
 } as const;
 /**
  * property to define a regular file when requesting in the get attributes fuse request.
