@@ -49,13 +49,7 @@ export async function downloadAndCacheBlock({
 
     markBlocksInRangeDownloaded(state, { position: blockStart, length: blockLength });
     const elapsedTime = state.stopwatch?.elapsedTime() ?? 0;
-    onDownloadProgress(
-      virtualFile.name,
-      virtualFile.type,
-      getHydratedBytes(state),
-      virtualFile.size,
-      elapsedTime,
-    );
+    onDownloadProgress(virtualFile.name, virtualFile.type, getHydratedBytes(state), virtualFile.size, elapsedTime);
     return { data: undefined };
   } catch (error) {
     if (isAborted(state)) return { data: undefined };

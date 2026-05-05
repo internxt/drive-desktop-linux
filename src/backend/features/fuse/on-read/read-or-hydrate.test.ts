@@ -436,7 +436,10 @@ describe('readOrHydrate', () => {
   });
 
   it('allows failed finalization to be retried by a later normal read', async () => {
-    const saveToRepository = vi.fn().mockRejectedValueOnce(new Error('register failed')).mockResolvedValueOnce(undefined);
+    const saveToRepository = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('register failed'))
+      .mockResolvedValueOnce(undefined);
     const deps = createDeps({ saveToRepository });
     const state = getOrCreateHydrationState(virtualFile.contentsId, virtualFile.size);
     markBlocksInRangeDownloaded(state, { position: 0, length: virtualFile.size });

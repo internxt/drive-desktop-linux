@@ -6,11 +6,7 @@ type Range = {
   length: number;
 };
 
-export async function readIfHydrated(
-  filePath: string,
-  contentsId: string,
-  range: Range,
-): Promise<Buffer | undefined> {
+export async function readIfHydrated(filePath: string, contentsId: string, range: Range): Promise<Buffer | undefined> {
   const state = getExistingHydrationState(contentsId);
   if (!state) return undefined;
   if (!isRangeHydrated(state, range)) return undefined;

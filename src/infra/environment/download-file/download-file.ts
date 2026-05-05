@@ -58,7 +58,7 @@ export async function downloadFileRange({
       Buffer.from,
       downloadFileCb,
       decryptFileCb,
-  );
+    );
   } catch (error) {
     if (signal.aborted) return abortedDownloadResult();
     return { error: error instanceof Error ? error : new Error('Unknown error occurred') };
