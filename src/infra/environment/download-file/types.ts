@@ -1,7 +1,7 @@
 import { Network } from '@internxt/sdk';
 
 export type DownloadFileProps = {
-  signal: AbortController;
+  signal: AbortSignal;
   fileId: string;
   bucketId: string;
   mnemonic: string;

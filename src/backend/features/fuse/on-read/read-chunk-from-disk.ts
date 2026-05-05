@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises';
-
+// TODO: Rename chunk -> block
 export async function writeChunkToDisk(filePath: string, buffer: Buffer, position: number): Promise<void> {
   const handle = await fs.open(filePath, 'r+');
   try {

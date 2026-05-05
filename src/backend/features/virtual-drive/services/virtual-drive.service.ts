@@ -7,7 +7,7 @@ import { startFuseDaemonServer, stopFuseDaemonServer } from './server.service';
 import { updateVirtualDriveContainer } from './update-virtual-drive-container.service';
 import { DependencyInjectionUserProvider } from '../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
 import { StorageClearer } from '../../../../context/storage/StorageFiles/application/delete/StorageClearer';
-import { clearHydrationState } from '../../fuse/on-read/download-cache/hydration-state';
+import { abortAllHydrations, clearHydrationState } from '../../fuse/on-read/download-cache/hydration-state';
 
 let container: Container | undefined;
 
@@ -20,11 +20,8 @@ export async function startVirtualDrive() {
   container = await DriveDependencyContainerFactory.build();
   await updateVirtualDriveContainer({ container, user: DependencyInjectionUserProvider.get() });
   /**
-   * v2.5.4
-   * Alexis Mora
-   * If a user abruptly quits the app, all the hydrated files will be orphaned.
-   * Hence why we clear the cache before starting up the virtual drive.
-   * To ensure that every time we get a fresh start.
+   * Clear stale block-cache state and orphaned hydrated files before mounting.
+   * Future virtual-drive reads recreate cache files and hydrate only requested blocks.
    */
   clearHydrationState();
   await container.get(StorageClearer).run();
@@ -34,6 +31,7 @@ export async function startVirtualDrive() {
 
 export async function stopVirtualDrive() {
   logger.debug({ msg: '[VIRTUAL DRIVE] stopping daemon...' });
+  abortAllHydrations();
   await stopDaemon();
   logger.debug({ msg: '[VIRTUAL DRIVE] clearing storage cache...' });
   clearHydrationState();

@@ -49,8 +49,10 @@ export async function read(
       mnemonic,
       network,
       path,
-      length,
-      position,
+      range: {
+        length,
+        position,
+      },
       processName,
     });
   } catch (err) {

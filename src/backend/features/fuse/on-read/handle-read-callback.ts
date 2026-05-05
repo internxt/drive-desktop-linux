@@ -7,44 +7,25 @@ import { readChunkFromDisk } from './read-chunk-from-disk';
 import { isBlocklistedProcess } from '../../virtual-drive/utils/process-blocklist';
 import nodePath from 'node:path';
 import { PATHS } from '../../../../core/electron/paths';
-import { formatBytes } from '../../../../shared/format-bytes';
-import { allocateFile } from './download-cache/allocate-file';
-import { expandToBlockBoundaries } from './download-cache/expand-to-block-boundaries';
-import { BLOCK_SIZE } from './download-cache/constants';
-import {
-  type FileHydrationState,
-  getOrInitHydrationState,
-  isRangeHydrated,
-  isFileHydrated,
-  getBlocksBeingDownloaded,
-  getMissingBlocks,
-} from './download-cache/hydration-state';
-import { type Network } from '@internxt/sdk';
-import { startStopwatch, deleteStopwatch } from './download-cache/hydration-stopwatch';
-import { fileExistsOnDisk } from './download-cache/file-exists-on-disk';
-import { downloadAndCacheBlock } from './download-cache/download-and-save-block';
 import { EMPTY } from './constants';
-export type HandleReadCallbackProps = {
+import { readIfHydrated } from './download-cache/read-if-hydrated';
+import { readOrHydrate } from './read-or-hydrate';
+import { type HandleReadDeps, type ReadRange } from './types';
+export type HandleReadCallbackProps = HandleReadDeps & {
   findVirtualFile: (path: string) => Promise<File | undefined>;
   findTemporalFile: (path: string) => Promise<TemporalFile | undefined>;
-  // readTemporalFileChunk: (path: string, length: number, position: number) => Promise<Buffer | undefined>;
-  onDownloadProgress: (
-    name: string,
-    extension: string,
-    bytesDownloaded: number,
-    fileSize: number,
-    elapsedTime: number,
-  ) => void;
-  saveToRepository: (contentsId: string, size: number, uuid: string, name: string, extension: string) => Promise<void>;
-  bucketId: string;
-  mnemonic: string;
-  network: Network.Network;
   path: string;
-  length: number;
-  position: number;
+  range: ReadRange;
   processName: string;
 };
 
+/**
+ * Routes reads between virtual-drive files and temporal local files.
+ *
+ * Virtual-file reads enforce process policy: blocklisted processes are cache-only
+ * readers, while normal processes may hydrate missing cache blocks and finalize the
+ * file once the full contents are available.
+ */
 export async function handleReadCallback({
   findVirtualFile,
   findTemporalFile,
@@ -54,56 +35,38 @@ export async function handleReadCallback({
   mnemonic,
   network,
   path,
-  length,
-  position,
+  range,
   processName,
 }: HandleReadCallbackProps): Promise<Result<Buffer, FuseError>> {
   const virtualFile = await findVirtualFile(path);
 
   if (!virtualFile) {
-    return readFromTemporalFile(findTemporalFile, path, length, position);
+    return readFromTemporalFile(findTemporalFile, path, range.length, range.position);
   }
 
-  logger.debug({
-    msg: '[ReadCallback] read request:',
-    file: virtualFile.nameWithExtension,
-    position: formatBytes(position),
-    length: formatBytes(length),
-  });
+  const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
   if (isBlocklistedProcess(processName)) {
-    logger.debug({ msg: '[ReadCallback] Download blocked - blocklisted process', path, processName });
+    const cached = await readIfHydrated(filePath, virtualFile.contentsId, {
+      position: range.position,
+      length: range.length,
+    });
+    if (cached) {
+      return { data: cached };
+    }
+    logger.debug({ msg: '[ReadCallback] Download blocked for blocklisted process:', path, processName });
     return { data: EMPTY };
   }
-  const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
-  const state = await ensureFileAllocated(filePath, virtualFile);
 
-  if (isRangeHydrated(state, { position, length })) {
-    if (isBlocklistedProcess(processName)) {
-      logger.debug({
-        msg: `[ReadCallback] Allowing read from disk for blocklisted process: ${processName} in ${path}`,
-      });
-    }
-    logger.debug({ msg: '[ReadCallback] serving from disk cache', file: virtualFile.nameWithExtension });
-    return { data: await readChunkFromDisk(filePath, length, position) };
-  }
-
-  await ensureRangeDownloaded({
+  return readOrHydrate({
     bucketId,
     mnemonic,
     network,
     onDownloadProgress,
+    saveToRepository,
     virtualFile,
     filePath,
-    state,
-    position,
-    length,
+    range,
   });
-
-  if (isFileHydrated(state)) {
-    await onFileFullyHydrated(saveToRepository, virtualFile);
-  }
-
-  return { data: await readChunkFromDisk(filePath, length, position) };
 }
 
 async function readFromTemporalFile(
@@ -121,83 +84,4 @@ async function readFromTemporalFile(
 
   const chunk = await readChunkFromDisk(temporalFile.contentFilePath, length, position);
   return { data: chunk ?? EMPTY };
-}
-
-async function ensureFileAllocated(filePath: string, virtualFile: File): Promise<FileHydrationState> {
-  const allocated = await fileExistsOnDisk(filePath);
-  if (!allocated) {
-    await allocateFile(filePath, virtualFile.size);
-    startStopwatch(virtualFile.contentsId);
-  }
-  return getOrInitHydrationState(virtualFile.contentsId, virtualFile.size);
-}
-
-async function ensureRangeDownloaded({
-  bucketId,
-  mnemonic,
-  network,
-  onDownloadProgress,
-  virtualFile,
-  filePath,
-  state,
-  position,
-  length,
-}: {
-  bucketId: HandleReadCallbackProps['bucketId'];
-  mnemonic: HandleReadCallbackProps['mnemonic'];
-  network: HandleReadCallbackProps['network'];
-  onDownloadProgress: HandleReadCallbackProps['onDownloadProgress'];
-  virtualFile: File;
-  filePath: string;
-  state: FileHydrationState;
-  position: number;
-  length: number;
-}): Promise<void> {
-  const { blockStart, blockLength } = expandToBlockBoundaries(position, length, virtualFile.size);
-
-  const blocksBeingDownloaded = getBlocksBeingDownloaded(state, { position: blockStart, length: blockLength });
-  if (blocksBeingDownloaded.size > 0) {
-    logger.debug({ msg: '[ReadCallback] waiting for blocks being downloaded', file: virtualFile.nameWithExtension });
-    await Promise.all(blocksBeingDownloaded.values());
-  }
-
-  const missingBlocks = getMissingBlocks(state, { position: blockStart, length: blockLength });
-  if (missingBlocks.length > 0) {
-    logger.debug({
-      msg: '[ReadCallback] downloading missing blocks',
-      file: virtualFile.nameWithExtension,
-      blocks: missingBlocks,
-    });
-    await Promise.all(
-      missingBlocks.map((block) => {
-        const start = block * BLOCK_SIZE;
-        const end = Math.min(start + BLOCK_SIZE, virtualFile.size);
-        return downloadAndCacheBlock({
-          bucketId,
-          mnemonic,
-          network,
-          onDownloadProgress,
-          virtualFile,
-          filePath,
-          state,
-          blockStart: start,
-          blockLength: end - start,
-        });
-      }),
-    );
-  }
-}
-
-async function onFileFullyHydrated(
-  saveToRepository: HandleReadCallbackProps['saveToRepository'],
-  virtualFile: File,
-): Promise<void> {
-  deleteStopwatch(virtualFile.contentsId);
-  await saveToRepository(
-    virtualFile.contentsId,
-    virtualFile.size,
-    virtualFile.uuid,
-    virtualFile.name,
-    virtualFile.type,
-  );
 }

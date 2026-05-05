@@ -1,14 +1,14 @@
-import { type HandleReadCallbackProps } from '../handle-read-callback';
+import { type HandleReadDeps } from '../types';
 import { writeChunkToDisk } from '../read-chunk-from-disk';
-import { type FileHydrationState, markBlocksInRangeDownloaded, startBlockDownload } from './hydration-state';
+import { getHydratedBytes, type FileHydrationState, markBlocksInRangeDownloaded } from './hydration-state';
 import { type File } from '../../../../../context/virtual-drive/files/domain/File';
 import { downloadFileRange } from '../../../../../infra/environment/download-file/download-file';
-import { getStopwatch } from './hydration-stopwatch';
+import { type Result } from '../../../../../context/shared/domain/Result';
 type Props = {
-  bucketId: HandleReadCallbackProps['bucketId'];
-  mnemonic: HandleReadCallbackProps['mnemonic'];
-  network: HandleReadCallbackProps['network'];
-  onDownloadProgress: HandleReadCallbackProps['onDownloadProgress'];
+  bucketId: HandleReadDeps['bucketId'];
+  mnemonic: HandleReadDeps['mnemonic'];
+  network: HandleReadDeps['network'];
+  onDownloadProgress: HandleReadDeps['onDownloadProgress'];
   virtualFile: File;
   filePath: string;
   state: FileHydrationState;
@@ -29,22 +29,40 @@ export async function downloadAndCacheBlock({
   state,
   blockStart,
   blockLength,
-}: Props): Promise<void> {
-  const resolve = startBlockDownload(state, { position: blockStart, length: blockLength });
+}: Props): Promise<Result<void, Error>> {
+  if (isAborted(state)) return { data: undefined };
+
   try {
-    const buffer = await downloadFileRange({
+    const download = await downloadFileRange({
       fileId: virtualFile.contentsId,
       bucketId,
       mnemonic,
       network,
       range: { position: blockStart, length: blockLength },
-      signal: new AbortController(),
+      signal: state.abortController.signal,
     });
-    await writeChunkToDisk(filePath, buffer, blockStart);
+    if (isAborted(state)) return { data: undefined };
+    if (download.error) return { error: download.error };
+
+    await writeChunkToDisk(filePath, download.data, blockStart);
+    if (isAborted(state)) return { data: undefined };
+
     markBlocksInRangeDownloaded(state, { position: blockStart, length: blockLength });
-    const elapsedTime = getStopwatch(virtualFile.contentsId)?.elapsedTime() ?? 0;
-    onDownloadProgress(virtualFile.name, virtualFile.type, blockStart + blockLength, virtualFile.size, elapsedTime);
-  } finally {
-    resolve();
+    const elapsedTime = state.stopwatch?.elapsedTime() ?? 0;
+    onDownloadProgress(
+      virtualFile.name,
+      virtualFile.type,
+      getHydratedBytes(state),
+      virtualFile.size,
+      elapsedTime,
+    );
+    return { data: undefined };
+  } catch (error) {
+    if (isAborted(state)) return { data: undefined };
+    return { error: error instanceof Error ? error : new Error('Unknown error occurred') };
   }
+}
+
+function isAborted(state: FileHydrationState): boolean {
+  return state.abortController.signal.aborted;
 }
