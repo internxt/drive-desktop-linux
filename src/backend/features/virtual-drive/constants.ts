@@ -6,6 +6,17 @@ export const DAEMON_PATHS = {
 
 export const OPERATION_PATHS = {
   GET_ATTR: '/getattributes',
+  OPEN: '/open',
+  OPEN_DIR: '/opendir',
+  READ: '/read',
+  TRUNCATE: '/truncate',
+  CREATE: '/create',
+  WRITE: '/write',
+  RELEASE: '/release',
+  MKDIR: '/mkdir',
+  RENAME: '/rename',
+  UNLINK: '/unlink',
+  RMDIR: '/rmdir',
 } as const;
 /**
  * property to define a regular file when requesting in the get attributes fuse request.

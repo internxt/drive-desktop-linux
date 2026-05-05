@@ -21,10 +21,9 @@ describe('getAttributesController', () => {
     req = mockDeep<Request>();
     res = mockDeep<Response>();
     container = mockDeep<Container>();
-    res.status.mockReturnValue(res);
   });
 
-  it('should return 404 when getAttributes returns an error', async () => {
+  it('should return errno ENOENT when getAttributes returns a not found error', async () => {
     req.body = { path: '/missing.txt' };
     getAttributesMock.mockResolvedValue({
       error: new FuseError(FuseCodes.ENOENT, 'File not found'),
@@ -32,11 +31,10 @@ describe('getAttributesController', () => {
 
     await getAttributesController(req, res, container);
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.send).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ errno: FuseCodes.ENOENT });
   });
 
-  it('should return JSON attributes when file is found', async () => {
+  it('should return errno 0 with attributes when file is found', async () => {
     const now = new Date();
     req.body = { path: '/some/file.txt' };
     getAttributesMock.mockResolvedValue({
@@ -55,6 +53,7 @@ describe('getAttributesController', () => {
 
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
+        errno: 0,
         mode: FILE_MODE,
         size: 1234,
       }),
