@@ -8,7 +8,6 @@ import { createAbsolutePath } from '../../../context/local/localFile/infrastruct
 import { FolderDto } from '../../../infra/drive-server/out/dto';
 import { mapFolderDtoToBackupInfo } from './utils/mapFolderDtoToBackupInfo';
 import { findBackupPathnameFromId } from '../backup/find-backup-pathname-from-id';
-import { create } from 'lodash';
 
 export async function getBackupsFromDevice(
   device: Device,
