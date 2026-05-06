@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import { Readable } from 'form-data';
-import { readFile, unlink } from 'fs/promises';
+import { readFile, readdir, unlink } from 'fs/promises';
 import path from 'path';
 import { DataSource, Repository } from 'typeorm';
 import { tryCatch } from '../../../../../../../shared/try-catch';
@@ -86,11 +86,22 @@ export class TypeOrmAndNodeFsStorageFilesRepository implements StorageFilesRepos
       .map((id: StorageFileId) => this.delete(id));
 
     await Promise.all(deleted);
+    await this.deleteOrphanFilesFromBaseFolder();
   }
 
   async all(): Promise<StorageFile[]> {
     const all = await this.db.find();
 
     return all.map(StorageFile.from);
+  }
+
+  private async deleteOrphanFilesFromBaseFolder(): Promise<void> {
+    const entries = await readdir(this.baseFolder, { withFileTypes: true });
+    const deleted = entries
+      .filter((entry) => entry.isFile() || entry.isSymbolicLink())
+      .map((entry) => path.join(this.baseFolder, entry.name))
+      .map((pathToUnlink) => tryCatch(() => unlink(pathToUnlink)));
+
+    await Promise.all(deleted);
   }
 }
