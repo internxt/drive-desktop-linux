@@ -19,6 +19,7 @@ const (
 	OperationRename   OperationPath = "/op/rename"
 	OperationUnlink   OperationPath = "/op/unlink"
 	OperationRmdir    OperationPath = "/op/rmdir"
+	OperationStatFs   OperationPath = "/op/statfs"
 )
 
 const serverURL = "http://localhost"

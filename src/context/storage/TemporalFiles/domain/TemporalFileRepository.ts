@@ -23,4 +23,13 @@ export abstract class TemporalFileRepository {
   abstract watchFile(documentPath: TemporalFilePath, callback: () => void): () => void;
 
   abstract areEqual(doc1: TemporalFilePath, doc2: TemporalFilePath): Promise<boolean>;
+
+  abstract statFs(): Promise<{
+    blocks: number;
+    bfree: number;
+    bavail: number;
+    files: number;
+    ffree: number;
+    bsize: number;
+  }>;
 }

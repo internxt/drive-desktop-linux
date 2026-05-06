@@ -76,6 +76,8 @@ func (f *InternxtFile) Write(data []byte, off int64) (uint32, fuse.Status) {
 	return uint32(len(data)), fuse.OK
 }
 
+// v.2.6.0
+// Esteban Galvis Triana
 // Flush is called on each close(2) of the file descriptor.
 // Multiple flushes may occur if the file descriptor was duplicated.
 // Data is already persisted to the temporal file via Write, so no action is needed here.
@@ -94,7 +96,12 @@ func (f *InternxtFile) Release() {
 	}
 }
 
+// v.2.6.0
+// Esteban Galvis Triana
+// Fsync is called when the application requests a data flush (fsync/fdatasync).
+// Data is already persisted to the temporal file on each Write call, so there is
+// nothing extra to flush. Returning OK satisfies the caller without triggering ENOSYS.
 func (f *InternxtFile) Fsync(flags int) fuse.Status {
-	f.logger.Warn("not implemented", "op", "Fsync", "path", f.path)
-	return fuse.ENOSYS
+	f.logger.Debug("Received Fsync call", "path", f.path)
+	return fuse.OK
 }

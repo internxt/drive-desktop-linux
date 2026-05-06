@@ -22,7 +22,10 @@ describe('NodeTemporalFileRepository', () => {
     const documentPath = new TemporalFilePath('/Documents/.test-file.txt.swp');
 
     await repository.create(documentPath);
-    await repository.delete(documentPath);
+    const temporalFile = await repository.find(documentPath);
+    const contentFilePath = temporalFile.get().contentFilePath;
+
+    await rm(contentFilePath, { force: true });
 
     const result = await repository.find(documentPath);
 

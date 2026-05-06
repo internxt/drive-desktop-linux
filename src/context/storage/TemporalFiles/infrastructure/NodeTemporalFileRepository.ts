@@ -177,7 +177,21 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
       return Optional.empty();
     }
 
-    const stat = fs.statSync(pathToSearch);
+    let stat: fs.Stats;
+
+    try {
+      stat = fs.statSync(pathToSearch);
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        logger.debug({
+          msg: 'Temporal file was removed from disk before reading attributes',
+          documentPath: documentPath.value,
+          pathToSearch,
+        });
+      }
+
+      return Optional.empty();
+    }
 
     const doc = TemporalFile.from({
       createdAt: stat.ctime,
@@ -212,5 +226,24 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     return () => {
       watcher.close();
     };
+  }
+
+  statFs(): Promise<{ blocks: number; bfree: number; bavail: number; files: number; ffree: number; bsize: number }> {
+    return new Promise((resolve, reject) => {
+      fs.statfs(this.folder, (err, stats) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve({
+          blocks: stats.blocks,
+          bfree: stats.bfree,
+          bavail: stats.bavail,
+          files: stats.files,
+          ffree: stats.ffree,
+          bsize: stats.bsize,
+        });
+      });
+    });
   }
 }

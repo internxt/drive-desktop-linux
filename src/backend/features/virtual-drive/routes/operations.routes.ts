@@ -13,6 +13,7 @@ import { mkdirController } from '../controllers/operations/mkdir.controller';
 import { renameController } from '../controllers/operations/rename.controller';
 import { unlinkController } from '../controllers/operations/unlink.controller';
 import { rmdirController } from '../controllers/operations/rmdir.controller';
+import { statfsController } from '../controllers/operations/statfs.controller';
 
 // Routes for FUSE operation endpoints (POST /op/<name>).
 // Each operation will be registered here as it is implemented in PB-6161.
@@ -39,5 +40,6 @@ export function buildOperationsRouter(container: Container): Router {
   router.post(OPERATION_PATHS.UNLINK, (req, res) => unlinkController(req, res, container));
   router.post(OPERATION_PATHS.RMDIR, (req, res) => rmdirController(req, res, container));
   router.post(OPERATION_PATHS.RENAME, (req, res) => renameController(req, res, container));
+  router.post(OPERATION_PATHS.STAT_FS, (req, res) => statfsController(req, res, container));
   return router;
 }

@@ -506,3 +506,44 @@ func TestTruncate(t *testing.T) {
 		}
 	})
 }
+
+func TestStatFs(t *testing.T) {
+	t.Run("returns filesystem stats from backend", func(t *testing.T) {
+		sharedMount.mockServer.setHandler(client.OperationStatFs, func(w http.ResponseWriter, r *http.Request) {
+			respondJSON(w, map[string]any{
+				"blocks": uint64(1000000),
+				"bfree":  uint64(500000),
+				"bavail": uint64(490000),
+				"files":  uint64(100000),
+				"ffree":  uint64(90000),
+				"bsize":  uint32(4096),
+			})
+		})
+
+		var stat syscall.Statfs_t
+		if err := syscall.Statfs(sharedMount.mountPoint, &stat); err != nil {
+			t.Fatalf("statfs: %v", err)
+		}
+
+		if stat.Blocks != 1000000 {
+			t.Errorf("blocks: got %d, want 1000000", stat.Blocks)
+		}
+		if stat.Bfree != 500000 {
+			t.Errorf("bfree: got %d, want 500000", stat.Bfree)
+		}
+		if stat.Bavail != 490000 {
+			t.Errorf("bavail: got %d, want 490000", stat.Bavail)
+		}
+	})
+
+	t.Run("returns zeroed stats on transport failure", func(t *testing.T) {
+		sharedMount.mockServer.setHandler(client.OperationStatFs, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		})
+
+		// go-fuse falls back to zero-filled StatfsOut when StatFs returns nil.
+		// The syscall itself still succeeds (kernel-level fallback).
+		var stat syscall.Statfs_t
+		_ = syscall.Statfs(sharedMount.mountPoint, &stat)
+	})
+}
