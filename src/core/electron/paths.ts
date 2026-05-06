@@ -16,7 +16,7 @@ const DOWNLOADED = join(INTERNXT, 'downloaded');
 const FUSE_DAEMON_LOG = join(LOGS, 'fuse-daemon.log');
 const FUSE_DAEMON_SOCKET = join(process.env.XDG_RUNTIME_DIR ?? '/tmp', 'internxt-fuse.sock');
 const FUSE_DAEMON_BINARY = app.isPackaged
-  ? join(process.resourcesPath, 'fuse-daemon')
+  ? join(process.resourcesPath, 'dist', 'fuse-daemon')
   : join(__dirname, '../../../dist/fuse-daemon');
 const RESOURCES_PATH = app.isPackaged
   ? path.join(process.resourcesPath, 'assets')
