@@ -235,7 +235,6 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
           reject(err);
           return;
         }
-
         resolve({
           blocks: stats.blocks,
           bfree: stats.bfree,
