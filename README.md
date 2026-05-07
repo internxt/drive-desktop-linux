@@ -3,28 +3,35 @@
 [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/internxt/drive-desktop-linux)
 
 ## Compatibility
+
 As of right now, Internxt Drive Desktop for Linux is only compatible with Ubuntu and Debian with the File explorer **Nautilus** (The default file explorer for Gnome).
 
 We cannot guarantee that the app will work properly on other Linux distributions or with other file explorers as our development and testing efforts are focused on ensuring the best experience for Ubuntu and Debian users.
 
 ### FUSE 2
+
 This application requires **FUSE 2** for the virtual drive functionality. FUSE 3 is not supported. On recent Ubuntu versions, `libfuse2` may need to be installed manually:
 
 #### For example, on Debian (>= 13) and Ubuntu (>= 24.04):
+
 ```bash
 sudo add-apt-repository universe
 sudo apt install libfuse2t64
 ```
+
 **Note:** In Ubuntu 24.04, the libfuse2 package was renamed to libfuse2t64.
 
 #### For example, on Ubuntu (>= 22.04):
+
 ```bash
 sudo add-apt-repository universe
 sudo apt install libfuse2
 ```
+
 **Warning:** While libfuse2 is OK, do not install the fuse package as of 22.04 or you may break your system. If the fuse package did break your system, you can recover as described [here](https://github.com/orgs/AppImage/discussions/1339).
 
 #### For example, on Ubuntu (<= 21.10):
+
 ```bash
 sudo apt install fuse libfuse2
 sudo modprobe fuse
@@ -152,3 +159,35 @@ Check that the internxt protocol is correctly registered:
 `gio mime x-scheme-handler/internxt`
 
 Verify by logging into the application.
+
+### Troubleshooting SSO in Development
+
+If opening an `internxt://` URL launches the development command but Electron exits with an error like this:
+
+```
+The SUID sandbox helper binary was found, but is not configured correctly.
+You need to make sure that node_modules/electron/dist/chrome-sandbox is owned by root and has mode 4755.
+```
+
+Or the dev app does not open at all, it may be that the deeplink registration is working, but Electron is aborting before the main process starts because Chromium's Linux sandbox helper has the wrong owner or permissions.
+
+Confirm the current permissions (in the project root):
+
+```bash
+ls -l node_modules/electron/dist/chrome-sandbox
+```
+
+Fix them from the project root:
+
+```bash
+sudo chown root:root node_modules/electron/dist/chrome-sandbox
+sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
+```
+
+The expected result is that `chrome-sandbox` is owned by `root` and has the setuid bit enabled:
+
+```bash
+-rwsr-xr-x 1 root root ... node_modules/electron/dist/chrome-sandbox
+```
+
+This may need to be repeated after reinstalling dependencies, because `node_modules/electron` can be recreated with regular user ownership.
