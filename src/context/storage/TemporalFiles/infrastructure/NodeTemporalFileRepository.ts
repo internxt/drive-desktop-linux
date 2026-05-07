@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import fs, { createReadStream, watch } from 'fs';
+import fs, { createReadStream, watch, statfs } from 'fs';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import { Readable } from 'stream';
@@ -230,7 +230,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
 
   statFs(): Promise<{ blocks: number; bfree: number; bavail: number; files: number; ffree: number; bsize: number }> {
     return new Promise((resolve, reject) => {
-      fs.statfs(this.folder, (err, stats) => {
+      statfs(this.folder, (err, stats) => {
         if (err) {
           reject(err);
           return;
