@@ -16,16 +16,15 @@ import { RenameMoveOrTrashCallback } from './callbacks/RenameOrMoveCallback';
 import { TrashFileCallback } from './callbacks/TrashFileCallback';
 import { TrashFolderCallback } from './callbacks/TrashFolderCallback';
 import { WriteCallback } from './callbacks/WriteCallback';
-import { mountPromise } from './helpers';
+// import { mountPromise } from './helpers';
 import { execFile } from 'node:child_process';
 import { EventEmitter } from 'stream';
 
-import Fuse from '@gcas/fuse';
 export class FuseApp extends EventEmitter {
   private status: FuseDriveStatus = 'UNMOUNTED';
   private static readonly MAX_INT_32 = 2147483647;
   private static readonly MAX_RETRIES = 5;
-  private _fuse: Fuse | undefined;
+  // private _fuse: Fuse | undefined;
 
   constructor(
     private readonly virtualDrive: VirtualDrive,
@@ -88,19 +87,16 @@ export class FuseApp extends EventEmitter {
   // }
 
   async stop() {
-    if (!this._fuse) {
-      return;
-    }
+    // if (!this._fuse) {
+    //   return;
+    // }
 
     await this.unmountFuse();
-    this._fuse = undefined;
+    // this._fuse = undefined;
     this.status = 'UNMOUNTED';
   }
 
   private unmountFuse(): Promise<void> {
-    // It is not possible to implement this method during logout while @gcas/fuse is still in use.
-    // For more information, see this issue. https://inxt.atlassian.net/browse/PB-5389
-
     const fusermount = '/usr/bin/fusermount';
     return new Promise((resolve) => {
       execFile(fusermount, ['-u', this.localRoot], (err) => {
@@ -151,13 +147,13 @@ export class FuseApp extends EventEmitter {
       return this.status;
     }
 
-    if (!this._fuse) {
-      logger.error({ msg: '[FUSE] Cannot mount: FUSE instance not initialized' });
-      return this.status;
-    }
+    // if (!this._fuse) {
+    //   logger.error({ msg: '[FUSE] Cannot mount: FUSE instance not initialized' });
+    //   return this.status;
+    // }
 
     try {
-      await mountPromise(this._fuse);
+      // await mountPromise(this._fuse);
       this.status = 'MOUNTED';
       this.emit('mounted');
     } catch (err) {
