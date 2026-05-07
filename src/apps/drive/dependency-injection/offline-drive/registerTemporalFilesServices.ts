@@ -31,7 +31,6 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
 
       return repo;
     })
-    .private()
     .asSingleton();
 
   builder
