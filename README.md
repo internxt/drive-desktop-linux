@@ -103,6 +103,12 @@ To package apps for the local platform:
 npm run package
 ```
 
+Building the `.rpm` package requires `rpmbuild`. On Ubuntu or Debian, install the `rpm` package before running the packaging command:
+
+```bash
+sudo apt-get install rpm
+```
+
 ## Login Configuration Using Deeplink
 
 To log in via deeplink in development mode, special configuration is required due to limitations in Electron 19.
