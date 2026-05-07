@@ -23,10 +23,17 @@ export function useBackups(): BackupContextProps {
   const [backups, setBackups] = useState<Array<BackupInfo>>([]);
   const [hasExistingBackups, setHasExistingBackups] = useState(false);
 
-  async function fetchBackups(): Promise<void> {
-    if (!selected) return;
-    const backups = await window.electron.getBackupsFromDevice(selected, selected === current);
-    setBackups(backups);
+  async function fetchBackups(): Promise<boolean> {
+    if (!selected) return true;
+
+    const { error, data } = await window.electron.getBackupsFromDevice(selected, selected === current);
+    if (error || !data) {
+      setBackups([]);
+      return false;
+    }
+
+    setBackups(data);
+    return true;
   }
 
   const validateIfBackupExists = async () => {
@@ -38,13 +45,14 @@ export function useBackups(): BackupContextProps {
     setBackupsState('LOADING');
     setBackups([]);
 
-    try {
-      await fetchBackups();
-      setBackupsState('SUCCESS');
-    } catch {
+    const isLoaded = await fetchBackups();
+    if (!isLoaded) {
       setBackupsState('ERROR');
       setBackups([]);
+      return;
     }
+
+    setBackupsState('SUCCESS');
   }
 
   useEffect(() => {

@@ -1,15 +1,13 @@
-import { Either, right } from './../../../context/shared/domain/Either';
 import { Device } from '../backup/types/Device';
+import { Result } from '../../../context/shared/domain/Result';
 import { createUniqueDevice } from './createUniqueDevice';
 import { saveDeviceToConfig } from './saveDeviceToConfig';
 import { DeviceIdentifierDTO } from './device.types';
 
-export async function createNewDevice(deviceIdentifier: DeviceIdentifierDTO): Promise<Either<Error, Device>> {
-  const createUniqueDeviceEither = await createUniqueDevice(deviceIdentifier);
-  if (createUniqueDeviceEither.isRight()) {
-    const device = createUniqueDeviceEither.getRight();
-    saveDeviceToConfig(device);
-    return right(device);
-  }
-  return createUniqueDeviceEither;
+export async function createNewDevice(deviceIdentifier: DeviceIdentifierDTO): Promise<Result<Device, Error>> {
+  const { data: device, error } = await createUniqueDevice(deviceIdentifier);
+  if (error) return { error };
+
+  saveDeviceToConfig(device);
+  return { data: device };
 }

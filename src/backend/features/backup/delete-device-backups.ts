@@ -11,7 +11,12 @@ type Props = {
 };
 
 export async function deleteDeviceBackups({ device, isCurrent }: Props) {
-  const backups = await DeviceModule.getBackupsFromDevice(device, isCurrent);
+  const { error: getBackupsError, data: backups } = await DeviceModule.getBackupsFromDevice(device, isCurrent);
+  if (getBackupsError) {
+    logger.error({ tag: 'BACKUPS', msg: 'Error fetching backups from device', error: getBackupsError });
+    return;
+  }
+
   logger.debug({ tag: 'BACKUPS', msg: '[BACKUPS] Deleting backups from device', count: backups.length });
   logger.debug({ tag: 'BACKUPS', msg: '[BACKUPS] Backups details', backups });
 

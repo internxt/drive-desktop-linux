@@ -6,7 +6,7 @@ import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 import { PATHS } from '../../../core/electron/paths';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { DriveServerError } from 'src/infra/drive-server/drive-server.error';
-import { GetFolderContentDto } from 'src/infra/drive-server/out/dto';
+import { GetFolderContentDto } from '../../../infra/drive-server/out/dto';
 
 vi.mock('../../../apps/main/config');
 vi.mock('../../../infra/drive-server/services/folder/services/fetch-folder');

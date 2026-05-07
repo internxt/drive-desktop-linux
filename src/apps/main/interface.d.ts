@@ -36,7 +36,7 @@ export interface IElectronAPI {
 
   getOrCreateDevice: () => Promise<Result<Device, Error>>;
 
-  getBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<Array<BackupInfo>>;
+  getBackupsFromDevice: (device: Device, isCurrent?: boolean) => Promise<Result<Array<BackupInfo>, Error>>;
 
   addBackup: () => Promise<Result<BackupInfo, Error>>;
 
@@ -62,7 +62,7 @@ export interface IElectronAPI {
 
   abortDownloadBackups: (deviceId: string) => void;
 
-  renameDevice: (deviceName: string) => Promise<Device>;
+  renameDevice: (deviceName: string) => Promise<Result<Device, Error>>;
   devices: {
     getDevices: () => Promise<Array<Device>>;
   };
