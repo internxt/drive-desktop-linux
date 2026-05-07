@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+import { app, BrowserWindow } from 'electron';
 
 import { preloadPath, resolveHtmlPath } from '../util';
 import { setUpCommonWindowHandlers } from '.';
@@ -41,6 +41,7 @@ export const createAuthWindow = async () => {
 
   authWindow.on('closed', () => {
     authWindow = null;
+    if (!getIsLoggedIn()) app.quit();
   });
   authWindow.on('blur', () => {
     const isLoggedIn = getIsLoggedIn();
