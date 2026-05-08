@@ -1,7 +1,5 @@
 import { Container } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { StorageClearer } from '../../../context/storage/StorageFiles/application/delete/StorageClearer';
-import { clearHydrationState } from '../../../backend/features/fuse/on-read/download-cache/hydration-state';
 import { VirtualDrive } from '../virtual-drive/VirtualDrive';
 import { FuseDriveStatus } from './FuseDriveStatus';
 import { CreateCallback } from './callbacks/CreateCallback';
@@ -115,10 +113,10 @@ export class FuseApp extends EventEmitter {
     });
   }
 
-  async clearCache(): Promise<void> {
-    clearHydrationState();
-    await this.container.get(StorageClearer).run();
-  }
+  // async clearCache(): Promise<void> {
+  //   clearHydrationState();
+  //   await this.container.get(StorageClearer).run();
+  // }
 
   // async update() {
   //   try {

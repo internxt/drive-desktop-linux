@@ -16,7 +16,6 @@ function remoteChangesSyncedHandler() {
 }
 
 export function registerVirtualDriveHandlers() {
-  eventBus.on('USER_LOGGED_OUT', stopVirtualDrive);
   eventBus.on('INITIAL_SYNC_READY', startVirtualDrive);
   eventBus.on('REMOTE_CHANGES_SYNCHED', remoteChangesSyncedHandler);
   ipcMain.handle('get-virtual-drive-status', getVirtualDriveState);

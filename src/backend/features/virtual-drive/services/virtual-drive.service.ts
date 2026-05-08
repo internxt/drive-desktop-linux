@@ -6,10 +6,11 @@ import { startDaemon, stopDaemon } from './daemon.service';
 import { startFuseDaemonServer, stopFuseDaemonServer } from './server.service';
 import { updateVirtualDriveContainer } from './update-virtual-drive-container.service';
 import { DependencyInjectionUserProvider } from '../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
-import { StorageClearer } from '../../../../context/storage/StorageFiles/application/delete/StorageClearer';
 import { abortAllHydrations, clearHydrationState } from '../../fuse/on-read/download-cache/hydration-state';
+import { StorageFilesRepository } from '../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
 
 let container: Container | undefined;
+let stopInFlight: Promise<void> | undefined;
 
 export function getVirtualDriveContainer(): Container | undefined {
   return container;
@@ -24,21 +25,36 @@ export async function startVirtualDrive() {
    * Future virtual-drive reads recreate cache files and hydrate only requested blocks.
    */
   clearHydrationState();
-  await container.get(StorageClearer).run();
+  await container.get(StorageFilesRepository).deleteAll();
   await startFuseDaemonServer(container);
   await startDaemon(localRoot);
 }
 
 export async function stopVirtualDrive() {
+  if (stopInFlight) {
+    return stopInFlight;
+  }
+
+  stopInFlight = stopVirtualDriveOnce();
+
+  try {
+    await stopInFlight;
+  } finally {
+    stopInFlight = undefined;
+  }
+}
+
+async function stopVirtualDriveOnce() {
   logger.debug({ msg: '[VIRTUAL DRIVE] stopping daemon...' });
   abortAllHydrations();
   await stopDaemon();
   logger.debug({ msg: '[VIRTUAL DRIVE] clearing storage cache...' });
   clearHydrationState();
   if (container) {
-    await container.get(StorageClearer).run();
+    await container.get(StorageFilesRepository).deleteAll();
   }
   logger.debug({ msg: '[VIRTUAL DRIVE] stopping server...' });
   await stopFuseDaemonServer();
+  container = undefined;
   logger.debug({ msg: '[VIRTUAL DRIVE] stopped' });
 }

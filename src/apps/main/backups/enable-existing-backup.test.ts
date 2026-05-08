@@ -64,16 +64,6 @@ describe('enable-existing-backup', () => {
   });
 
   it('should enable existing backup when folder still exists', async () => {
-    const migratedBackup = {
-      folderUuid: 'migrated-uuid',
-      folderId: 456,
-      enabled: false,
-    };
-
-    const updatedBackupList = {
-      [pathname]: { ...migratedBackup, enabled: true },
-    };
-
     mockedConfigStore.get
       .mockReturnValueOnce({ [pathname]: existingBackupData })
       .mockReturnValueOnce({ [pathname]: existingBackupData });
