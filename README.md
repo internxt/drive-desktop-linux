@@ -73,7 +73,7 @@ For the best experience with SSO authentication, we recommend using the .deb pac
 ### Prerequisites
 
 - [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager)
-- Node.js 18
+- Node.js 20
 
 If working on the FUSE daemon (Go), see [packages/fuse-daemon/README.md](packages/fuse-daemon/README.md) for Go and linting tool prerequisites.
 
@@ -120,12 +120,12 @@ Create a script in the root of the project named `enable-sso.sh` and add the fol
 ```
 #!/bin/bash
 export NVM_DIR="$HOME/.nvm"
-# Load nvm manually
+# Carga nvm manualmente
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-cd "/your-project-path/drive-desktop-linux"
-nvm use 18
-npm run start:main "$@"
+cd "/home/dev/development/drive-desktop-linux/"
+nvm use 20
+npm run start:main -- "$@"
 ```
 
 Use the following command to give the script execution permissions:

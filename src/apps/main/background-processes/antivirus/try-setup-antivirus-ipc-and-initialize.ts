@@ -3,6 +3,11 @@ import { setupAntivirusIpc } from './setupAntivirusIPC';
 import { getAntivirusManager } from '../../antivirus/antivirusManager';
 
 export async function trySetupAntivirusIpcAndInitialize() {
+  if (process.env.ENABLE_ANTIVIRUS !== 'true') {
+    logger.debug({ tag: 'ANTIVIRUS', msg: '[Main] Antivirus is disabled (ENABLE_ANTIVIRUS is not set to true), skipping setup' });
+    return;
+  }
+
   try {
     logger.debug({ tag: 'ANTIVIRUS', msg: '[Main] Setting up antivirus IPC handlers' });
     setupAntivirusIpc();

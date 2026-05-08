@@ -14,6 +14,7 @@ declare global {
       NOTIFICATIONS_URL: string;
       LOCK_REFRESH_INTERVAL: string;
       DRIVE_API_URL: string;
+      ENABLE_ANTIVIRUS?: string;
     }
   }
 }
