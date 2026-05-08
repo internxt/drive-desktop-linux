@@ -51,14 +51,25 @@ describe('tray-menu', () => {
 
     // When
     new TrayMenu('/icons', onClick, onQuit);
-
+    const expectedContextMenu = [
+      {
+        label: `Internxt ${PackageJson.version}`,
+        click: expect.any(Function),
+      },
+      {
+        label: 'Quit',
+        click: expect.any(Function),
+      },
+    ];
     // Then
     expect(TrayMock).toBeCalledWith('/icons/loading.png');
     expect(createFromPathMock).toBeCalledWith('/icons/loading.png');
     expect(trayInstance.setImage).toBeCalledWith({ imagePath: '/icons/loading.png' });
     expect(trayInstance.setToolTip).toBeCalledWith('Loading Internxt...');
-    expect(buildFromTemplateMock).toBeCalledWith([{ label: 'Open app', click: expect.any(Function) }]);
-    expect(trayInstance.setContextMenu).toBeCalledWith({ template: [{ label: 'Open app', click: expect.any(Function) }] });
+    expect(buildFromTemplateMock).toBeCalledWith(expectedContextMenu);
+    expect(trayInstance.setContextMenu).toBeCalledWith({
+      template: expectedContextMenu,
+    });
   });
 
   it('should invoke onClick when the context menu Open app item is clicked', async () => {
