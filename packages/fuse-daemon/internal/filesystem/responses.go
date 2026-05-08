@@ -23,10 +23,11 @@ type OpenDirCallbackData struct {
 }
 
 type StatFsCallbackData struct {
-	Blocks uint64 `json:"blocks"`
-	Bfree  uint64 `json:"bfree"`
-	Bavail uint64 `json:"bavail"`
-	Files  uint64 `json:"files"`
-	Ffree  uint64 `json:"ffree"`
-	Bsize  uint32 `json:"bsize"`
+	Blocks  uint64 `json:"blocks"`
+	Bfree   uint64 `json:"bfree"`
+	Bavail  uint64 `json:"bavail"`
+	Files   uint64 `json:"files"`
+	Ffree   uint64 `json:"ffree"`
+	Bsize   uint32 `json:"bsize"`
+	NameLen uint32 `json:"nameLen"`
 }

@@ -204,11 +204,12 @@ func (fs *InternxtFilesystem) StatFs(name string) *fuse.StatfsOut {
 		return nil
 	}
 	return &fuse.StatfsOut{
-		Blocks: response.Blocks,
-		Bfree:  response.Bfree,
-		Bavail: response.Bavail,
-		Files:  response.Files,
-		Ffree:  response.Ffree,
-		Bsize:  response.Bsize,
+		Blocks:  response.Blocks,
+		Bfree:   response.Bfree,
+		Bavail:  response.Bavail,
+		Files:   response.Files,
+		Ffree:   response.Ffree,
+		Bsize:   response.Bsize,
+		NameLen: response.NameLen,
 	}
 }
