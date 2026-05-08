@@ -21,39 +21,22 @@ export class TrayMenu {
 
     this.setState('LOADING');
 
-    this.tray.setIgnoreDoubleClickEvents(true);
-
-    this.tray.on('click', async () => {
-      await this.onClick();
-      this.tray.setContextMenu(null);
-    });
-  }
-
-  getIconPath(state: TrayMenuState) {
-    return path.join(this.iconsPath, `${state.toLowerCase()}.png`);
-  }
-
-  generateContextMenu() {
-    const contextMenuTemplate: Electron.MenuItemConstructorOptions[] = [];
-    contextMenuTemplate.push(
+    // On Linux with AppIndicator the 'click' event is unreliable — the first
+    // click is consumed by the system tray protocol. A context menu is the
+    // only interaction that works consistently on every Linux DE/WM.
+    const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'Show/Hide',
+        label: `Internxt ${PackageJson.version}`,
         click: () => {
           this.onClick();
         },
       },
-      {
-        label: 'Quit',
-        click: this.onQuit,
-      },
-    );
-
-    return Menu.buildFromTemplate(contextMenuTemplate);
+    ]);
+    this.tray.setContextMenu(contextMenu);
   }
 
-  updateContextMenu() {
-    const ctxMenu = this.generateContextMenu();
-    this.tray.setContextMenu(ctxMenu);
+  getIconPath(state: TrayMenuState) {
+    return path.join(this.iconsPath, `${state.toLowerCase()}.png`);
   }
 
   setState(state: TrayMenuState) {
