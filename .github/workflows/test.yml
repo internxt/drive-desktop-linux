@@ -16,7 +16,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install system dependencies
@@ -47,7 +47,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install dependencies
