@@ -28,7 +28,6 @@ const decryptAtOffsetMock = vi.mocked(decryptAtOffset);
 
 describe('downloadFileRange', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     axiosGetMock.mockResolvedValue({
       data: Readable.from([Buffer.from('encrypted')]),
     });

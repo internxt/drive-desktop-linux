@@ -10,10 +10,6 @@ vi.mock('node:fs/promises', () => ({
 const fsMock = vi.mocked(fs);
 
 describe('fileExistsOnDisk', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('returns true when fs.stat succeeds', async () => {
     fsMock.stat.mockResolvedValue({} as Awaited<ReturnType<typeof fs.stat>>);
 

@@ -16,7 +16,6 @@ const readChunkFromDiskMock = vi.mocked(readChunkFromDisk);
 describe('readIfHydrated', () => {
   beforeEach(() => {
     clearHydrationState();
-    vi.clearAllMocks();
   });
 
   it('returns undefined when no hydration state exists', async () => {

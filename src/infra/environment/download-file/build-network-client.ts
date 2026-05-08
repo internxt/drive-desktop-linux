@@ -9,7 +9,7 @@ export type NetworkClientCredentials = {
 
 export function buildNetworkClient(credentials: NetworkClientCredentials): Network.Network {
   return Network.Network.client(
-    process.env.BRIDGE_URL as string,
+    process.env.BRIDGE_URL,
     {
       clientName: INTERNXT_CLIENT,
       clientVersion: INTERNXT_VERSION,

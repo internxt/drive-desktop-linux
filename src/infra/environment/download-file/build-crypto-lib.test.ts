@@ -27,10 +27,6 @@ const validateMnemonicMock = vi.mocked(validateMnemonic);
 const generateFileKeyMock = vi.mocked(Environment.utils.generateFileKey);
 
 describe('buildCryptoLib', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('uses AES-256-CTR as the crypto algorithm', () => {
     const cryptoLib = buildCryptoLib();
 

@@ -52,7 +52,10 @@ export async function readOrHydrate({
   if (wasAborted(state.data)) return { data: EMPTY };
 
   try {
-    if (!isRangeHydrated(state.data, range)) {
+    if (isRangeHydrated(state.data, range)) {
+      logger.debug({ msg: '[ReadCallback] serving from disk cache', file: virtualFile.nameWithExtension });
+    } else {
+      logger.debug({ msg: '[ReadCallback] downloading range', file: virtualFile.nameWithExtension });
       const downloadResult = await ensureRangeDownloaded({
         onDownloadProgress,
         bucketId,
@@ -65,8 +68,6 @@ export async function readOrHydrate({
       });
       if (wasAborted(state.data)) return { data: EMPTY };
       if (downloadResult.error) return { error: fuseIOErrorFrom(downloadResult.error) };
-    } else {
-      logger.debug({ msg: '[ReadCallback] serving from disk cache', file: virtualFile.nameWithExtension });
     }
 
     await finalizeFullyHydratedFileIfNeeded(saveToRepository, virtualFile, state.data);

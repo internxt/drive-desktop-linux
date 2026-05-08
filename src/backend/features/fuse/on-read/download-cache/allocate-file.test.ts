@@ -17,10 +17,6 @@ function createHandle() {
 }
 
 describe('allocateFile', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('opens the file for writing and truncates it to the requested size', async () => {
     const handle = createHandle();
     fsMock.open.mockResolvedValue(handle as unknown as Awaited<ReturnType<typeof fs.open>>);

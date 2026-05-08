@@ -2,13 +2,6 @@ import { stopDaemon } from './daemon.service';
 import { stopFuseDaemonServer } from './server.service';
 import { abortAllHydrations, clearHydrationState } from '../../fuse/on-read/download-cache/hydration-state';
 import { stopVirtualDrive } from './virtual-drive.service';
-
-vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
-  logger: {
-    debug: vi.fn(),
-  },
-}));
-
 vi.mock('./daemon.service', () => ({
   startDaemon: vi.fn(),
   stopDaemon: vi.fn(),

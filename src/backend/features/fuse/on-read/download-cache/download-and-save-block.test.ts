@@ -60,7 +60,6 @@ function createProps(overrides: Partial<Parameters<typeof downloadAndCacheBlock>
 describe('downloadAndCacheBlock', () => {
   beforeEach(() => {
     clearHydrationState();
-    vi.clearAllMocks();
     downloadFileRangeMock.mockResolvedValue({ data: Buffer.from('downloaded') });
     writeChunkToDiskMock.mockResolvedValue(undefined);
   });

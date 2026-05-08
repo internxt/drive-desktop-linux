@@ -15,7 +15,6 @@ const networkClientMock = vi.mocked(Network.Network.client);
 
 describe('buildNetworkClient', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     process.env.BRIDGE_URL = 'https://bridge.test';
     process.env.INTERNXT_DESKTOP_HEADER_KEY = 'desktop-header';
   });
