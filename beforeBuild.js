@@ -1,4 +1,4 @@
-const electronRebuild = require('electron-rebuild');
+const electronRebuild = require('@electron/rebuild');
 
 module.exports = async (context) => {
   const { appDir, electronVersion, arch } = context;
