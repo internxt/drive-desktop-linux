@@ -1,18 +1,24 @@
-import { PassThrough } from 'node:stream';
-import { handleReadCallback, type HandleReadCallbackDeps } from './handle-read-callback';
+import { handleReadCallback, type HandleReadCallbackProps } from './handle-read-callback';
 import * as readChunkModule from './read-chunk-from-disk';
-import * as createDownloadModule from './create-download-to-disk';
-import * as hydrationRegistryModule from './hydration-registry';
 import * as processBlocklistModule from '../../../features/virtual-drive/utils/process-blocklist';
+import * as fileExistsModule from './download-cache/file-exists-on-disk';
+import * as allocateFileModule from './download-cache/allocate-file';
+import * as downloadAndSaveBlockModule from './download-cache/download-and-save-block';
+import {
+  clearHydrationState,
+  getExistingHydrationState,
+  getOrCreateHydrationState,
+  markBlocksInRangeDownloaded,
+} from './download-cache/hydration-state';
 import { partialSpyOn, call } from '../../../../../tests/vitest/utils.helper';
 import { type File } from '../../../../context/virtual-drive/files/domain/File';
-import { FuseNoSuchFileOrDirectoryError } from '../../../../apps/drive/fuse/callbacks/FuseErrors';
+import { FuseIOError, FuseNoSuchFileOrDirectoryError } from '../../../../apps/drive/fuse/callbacks/FuseErrors';
 
 const readChunkFromDiskMock = partialSpyOn(readChunkModule, 'readChunkFromDisk');
-const createDownloadToDiskMock = partialSpyOn(createDownloadModule, 'createDownloadToDisk');
-const getHydrationMock = partialSpyOn(hydrationRegistryModule, 'getHydration');
-const setHydrationMock = partialSpyOn(hydrationRegistryModule, 'setHydration');
 const isBlocklistedProcessMock = partialSpyOn(processBlocklistModule, 'isBlocklistedProcess');
+const fileExistsOnDiskMock = partialSpyOn(fileExistsModule, 'fileExistsOnDisk');
+const allocateFileMock = partialSpyOn(allocateFileModule, 'allocateFile');
+const downloadAndCacheBlockMock = partialSpyOn(downloadAndSaveBlockModule, 'downloadAndCacheBlock');
 
 const virtualFile = {
   contentsId: 'contents-123',
@@ -23,32 +29,31 @@ const virtualFile = {
   size: 1000,
 } as unknown as File;
 
-function createDeps(overrides: Partial<HandleReadCallbackDeps> = {}): HandleReadCallbackDeps {
+function createDeps(overrides: Partial<HandleReadCallbackProps> = {}): HandleReadCallbackProps {
   return {
     findVirtualFile: vi.fn().mockResolvedValue(virtualFile),
     findTemporalFile: vi.fn().mockResolvedValue(undefined),
-    existsOnDisk: vi.fn().mockResolvedValue(false),
-    startDownload: vi.fn().mockResolvedValue({ stream: new PassThrough(), elapsedTime: () => 0 }),
     onDownloadProgress: vi.fn(),
     saveToRepository: vi.fn().mockResolvedValue(undefined),
+    bucketId: 'bucket-id',
+    mnemonic: 'mnemonic',
+    network: {} as HandleReadCallbackProps['network'],
+    path: '/file.mp4',
+    range: { position: 0, length: 10 },
+    processName: 'vlc',
     ...overrides,
-  };
-}
-
-function createWriterMock(bytesAvailable = 0) {
-  return {
-    waitForBytes: vi.fn().mockResolvedValue(undefined),
-    getBytesAvailable: vi.fn().mockReturnValue(bytesAvailable),
-    destroy: vi.fn().mockResolvedValue(undefined),
   };
 }
 
 describe('handleReadCallback', () => {
   beforeEach(() => {
+    clearHydrationState();
+    vi.clearAllMocks();
     isBlocklistedProcessMock.mockReturnValue(false);
-    getHydrationMock.mockReturnValue(undefined);
+    fileExistsOnDiskMock.mockResolvedValue(true);
+    allocateFileMock.mockResolvedValue(undefined);
+    downloadAndCacheBlockMock.mockResolvedValue({ data: undefined });
     readChunkFromDiskMock.mockResolvedValue(Buffer.from('data'));
-    createDownloadToDiskMock.mockReturnValue(createWriterMock());
   });
 
   describe('when virtual file is not found', () => {
@@ -58,7 +63,7 @@ describe('handleReadCallback', () => {
         findTemporalFile: vi.fn().mockResolvedValue(undefined),
       });
 
-      const result = await handleReadCallback(deps, '/file.txt', 10, 0, 'vlc');
+      const result = await handleReadCallback({ ...deps, path: '/file.txt' });
 
       expect(result.error).toBeInstanceOf(FuseNoSuchFileOrDirectoryError);
     });
@@ -74,7 +79,7 @@ describe('handleReadCallback', () => {
         }),
       });
 
-      const result = await handleReadCallback(deps, '/file.txt', 13, 0, 'vlc');
+      const result = await handleReadCallback({ ...deps, path: '/file.txt', range: { position: 0, length: 13 } });
 
       expect(result.data).toBe(chunk);
       call(readChunkFromDiskMock).toStrictEqual(['/tmp/internxt-drive-tmp/uuid', 13, 0]);
@@ -86,78 +91,108 @@ describe('handleReadCallback', () => {
         findTemporalFile: vi.fn().mockResolvedValue({ path: { value: '/virtual/file.txt' } }),
       });
 
-      const result = await handleReadCallback(deps, '/file.txt', 10, 0, 'vlc');
+      const result = await handleReadCallback({ ...deps, path: '/file.txt' });
 
       expect(result.error).toBeInstanceOf(FuseNoSuchFileOrDirectoryError);
     });
   });
 
   describe('when process is blocklisted', () => {
-    it('should return empty buffer when file is not on disk', async () => {
+    it('should return empty buffer without side effects when the requested range is not cached', async () => {
       isBlocklistedProcessMock.mockReturnValue(true);
-      const deps = createDeps({ existsOnDisk: vi.fn().mockResolvedValue(false) });
+      fileExistsOnDiskMock.mockResolvedValue(false);
+      const deps = createDeps({ processName: 'pool-org.gnome.' });
 
-      const result = await handleReadCallback(deps, '/file.mp4', 10, 0, 'pool-org.gnome.');
+      const result = await handleReadCallback(deps);
 
       expect(result.data).toHaveLength(0);
-      expect(deps.startDownload).not.toHaveBeenCalled();
+      expect(getExistingHydrationState(virtualFile.contentsId)).toBeUndefined();
+      expect(fileExistsOnDiskMock).not.toHaveBeenCalled();
+      expect(allocateFileMock).not.toHaveBeenCalled();
+      expect(downloadAndCacheBlockMock).not.toHaveBeenCalled();
+      expect(deps.onDownloadProgress).not.toHaveBeenCalled();
+      expect(deps.saveToRepository).not.toHaveBeenCalled();
+      expect(readChunkFromDiskMock).not.toHaveBeenCalled();
     });
 
-    it('should serve from disk when file is already downloaded', async () => {
+    it('should return empty buffer when hydration state exists but the requested range is not cached', async () => {
       isBlocklistedProcessMock.mockReturnValue(true);
-      const chunk = Buffer.from('cached');
-      readChunkFromDiskMock.mockResolvedValue(chunk);
-      const deps = createDeps({ existsOnDisk: vi.fn().mockResolvedValue(true) });
+      getOrCreateHydrationState(virtualFile.contentsId, virtualFile.size);
+      const deps = createDeps({ processName: 'pool-org.gnome.' });
 
-      const result = await handleReadCallback(deps, '/file.mp4', 6, 0, 'pool-org.gnome.');
+      const result = await handleReadCallback(deps);
 
-      expect(result.data).toBe(chunk);
-      expect(deps.startDownload).not.toHaveBeenCalled();
+      expect(result.data).toHaveLength(0);
+      expect(allocateFileMock).not.toHaveBeenCalled();
+      expect(readChunkFromDiskMock).not.toHaveBeenCalled();
+      expect(downloadAndCacheBlockMock).not.toHaveBeenCalled();
+      expect(deps.onDownloadProgress).not.toHaveBeenCalled();
+      expect(deps.saveToRepository).not.toHaveBeenCalled();
+    });
+
+    it('should return requested bytes when the range is already cached', async () => {
+      isBlocklistedProcessMock.mockReturnValue(true);
+      const state = getOrCreateHydrationState(virtualFile.contentsId, virtualFile.size);
+      markBlocksInRangeDownloaded(state, { position: 0, length: 10 });
+      const cached = Buffer.from('cached');
+      readChunkFromDiskMock.mockResolvedValue(cached);
+      const deps = createDeps({ processName: 'pool-org.gnome.' });
+
+      const result = await handleReadCallback(deps);
+
+      expect(result.data).toBe(cached);
+      expect(fileExistsOnDiskMock).not.toHaveBeenCalled();
+      expect(allocateFileMock).not.toHaveBeenCalled();
+      expect(downloadAndCacheBlockMock).not.toHaveBeenCalled();
+      expect(deps.onDownloadProgress).not.toHaveBeenCalled();
+      expect(deps.saveToRepository).not.toHaveBeenCalled();
+      expect(readChunkFromDiskMock).toHaveBeenCalledWith(expect.stringContaining(virtualFile.contentsId), 10, 0);
+    });
+  });
+
+  describe('when allocating the cache file', () => {
+    it('returns EIO and does not download when allocation fails', async () => {
+      fileExistsOnDiskMock.mockResolvedValue(false);
+      allocateFileMock.mockRejectedValueOnce(new Error('disk full'));
+      const deps = createDeps();
+
+      const result = await handleReadCallback(deps);
+
+      expect(result.error).toBeInstanceOf(FuseIOError);
+      expect(downloadAndCacheBlockMock).not.toHaveBeenCalled();
+      expect(readChunkFromDiskMock).not.toHaveBeenCalled();
+      expect(deps.onDownloadProgress).not.toHaveBeenCalled();
+      expect(deps.saveToRepository).not.toHaveBeenCalled();
+    });
+
+    it('retries allocation on a later read after allocation fails', async () => {
+      fileExistsOnDiskMock.mockResolvedValue(false);
+      allocateFileMock.mockRejectedValueOnce(new Error('disk full')).mockResolvedValueOnce(undefined);
+      const deps = createDeps();
+
+      const first = await handleReadCallback(deps);
+      const second = await handleReadCallback(deps);
+
+      expect(first.error).toBeInstanceOf(FuseIOError);
+      expect(second.data).toStrictEqual(Buffer.from('data'));
+      expect(allocateFileMock).toHaveBeenCalledTimes(2);
+      expect(downloadAndCacheBlockMock).toHaveBeenCalledOnce();
     });
   });
 
   describe('when file needs to be downloaded', () => {
-    it('should start a new hydration when none exists', async () => {
-      const writer = createWriterMock();
-      createDownloadToDiskMock.mockReturnValue(writer);
-      const deps = createDeps();
-
-      await handleReadCallback(deps, '/file.mp4', 10, 50, 'vlc');
-
-      expect(deps.startDownload).toHaveBeenCalledWith(virtualFile);
-      expect(setHydrationMock).toHaveBeenCalledOnce();
-      expect(writer.waitForBytes).toHaveBeenCalledWith(50, 10);
-    });
-
-    it('should reuse existing hydration when one exists', async () => {
-      const writer = createWriterMock();
-      getHydrationMock.mockReturnValue({ writer });
-      const deps = createDeps();
-
-      await handleReadCallback(deps, '/file.mp4', 10, 50, 'vlc');
-
-      expect(deps.startDownload).not.toHaveBeenCalled();
-      expect(writer.waitForBytes).toHaveBeenCalledWith(50, 10);
-    });
-
-    it('should read chunk from disk after waitForBytes resolves', async () => {
+    it('allocates missing cache file, downloads missing blocks, then reads from disk', async () => {
+      fileExistsOnDiskMock.mockResolvedValue(false);
       const chunk = Buffer.from('downloaded');
       readChunkFromDiskMock.mockResolvedValue(chunk);
       const deps = createDeps();
 
-      const result = await handleReadCallback(deps, '/file.mp4', 10, 0, 'vlc');
+      const result = await handleReadCallback(deps);
 
       expect(result.data).toBe(chunk);
-    });
-
-    it('should skip waitForBytes when bytes are already available', async () => {
-      const writer = createWriterMock(1000);
-      getHydrationMock.mockReturnValue({ writer });
-      const deps = createDeps();
-
-      await handleReadCallback(deps, '/file.mp4', 10, 50, 'vlc');
-
-      expect(writer.waitForBytes).toHaveBeenCalledWith(50, 10);
+      expect(allocateFileMock).toHaveBeenCalledWith(expect.stringContaining(virtualFile.contentsId), virtualFile.size);
+      expect(downloadAndCacheBlockMock).toHaveBeenCalledOnce();
+      expect(readChunkFromDiskMock).toHaveBeenCalledWith(expect.stringContaining(virtualFile.contentsId), 10, 0);
     });
   });
 });
