@@ -1,6 +1,6 @@
 {
   "name": "internxt",
-  "version": "2.5.4",
+  "version": "2.6.0",
   "author": "Internxt <hello@internxt.com>",
   "description": "Internxt Drive client UI",
   "main": "./dist/main/main.js",
@@ -15,14 +15,14 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir .",
     "reinstall:nautilus-extension": "NODE_ENV=development ts-node src/apps/nautilus-extension/reload.ts",
-    "lint": "cross-env NODE_ENV=development eslint . --ext .ts,.tsx --max-warnings=60",
+    "lint": "cross-env NODE_ENV=development eslint . --ext .ts,.tsx --max-warnings=50",
     "lint:fix": "npm run lint --fix",
     "format": "prettier src --check",
     "format:fix": "prettier src --write",
     "fix:format": "npm run format:fix",
     "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never",
     "publish": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish always",
-    "postinstall": "electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts && opencollective-postinstall",
+    "postinstall": "electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
     "prestart": "npm run build:daemon",
     "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ts-node/register/transpile-only ./src/apps/main/main.ts",
@@ -81,9 +81,6 @@
     "rpm": {
       "depends": [
         "fuse-libs"
-      ],
-      "fpm": [
-        "--rpm-tag", "Recommends: nautilus-python"
       ]
     },
     "directories": {
@@ -145,7 +142,7 @@
     "detect-port": "^1.3.0",
     "dotenv": "^10.0.0",
     "dotenv-webpack": "^7.0.3",
-    "electron": "^21.4.4",
+    "electron": "^25.0.0",
     "electron-builder": "^23.6.0",
     "electron-debug": "^3.2.0",
     "electron-fetch": "^1.9.1",
@@ -170,7 +167,6 @@
     "mini-css-extract-plugin": "^2.4.5",
     "ms": "^2.1.3",
     "openapi-typescript": "^7.6.1",
-    "opencollective-postinstall": "^2.0.3",
     "phosphor-react": "^1.4.1",
     "postcss": "^8.4.5",
     "postcss-loader": "^6.2.1",
@@ -204,7 +200,6 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "@gcas/fuse": "^2.4.2",
     "@internxt/drive-desktop-core": "0.1.7",
     "@internxt/inxt-js": "^2.2.13",
     "@internxt/scan": "^1.0.7",

@@ -1,6 +1,7 @@
 package filesystem
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -104,18 +105,43 @@ func (fs *InternxtFilesystem) Open(name string, flags uint32, context *fuse.Cont
 // Create creates a new file and returns a file handle.
 // When implementing: return a nodefs.File handle for the new file.
 func (fs *InternxtFilesystem) Create(name string, flags uint32, mode uint32, context *fuse.Context) (nodefs.File, fuse.Status) {
-	fs.logger.Warn("not implemented", "op", "Create", "path", name)
-	return nil, fuse.ENOSYS
+	fs.logger.Debug("Received Create call", "name", name, "flags", flags, "mode", mode)
+	body := struct {
+		Path string `json:"path"`
+		Flag uint32 `json:"flag"`
+		Mode uint32 `json:"mode"`
+	}{Path: name, Flag: flags, Mode: mode}
+
+	if status := fs.client.Post(context, client.OperationCreate, body, nil); status != fuse.OK {
+		fs.logger.Error("Error occurred while creating file", "status", status)
+		return nil, status
+	}
+
+	processName := readProcessName(context.Pid)
+	return NewInternxtFile(name, flags, processName, fs.logger, fs.client), fuse.OK
 }
 
 func (fs *InternxtFilesystem) Mkdir(name string, mode uint32, context *fuse.Context) fuse.Status {
-	fs.logger.Warn("not implemented", "op", "Mkdir", "path", name)
-	return fuse.ENOSYS
+	fs.logger.Debug("Received Mkdir call", "path", name)
+	body := struct {
+		Path string `json:"path"`
+	}{Path: name}
+	return fs.client.Post(context, client.OperationMkdir, body, nil)
 }
 
 func (fs *InternxtFilesystem) Rename(oldName string, newName string, context *fuse.Context) fuse.Status {
-	fs.logger.Warn("not implemented", "op", "Rename", "oldPath", oldName, "newPath", newName)
-	return fuse.ENOSYS
+	fs.logger.Debug("Received Rename call", "oldPath", oldName, "newPath", newName)
+	body := struct {
+		OldPath string `json:"oldPath"`
+		NewPath string `json:"newPath"`
+	}{OldPath: oldName, NewPath: newName}
+
+	status := fs.client.Post(context, client.OperationRename, body, nil)
+	if status != fuse.OK {
+		return status
+	}
+
+	return fuse.OK
 }
 
 func (fs *InternxtFilesystem) Unlink(name string, context *fuse.Context) fuse.Status {
@@ -146,7 +172,43 @@ func (fs *InternxtFilesystem) Rmdir(name string, context *fuse.Context) fuse.Sta
 	return fuse.OK
 }
 
+func (fs *InternxtFilesystem) Truncate(name string, size uint64, context *fuse.Context) fuse.Status {
+	fs.logger.Debug("Received Truncate call", "path", name, "size", size)
+	body := struct {
+		Path string `json:"path"`
+		Size uint64 `json:"size"`
+	}{Path: name, Size: size}
+
+	return fs.client.Post(context, client.OperationTruncate, body, nil)
+}
+
 func (fs *InternxtFilesystem) GetXAttr(name string, attr string, context *fuse.Context) ([]byte, fuse.Status) {
 	fs.logger.Warn("not implemented", "op", "GetXAttr", "path", name, "attr", attr)
 	return nil, fuse.ENOSYS
+}
+
+// v.2.6.0
+// Esteban Galvis Triana
+// StatFs returns filesystem-level statistics (total/free/available blocks and inodes).
+// These values are used by applications (vim, cp, df) to determine whether
+// there is sufficient space before writing. The backend queries the local
+// disk where temporal files are stored and returns the real available space.
+func (fs *InternxtFilesystem) StatFs(name string) *fuse.StatfsOut {
+	fs.logger.Debug("Received StatFs call", "name", name)
+	body := struct {
+		Path string `json:"path"`
+	}{Path: name}
+	response := StatFsCallbackData{}
+	if status := fs.client.Post(context.Background(), client.OperationStatFs, body, &response); status != fuse.OK {
+		fs.logger.Error("Error occurred while getting filesystem stats", "status", status)
+		return nil
+	}
+	return &fuse.StatfsOut{
+		Blocks: response.Blocks,
+		Bfree:  response.Bfree,
+		Bavail: response.Bavail,
+		Files:  response.Files,
+		Ffree:  response.Ffree,
+		Bsize:  response.Bsize,
+	}
 }

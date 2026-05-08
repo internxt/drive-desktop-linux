@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"context"
+	"strconv"
 	"log/slog"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
@@ -9,6 +10,10 @@ import (
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
 )
+
+type WriteCallbackData struct {
+	Written uint32 `json:"written"`
+}
 
 // InternxtFile is the file handle returned by Open.
 // It holds the context needed for future Read/Write implementation.
@@ -57,13 +62,27 @@ func (f *InternxtFile) Read(dest []byte, off int64) (fuse.ReadResult, fuse.Statu
 }
 
 func (f *InternxtFile) Write(data []byte, off int64) (uint32, fuse.Status) {
-	f.logger.Warn("not implemented", "op", "Write", "path", f.path)
-	return 0, fuse.ENOSYS
+	f.logger.Debug("Received Write call", "path", f.path, "offset", off, "length", len(data))
+	headers := map[string]string{
+		"X-Path":   f.path,
+		"X-Offset": strconv.FormatInt(off, 10),
+	}
+
+	if status := f.client.PostSendBinary(context.Background(), client.OperationWrite, data, headers); status != fuse.OK {
+		f.logger.Error("Error occurred while writing file", "status", status)
+		return 0, status
+	}
+
+	return uint32(len(data)), fuse.OK
 }
 
+// v.2.6.0
+// Esteban Galvis Triana
+// Flush is called on each close(2) of the file descriptor.
+// Multiple flushes may occur if the file descriptor was duplicated.
+// Data is already persisted to the temporal file via Write, so no action is needed here.
 func (f *InternxtFile) Flush() fuse.Status {
-	f.logger.Warn("not implemented", "op", "Flush", "path", f.path)
-	return fuse.ENOSYS
+	return fuse.OK
 }
 
 func (f *InternxtFile) Release() {
@@ -77,7 +96,12 @@ func (f *InternxtFile) Release() {
 	}
 }
 
+// v.2.6.0
+// Esteban Galvis Triana
+// Fsync is called when the application requests a data flush (fsync/fdatasync).
+// Data is already persisted to the temporal file on each Write call, so there is
+// nothing extra to flush. Returning OK satisfies the caller without triggering ENOSYS.
 func (f *InternxtFile) Fsync(flags int) fuse.Status {
-	f.logger.Warn("not implemented", "op", "Fsync", "path", f.path)
-	return fuse.ENOSYS
+	f.logger.Debug("Received Fsync call", "path", f.path)
+	return fuse.OK
 }
