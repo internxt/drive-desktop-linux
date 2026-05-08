@@ -120,7 +120,7 @@ Create a script in the root of the project named `enable-sso.sh` and add the fol
 ```
 #!/bin/bash
 export NVM_DIR="$HOME/.nvm"
-# Carga nvm manualmente
+# Load nvm manually
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 cd "/home/dev/development/drive-desktop-linux/"
