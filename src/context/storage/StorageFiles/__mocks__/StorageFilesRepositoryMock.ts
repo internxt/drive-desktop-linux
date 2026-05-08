@@ -58,7 +58,7 @@ export class StorageFilesRepositoryMock implements StorageFilesRepository {
     expect(this.deleteMock).not.toBeCalled();
   }
 
-  async deleteAll(): Promise<void> {
+  async deleteAll(): Promise<Awaited<ReturnType<StorageFilesRepository['deleteAll']>>> {
     return this.deleteAllMock();
   }
 

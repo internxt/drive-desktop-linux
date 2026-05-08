@@ -38,4 +38,23 @@ describe('stopVirtualDrive', () => {
       clearHydrationStateMock.mock.invocationCallOrder[0],
     );
   });
+
+  it('shares an in-flight stop when stop is requested twice', async () => {
+    let resolveStopDaemon: () => void;
+    stopDaemonMock.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        resolveStopDaemon = resolve;
+      }),
+    );
+
+    const firstStop = stopVirtualDrive();
+    const secondStop = stopVirtualDrive();
+
+    expect(stopDaemonMock).toHaveBeenCalledOnce();
+
+    resolveStopDaemon!();
+    await Promise.all([firstStop, secondStop]);
+
+    expect(stopFuseDaemonServerMock).toHaveBeenCalledOnce();
+  });
 });

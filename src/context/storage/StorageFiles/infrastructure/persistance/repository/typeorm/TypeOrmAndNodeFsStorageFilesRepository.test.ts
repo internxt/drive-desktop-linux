@@ -31,7 +31,7 @@ describe('TypeOrmAndNodeFsStorageFilesRepository', () => {
     await rm(baseFolder, { recursive: true, force: true });
   });
 
-  it('deletes orphaned files from the storage folder when deleting all', async () => {
+  it('should delete orphaned files from the storage folder when deleting all', async () => {
     await writeFile(path.join(baseFolder, 'orphaned-contents-id'), 'partial hydration');
 
     await repository.deleteAll();
@@ -39,7 +39,7 @@ describe('TypeOrmAndNodeFsStorageFilesRepository', () => {
     await expect(readdir(baseFolder)).resolves.toEqual([]);
   });
 
-  it('deletes registered files and any remaining orphaned files from the storage folder', async () => {
+  it('should delete registered files and any remaining orphaned files from the storage folder', async () => {
     db.find.mockResolvedValue([{ id: 'registeredcontentsid0000' }]);
     await writeFile(path.join(baseFolder, 'registeredcontentsid0000'), 'hydrated file');
     await writeFile(path.join(baseFolder, 'orphaned-contents-id'), 'partial hydration');
@@ -49,5 +49,12 @@ describe('TypeOrmAndNodeFsStorageFilesRepository', () => {
 
     expect(db.delete).toHaveBeenCalledWith({ id: 'registeredcontentsid0000' });
     await expect(readdir(baseFolder)).resolves.toEqual(['nested-directory']);
+  });
+
+  it('should return an error if deleting all files throws', async () => {
+    db.find.mockRejectedValue(new Error('The database connection is not open'));
+    const result = await repository.deleteAll();
+    expect(result).toEqual({ error: new Error('The database connection is not open') });
+    expect(db.delete).not.toHaveBeenCalled();
   });
 });
