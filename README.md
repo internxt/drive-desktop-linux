@@ -86,9 +86,9 @@ export NVM_DIR="$HOME/.nvm"
 # Load nvm manually
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-cd "/your-project-path/drive-desktop-linux"
+cd "/your-project-path/drive-desktop-linux/"
 nvm use 20
-npm run start:main "$@"
+npm run start:main -- "$@"
 ```
 
 Use the following command to give the script execution permissions:
