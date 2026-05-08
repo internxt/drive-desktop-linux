@@ -21,14 +21,17 @@ export class TrayMenu {
 
     this.setState('LOADING');
 
-    // On Linux with AppIndicator the 'click' event is unreliable — the first
-    // click is consumed by the system tray protocol. A context menu is the
-    // only interaction that works consistently on every Linux DE/WM.
     const contextMenu = Menu.buildFromTemplate([
       {
         label: `Internxt ${PackageJson.version}`,
         click: () => {
           this.onClick();
+        },
+      },
+      {
+        label: 'Quit',
+        click: () => {
+          this.onQuit();
         },
       },
     ]);
