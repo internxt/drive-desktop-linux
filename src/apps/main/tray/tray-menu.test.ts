@@ -44,68 +44,46 @@ describe('tray-menu', () => {
     trayHandlers.clear();
   });
 
-  it('should initialize the tray in loading state', () => {
+  it('should initialize the tray with context menu in loading state', () => {
     // Given
     const onClick = vi.fn();
     const onQuit = vi.fn();
 
     // When
     new TrayMenu('/icons', onClick, onQuit);
-
+    const expectedContextMenu = [
+      {
+        label: `Internxt ${PackageJson.version}`,
+        click: expect.any(Function),
+      },
+      {
+        label: 'Quit',
+        click: expect.any(Function),
+      },
+    ];
     // Then
     expect(TrayMock).toBeCalledWith('/icons/loading.png');
-    expect(trayInstance.setIgnoreDoubleClickEvents).toBeCalledWith(true);
     expect(createFromPathMock).toBeCalledWith('/icons/loading.png');
     expect(trayInstance.setImage).toBeCalledWith({ imagePath: '/icons/loading.png' });
     expect(trayInstance.setToolTip).toBeCalledWith('Loading Internxt...');
+    expect(buildFromTemplateMock).toBeCalledWith(expectedContextMenu);
+    expect(trayInstance.setContextMenu).toBeCalledWith({
+      template: expectedContextMenu,
+    });
   });
 
-  it('should invoke onClick and clear the context menu on tray click', async () => {
+  it('should invoke onClick when the context menu Open app item is clicked', async () => {
     // Given
     const onClick = vi.fn().mockResolvedValue(undefined);
     const onQuit = vi.fn();
     new TrayMenu('/icons', onClick, onQuit);
 
-    // When
-    await trayHandlers.get('click')?.();
+    // When – simulate clicking the first (only) menu item
+    const [[menuTemplate]] = buildFromTemplateMock.mock.calls as [[Electron.MenuItemConstructorOptions[]]];
+    await (menuTemplate[0].click as () => Promise<void>)();
 
     // Then
     expect(onClick).toBeCalled();
-    expect(trayInstance.setContextMenu).toBeCalledWith(null);
-  });
-
-  it('should build and set the tray context menu', () => {
-    // Given
-    const onClick = vi.fn().mockResolvedValue(undefined);
-    const onQuit = vi.fn();
-    const trayMenu = new TrayMenu('/icons', onClick, onQuit);
-
-    // When
-    trayMenu.updateContextMenu();
-
-    // Then
-    expect(buildFromTemplateMock).toBeCalledWith([
-      {
-        label: 'Show/Hide',
-        click: expect.any(Function),
-      },
-      {
-        label: 'Quit',
-        click: onQuit,
-      },
-    ]);
-    expect(trayInstance.setContextMenu).toBeCalledWith({
-      template: [
-        {
-          label: 'Show/Hide',
-          click: expect.any(Function),
-        },
-        {
-          label: 'Quit',
-          click: onQuit,
-        },
-      ],
-    });
   });
 
   it('should update the tooltip for idle state', () => {

@@ -8,39 +8,6 @@ As of right now, Internxt Drive Desktop for Linux is only compatible with Ubuntu
 
 We cannot guarantee that the app will work properly on other Linux distributions or with other file explorers as our development and testing efforts are focused on ensuring the best experience for Ubuntu and Debian users.
 
-### FUSE 2
-
-This application requires **FUSE 2** for the virtual drive functionality. FUSE 3 is not supported. On recent Ubuntu versions, `libfuse2` may need to be installed manually:
-
-#### For example, on Debian (>= 13) and Ubuntu (>= 24.04):
-
-```bash
-sudo add-apt-repository universe
-sudo apt install libfuse2t64
-```
-
-**Note:** In Ubuntu 24.04, the libfuse2 package was renamed to libfuse2t64.
-
-#### For example, on Ubuntu (>= 22.04):
-
-```bash
-sudo add-apt-repository universe
-sudo apt install libfuse2
-```
-
-**Warning:** While libfuse2 is OK, do not install the fuse package as of 22.04 or you may break your system. If the fuse package did break your system, you can recover as described [here](https://github.com/orgs/AppImage/discussions/1339).
-
-#### For example, on Ubuntu (<= 21.10):
-
-```bash
-sudo apt install fuse libfuse2
-sudo modprobe fuse
-sudo groupadd fuse
-
-user="$(whoami)"
-sudo usermod -a -G fuse $user
-```
-
 ## Installation
 
 Internxt Drive is available for Linux in two formats:
@@ -50,7 +17,7 @@ Internxt Drive is available for Linux in two formats:
 Download and install the `.deb` package for full compatibility:
 
 ```bash
-sudo dpkg -i internxt_2.5.1_amd64.deb
+sudo dpkg -i internxt_2.6.0_amd64.deb
 ```
 
 ### AppImage
@@ -58,8 +25,8 @@ sudo dpkg -i internxt_2.5.1_amd64.deb
 Alternatively, you can use the AppImage format:
 
 ```bash
-chmod +x Internxt-2.5.1.AppImage
-./Internxt-2.5.1.AppImage
+chmod +x Internxt-2.6.0.AppImage
+./Internxt-2.6.0.AppImage
 ```
 
 #### ⚠️ Important Note about AppImage and SSO Login:
@@ -110,10 +77,6 @@ sudo apt-get install rpm
 ```
 
 ## Login Configuration Using Deeplink
-
-To log in via deeplink in development mode, special configuration is required due to limitations in Electron 19.
-
-### Create Entry-Point Script
 
 Create a script in the root of the project named `enable-sso.sh` and add the following content:
 

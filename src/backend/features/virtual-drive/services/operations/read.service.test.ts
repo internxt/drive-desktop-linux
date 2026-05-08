@@ -7,19 +7,37 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { StorageFilesRepository } from '../../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
+import { DownloadProgressTracker } from '../../../../../context/shared/domain/DownloadProgressTracker';
+import * as getCredentialsModule from '../../../../../apps/main/auth/get-credentials';
+import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import * as buildNetworkClientModule from '../../../../../infra/environment/download-file/build-network-client';
 
 const handleReadCallbackMock = partialSpyOn(handleReadCallbackModule, 'handleReadCallback');
+const getCredentialsMock = partialSpyOn(getCredentialsModule, 'getCredentials');
+const userProviderGetMock = partialSpyOn(DependencyInjectionUserProvider, 'get');
+const buildNetworkClientMock = partialSpyOn(buildNetworkClientModule, 'buildNetworkClient');
 
 describe('read', () => {
   let container: ReturnType<typeof mockDeep<Container>>;
   const fileSearcher = mockDeep<FirstsFileSearcher>();
   const temporalFinder = mockDeep<TemporalFileByPathFinder>();
   const repo = mockDeep<StorageFilesRepository>();
+  const tracker = mockDeep<DownloadProgressTracker>();
+  const network = {};
+
   beforeEach(() => {
     container = mockDeep<Container>();
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
     container.get.calledWith(StorageFilesRepository).mockReturnValue(repo);
+    container.get.calledWith(DownloadProgressTracker).mockReturnValue(tracker);
+    getCredentialsMock.mockReturnValue({ mnemonic: 'mnemonic' } as never);
+    userProviderGetMock.mockReturnValue({
+      bucket: 'bucket-id',
+      bridgeUser: 'bridge-user',
+      userId: 'user-id',
+    } as never);
+    buildNetworkClientMock.mockReturnValue(network as never);
   });
 
   describe('when handleReadCallback succeeds', () => {
@@ -38,7 +56,19 @@ describe('read', () => {
 
       await read('/file.mp4', 32768, 4096, 'vlc', container);
 
-      expect(handleReadCallbackMock).toHaveBeenCalledWith(expect.any(Object), '/file.mp4', 32768, 4096, 'vlc');
+      expect(handleReadCallbackMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bucketId: 'bucket-id',
+          mnemonic: 'mnemonic',
+          network,
+          path: '/file.mp4',
+          range: {
+            length: 32768,
+            position: 4096,
+          },
+          processName: 'vlc',
+        }),
+      );
     });
   });
 

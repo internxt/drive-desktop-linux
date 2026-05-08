@@ -104,6 +104,7 @@ const downloadOwnFile: DownloadOwnFileFunction = (params) => {
 
 const downloadFileV2: DownloadFileFunction = (params) => {
   if (params.token && params.encryptionKey) {
+    // This is de facto dead code as its never called with params.token
     return downloadSharedFile(params as DownloadSharedFileParams);
   } else if (params.creds && params.mnemonic) {
     return downloadOwnFile(params as DownloadOwnFileParams);

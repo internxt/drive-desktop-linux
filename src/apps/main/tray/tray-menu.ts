@@ -21,39 +21,25 @@ export class TrayMenu {
 
     this.setState('LOADING');
 
-    this.tray.setIgnoreDoubleClickEvents(true);
-
-    this.tray.on('click', async () => {
-      await this.onClick();
-      this.tray.setContextMenu(null);
-    });
-  }
-
-  getIconPath(state: TrayMenuState) {
-    return path.join(this.iconsPath, `${state.toLowerCase()}.png`);
-  }
-
-  generateContextMenu() {
-    const contextMenuTemplate: Electron.MenuItemConstructorOptions[] = [];
-    contextMenuTemplate.push(
+    const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'Show/Hide',
+        label: `Internxt ${PackageJson.version}`,
         click: () => {
           this.onClick();
         },
       },
       {
         label: 'Quit',
-        click: this.onQuit,
+        click: () => {
+          this.onQuit();
+        },
       },
-    );
-
-    return Menu.buildFromTemplate(contextMenuTemplate);
+    ]);
+    this.tray.setContextMenu(contextMenu);
   }
 
-  updateContextMenu() {
-    const ctxMenu = this.generateContextMenu();
-    this.tray.setContextMenu(ctxMenu);
+  getIconPath(state: TrayMenuState) {
+    return path.join(this.iconsPath, `${state.toLowerCase()}.png`);
   }
 
   setState(state: TrayMenuState) {
