@@ -40,7 +40,6 @@ export async function handleReadCallback({
   network,
   path,
   range,
-  processName,
 }: HandleReadCallbackProps): Promise<Result<Buffer, FuseError>> {
   const virtualFile = await findVirtualFile(path);
 
