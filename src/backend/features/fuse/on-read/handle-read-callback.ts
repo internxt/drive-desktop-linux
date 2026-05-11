@@ -4,11 +4,9 @@ import { type File } from '../../../../context/virtual-drive/files/domain/File';
 import { type FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { type Result } from '../../../../context/shared/domain/Result';
 import { readChunkFromDisk } from './read-chunk-from-disk';
-import { isBlocklistedProcess } from '../../virtual-drive/utils/process-blocklist';
 import nodePath from 'node:path';
 import { PATHS } from '../../../../core/electron/paths';
 import { EMPTY } from './constants';
-import { readIfHydrated } from './download-cache/read-if-hydrated';
 import { readOrHydrate } from './read-or-hydrate';
 import { type HandleReadDeps, type ReadRange } from './types';
 export type HandleReadCallbackProps = HandleReadDeps & {
@@ -36,7 +34,6 @@ export async function handleReadCallback({
   network,
   path,
   range,
-  processName,
 }: HandleReadCallbackProps): Promise<Result<Buffer, FuseError>> {
   const virtualFile = await findVirtualFile(path);
 
@@ -45,17 +42,6 @@ export async function handleReadCallback({
   }
 
   const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
-  if (isBlocklistedProcess(processName)) {
-    const cached = await readIfHydrated(filePath, virtualFile.contentsId, {
-      position: range.position,
-      length: range.length,
-    });
-    if (cached) {
-      return { data: cached };
-    }
-    logger.debug({ msg: '[ReadCallback] Download blocked for blocklisted process:', path, processName });
-    return { data: EMPTY };
-  }
 
   return readOrHydrate({
     bucketId,
