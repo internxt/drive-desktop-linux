@@ -45,17 +45,17 @@ export async function handleReadCallback({
   }
 
   const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
-  if (isBlocklistedProcess(processName)) {
-    const cached = await readIfHydrated(filePath, virtualFile.contentsId, {
-      position: range.position,
-      length: range.length,
-    });
-    if (cached) {
-      return { data: cached };
-    }
-    logger.debug({ msg: '[ReadCallback] Download blocked for blocklisted process:', path, processName });
-    return { data: EMPTY };
-  }
+  // if (isBlocklistedProcess(processName)) {
+  //   const cached = await readIfHydrated(filePath, virtualFile.contentsId, {
+  //     position: range.position,
+  //     length: range.length,
+  //   });
+  //   if (cached) {
+  //     return { data: cached };
+  //   }
+  //   logger.debug({ msg: '[ReadCallback] Download blocked for blocklisted process:', path, processName });
+  //   return { data: EMPTY };
+  // }
 
   return readOrHydrate({
     bucketId,

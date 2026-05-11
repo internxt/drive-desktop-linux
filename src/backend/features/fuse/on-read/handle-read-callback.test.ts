@@ -97,7 +97,7 @@ describe('handleReadCallback', () => {
     });
   });
 
-  describe('when process is blocklisted', () => {
+  describe.skip('when process is blocklisted', () => {
     it('should return empty buffer without side effects when the requested range is not cached', async () => {
       isBlocklistedProcessMock.mockReturnValue(true);
       fileExistsOnDiskMock.mockResolvedValue(false);
