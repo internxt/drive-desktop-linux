@@ -1,7 +1,11 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { type TemporalFile } from '../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { type File } from '../../../../context/virtual-drive/files/domain/File';
-import { type FuseError, FuseIOError, FuseNoSuchFileOrDirectoryError } from '../../../../apps/drive/fuse/callbacks/FuseErrors';
+import {
+  type FuseError,
+  FuseIOError,
+  FuseNoSuchFileOrDirectoryError,
+} from '../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { downloadFileRange } from '../../../../infra/environment/download-file/download-file';
 import { type Result } from '../../../../context/shared/domain/Result';
 import { readChunkFromDisk } from './read-chunk-from-disk';
@@ -45,7 +49,11 @@ export async function handleReadCallback({
   }
 
   if (isThumbnailProcess(processName)) {
-    logger.debug({ msg: '[ReadCallback] thumbnail process, downloading exact range', process: processName, file: virtualFile.nameWithExtension });
+    logger.debug({
+      msg: '[ReadCallback] thumbnail process, downloading exact range',
+      process: processName,
+      file: virtualFile.nameWithExtension,
+    });
     return readExactRangeForThumbnail({ bucketId, mnemonic, network, virtualFile, range });
   }
 
