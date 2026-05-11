@@ -511,12 +511,13 @@ func TestStatFs(t *testing.T) {
 	t.Run("returns filesystem stats from backend", func(t *testing.T) {
 		sharedMount.mockServer.setHandler(client.OperationStatFs, func(w http.ResponseWriter, r *http.Request) {
 			respondJSON(w, map[string]any{
-				"blocks": uint64(1000000),
-				"bfree":  uint64(500000),
-				"bavail": uint64(490000),
-				"files":  uint64(100000),
-				"ffree":  uint64(90000),
-				"bsize":  uint32(4096),
+				"blocks":  uint64(1000000),
+				"bfree":   uint64(500000),
+				"bavail":  uint64(490000),
+				"files":   uint64(100000),
+				"ffree":   uint64(90000),
+				"bsize":   uint32(4096),
+				"nameLen": uint32(255),
 			})
 		})
 
@@ -533,6 +534,9 @@ func TestStatFs(t *testing.T) {
 		}
 		if stat.Bavail != 490000 {
 			t.Errorf("bavail: got %d, want 490000", stat.Bavail)
+		}
+		if stat.Namelen != 255 {
+			t.Errorf("namelen: got %d, want 255", stat.Namelen)
 		}
 	})
 

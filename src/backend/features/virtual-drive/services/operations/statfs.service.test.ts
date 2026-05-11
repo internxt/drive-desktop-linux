@@ -28,7 +28,7 @@ describe('statfs', () => {
 
     const result = await statfs({ container });
 
-    expect(result.data).toStrictEqual(diskStats);
+    expect(result.data).toStrictEqual({ ...diskStats, nameLen: 255 });
     expect(result.error).toBeUndefined();
   });
 

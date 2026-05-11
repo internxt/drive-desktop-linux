@@ -27,6 +27,7 @@ describe('statfsController', () => {
       files: 100000,
       ffree: 90000,
       bsize: 4096,
+      nameLen: 255,
     };
     statfsMock.mockResolvedValue({ data: stats });
 
