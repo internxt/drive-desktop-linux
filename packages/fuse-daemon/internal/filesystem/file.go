@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"context"
+	"encoding/base64"
 	"strconv"
 	"log/slog"
 
@@ -64,7 +65,7 @@ func (f *InternxtFile) Read(dest []byte, off int64) (fuse.ReadResult, fuse.Statu
 func (f *InternxtFile) Write(data []byte, off int64) (uint32, fuse.Status) {
 	f.logger.Debug("Received Write call", "path", f.path, "offset", off, "length", len(data))
 	headers := map[string]string{
-		"X-Path":   f.path,
+		"X-Path-B64": base64.StdEncoding.EncodeToString([]byte(f.path)),
 		"X-Offset": strconv.FormatInt(off, 10),
 	}
 
