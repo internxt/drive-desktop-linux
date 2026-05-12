@@ -6,13 +6,13 @@ import { write } from '../../services/operations/write.service';
 import { ensureLeadingSlash } from '../ensure-leading-slash';
 
 export async function writeController(req: Request, res: Response, container: Container) {
-  const rawPath = req.header('X-Path');
+  const rawBase64Path = req.header('X-Path-B64');
   const rawOffset = req.header('X-Offset');
   const body = req.body;
   const content = Buffer.isBuffer(body) ? body : undefined;
   const offset = rawOffset ? Number.parseInt(rawOffset, 10) : Number.NaN;
 
-  if (typeof rawPath !== 'string' || Number.isNaN(offset) || !content) {
+  if (typeof rawBase64Path !== 'string' || Number.isNaN(offset) || !content) {
     logger.error({
       msg: '[FUSE DAEMON] Write: missing required fields',
       headers: req.headers,
@@ -22,8 +22,7 @@ export async function writeController(req: Request, res: Response, container: Co
     res.send(Buffer.alloc(0));
     return;
   }
-
-  const normalizedPath = ensureLeadingSlash(rawPath);
+  const normalizedPath = ensureLeadingSlash(Buffer.from(rawBase64Path, 'base64').toString('utf8'));
 
   logger.debug({
     msg: '[FUSE DAEMON] Write signal received',
