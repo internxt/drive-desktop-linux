@@ -28,11 +28,6 @@ export class LocalTree {
 
     return files;
   }
-
-  public get filePaths(): Array<string> {
-    return this.files.map((f) => f.path);
-  }
-
   public get folders(): Array<LocalFolder> {
     const folders: Array<LocalFolder> = [];
 
@@ -43,10 +38,6 @@ export class LocalTree {
     });
 
     return folders;
-  }
-
-  public get folderPaths(): Array<string> {
-    return this.folders.map((f) => f.path);
   }
 
   private addNode(node: Node): void {
@@ -81,19 +72,5 @@ export class LocalTree {
 
   has(id: string): boolean {
     return this.tree.has(id);
-  }
-
-  get(id: string): LocalFile | LocalFolder {
-    const node = this.tree.get(id);
-
-    if (!node) {
-      throw new Error(`Could not get the node ${id}`);
-    }
-
-    if (node.isFile()) {
-      return node.file;
-    }
-
-    return node.folder;
   }
 }
