@@ -55,7 +55,7 @@ export class BackupService {
         return error;
       }
       if (data.skippedItems.length > 0) {
-        /** TODO PB-XXXX:
+        /** TODO PB-6391:
          * Extend backup issues window to include
          * skipped items details so the issues window can show each skipped path
          */
