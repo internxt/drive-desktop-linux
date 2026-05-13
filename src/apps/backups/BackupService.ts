@@ -61,7 +61,7 @@ export class BackupService {
          */
         backupErrorsTracker.add(info.folderId, {
           name: info.name,
-          error: 'ITEMS_SKIPPED',
+          error: 'ACTION_NOT_PERMITTED',
         });
       }
       const local = data.tree;

@@ -6,6 +6,8 @@ import { UploadStrategyFunction } from '@internxt/inxt-js/build/lib/core';
 import { Result } from '../../../../context/shared/domain/Result';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { extractPropertyFromStringyfiedJson } from '../../../../shared/extract-property-from-json';
+import { isError } from '../../../../shared/errors/is-error';
+import { safeAccess } from '../../../../infra/local-file-system/safe-access';
 
 export type ContentUploadParams = {
   path: string;
@@ -14,7 +16,10 @@ export type ContentUploadParams = {
   environment: Environment;
   signal: AbortSignal;
 };
-function mapUploadError(err: Error & { status?: unknown }): DriveDesktopError {
+function mapUploadError(err: Error & { code?: unknown; status?: unknown }): DriveDesktopError {
+  if (err.code === 'EACCES' || err.code === 'EPERM') {
+    return new DriveDesktopError('ACTION_NOT_PERMITTED', err.message);
+  }
   if (err.message === 'Max space used') {
     return new DriveDesktopError('NOT_ENOUGH_SPACE');
   }
@@ -31,7 +36,7 @@ function mapUploadError(err: Error & { status?: unknown }): DriveDesktopError {
   return new DriveDesktopError('UNKNOWN');
 }
 
-export function uploadContentToEnvironment({
+export async function uploadContentToEnvironment({
   path,
   size,
   bucket,
@@ -44,9 +49,26 @@ export function uploadContentToEnvironment({
         ? environment.uploadMultipartFile.bind(environment)
         : environment.upload.bind(environment);
 
+    const accessResult = await safeAccess(path);
+    if (accessResult.error) {
+      return { error: accessResult.error };
+    }
+
     const readable = createReadStream(path);
 
     return new Promise<Result<string, DriveDesktopError>>((resolve) => {
+      let settled = false;
+      const resolveOnce = (result: Result<string, DriveDesktopError>) => {
+        if (settled) return;
+        settled = true;
+        resolve(result);
+      };
+
+      readable.on('error', (err: Error & { code?: unknown; status?: unknown }) => {
+        logger.error({ tag: 'BACKUPS', msg: '[ENVLFU READ STREAM ERROR]', err, path });
+        resolveOnce({ error: mapUploadError(err) });
+      });
+
       const state = uploadFn(bucket, {
         source: readable,
         fileSize: size,
@@ -55,15 +77,15 @@ export function uploadContentToEnvironment({
 
           if (err) {
             logger.error({ tag: 'BACKUPS', msg: '[ENVLFU UPLOAD ERROR]', err });
-            return resolve({ error: mapUploadError(err) });
+            return resolveOnce({ error: mapUploadError(err) });
           }
 
           if (!contentsId) {
             logger.error({ tag: 'BACKUPS', msg: '[ENVLFU UPLOAD ERROR] No contentsId returned' });
-            return resolve({ error: new DriveDesktopError('UNKNOWN') });
+            return resolveOnce({ error: new DriveDesktopError('UNKNOWN') });
           }
 
-          resolve({ data: contentsId });
+          resolveOnce({ data: contentsId });
         },
         progressCallback: (progress: number) => {
           logger.debug({ tag: 'SYNC-ENGINE', msg: '[UPLOAD PROGRESS]', progress });
@@ -79,7 +101,10 @@ export function uploadContentToEnvironment({
         { once: true },
       );
     });
-  } catch {
+  } catch (err) {
+    if (isError(err)) {
+      return Promise.resolve({ error: mapUploadError(err) });
+    }
     return Promise.resolve({ error: new DriveDesktopError('UNKNOWN') });
   }
 }

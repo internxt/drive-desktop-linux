@@ -18,6 +18,7 @@ import * as addFileToTrashModule from '../../infra/drive-server/services/files/s
 import { partialSpyOn } from '../../../tests/vitest/utils.helper';
 import { AbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
 import * as buildLocalTreeModule from '../../backend/features/backup/local-tree/';
+import * as backupFeaturesModule from '../../backend/features/backup';
 
 vi.mock(import('../../backend/features/usage/usage.module'));
 vi.mock(import('../../backend/features/backup/local-tree/'));
@@ -26,6 +27,7 @@ describe('BackupService', () => {
   const executeAsyncQueueMock = partialSpyOn(executeAsyncQueueModule, 'executeAsyncQueue');
   const addFileToTrashMock = partialSpyOn(addFileToTrashModule, 'addFileToTrash');
   const buildLocalTreeMock = vi.mocked(buildLocalTreeModule.buildLocalTree);
+  const backupErrorsTrackerAddMock = partialSpyOn(backupFeaturesModule.backupErrorsTracker, 'add');
 
   let backupService: BackupService;
   let remoteTreeBuilder: RemoteTreeBuilder;
@@ -63,6 +65,7 @@ describe('BackupService', () => {
     backupService = new BackupService(remoteTreeBuilder, simpleFolderCreator, environment, 'backups-bucket');
 
     mockValidateSpace.mockClear();
+    backupErrorsTrackerAddMock.mockClear();
   });
 
   it('should successfully run the backup process', async () => {
@@ -88,6 +91,23 @@ describe('BackupService', () => {
 
     expect(result).toBe(error);
     expect(buildLocalTreeMock).toHaveBeenCalledWith(info.pathname);
+  });
+
+  it('should add skipped local tree items as individual backup issues', async () => {
+    const skippedError = new DriveDesktopError('ACTION_NOT_PERMITTED', 'Symbolic links are skipped');
+    buildLocalTreeMock.mockResolvedValueOnce({
+      data: {
+        tree: LocalTreeMother.oneLevel(10),
+        skippedItems: [{ path: '/path/to/backup/thunderbird-link' as AbsolutePath, error: skippedError }],
+      },
+    });
+
+    await backupService.run(info, abortController.signal, tracker);
+
+    expect(backupErrorsTrackerAddMock).toHaveBeenCalledWith(info.folderId, {
+      name: 'thunderbird-link',
+      error: 'ACTION_NOT_PERMITTED',
+    });
   });
 
   it('should return an error if remote tree generation fails', async () => {
