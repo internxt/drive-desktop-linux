@@ -8,6 +8,11 @@ import { TemporalFileUploadedDomainEvent } from '../../domain/upload/TemporalFil
 import { EventBus } from '../../../../virtual-drive/shared/domain/EventBus';
 import { Replaces } from '../../domain/upload/Replaces';
 import { TemporalFile } from '../../domain/TemporalFile';
+import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
+import {
+  createTransientErrorHandler,
+  mapEnvironmentUploadError,
+} from '../../../../shared/application/transient-error-handler';
 
 @Service()
 export class TemporalFileUploader {
@@ -18,38 +23,58 @@ export class TemporalFileUploader {
   ) {}
 
   async run(temporalFile: TemporalFile, replaces?: Replaces): Promise<string> {
-    const stream = await this.repository.stream(temporalFile.path);
-
     const controller = new AbortController();
-
     const stopWatching = this.repository.watchFile(temporalFile.path, () => controller.abort());
 
-    const uploader = this.uploaderFactory
-      .read(stream)
-      .document(temporalFile)
-      .replaces(replaces)
-      .abort(controller)
-      .build();
+    try {
+      const { data: contentsId, error } = await retryWithBackoff(
+        async () => {
+          const stream = await this.repository.stream(temporalFile.path);
 
-    const contentsId = await uploader();
+          const uploader = this.uploaderFactory
+            .read(stream)
+            .document(temporalFile)
+            .replaces(replaces)
+            .abort(controller)
+            .build();
 
-    stopWatching();
+          try {
+            const uploadedContentsId = await uploader();
+            return { data: uploadedContentsId };
+          } catch (uploadError) {
+            return { error: mapEnvironmentUploadError(uploadError as Error & { status?: unknown }) };
+          }
+        },
+        createTransientErrorHandler({
+          tag: 'SYNC-ENGINE',
+          context: 'TEMPORAL FILE UPLOAD RETRY',
+          path: temporalFile.path.value,
+        }),
+        controller.signal,
+      );
 
-    logger.debug({ msg: `${temporalFile.path.value} uploaded with id ${contentsId}` });
+      if (error) {
+        throw error;
+      }
 
-    const ext = extname(temporalFile.path.value).replace('.', '').toLowerCase();
-    const fileBuffer = canGenerateThumbnail(ext) ? await this.repository.read(temporalFile.path) : undefined;
+      logger.debug({ msg: `${temporalFile.path.value} uploaded with id ${contentsId}` });
 
-    const contentsUploadedEvent = new TemporalFileUploadedDomainEvent({
-      aggregateId: contentsId,
-      size: temporalFile.size.value,
-      path: temporalFile.path.value,
-      replaces: replaces?.contentsId,
-      fileBuffer,
-    });
+      const ext = extname(temporalFile.path.value).replace('.', '').toLowerCase();
+      const fileBuffer = canGenerateThumbnail(ext) ? await this.repository.read(temporalFile.path) : undefined;
 
-    await this.eventBus.publish([contentsUploadedEvent]);
+      const contentsUploadedEvent = new TemporalFileUploadedDomainEvent({
+        aggregateId: contentsId,
+        size: temporalFile.size.value,
+        path: temporalFile.path.value,
+        replaces: replaces?.contentsId,
+        fileBuffer,
+      });
 
-    return contentsId;
+      await this.eventBus.publish([contentsUploadedEvent]);
+
+      return contentsId;
+    } finally {
+      stopWatching();
+    }
   }
 }

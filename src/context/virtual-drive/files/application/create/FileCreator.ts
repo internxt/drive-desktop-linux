@@ -13,6 +13,8 @@ import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { FileContentsId } from '../../domain/FileContentsId';
 import { FileFolderId } from '../../domain/FileFolderId';
 import { runAfterParentCreations } from '../../../folders/application/create/PendingFolderCreationTracker';
+import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
+import { createTransientErrorHandler } from '../../../../shared/application/transient-error-handler';
 
 @Service()
 export class FileCreator {
@@ -36,19 +38,31 @@ export class FileCreator {
           const folder = await this.parentFolderFinder.run(filePath);
           const fileFolderId = new FileFolderId(folder.id);
 
-          const either = await this.remote.persist({
-            contentsId: fileContentsId,
-            path: filePath,
-            size: fileSize,
-            folderId: fileFolderId,
-            folderUuid: folder.uuid,
-          });
+          const { data: persistedFile, error: persistedError } = await retryWithBackoff(
+            async () => {
+              const either = await this.remote.persist({
+                contentsId: fileContentsId,
+                path: filePath,
+                size: fileSize,
+                folderId: fileFolderId,
+                folderUuid: folder.uuid,
+              });
 
-          if (either.isLeft()) {
-            throw either.getLeft();
+              if (either.isLeft()) {
+                return { error: either.getLeft() };
+              }
+
+              return { data: either.getRight() };
+            },
+            createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'FILE CREATION RETRY', path: filePath.value }),
+            new AbortController().signal,
+          );
+
+          if (persistedError) {
+            throw persistedError;
           }
 
-          const { modificationTime, id, uuid, createdAt } = either.getRight();
+          const { modificationTime, id, uuid, createdAt } = persistedFile;
 
           return File.create({
             id,

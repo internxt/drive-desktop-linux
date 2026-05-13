@@ -36,7 +36,7 @@ describe('FolderRepositorySynchronizer', () => {
 
     folderRepositoryMock.all.mockResolvedValue([]);
 
-    await sut.run(remoteFolders);
+    await sut.run(remoteFolders, new Set(['1', '2']));
 
     expect(folderRepositoryMock.add).toHaveBeenCalledTimes(2);
     expect(folderRepositoryMock.add).toHaveBeenCalledWith(remoteFolders[0]);
@@ -51,7 +51,7 @@ describe('FolderRepositorySynchronizer', () => {
 
     folderRepositoryMock.all.mockResolvedValue(localFolders);
 
-    await sut.run(remoteFolders);
+    await sut.run(remoteFolders, new Set(['root', '1', '2', '3']));
 
     expect(folderRepositoryMock.add).toHaveBeenCalledTimes(3);
     expect(folderRepositoryMock.delete).toHaveBeenCalledTimes(1);
@@ -71,11 +71,28 @@ describe('FolderRepositorySynchronizer', () => {
 
     folderRepositoryMock.all.mockResolvedValue(localFolders);
 
-    await sut.run(remoteFolders);
+    await sut.run(remoteFolders, new Set(['root', '1', '2', '3']));
 
     expect(folderRepositoryMock.delete).toHaveBeenCalledTimes(2);
     expect(folderRepositoryMock.delete).toHaveBeenCalledWith('2');
     expect(folderRepositoryMock.delete).toHaveBeenCalledWith('3');
     expect(folderRepositoryMock.delete).not.toHaveBeenCalledWith('root');
+  });
+
+  it('should NOT delete locally created folders absent from remote sync store', async () => {
+    const remoteFolders = [mockFolder('root', '/', true), mockFolder('1', '/documents')];
+
+    const localFolders = [
+      mockFolder('root', '/', true),
+      mockFolder('1', '/documents'),
+      mockFolder('99', '/new-local-folder'), // created locally, not yet in SQLite
+    ];
+
+    folderRepositoryMock.all.mockResolvedValue(localFolders);
+
+    // allRemoteFolderIds does NOT include '99' — it hasn't been synced yet
+    await sut.run(remoteFolders, new Set(['root', '1']));
+
+    expect(folderRepositoryMock.delete).not.toHaveBeenCalled();
   });
 });

@@ -13,6 +13,8 @@ import { FolderInPathAlreadyExistsError } from '../../domain/errors/FolderInPath
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { ParentFolderFinder } from '../ParentFolderFinder';
 import { runTrackingCreation } from './PendingFolderCreationTracker';
+import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
+import { createTransientErrorHandler } from '../../../../shared/application/transient-error-handler';
 
 @Service()
 export class FolderCreator {
@@ -49,17 +51,25 @@ export class FolderCreator {
         const parent = await this.parentFolderFinder.run(folderPath);
         const parentId = await this.findParentId(folderPath);
 
-        const response = await this.remote.persist(folderPath.name(), parent.uuid);
+        const response = await retryWithBackoff(
+          async () => {
+            const result = await this.remote.persist(folderPath.name(), parent.uuid);
+            if (result.isLeft()) return { error: result.getLeft() };
+            return { data: result.getRight() };
+          },
+          createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'FOLDER CREATION RETRY', path: folderPath.value }),
+          new AbortController().signal,
+        );
 
-        if (response.isLeft()) {
-          const error = response.getLeft();
+        if (response.error) {
+          const error = response.error;
 
           logger.error({
             msg: 'Error creating folder:',
             error,
           });
 
-          if (error === 'ALREADY_EXISTS') {
+          if (error.cause === 'FILE_ALREADY_EXISTS') {
             const existingFolder = await this.remote.searchWith(parentId, folderPath);
 
             if (existingFolder) {
@@ -68,10 +78,10 @@ export class FolderCreator {
             }
           }
 
-          throw new Error(`Could not create folder ${folderPath.value}: ${error}`);
+          throw new Error(`Could not create folder ${folderPath.value}: ${error.cause}`);
         }
 
-        const dto = response.getRight();
+        const dto = response.data;
 
         const folder = Folder.create(
           new FolderId(dto.id),

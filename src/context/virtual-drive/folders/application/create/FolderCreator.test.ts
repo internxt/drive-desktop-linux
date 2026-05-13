@@ -1,5 +1,6 @@
 import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mocks__/EventBusMock';
 import { InvalidArgumentError } from '../../../../shared/domain/errors/InvalidArgumentError';
+import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { FolderCreator } from './FolderCreator';
 import { ParentFolderFinder } from '../ParentFolderFinder';
 import { FolderStatuses } from '../../domain/FolderStatus';
@@ -113,10 +114,10 @@ describe('Folder Creator', () => {
     const path = FolderPathMother.any();
     const parent = FolderMother.fromPartial({ path: path.dirname() });
 
-    remote.shouldFailPersistWith(path.name(), parent.uuid, 'UNHANDLED');
+    remote.shouldFailPersistWith(path.name(), parent.uuid, new DriveDesktopError('UNKNOWN'));
     repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parent]).mockReturnValueOnce([parent]);
 
-    await expect(SUT.run(path.value)).rejects.toThrow(`Could not create folder ${path.value}: UNHANDLED`);
+    await expect(SUT.run(path.value)).rejects.toThrow(`Could not create folder ${path.value}: UNKNOWN`);
   });
 
   it('recovers from ALREADY_EXISTS by finding the folder remotely', async () => {
@@ -127,7 +128,7 @@ describe('Folder Creator', () => {
       parentId: parent.id,
     });
 
-    remote.shouldFailPersistWith(path.name(), parent.uuid, 'ALREADY_EXISTS');
+    remote.shouldFailPersistWith(path.name(), parent.uuid, new DriveDesktopError('FILE_ALREADY_EXISTS'));
     remote.shouldFindFolder(existingFolder);
 
     repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parent]).mockReturnValueOnce([parent]);
@@ -136,5 +137,63 @@ describe('Folder Creator', () => {
 
     expect(repository.addMock).toBeCalledWith(expect.objectContaining({ uuid: existingFolder.uuid }));
     expect(eventBus.publishMock).not.toBeCalled();
+  });
+
+  it('retries on RATE_LIMITED and eventually succeeds', async () => {
+    vi.useFakeTimers();
+    const path = FolderPathMother.any();
+    const parent = FolderMother.fromPartial({ path: path.dirname() });
+    const createdFolder = FolderMother.fromPartial({ path: path.value, parentId: parent.id, uuid: parent.uuid });
+
+    remote.persistMock
+      .mockResolvedValueOnce({ isLeft: () => true, getLeft: () => new DriveDesktopError('RATE_LIMITED', '1000') })
+      .mockResolvedValueOnce({
+        isLeft: () => false,
+        getRight: () => ({
+          id: createdFolder.id,
+          uuid: createdFolder.uuid,
+          parentId: createdFolder.parentId,
+          createdAt: createdFolder.createdAt.toISOString(),
+          updatedAt: createdFolder.updatedAt.toISOString(),
+        }),
+      });
+
+    repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parent]).mockReturnValueOnce([parent]);
+
+    const runPromise = SUT.run(path.value);
+    await vi.runAllTimersAsync();
+    await runPromise;
+
+    expect(remote.persistMock).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
+
+  it('retries on INTERNAL_SERVER_ERROR and eventually succeeds', async () => {
+    vi.useFakeTimers();
+    const path = FolderPathMother.any();
+    const parent = FolderMother.fromPartial({ path: path.dirname() });
+    const createdFolder = FolderMother.fromPartial({ path: path.value, parentId: parent.id, uuid: parent.uuid });
+
+    remote.persistMock
+      .mockResolvedValueOnce({ isLeft: () => true, getLeft: () => new DriveDesktopError('INTERNAL_SERVER_ERROR') })
+      .mockResolvedValueOnce({
+        isLeft: () => false,
+        getRight: () => ({
+          id: createdFolder.id,
+          uuid: createdFolder.uuid,
+          parentId: createdFolder.parentId,
+          createdAt: createdFolder.createdAt.toISOString(),
+          updatedAt: createdFolder.updatedAt.toISOString(),
+        }),
+      });
+
+    repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parent]).mockReturnValueOnce([parent]);
+
+    const runPromise = SUT.run(path.value);
+    await vi.runAllTimersAsync();
+    await runPromise;
+
+    expect(remote.persistMock).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
   });
 });
