@@ -3,18 +3,19 @@ import { LocalFolder } from '../../localFolder/domain/LocalFolder';
 import { LocalFileNode } from './LocalFileNode';
 import { LocalFolderNode } from './LocalFolderNode';
 import { Node } from './Node';
+import { AbsolutePath } from '../../localFile/infrastructure/AbsolutePath';
 
 export class LocalTree {
   private tree: Map<string, Node>;
   public readonly root: LocalFolder;
 
-  constructor(rootFolder: LocalFolder) {
-    const clone = LocalFolder.from(rootFolder.attributes());
-    const node = LocalFolderNode.from(clone);
-    this.root = clone;
+  constructor(path: AbsolutePath, modificationTime: number) {
+    const localFolder = LocalFolder.from(path, modificationTime);
+    const node = LocalFolderNode.from(localFolder);
+    this.root = localFolder;
 
     this.tree = new Map<string, Node>();
-    this.tree.set(clone.path, node);
+    this.tree.set(path, node);
   }
 
   public get files(): Array<LocalFile> {
