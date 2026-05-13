@@ -90,9 +90,7 @@ describe('getDirentsForPath', () => {
 
     expect(result.data?.files).toStrictEqual([{ path: '/home/user/Backup/valid.txt', stats: fileStats }]);
     expect(result.data?.folders).toStrictEqual([]);
-    expect(result.data?.skippedItems).toStrictEqual([
-      { path: '/home/user/Backup/missing.txt', error: statError },
-    ]);
+    expect(result.data?.skippedItems).toStrictEqual([{ path: '/home/user/Backup/missing.txt', error: statError }]);
   });
 
   it('returns a readdir error without statting entries', async () => {

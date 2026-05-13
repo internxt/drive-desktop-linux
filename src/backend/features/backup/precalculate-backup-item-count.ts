@@ -5,7 +5,6 @@ import { Result } from '../../../context/shared/domain/Result';
 import { RemoteTreeBuilder } from '../../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
 import { buildLocalTree } from './local-tree';
 
-
 export async function precalculateBackupItemCount(
   backupInfo: BackupInfo,
   remoteTreeBuilder: RemoteTreeBuilder,

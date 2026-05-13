@@ -50,7 +50,9 @@ describe('traverse', () => {
     expect(tree.files.map((file) => file.path)).toEqual(
       expect.arrayContaining(['/home/user/Backup/file.txt', '/home/user/Backup/Photos/photo.jpg']),
     );
-    expect(tree.folders.map((folder) => folder.path)).toEqual(expect.arrayContaining([root, '/home/user/Backup/Photos']));
+    expect(tree.folders.map((folder) => folder.path)).toEqual(
+      expect.arrayContaining([root, '/home/user/Backup/Photos']),
+    );
   });
 
   it('bubbles skipped items from current and child folders', async () => {

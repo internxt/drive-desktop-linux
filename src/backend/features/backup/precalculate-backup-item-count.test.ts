@@ -38,10 +38,7 @@ describe('precalculateBackupItemCount', () => {
     vi.spyOn(DiffFilesCalculatorService, 'calculate').mockReturnValue({ total: 7 } as never);
     vi.spyOn(FoldersDiffCalculator, 'calculate').mockReturnValue({ total: 3 } as never);
 
-    const result = await precalculateBackupItemCount(
-      backupInfo,
-      remoteTreeBuilder as unknown as RemoteTreeBuilder,
-    );
+    const result = await precalculateBackupItemCount(backupInfo, remoteTreeBuilder as unknown as RemoteTreeBuilder);
 
     expect(result.data).toBe(10);
     expect(remoteTreeBuilder.run).toBeCalledWith(backupInfo.folderId, backupInfo.folderUuid, true);
@@ -53,10 +50,7 @@ describe('precalculateBackupItemCount', () => {
     const filesSpy = vi.spyOn(DiffFilesCalculatorService, 'calculate');
     const foldersSpy = vi.spyOn(FoldersDiffCalculator, 'calculate');
 
-    const result = await precalculateBackupItemCount(
-      backupInfo,
-      remoteTreeBuilder as unknown as RemoteTreeBuilder,
-    );
+    const result = await precalculateBackupItemCount(backupInfo, remoteTreeBuilder as unknown as RemoteTreeBuilder);
 
     expect(result.error).toBeDefined();
     expect(remoteTreeBuilder.run).not.toHaveBeenCalled();
@@ -68,10 +62,7 @@ describe('precalculateBackupItemCount', () => {
     const runError = new Error('unexpected failure');
     buildLocalTreeMock.mockRejectedValueOnce(runError);
 
-    const result = await precalculateBackupItemCount(
-      backupInfo,
-      remoteTreeBuilder as unknown as RemoteTreeBuilder,
-    );
+    const result = await precalculateBackupItemCount(backupInfo, remoteTreeBuilder as unknown as RemoteTreeBuilder);
 
     expect(result.error).toBe(runError);
   });
@@ -80,10 +71,7 @@ describe('precalculateBackupItemCount', () => {
     const runError = new Error('remote failure');
     remoteTreeBuilder.run.mockRejectedValue(runError);
 
-    const result = await precalculateBackupItemCount(
-      backupInfo,
-      remoteTreeBuilder as unknown as RemoteTreeBuilder,
-    );
+    const result = await precalculateBackupItemCount(backupInfo, remoteTreeBuilder as unknown as RemoteTreeBuilder);
 
     expect(result.error).toBe(runError);
   });
