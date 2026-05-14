@@ -52,7 +52,7 @@ jobs:
             internxt-release-builder:24.04 \
             bash -lc '
               set -euo pipefail
-              npm ci
+              npm ci --include=dev
               node <<"EOF" > build-manifest.json
               const packageJson = require("./package.json");
               const { execSync } = require("child_process");
