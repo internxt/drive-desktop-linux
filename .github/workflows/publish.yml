@@ -53,29 +53,7 @@ jobs:
             bash -lc '
               set -euo pipefail
               npm ci --include=dev
-              node <<"EOF" > build-manifest.json
-              const packageJson = require("./package.json");
-              const { execSync } = require("child_process");
-
-              function run(command) {
-                return execSync(command, { encoding: "utf8" }).trim();
-              }
-
-              const manifest = {
-                platform: process.platform,
-                arch: process.arch,
-                node: process.version,
-                npm: run("npm --version"),
-                go: run("go version"),
-                image: "internxt-release-builder:24.04",
-                electron: packageJson.devDependencies.electron,
-                electronBuilder: packageJson.devDependencies["electron-builder"],
-                electronRebuild: packageJson.devDependencies["@electron/rebuild"],
-                betterSqlite3: packageJson.dependencies["better-sqlite3"],
-              };
-
-              process.stdout.write(JSON.stringify(manifest, null, 2));
-              EOF
+              node -e "const packageJson = require(\"./package.json\"); const { execSync } = require(\"child_process\"); const run = (command) => execSync(command, { encoding: \"utf8\" }).trim(); const manifest = { platform: process.platform, arch: process.arch, node: process.version, npm: run(\"npm --version\"), go: run(\"go version\"), image: \"internxt-release-builder:24.04\", electron: packageJson.devDependencies.electron, electronBuilder: packageJson.devDependencies[\"electron-builder\"], electronRebuild: packageJson.devDependencies[\"@electron/rebuild\"], betterSqlite3: packageJson.dependencies[\"better-sqlite3\"] }; process.stdout.write(JSON.stringify(manifest, null, 2));" > build-manifest.json
               dpkg-query -W \
                 build-essential \
                 ca-certificates \
