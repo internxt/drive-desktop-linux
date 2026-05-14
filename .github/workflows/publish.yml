@@ -121,4 +121,7 @@ jobs:
 
       - name: Start app in headless mode
         run: |
-          xvfb-run -a /opt/Internxt/internxt --no-sandbox --version
+          xvfb-run -a /opt/Internxt/internxt --no-sandbox --version &
+          APP_PID=$!
+          sleep 5 # Allow app to initialize
+          kill $APP_PID
