@@ -4,30 +4,24 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      publish_to_github:
+        description: "Publish artifacts to GitHub release"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
-      contents: read
+      contents: write
       id-token: write
-      packages: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
-      - name: Create .npmrc file
-        run: |
-          echo "@internxt:registry=https://npm.pkg.github.com/" > .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
-
-      - name: Install rpm build tools
-        run: sudo apt-get install -y rpm
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Add .env
         run: |
@@ -37,18 +31,116 @@ jobs:
           echo "MAGIC_SALT=${{ secrets.MAGIC_SALT }}" >> .env
           echo "NEW_CRYPTO_KEY=${{ secrets.NEW_CRYPTO_KEY }}" >> .env
           echo "NEW_DRIVE_URL=https://gateway.internxt.com/drive" >> .env
-          echo "DRIVE_API_URL=https://gateway.internxt.com/api" >> .env
           echo "PAYMENTS_URL=https://gateway.internxt.com/payments" >> .env
           echo "INTERNXT_DESKTOP_HEADER_KEY=${{ secrets.INTERNXT_DESKTOP_HEADER_KEY }}" >> .env
           echo "BRIDGE_URL=https://gateway.internxt.com/network" >> .env
-          echo "APP_SEGMENT_KEY=${{ secrets.APP_SEGMENT_KEY }}" >> .env
-          echo "APP_SEGMENT_KEY_TEST=${{ secrets.APP_SEGMENT_KEY_TEST }}" >> .env
-          echo "BUG_REPORTING_URL=https://desktop-bug-reporting.inxt.workers.dev" >> .env
           echo "NOTIFICATIONS_URL=https://notifications.internxt.com" >> .env
-          echo "LOCK_REFRESH_INTERVAL=20000" >> .env
 
-      - name: Build app
-        run: npm run build
+      - name: Build release container image
+        run: docker build -f Dockerfile.release -t internxt-release-builder:24.04 .
 
-      - name: Publish app
-        run: npm run publish
+      - name: Build app inside container
+        env:
+          PUBLISH_TO_GITHUB: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish_to_github == 'true') }}
+        run: |
+          docker run --rm \
+            -e CI=true \
+            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -e PUBLISH_TO_GITHUB=${PUBLISH_TO_GITHUB} \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            internxt-release-builder:24.04 \
+            bash -lc '
+              set -euo pipefail
+              npm ci
+              node <<"EOF" > build-manifest.json
+              const packageJson = require("./package.json");
+              const { execSync } = require("child_process");
+
+              function run(command) {
+                return execSync(command, { encoding: "utf8" }).trim();
+              }
+
+              const manifest = {
+                platform: process.platform,
+                arch: process.arch,
+                node: process.version,
+                npm: run("npm --version"),
+                go: run("go version"),
+                image: "internxt-release-builder:24.04",
+                electron: packageJson.devDependencies.electron,
+                electronBuilder: packageJson.devDependencies["electron-builder"],
+                electronRebuild: packageJson.devDependencies["@electron/rebuild"],
+                betterSqlite3: packageJson.dependencies["better-sqlite3"],
+              };
+
+              process.stdout.write(JSON.stringify(manifest, null, 2));
+              EOF
+              dpkg-query -W \
+                build-essential \
+                ca-certificates \
+                curl \
+                make \
+                pkg-config \
+                python3 \
+                rpm > system-packages.txt
+
+              if [[ "${PUBLISH_TO_GITHUB}" == "true" ]]; then
+                npm run publish
+              else
+                npm run package
+              fi
+
+              find build -maxdepth 1 -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.yml" \) -print0 \
+                | sort -z \
+                | xargs -0 sha256sum > build-checksums.txt
+            '
+
+      - name: Upload release artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release-artifacts
+          path: |
+            build/*.AppImage
+            build/*.deb
+            build/*.rpm
+            build/*.yml
+
+      - name: Upload build metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-metadata
+          path: |
+            build-manifest.json
+            build-checksums.txt
+            system-packages.txt
+
+  smoke-test-deb:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-latest]
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-release-artifacts
+          path: build
+
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb
+
+      - name: Install deb package for smoke test
+        run: |
+          sudo dpkg -i --force-depends build/*.deb
+          test -x /opt/Internxt/internxt
+
+      - name: Start app in headless mode
+        run: |
+          xvfb-run -a /opt/Internxt/internxt --no-sandbox --version
