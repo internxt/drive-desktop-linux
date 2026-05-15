@@ -17,9 +17,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -40,41 +37,15 @@ jobs:
         run: docker build -f Dockerfile.release -t internxt-release-builder:24.04 .
 
       - name: Build app inside container
-        env:
-          PUBLISH_TO_GITHUB: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish_to_github == 'true') }}
         run: |
           docker run --rm \
             -e CI=true \
-            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-            -e PUBLISH_TO_GITHUB=${PUBLISH_TO_GITHUB} \
             -v "$PWD:/workspace" \
             -w /workspace \
             internxt-release-builder:24.04 \
-            bash -lc '
-              set -euo pipefail
-              npm ci --include=dev
-              node -e "const packageJson = require(\"./package.json\"); const { execSync } = require(\"child_process\"); const run = (command) => execSync(command, { encoding: \"utf8\" }).trim(); const manifest = { platform: process.platform, arch: process.arch, node: process.version, npm: run(\"npm --version\"), go: run(\"go version\"), image: \"internxt-release-builder:24.04\", electron: packageJson.devDependencies.electron, electronBuilder: packageJson.devDependencies[\"electron-builder\"], electronRebuild: packageJson.devDependencies[\"@electron/rebuild\"], betterSqlite3: packageJson.dependencies[\"better-sqlite3\"] }; process.stdout.write(JSON.stringify(manifest, null, 2));" > build-manifest.json
-              dpkg-query -W \
-                build-essential \
-                ca-certificates \
-                curl \
-                make \
-                pkg-config \
-                python3 \
-                rpm > system-packages.txt
+            bash -lc './scripts/run-release-build-in-container.sh'
 
-              if [[ "${PUBLISH_TO_GITHUB}" == "true" ]]; then
-                npm run publish
-              else
-                npm run package
-              fi
-
-              find build -maxdepth 1 -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.yml" \) -print0 \
-                | sort -z \
-                | xargs -0 sha256sum > build-checksums.txt
-            '
-
-      - name: Upload release artifacts
+      - name: Upload artifacts for smoke tests
         if: success()
         uses: actions/upload-artifact@v4
         with:
@@ -93,7 +64,6 @@ jobs:
           path: |
             build-manifest.json
             build-checksums.txt
-            system-packages.txt
 
   smoke-test-deb:
     needs: build
@@ -125,3 +95,25 @@ jobs:
           APP_PID=$!
           sleep 5 # Allow app to initialize
           kill $APP_PID
+
+  publish-release:
+    needs: smoke-test-deb
+    if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish_to_github == 'true' && startsWith(github.ref, 'refs/tags/')) }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download tested artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-release-artifacts
+          path: build
+
+      - name: Publish tested artifacts to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/*.AppImage
+            build/*.deb
+            build/*.rpm
+            build/*.yml
