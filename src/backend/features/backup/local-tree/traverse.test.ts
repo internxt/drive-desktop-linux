@@ -44,7 +44,7 @@ describe('traverse', () => {
         },
       });
 
-    const result = await traverse(tree, root, root);
+    const result = await traverse({ tree, currentFolder: root, rootFolder: root });
 
     expect(result.data?.skippedItems).toStrictEqual([]);
     expect(tree.files.map((file) => file.path)).toEqual(
@@ -82,7 +82,7 @@ describe('traverse', () => {
         },
       });
 
-    const result = await traverse(tree, root, root);
+    const result = await traverse({ tree, currentFolder: root, rootFolder: root });
 
     expect(result.data?.skippedItems).toStrictEqual([skippedAtRoot, skippedInChild]);
   });
@@ -92,7 +92,7 @@ describe('traverse', () => {
     const error = new DriveDesktopError('INSUFFICIENT_PERMISSION', 'Cannot read root');
     getDirentsForPathMock.mockResolvedValueOnce({ error });
 
-    const result = await traverse(tree, root, root);
+    const result = await traverse({ tree, currentFolder: root, rootFolder: root });
 
     expect(result).toStrictEqual({ error });
   });
@@ -112,7 +112,7 @@ describe('traverse', () => {
       })
       .mockResolvedValueOnce({ error });
 
-    const result = await traverse(tree, root, root);
+    const result = await traverse({ tree, currentFolder: root, rootFolder: root });
 
     expect(result.data?.skippedItems).toStrictEqual([{ path: child, error }]);
     expect(tree.folders.map((folder) => folder.path)).toContain(child);

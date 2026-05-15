@@ -11,11 +11,17 @@ import { getDirentsForPath } from './get-dirents-for-path';
 
 type TraverseResult = Pick<ProcessedDirents, 'skippedItems'>;
 
-export async function traverse(
-  tree: LocalTree,
-  currentFolder: AbsolutePath,
-  rootFolder: AbsolutePath,
-): Promise<Result<TraverseResult, DriveDesktopError>> {
+type Props = {
+  tree: LocalTree;
+  currentFolder: AbsolutePath;
+  rootFolder: AbsolutePath;
+};
+
+export async function traverse({
+  tree,
+  currentFolder,
+  rootFolder,
+}: Props): Promise<Result<TraverseResult, DriveDesktopError>> {
   const { data, error } = await getDirentsForPath(currentFolder);
   if (error) {
     return handleReadError({ currentFolder, rootFolder, error });
@@ -108,7 +114,7 @@ async function addFoldersToTreeAndTraverseChildren(
     tree.addFolder(currentLocalFolder, folder);
 
     // eslint-disable-next-line no-await-in-loop
-    const result = await traverse(tree, path, rootFolder);
+    const result = await traverse({ tree, currentFolder: path, rootFolder });
     if (result.error) {
       return { error: result.error };
     }

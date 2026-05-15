@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { AbsolutePath } from '../../../../context/local/localFile/infrastructure/AbsolutePath';
+import { AbsolutePath, createAbsolutePath } from '../../../../context/local/localFile/infrastructure/AbsolutePath';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
 import { Result } from '../../../../context/shared/domain/Result';
 import { safeReadDir } from '../../../../infra/local-file-system/safe-readdir';
@@ -16,7 +16,7 @@ export async function getDirentsForPath(
   if (error) return { error };
 
   for (const dirent of dirents) {
-    const currentPath = path.join(absolutePath.toString(), dirent.name) as AbsolutePath;
+    const currentPath = createAbsolutePath(absolutePath.toString(), dirent.name);
 
     if (dirent.isSymbolicLink()) {
       skippedItems.push({
