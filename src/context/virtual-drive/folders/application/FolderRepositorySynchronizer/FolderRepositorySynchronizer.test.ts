@@ -36,7 +36,7 @@ describe('FolderRepositorySynchronizer', () => {
 
     folderRepositoryMock.all.mockResolvedValue([]);
 
-    await sut.run(remoteFolders, new Set(['1', '2']));
+    await sut.run(remoteFolders, new Set());
 
     expect(folderRepositoryMock.add).toHaveBeenCalledTimes(2);
     expect(folderRepositoryMock.add).toHaveBeenCalledWith(remoteFolders[0]);
@@ -44,14 +44,14 @@ describe('FolderRepositorySynchronizer', () => {
     expect(folderRepositoryMock.delete).not.toHaveBeenCalled();
   });
 
-  it('should delete the folders that are not in the remote folders, except root', async () => {
+  it('should delete folders the server has marked as deleted, except root', async () => {
     const remoteFolders = [mockFolder('root', '/', true), mockFolder('1', '/documents'), mockFolder('2', '/projects')];
 
     const localFolders = [mockFolder('root', '/', true), mockFolder('1', '/documents'), mockFolder('3', '/old-folder')];
 
     folderRepositoryMock.all.mockResolvedValue(localFolders);
 
-    await sut.run(remoteFolders, new Set(['root', '1', '2', '3']));
+    await sut.run(remoteFolders, new Set([3]));
 
     expect(folderRepositoryMock.add).toHaveBeenCalledTimes(3);
     expect(folderRepositoryMock.delete).toHaveBeenCalledTimes(1);
@@ -59,7 +59,7 @@ describe('FolderRepositorySynchronizer', () => {
     expect(folderRepositoryMock.delete).not.toHaveBeenCalledWith('root');
   });
 
-  it('should delete multiple folders not present in remote, but never delete root', async () => {
+  it('should delete multiple folders the server has trashed, but never delete root', async () => {
     const remoteFolders = [mockFolder('root', '/', true), mockFolder('1', '/documents')];
 
     const localFolders = [
@@ -71,7 +71,7 @@ describe('FolderRepositorySynchronizer', () => {
 
     folderRepositoryMock.all.mockResolvedValue(localFolders);
 
-    await sut.run(remoteFolders, new Set(['root', '1', '2', '3']));
+    await sut.run(remoteFolders, new Set([2, 3]));
 
     expect(folderRepositoryMock.delete).toHaveBeenCalledTimes(2);
     expect(folderRepositoryMock.delete).toHaveBeenCalledWith('2');
@@ -90,8 +90,7 @@ describe('FolderRepositorySynchronizer', () => {
 
     folderRepositoryMock.all.mockResolvedValue(localFolders);
 
-    // allRemoteFolderIds does NOT include '99' — it hasn't been synced yet
-    await sut.run(remoteFolders, new Set(['root', '1']));
+    await sut.run(remoteFolders, new Set());
 
     expect(folderRepositoryMock.delete).not.toHaveBeenCalled();
   });
