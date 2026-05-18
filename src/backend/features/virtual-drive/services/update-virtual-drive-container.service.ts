@@ -17,9 +17,7 @@ export async function updateVirtualDriveContainer({ container, user }: { contain
     ]);
 
     const deletedFolderIds = new Set(
-      allRemoteItems.folders
-        .filter((f) => f.status !== ServerFolderStatus.EXISTS)
-        .map((f) => f.id),
+      allRemoteItems.folders.filter((f) => f.status !== ServerFolderStatus.EXISTS).map((f) => f.id),
     );
 
     await Promise.all([

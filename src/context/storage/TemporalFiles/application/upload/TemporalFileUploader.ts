@@ -12,7 +12,10 @@ import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
 import {
   createTransientErrorHandler,
   mapEnvironmentUploadError,
-} from '../../../../shared/application/transient-error-handler';
+} from '../../../../../backend/common/rate-limit/transient-error-handler';
+import { ContentsId } from '../../../../../apps/main/database/entities/DriveFile';
+import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
+import { Result } from '../../../../shared/domain/Result';
 
 @Service()
 export class TemporalFileUploader {
@@ -22,59 +25,94 @@ export class TemporalFileUploader {
     private readonly eventBus: EventBus,
   ) {}
 
-  async run(temporalFile: TemporalFile, replaces?: Replaces): Promise<string> {
+  async run(temporalFile: TemporalFile, replaces?: Replaces): Promise<ContentsId> {
     const controller = new AbortController();
     const stopWatching = this.repository.watchFile(temporalFile.path, () => controller.abort());
 
     try {
-      const { data: contentsId, error } = await retryWithBackoff(
-        async () => {
-          const stream = await this.repository.stream(temporalFile.path);
-
-          const uploader = this.uploaderFactory
-            .read(stream)
-            .document(temporalFile)
-            .replaces(replaces)
-            .abort(controller)
-            .build();
-
-          try {
-            const uploadedContentsId = await uploader();
-            return { data: uploadedContentsId };
-          } catch (uploadError) {
-            return { error: mapEnvironmentUploadError(uploadError as Error & { status?: unknown }) };
-          }
-        },
-        createTransientErrorHandler({
-          tag: 'SYNC-ENGINE',
-          context: 'TEMPORAL FILE UPLOAD RETRY',
-          path: temporalFile.path.value,
-        }),
-        controller.signal,
-      );
-
-      if (error) {
-        throw error;
-      }
+      const contentsId = await this.uploadWithRetry(temporalFile, controller, replaces);
 
       logger.debug({ msg: `${temporalFile.path.value} uploaded with id ${contentsId}` });
 
-      const ext = extname(temporalFile.path.value).replace('.', '').toLowerCase();
-      const fileBuffer = canGenerateThumbnail(ext) ? await this.repository.read(temporalFile.path) : undefined;
-
-      const contentsUploadedEvent = new TemporalFileUploadedDomainEvent({
-        aggregateId: contentsId,
-        size: temporalFile.size.value,
-        path: temporalFile.path.value,
-        replaces: replaces?.contentsId,
-        fileBuffer,
-      });
-
-      await this.eventBus.publish([contentsUploadedEvent]);
+      await this.publishUploadEvent(contentsId, temporalFile, replaces);
 
       return contentsId;
     } finally {
       stopWatching();
     }
+  }
+
+  private async uploadWithRetry(
+    temporalFile: TemporalFile,
+    controller: AbortController,
+    replaces?: Replaces,
+  ): Promise<ContentsId> {
+    const errorHandler = createTransientErrorHandler({
+      tag: 'SYNC-ENGINE',
+      context: 'TEMPORAL FILE UPLOAD RETRY',
+      path: temporalFile.path.value,
+    });
+
+    const { data: contentsId, error } = await retryWithBackoff(
+      () => this.executeUpload(temporalFile, controller, replaces),
+      errorHandler,
+      controller.signal,
+    );
+
+    if (error) throw error;
+
+    return contentsId!;
+  }
+
+  private async executeUpload(
+    temporalFile: TemporalFile,
+    controller: AbortController,
+    replaces?: Replaces,
+  ): Promise<Result<ContentsId, DriveDesktopError>> {
+    try {
+      const stream = await this.repository.stream(temporalFile.path);
+
+      const uploader = this.uploaderFactory
+        .read(stream)
+        .document(temporalFile)
+        .replaces(replaces)
+        .abort(controller)
+        .build();
+
+      const uploadedContentsId = await uploader();
+      return { data: uploadedContentsId as ContentsId };
+    } catch (uploadError) {
+      return {
+        error: mapEnvironmentUploadError(uploadError as Error & { status?: unknown }),
+      };
+    }
+  }
+
+  private async publishUploadEvent(
+    contentsId: ContentsId,
+    temporalFile: TemporalFile,
+    replaces?: Replaces,
+  ): Promise<void> {
+    const fileBuffer = await this.getThumbnailBufferIfNeeded(temporalFile);
+
+    const contentsUploadedEvent = new TemporalFileUploadedDomainEvent({
+      aggregateId: contentsId,
+      size: temporalFile.size.value,
+      path: temporalFile.path.value,
+      replaces: replaces?.contentsId,
+      fileBuffer,
+    });
+
+    await this.eventBus.publish([contentsUploadedEvent]);
+  }
+
+  private async getThumbnailBufferIfNeeded(temporalFile: TemporalFile): Promise<Buffer | undefined> {
+    const ext = extname(temporalFile.path.value).replace('.', '').toLowerCase();
+
+    if (!canGenerateThumbnail(ext)) {
+      return undefined;
+    }
+
+    return this.repository.read(temporalFile.path);
   }
 }

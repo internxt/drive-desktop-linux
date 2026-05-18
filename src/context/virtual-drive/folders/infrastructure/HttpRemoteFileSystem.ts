@@ -6,7 +6,7 @@ import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderPersistedDto, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
-import { parseRetryAfterMs } from '../../../shared/application/transient-error-handler';
+import { parseRetryAfterMs } from '../../../../backend/common/rate-limit/transient-error-handler';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
 import { createFolder } from '../../../../infra/drive-server/services/folder/services/create-folder';
 import { searchFolder } from '../../../../infra/drive-server/services/folder/services/search-folder';

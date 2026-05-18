@@ -1,4 +1,4 @@
-import { DriveDesktopError } from '../domain/errors/DriveDesktopError';
+import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
 import { createTransientErrorHandler } from './transient-error-handler';
 import { INITIAL_RATE_LIMIT_DELAY_MS, INITIAL_SERVER_ERROR_DELAY_MS, MAX_BACKOFF_MS } from './constants';
 

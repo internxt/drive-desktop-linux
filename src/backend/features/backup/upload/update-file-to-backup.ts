@@ -3,7 +3,7 @@ import { DriveDesktopError } from '../../../../context/shared/domain/errors/Driv
 import { Result } from '../../../../context/shared/domain/Result';
 import { uploadContentToEnvironment } from './upload-content-to-environment';
 import { retryWithBackoff } from '../../../../shared/retry-with-backoff';
-import { createTransientErrorHandler } from '../../../../context/shared/application/transient-error-handler';
+import { createTransientErrorHandler } from '../../../../backend/common/rate-limit/transient-error-handler';
 import { overrideFileToBackend } from './override-file-to-backend';
 
 export type UpdateFileParams = {

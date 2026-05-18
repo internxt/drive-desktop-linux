@@ -7,7 +7,7 @@ import { Result } from '../../../../context/shared/domain/Result';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { isError } from '../../../../shared/errors/is-error';
 import { safeAccess } from '../../../../infra/local-file-system/safe-access';
-import { mapEnvironmentUploadError } from '../../../../context/shared/application/transient-error-handler';
+import { mapEnvironmentUploadError } from '../../../../backend/common/rate-limit/transient-error-handler';
 
 export type ContentUploadParams = {
   path: string;

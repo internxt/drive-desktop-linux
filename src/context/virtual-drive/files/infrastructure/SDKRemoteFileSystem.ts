@@ -5,7 +5,7 @@ import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopErr
 import { FileDataToPersist, PersistedFileData, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { CreateFileDto } from '../../../../infra/drive-server/out/dto';
 import { createFile } from '../../../../infra/drive-server/services/files/services/create-file';
-import { parseRetryAfterMs } from '../../../shared/application/transient-error-handler';
+import { parseRetryAfterMs } from '../../../../backend/common/rate-limit/transient-error-handler';
 
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {

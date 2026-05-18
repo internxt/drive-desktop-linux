@@ -7,7 +7,7 @@ import { uploadContentToEnvironment } from './upload-content-to-environment';
 import { Result } from '../../../../context/shared/domain/Result';
 import { deleteFileFromStorageByFileId } from '../../../../infra/drive-server/services/files/services/delete-file-content-from-bucket';
 import { retryWithBackoff } from '../../../../shared/retry-with-backoff';
-import { createTransientErrorHandler } from '../../../../context/shared/application/transient-error-handler';
+import { createTransientErrorHandler } from '../../../../backend/common/rate-limit/transient-error-handler';
 
 export type UploadFileParams = {
   path: string;

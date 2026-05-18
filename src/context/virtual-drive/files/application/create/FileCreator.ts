@@ -9,12 +9,13 @@ import { FilePath } from '../../domain/FilePath';
 import { FileRepository } from '../../domain/FileRepository';
 import { FileSize } from '../../domain/FileSize';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
-import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
+import { PersistedFileData, RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { FileContentsId } from '../../domain/FileContentsId';
 import { FileFolderId } from '../../domain/FileFolderId';
 import { runAfterParentCreations } from '../../../folders/application/create/PendingFolderCreationTracker';
 import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
-import { createTransientErrorHandler } from '../../../../shared/application/transient-error-handler';
+import { createTransientErrorHandler } from '../../../../../backend/common/rate-limit/transient-error-handler';
+import { Result } from '../../../../shared/domain/Result';
 
 @Service()
 export class FileCreator {
@@ -30,52 +31,7 @@ export class FileCreator {
     try {
       const file = await runAfterParentCreations({
         path,
-        action: async () => {
-          const fileSize = new FileSize(size);
-          const fileContentsId = new FileContentsId(contentsId);
-          const filePath = new FilePath(path);
-
-          const folder = await this.parentFolderFinder.run(filePath);
-          const fileFolderId = new FileFolderId(folder.id);
-
-          const { data: persistedFile, error: persistedError } = await retryWithBackoff(
-            async () => {
-              const either = await this.remote.persist({
-                contentsId: fileContentsId,
-                path: filePath,
-                size: fileSize,
-                folderId: fileFolderId,
-                folderUuid: folder.uuid,
-              });
-
-              if (either.isLeft()) {
-                return { error: either.getLeft() };
-              }
-
-              return { data: either.getRight() };
-            },
-            createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'FILE CREATION RETRY', path: filePath.value }),
-            new AbortController().signal,
-          );
-
-          if (persistedError) {
-            throw persistedError;
-          }
-
-          const { modificationTime, id, uuid, createdAt } = persistedFile;
-
-          return File.create({
-            id,
-            uuid,
-            contentsId: fileContentsId.value,
-            folderId: fileFolderId.value,
-            createdAt,
-            modificationTime,
-            path: filePath.value,
-            size: fileSize.value,
-            updatedAt: modificationTime,
-          });
-        },
+        action: () => this.createFile({ path, contentsId, size }),
       });
 
       await this.repository.upsert(file);
@@ -96,5 +52,82 @@ export class FileCreator {
 
       throw error;
     }
+  }
+
+  private async createFile({
+    path,
+    contentsId,
+    size,
+  }: {
+    path: string;
+    contentsId: string;
+    size: number;
+  }): Promise<File> {
+    const filePath = new FilePath(path);
+    const fileContentsId = new FileContentsId(contentsId);
+    const fileSize = new FileSize(size);
+
+    const folder = await this.parentFolderFinder.run(filePath);
+    const fileFolderId = new FileFolderId(folder.id);
+
+    const { data: persistedFile, error } = await this.persistWithRetry({
+      filePath,
+      fileContentsId,
+      fileSize,
+      fileFolderId,
+      folderUuid: folder.uuid,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const { modificationTime, id, uuid, createdAt } = persistedFile;
+
+    return File.create({
+      id,
+      uuid,
+      contentsId: fileContentsId.value,
+      folderId: fileFolderId.value,
+      createdAt,
+      modificationTime,
+      path: filePath.value,
+      size: fileSize.value,
+      updatedAt: modificationTime,
+    });
+  }
+
+  private persistWithRetry({
+    filePath,
+    fileContentsId,
+    fileSize,
+    fileFolderId,
+    folderUuid,
+  }: {
+    filePath: FilePath;
+    fileContentsId: FileContentsId;
+    fileSize: FileSize;
+    fileFolderId: FileFolderId;
+    folderUuid: string;
+  }): Promise<Result<PersistedFileData, DriveDesktopError>> {
+    return retryWithBackoff(
+      async () => {
+        const either = await this.remote.persist({
+          contentsId: fileContentsId,
+          path: filePath,
+          size: fileSize,
+          folderId: fileFolderId,
+          folderUuid,
+        });
+
+        if (either.isLeft()) {
+          return { error: either.getLeft() };
+        }
+
+        return { data: either.getRight() };
+      },
+      createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'FILE CREATION RETRY', path: filePath.value }),
+      new AbortController().signal,
+    );
   }
 }

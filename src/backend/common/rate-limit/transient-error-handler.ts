@@ -1,5 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { DriveDesktopError } from '../domain/errors/DriveDesktopError';
+import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
 import { extractPropertyFromStringyfiedJson } from '../../../shared/extract-property-from-json';
 import { INITIAL_RATE_LIMIT_DELAY_MS, INITIAL_SERVER_ERROR_DELAY_MS, MAX_BACKOFF_MS } from './constants';
 
