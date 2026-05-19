@@ -38,19 +38,19 @@ export async function traverse({
 
   const skippedItems = [...data.skippedItems];
 
-  const { data: currentLocalFolder, error: currentLocalFolderError } = getCurrentLocalFolder(tree, currentFolder);
+  const { data: currentLocalFolder, error: currentLocalFolderError } = getCurrentLocalFolder({ tree, currentFolder });
   if (currentLocalFolderError) {
     return { error: currentLocalFolderError };
   }
 
-  addFilesToTree(tree, currentLocalFolder, data.files);
+  addFilesToTree({ tree, currentLocalFolder, files: data.files });
 
-  const { data: childFolderResult, error: childFolderError } = await addFoldersToTreeAndTraverseChildren(
+  const { data: childFolderResult, error: childFolderError } = await addFoldersToTreeAndTraverseChildren({
     tree,
     currentLocalFolder,
-    data.folders,
+    folders: data.folders,
     rootFolder,
-  );
+  });
   if (childFolderError) {
     return { error: childFolderError };
   }
@@ -82,7 +82,13 @@ function handleReadError({
   return { data: { skippedItems: [{ path: currentFolder, error }] } };
 }
 
-function getCurrentLocalFolder(tree: LocalTree, currentFolder: AbsolutePath): Result<LocalFolder, DriveDesktopError> {
+function getCurrentLocalFolder({
+  tree,
+  currentFolder,
+}: {
+  tree: LocalTree;
+  currentFolder: AbsolutePath;
+}): Result<LocalFolder, DriveDesktopError> {
   const folder = tree.folders.find((folder) => folder.path === currentFolder);
 
   if (!folder) {
@@ -94,19 +100,32 @@ function getCurrentLocalFolder(tree: LocalTree, currentFolder: AbsolutePath): Re
   return { data: folder };
 }
 
-function addFilesToTree(tree: LocalTree, currentLocalFolder: LocalFolder, files: ExtendedDirent[]) {
+function addFilesToTree({
+  tree,
+  currentLocalFolder,
+  files,
+}: {
+  tree: LocalTree;
+  currentLocalFolder: LocalFolder;
+  files: ExtendedDirent[];
+}): void {
   files.forEach(({ path, stats }) => {
     const file = LocalFile.from({ path, modificationTime: stats.mtime.getTime(), size: stats.size });
     tree.addFile(currentLocalFolder, file);
   });
 }
 
-async function addFoldersToTreeAndTraverseChildren(
-  tree: LocalTree,
-  currentLocalFolder: LocalFolder,
-  folders: ExtendedDirent[],
-  rootFolder: AbsolutePath,
-): Promise<Result<TraverseResult, DriveDesktopError>> {
+async function addFoldersToTreeAndTraverseChildren({
+  tree,
+  currentLocalFolder,
+  folders,
+  rootFolder,
+}: {
+  tree: LocalTree;
+  currentLocalFolder: LocalFolder;
+  folders: ExtendedDirent[];
+  rootFolder: AbsolutePath;
+}): Promise<Result<TraverseResult, DriveDesktopError>> {
   const skippedItems: TraverseResult['skippedItems'] = [];
 
   for (const { path, stats } of folders) {

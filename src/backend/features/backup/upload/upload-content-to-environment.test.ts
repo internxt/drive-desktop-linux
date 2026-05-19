@@ -191,7 +191,7 @@ describe('upload-content-to-environment', () => {
     const result = await callUpload();
 
     expect(result.error?.cause).toBe('ACTION_NOT_PERMITTED');
-    expect(safeAccessMock).toHaveBeenCalledWith('/some/file.txt');
+    expect(safeAccessMock).toHaveBeenCalledWith({ absolutePath: '/some/file.txt' });
     expect(createReadStreamMock).toHaveBeenCalledWith('/some/file.txt');
     expect(environment.upload).not.toHaveBeenCalled();
     expect(environment.uploadMultipartFile).not.toHaveBeenCalled();
@@ -207,7 +207,7 @@ describe('upload-content-to-environment', () => {
     const result = await promise;
 
     expect(result.error?.cause).toBe('ACTION_NOT_PERMITTED');
-    expect(safeAccessMock).toHaveBeenCalledWith('/some/file.txt');
+    expect(safeAccessMock).toHaveBeenCalledWith({ absolutePath: '/some/file.txt' });
     expect(createReadStreamMock).toHaveBeenCalledWith('/some/file.txt');
     expect(environment.upload).toHaveBeenCalledTimes(1);
     expect(environment.uploadMultipartFile).not.toHaveBeenCalled();

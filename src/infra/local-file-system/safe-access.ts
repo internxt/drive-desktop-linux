@@ -3,11 +3,15 @@ import { constants } from 'node:fs';
 import { Result } from '../../context/shared/domain/Result';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 import { isError } from '../../shared/errors/is-error';
+type Props = {
+  absolutePath: string;
+  mode?: number;
+};
 
-export async function safeAccess(
-  absolutePath: string,
-  mode: number = constants.R_OK,
-): Promise<Result<void, DriveDesktopError>> {
+export async function safeAccess({
+  absolutePath,
+  mode = constants.R_OK,
+}: Props): Promise<Result<void, DriveDesktopError>> {
   try {
     await fs.access(absolutePath, mode);
     return { data: undefined };

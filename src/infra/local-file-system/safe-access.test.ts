@@ -21,7 +21,7 @@ describe('safeAccess', () => {
   it('should return data when fs.access succeeds', async () => {
     fsMock.access.mockResolvedValue(undefined);
 
-    const result = await safeAccess('/tmp/file.txt');
+    const result = await safeAccess({ absolutePath: '/tmp/file.txt' });
 
     expect(result).toStrictEqual({ data: undefined });
     expect(fsMock.access).toHaveBeenCalledWith('/tmp/file.txt', constants.R_OK);
@@ -30,7 +30,7 @@ describe('safeAccess', () => {
   it('should use the provided access mode', async () => {
     fsMock.access.mockResolvedValue(undefined);
 
-    await safeAccess('/tmp/file.txt', constants.W_OK);
+    await safeAccess({ absolutePath: '/tmp/file.txt', mode: constants.W_OK });
 
     expect(fsMock.access).toHaveBeenCalledWith('/tmp/file.txt', constants.W_OK);
   });
@@ -38,7 +38,7 @@ describe('safeAccess', () => {
   it.each(['ENOENT', 'ENOTDIR'])('should map %s to NOT_EXISTS', async (code) => {
     fsMock.access.mockRejectedValue(createFsError(code));
 
-    const result = await safeAccess('/tmp/missing-file.txt');
+    const result = await safeAccess({ absolutePath: '/tmp/missing-file.txt' });
 
     expect(result.error).toBeInstanceOf(DriveDesktopError);
     expect(result.error?.cause).toBe('NOT_EXISTS');
@@ -48,7 +48,7 @@ describe('safeAccess', () => {
   it.each(['EACCES', 'EPERM'])('should map %s to ACTION_NOT_PERMITTED', async (code) => {
     fsMock.access.mockRejectedValue(createFsError(code));
 
-    const result = await safeAccess('/tmp/private-file.txt');
+    const result = await safeAccess({ absolutePath: '/tmp/private-file.txt' });
 
     expect(result.error).toBeInstanceOf(DriveDesktopError);
     expect(result.error?.cause).toBe('ACTION_NOT_PERMITTED');
@@ -58,7 +58,7 @@ describe('safeAccess', () => {
   it('should map unmapped fs error codes to UNKNOWN and preserves the message', async () => {
     fsMock.access.mockRejectedValue(createFsError('ELOOP', 'Too many symbolic links'));
 
-    const result = await safeAccess('/tmp/loop');
+    const result = await safeAccess({ absolutePath: '/tmp/loop' });
 
     expect(result.error).toBeInstanceOf(DriveDesktopError);
     expect(result.error?.cause).toBe('UNKNOWN');
@@ -68,7 +68,7 @@ describe('safeAccess', () => {
   it('should map non-error thrown values to UNKNOWN', async () => {
     fsMock.access.mockRejectedValue('unexpected failure');
 
-    const result = await safeAccess('/tmp/file.txt');
+    const result = await safeAccess({ absolutePath: '/tmp/file.txt' });
 
     expect(result.error).toBeInstanceOf(DriveDesktopError);
     expect(result.error?.cause).toBe('UNKNOWN');

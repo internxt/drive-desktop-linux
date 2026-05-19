@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { AbsolutePath, createAbsolutePath } from '../../../../context/local/localFile/infrastructure/AbsolutePath';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
 import { Result } from '../../../../context/shared/domain/Result';

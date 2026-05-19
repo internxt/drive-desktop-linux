@@ -49,7 +49,7 @@ export async function uploadContentToEnvironment({
         ? environment.uploadMultipartFile.bind(environment)
         : environment.upload.bind(environment);
 
-    const accessResult = await safeAccess(path);
+    const accessResult = await safeAccess({ absolutePath: path });
     if (accessResult.error) {
       return { error: accessResult.error };
     }
@@ -103,8 +103,8 @@ export async function uploadContentToEnvironment({
     });
   } catch (err) {
     if (isError(err)) {
-      return Promise.resolve({ error: mapUploadError(err) });
+      return { error: mapUploadError(err) };
     }
-    return Promise.resolve({ error: new DriveDesktopError('UNKNOWN') });
+    return { error: new DriveDesktopError('UNKNOWN') };
   }
 }
