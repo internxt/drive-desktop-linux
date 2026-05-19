@@ -111,6 +111,8 @@ jobs:
 
       - name: Publish tested artifacts to GitHub release
         uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
             build/*.AppImage
