@@ -17,6 +17,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
 
@@ -37,9 +40,6 @@ jobs:
         run: docker build -f Dockerfile.release -t internxt-release-builder:24.04 .
 
       - name: Build app inside container
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_TOKEN: ${{ github.token }}
         run: |
           if [[ -z "${GH_TOKEN}" ]]; then
             echo "GH_TOKEN is empty in workflow context"
@@ -110,9 +110,19 @@ jobs:
     needs: smoke-test-deb
     if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish_to_github == 'true' && startsWith(github.ref, 'refs/tags/')) }}
     runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
     permissions:
       contents: write
     steps:
+      - name: Validate GitHub token availability
+        run: |
+          if [[ -z "${GH_TOKEN}" ]]; then
+            echo "GH_TOKEN is empty in publish-release context"
+            exit 1
+          fi
+
       - name: Download tested artifacts
         uses: actions/download-artifact@v4
         with:
@@ -121,9 +131,6 @@ jobs:
 
       - name: Publish tested artifacts to GitHub release
         uses: softprops/action-gh-release@v2
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_TOKEN: ${{ github.token }}
         with:
           files: |
             build/*.AppImage
