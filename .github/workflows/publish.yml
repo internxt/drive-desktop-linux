@@ -40,8 +40,8 @@ jobs:
         run: |
           docker run --rm \
             -e CI=true \
-            -e GH_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -e GH_TOKEN=${{ github.token }} \
+            -e GITHUB_TOKEN=${{ github.token }} \
             -v "$PWD:/workspace" \
             -w /workspace \
             internxt-release-builder:24.04 \
@@ -114,8 +114,8 @@ jobs:
       - name: Publish tested artifacts to GitHub release
         uses: softprops/action-gh-release@v2
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           files: |
             build/*.AppImage
