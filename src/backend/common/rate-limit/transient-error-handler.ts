@@ -8,7 +8,10 @@ export function parseRetryAfterMs(message?: string) {
   return typeof retryAfterSeconds === 'number' ? retryAfterSeconds * 1000 : INITIAL_RATE_LIMIT_DELAY_MS;
 }
 
-export function mapEnvironmentUploadError(err: Error & { status?: unknown }): DriveDesktopError {
+export function mapEnvironmentUploadError(err: Error & { code?: unknown; status?: unknown }): DriveDesktopError {
+  if (err.code === 'EACCES' || err.code === 'EPERM') {
+    return new DriveDesktopError('ACTION_NOT_PERMITTED', err.message);
+  }
   if (err.message === 'Max space used') {
     return new DriveDesktopError('NOT_ENOUGH_SPACE');
   }
