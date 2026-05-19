@@ -61,7 +61,7 @@ export class TemporalFileUploader {
 
     if (error) throw error;
 
-    return contentsId!;
+    return contentsId;
   }
 
   private async executeUpload(
