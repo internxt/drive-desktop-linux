@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\" \"npm run build:daemon\"",
-    "build:daemon": "cd packages/fuse-daemon && go build -ldflags='-s -w' -o ../../dist/fuse-daemon ./cmd/daemon",
+    "build:daemon": "make -C packages/fuse-daemon build",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir .",
@@ -74,7 +74,6 @@
     },
     "deb": {
       "depends": [
-        "libfuse2",
         "python3-nautilus"
       ]
     },
@@ -92,13 +91,10 @@
       "./clamAV/**",
       "./src/apps/nautilus-extension/internxt-virtual-drive.py",
       "./dist/fuse-daemon"
-    ],
-    "publish": {
-      "provider": "github"
-    }
+    ]
   },
   "devDependencies": {
-    "@electron/rebuild": "^3.7.2",
+    "@electron/rebuild": "3.7.2",
     "@headlessui/react": "^1.4.2",
     "@iconscout/react-unicons": "^1.1.6",
     "@internxt/eslint-config-internxt": "^1.0.9",
@@ -143,8 +139,8 @@
     "detect-port": "^1.3.0",
     "dotenv": "^10.0.0",
     "dotenv-webpack": "^7.0.3",
-    "electron": "^29.0.0",
-    "electron-builder": "^23.6.0",
+    "electron": "29.0.0",
+    "electron-builder": "23.6.0",
     "electron-debug": "^3.2.0",
     "electron-fetch": "^1.9.1",
     "electron-store": "^8.0.1",
@@ -206,7 +202,7 @@
     "@internxt/sdk": "1.11.17",
     "async": "^3.2.4",
     "axios": "^1.1.3",
-    "better-sqlite3": "^11.10.0",
+    "better-sqlite3": "11.10.0",
     "bottleneck": "^2.19.5",
     "check-disk-space": "^3.4.0",
     "diod": "^2.0.0",

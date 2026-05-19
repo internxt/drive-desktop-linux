@@ -7,6 +7,16 @@ module.exports = async (context) => {
   // this, prebuild-install downloads an Electron-v116 prebuilt compiled for
   // Electron 24 (V8 11.0) which segfaults under Electron 25+ (V8 11.4).
   process.env.npm_config_build_from_source = 'true';
+  console.log(
+    JSON.stringify({
+      tag: 'ELECTRON_REBUILD',
+      appDir,
+      arch,
+      electronVersion,
+      nodeVersion: process.version,
+      buildFromSource: process.env.npm_config_build_from_source,
+    }),
+  );
   await electronRebuild.rebuild({ buildPath: appDir, electronVersion, arch, force: true });
 
   return false;

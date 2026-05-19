@@ -76,6 +76,26 @@ Building the `.rpm` package requires `rpmbuild`. On Ubuntu or Debian, install th
 sudo apt-get install rpm
 ```
 
+### Official Release Build (CI Container)
+
+The official release pipeline builds and publishes artifacts inside a pinned container image (`Dockerfile.release`) to reduce host drift.
+
+Current release flow:
+
+1. Build container image from `ubuntu:24.04`.
+2. Run `npm ci` and `npm run publish` inside the container.
+3. Upload generated artifacts (`.deb`, `.rpm`, `.AppImage`) plus build metadata.
+4. Run smoke tests on the generated `.deb` without rebuilding it.
+
+### Smoke Test Strategy
+
+The release workflow includes a smoke test job that:
+
+1. Downloads the previously built `.deb` artifact.
+2. Installs runtime dependencies for Linux GUI startup checks.
+3. Installs the package and verifies `/opt/Internxt/internxt` exists.
+4. Launches the binary in headless mode (`xvfb-run`) and checks startup.
+
 ## Login Configuration Using Deeplink
 
 Create a script in the root of the project named `enable-sso.sh` and add the following content:
