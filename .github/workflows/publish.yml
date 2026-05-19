@@ -40,6 +40,8 @@ jobs:
         run: |
           docker run --rm \
             -e CI=true \
+            -e GH_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
             -v "$PWD:/workspace" \
             -w /workspace \
             internxt-release-builder:24.04 \
@@ -113,6 +115,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
             build/*.AppImage
