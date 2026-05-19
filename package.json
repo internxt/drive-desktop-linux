@@ -91,10 +91,7 @@
       "./clamAV/**",
       "./src/apps/nautilus-extension/internxt-virtual-drive.py",
       "./dist/fuse-daemon"
-    ],
-    "publish": {
-      "provider": "github"
-    }
+    ]
   },
   "devDependencies": {
     "@electron/rebuild": "3.7.2",
