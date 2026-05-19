@@ -96,8 +96,6 @@ The release workflow includes a smoke test job that:
 3. Installs the package and verifies `/opt/Internxt/internxt` exists.
 4. Launches the binary in headless mode (`xvfb-run`) and checks startup.
 
-This validates the `build once, validate many` approach by reusing the same artifact produced in the release step.
-
 ## Login Configuration Using Deeplink
 
 Create a script in the root of the project named `enable-sso.sh` and add the following content:
