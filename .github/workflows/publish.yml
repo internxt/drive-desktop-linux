@@ -37,11 +37,19 @@ jobs:
         run: docker build -f Dockerfile.release -t internxt-release-builder:24.04 .
 
       - name: Build app inside container
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
+          if [[ -z "${GH_TOKEN}" ]]; then
+            echo "GH_TOKEN is empty in workflow context"
+            exit 1
+          fi
+
           docker run --rm \
             -e CI=true \
-            -e GH_TOKEN=${{ github.token }} \
-            -e GITHUB_TOKEN=${{ github.token }} \
+            -e GH_TOKEN \
+            -e GITHUB_TOKEN \
             -v "$PWD:/workspace" \
             -w /workspace \
             internxt-release-builder:24.04 \
