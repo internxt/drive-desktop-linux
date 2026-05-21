@@ -1,9 +1,9 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { resolve } from "node:path";
-import { rm } from "node:fs/promises";
-import { logger } from "@internxt/drive-desktop-core/build/backend";
-import { PATHS } from "../../../../../core/electron/paths";
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { resolve } from 'node:path';
+import { rm } from 'node:fs/promises';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { PATHS } from '../../../../../core/electron/paths';
 
 const execFileAsync = promisify(execFile);
 

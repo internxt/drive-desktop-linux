@@ -15,7 +15,6 @@ let daemon: ChildProcess | null = null;
 let status: FuseDriveStatus = 'UNMOUNTED';
 const SIGKILL_TIMEOUT_MS = 5_000;
 
-
 export function resolveDaemonReady({ bootId }: { bootId: string }): void {
   if (!daemonReadyState) {
     logger.warn({ msg: '[FUSE DAEMON] received ready signal before daemon startup' });
@@ -23,7 +22,11 @@ export function resolveDaemonReady({ bootId }: { bootId: string }): void {
   }
 
   if (bootId !== daemonReadyState.bootId) {
-    logger.warn({ msg: '[FUSE DAEMON] ignored ready signal with stale boot id', bootId, activeBootId: daemonReadyState.bootId });
+    logger.warn({
+      msg: '[FUSE DAEMON] ignored ready signal with stale boot id',
+      bootId,
+      activeBootId: daemonReadyState.bootId,
+    });
     return;
   }
 

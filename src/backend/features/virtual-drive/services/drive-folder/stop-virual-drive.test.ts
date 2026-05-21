@@ -44,9 +44,7 @@ describe('stop-virual-drive', () => {
     // Then
     calls(stopDaemon).toHaveLength(1);
     calls(stopFuseDaemonServer).toHaveLength(1);
-    expect(stopDaemon.mock.invocationCallOrder[0]).toBeLessThan(
-      stopFuseDaemonServer.mock.invocationCallOrder[0],
-    );
+    expect(stopDaemon.mock.invocationCallOrder[0]).toBeLessThan(stopFuseDaemonServer.mock.invocationCallOrder[0]);
   });
 
   it('clears storage when container is provided', async () => {

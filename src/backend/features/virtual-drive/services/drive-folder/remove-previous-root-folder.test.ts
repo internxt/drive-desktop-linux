@@ -21,9 +21,8 @@ describe('remove-previous-root-folder', () => {
 
   beforeEach(() => {
     rmMock.mockResolvedValue(undefined);
-    execFileMock.mockImplementation(
-      ((_cmd: string, _args: string[], cb: ExecFileCb) => cb(null)) as unknown as typeof execFile,
-    );
+    execFileMock.mockImplementation(((_cmd: string, _args: string[], cb: ExecFileCb) =>
+      cb(null)) as unknown as typeof execFile);
   });
 
   it('returns early if oldPath is empty', async () => {
@@ -96,9 +95,8 @@ describe('remove-previous-root-folder', () => {
   it('continues if fusermount3 fails', async () => {
     // Given
     const props: Props = { oldPath: '/old/path', newPath: '/new/path' };
-    execFileMock.mockImplementationOnce(
-      ((_cmd: string, _args: string[], cb: ExecFileCb) => cb(new Error('not a fuse mount'))) as unknown as typeof execFile,
-    );
+    execFileMock.mockImplementationOnce(((_cmd: string, _args: string[], cb: ExecFileCb) =>
+      cb(new Error('not a fuse mount'))) as unknown as typeof execFile);
 
     // When
     await removePreviousRootFolder(props);
