@@ -11,6 +11,7 @@ export type SavedConfig = {
   backgroundScanEnabled: boolean;
   backupInterval: number;
   lastBackup: number;
+  virtualDriveRoot: string;
   syncRoot: string;
   lastSavedListing: string;
   lastSync: number;
@@ -35,6 +36,7 @@ export type AppStore = {
   backgroundScanEnabled: boolean;
   backupInterval: number;
   lastBackup: number;
+  virtualDriveRoot: string;
   syncRoot: string;
   lastSavedListing: string;
   lastSync: number;
