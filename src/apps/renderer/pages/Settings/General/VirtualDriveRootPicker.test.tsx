@@ -1,6 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import VirtualDriveRootPicker from './VirtualDriveRootPicker';
 
+vi.mock('../../../context/LocalContext', () => ({
+  useTranslationContext: () => ({ translate: (key: string) => key }),
+}));
+
 describe('VirtualDriveRootPicker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -26,7 +30,7 @@ describe('VirtualDriveRootPicker', () => {
     render(<VirtualDriveRootPicker />);
 
     const changeFolderButton = await screen.findByRole('button', {
-      name: 'Change',
+      name: 'settings.general.virtual-drive-root.action',
     });
 
     fireEvent.click(changeFolderButton);
