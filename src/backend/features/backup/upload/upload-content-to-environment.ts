@@ -5,9 +5,9 @@ import { createReadStream } from 'node:fs';
 import { UploadStrategyFunction } from '@internxt/inxt-js/build/lib/core';
 import { Result } from '../../../../context/shared/domain/Result';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { extractPropertyFromStringyfiedJson } from '../../../../shared/extract-property-from-json';
 import { isError } from '../../../../shared/errors/is-error';
 import { safeAccess } from '../../../../infra/local-file-system/safe-access';
+import { mapEnvironmentUploadError } from '../../../../backend/common/rate-limit/transient-error-handler';
 
 export type ContentUploadParams = {
   path: string;
@@ -16,25 +16,6 @@ export type ContentUploadParams = {
   environment: Environment;
   signal: AbortSignal;
 };
-function mapUploadError(err: Error & { code?: unknown; status?: unknown }): DriveDesktopError {
-  if (err.code === 'EACCES' || err.code === 'EPERM') {
-    return new DriveDesktopError('ACTION_NOT_PERMITTED', err.message);
-  }
-  if (err.message === 'Max space used') {
-    return new DriveDesktopError('NOT_ENOUGH_SPACE');
-  }
-  if (typeof err.status === 'number') {
-    if (err.status === 429) {
-      const retryAfter = extractPropertyFromStringyfiedJson(err.message, 'retry_after');
-      const retryAfterMs = typeof retryAfter === 'number' ? retryAfter * 1000 : 30_000;
-      return new DriveDesktopError('RATE_LIMITED', String(retryAfterMs));
-    }
-    if (err.status >= 500) {
-      return new DriveDesktopError('INTERNAL_SERVER_ERROR');
-    }
-  }
-  return new DriveDesktopError('UNKNOWN');
-}
 
 export async function uploadContentToEnvironment({
   path,
@@ -66,7 +47,7 @@ export async function uploadContentToEnvironment({
 
       readable.on('error', (err: Error & { code?: unknown; status?: unknown }) => {
         logger.error({ tag: 'BACKUPS', msg: '[ENVLFU READ STREAM ERROR]', err, path });
-        resolveOnce({ error: mapUploadError(err) });
+        resolveOnce({ error: mapEnvironmentUploadError(err) });
       });
 
       const state = uploadFn(bucket, {
@@ -77,7 +58,7 @@ export async function uploadContentToEnvironment({
 
           if (err) {
             logger.error({ tag: 'BACKUPS', msg: '[ENVLFU UPLOAD ERROR]', err });
-            return resolveOnce({ error: mapUploadError(err) });
+            return resolveOnce({ error: mapEnvironmentUploadError(err) });
           }
 
           if (!contentsId) {
@@ -103,7 +84,7 @@ export async function uploadContentToEnvironment({
     });
   } catch (err) {
     if (isError(err)) {
-      return { error: mapUploadError(err) };
+      return { error: mapEnvironmentUploadError(err) };
     }
     return { error: new DriveDesktopError('UNKNOWN') };
   }
