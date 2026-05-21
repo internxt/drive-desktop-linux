@@ -7,6 +7,7 @@ import { TemporalFileDeleter } from '../../../../../context/storage/TemporalFile
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { File, FileAttributes } from '../../../../../context/virtual-drive/files/domain/File';
+import { ContentsId } from '../../../../../apps/main/database/entities/DriveFile';
 import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { call, calls } from '../../../../../../tests/vitest/utils.helper';
@@ -78,7 +79,7 @@ describe('release', () => {
       const temporalFile = createTemporalFile('/Documents/report.pdf');
       finder.run.mockResolvedValue(temporalFile);
       fileSearcher.run.mockResolvedValue(undefined);
-      uploader.run.mockResolvedValue('contents-id-123');
+      uploader.run.mockResolvedValue('contents-id-123' as ContentsId);
 
       const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
 
@@ -92,7 +93,7 @@ describe('release', () => {
       const existingFile = File.from(fileAttrs);
       finder.run.mockResolvedValue(temporalFile);
       fileSearcher.run.mockResolvedValue(existingFile);
-      uploader.run.mockResolvedValue('new-contents-id');
+      uploader.run.mockResolvedValue('new-contents-id' as ContentsId);
 
       const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
 
@@ -113,6 +114,37 @@ describe('release', () => {
       expect(data).toBeUndefined();
       expect(error?.code).toBe(FuseCodes.EIO);
       call(deleter.run).toStrictEqual('/Documents/report.pdf');
+    });
+
+    it('should skip the second release when an upload for the same path is already in progress', async () => {
+      const temporalFile = createTemporalFile('/Documents/report.pdf');
+      finder.run.mockResolvedValue(temporalFile);
+      fileSearcher.run.mockResolvedValue(undefined);
+
+      // First release never resolves during the test — simulates a long in-progress upload
+      let resolveFirstUpload!: () => void;
+      uploader.run.mockReturnValue(
+        new Promise<ContentsId>((resolve) => {
+          resolveFirstUpload = () => resolve('contents-id-123' as ContentsId);
+        }),
+      );
+
+      const first = release({ path: '/Documents/report.pdf', processName: 'proc-a', container });
+
+      await Promise.resolve();
+
+      const { data: data2, error: error2 } = await release({
+        path: '/Documents/report.pdf',
+        processName: 'proc-b',
+        container,
+      });
+
+      expect(error2).toBeUndefined();
+      expect(data2).toBeUndefined();
+      calls(uploader.run).toHaveLength(1);
+
+      resolveFirstUpload();
+      await first;
     });
   });
 
