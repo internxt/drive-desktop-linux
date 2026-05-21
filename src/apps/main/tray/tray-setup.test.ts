@@ -138,7 +138,7 @@ describe('tray-setup', () => {
 
     traySetup.setTrayStatus('SYNCING'); // file A starts
     traySetup.setTrayStatus('SYNCING'); // file B starts
-    traySetup.setTrayStatus('IDLE');    // file A finishes
+    traySetup.setTrayStatus('IDLE'); // file A finishes
     trayMenuInstance.setState.mockClear();
 
     // When — file B finishes (counter reaches 0)
