@@ -46,10 +46,7 @@ export async function stopVirtualDriveOnce() {
   }
 }
 
-export async function remountVirtualDriveOnRootChange({
-  oldPath,
-  newPath,
-}: {oldPath: string; newPath: string}) {
+export async function remountVirtualDriveOnRootChange({ oldPath, newPath }: { oldPath: string; newPath: string }) {
   if (remountInFlight) return remountInFlight;
 
   remountInFlight = remountVirtualDrive({ oldPath, newPath });

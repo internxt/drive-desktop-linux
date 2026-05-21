@@ -55,9 +55,7 @@ describe('virtual-drive.service', () => {
       await startVirtualDrive();
 
       // Then
-      expect(clearHydrationState.mock.invocationCallOrder[0]).toBeLessThan(
-        startDaemon.mock.invocationCallOrder[0],
-      );
+      expect(clearHydrationState.mock.invocationCallOrder[0]).toBeLessThan(startDaemon.mock.invocationCallOrder[0]);
     });
 
     it('starts daemon with the virtual drive root path', async () => {

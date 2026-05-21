@@ -1,11 +1,11 @@
-import { logger } from "@internxt/drive-desktop-core/build/backend";
-import { stopVirtualDriveOnce } from "./virtual-drive.service";
-import { removePreviousRootFolder } from "./remove-previous-root-folder";
-import { startVirtualDrive } from "./virtual-drive.service";
+import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { stopVirtualDriveOnce } from './virtual-drive.service';
+import { removePreviousRootFolder } from './remove-previous-root-folder';
+import { startVirtualDrive } from './virtual-drive.service';
 
 type Props = {
-   oldPath: string;
-   newPath: string;
+  oldPath: string;
+  newPath: string;
 };
 
 export async function remountVirtualDrive({ oldPath, newPath }: Props) {

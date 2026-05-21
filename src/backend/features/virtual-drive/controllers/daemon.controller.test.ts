@@ -17,5 +17,4 @@ describe('daemonReadyController', () => {
     expect(resolveDaemonReadyMock).toHaveBeenCalledWith({ bootId: 'boot-id-1' });
     expect(res.sendStatus).toHaveBeenCalledWith(200);
   });
-
 });
