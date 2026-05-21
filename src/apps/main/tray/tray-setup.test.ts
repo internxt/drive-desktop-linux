@@ -114,6 +114,81 @@ describe('tray-setup', () => {
     call(trayMenuInstance.setState).toBe('SYNCING');
   });
 
+  it('should suppress IDLE when another sync operation is still in progress', async () => {
+    // Given
+    const traySetup = await importTraySetup();
+    traySetup.setupTrayIcon();
+    trayMenuInstance.setState.mockClear();
+
+    traySetup.setTrayStatus('SYNCING'); // file A starts
+    traySetup.setTrayStatus('SYNCING'); // file B starts
+
+    // When — file A finishes but file B is still running
+    traySetup.setTrayStatus('IDLE');
+
+    // Then — icon must NOT flip back to IDLE while file B is still syncing
+    const idleCalls = trayMenuInstance.setState.mock.calls.filter(([s]: [string]) => s === 'IDLE');
+    expect(idleCalls).toHaveLength(0);
+  });
+
+  it('should show IDLE once the last sync operation completes', async () => {
+    // Given
+    const traySetup = await importTraySetup();
+    traySetup.setupTrayIcon();
+
+    traySetup.setTrayStatus('SYNCING'); // file A starts
+    traySetup.setTrayStatus('SYNCING'); // file B starts
+    traySetup.setTrayStatus('IDLE');    // file A finishes
+    trayMenuInstance.setState.mockClear();
+
+    // When — file B finishes (counter reaches 0)
+    traySetup.setTrayStatus('IDLE');
+
+    // Then
+    call(trayMenuInstance.setState).toBe('IDLE');
+  });
+
+  it('should decrement the counter on ALERT so IDLE can be reached', async () => {
+    // Given
+    const traySetup = await importTraySetup();
+    traySetup.setupTrayIcon();
+
+    traySetup.setTrayStatus('SYNCING'); // file A starts
+    traySetup.setTrayStatus('SYNCING'); // file B starts
+    // file A errors — should still decrement so file B's IDLE can reach zero
+    traySetup.setTrayStatus('ALERT');
+    trayMenuInstance.setState.mockClear();
+
+    // When — file B finishes
+    traySetup.setTrayStatus('IDLE');
+
+    // Then
+    call(trayMenuInstance.setState).toBe('IDLE');
+  });
+
+  it('resetTrayStatus should force IDLE regardless of active sync count', async () => {
+    // Given
+    const traySetup = await importTraySetup();
+    traySetup.setupTrayIcon();
+
+    traySetup.setTrayStatus('SYNCING');
+    traySetup.setTrayStatus('SYNCING'); // two operations in flight
+    trayMenuInstance.setState.mockClear();
+
+    // When — session ends (logout)
+    traySetup.resetTrayStatus('IDLE');
+
+    // Then — icon must be IDLE immediately
+    call(trayMenuInstance.setState).toBe('IDLE');
+
+    // And the counter is reset so subsequent single operations work normally
+    trayMenuInstance.setState.mockClear();
+    traySetup.setTrayStatus('SYNCING');
+    trayMenuInstance.setState.mockClear();
+    traySetup.setTrayStatus('IDLE');
+    call(trayMenuInstance.setState).toBe('IDLE');
+  });
+
   it('should show auth window when clicking the tray while logged out', async () => {
     // Given
     mockGetIsLoggedIn.mockReturnValue(false);
