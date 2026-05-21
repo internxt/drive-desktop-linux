@@ -9,11 +9,32 @@ import { PATHS } from '../../../core/electron/paths';
 
 let tray: TrayMenu | null = null;
 
+// v.2.6.0
+// Esteban Galvis Triana
+// Tracks the number of concurrent sync operations in progress.
+// The tray only transitions to IDLE when this counter reaches zero, preventing
+// rapid icon flickering when many files are synced concurrently.
+let activeSyncCount = 0;
+
 export function getTray() {
   return tray;
 }
 
-export function setTrayStatus(status: TrayMenuState) {
+export function setTrayStatus(status: Exclude<TrayMenuState, 'LOADING'>) {
+  if (status === 'SYNCING') {
+    activeSyncCount++;
+    tray?.setState('SYNCING');
+  } else if (status === 'IDLE') {
+    activeSyncCount = Math.max(0, activeSyncCount - 1);
+    if (activeSyncCount === 0) tray?.setState('IDLE');
+  } else if (status === 'ALERT') {
+    activeSyncCount = Math.max(0, activeSyncCount - 1);
+    tray?.setState('ALERT');
+  }
+}
+
+export function resetTrayStatus(status: TrayMenuState) {
+  activeSyncCount = 0;
   tray?.setState(status);
 }
 

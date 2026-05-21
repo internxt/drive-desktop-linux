@@ -1,3 +1,4 @@
+import { calls } from 'tests/vitest/utils.helper';
 import PackageJson from '../../../../package.json';
 
 const { trayHandlers, trayInstance, buildFromTemplateMock, createFromPathMock, TrayMock } = vi.hoisted(() => {
@@ -95,5 +96,20 @@ describe('tray-menu', () => {
 
     // Then
     expect(trayInstance.setToolTip).toBeCalledWith(`Internxt ${PackageJson.version}`);
+  });
+
+  it('should not update the image or tooltip when called with the same state twice', () => {
+    // Given
+    const trayMenu = new TrayMenu('/icons', vi.fn().mockResolvedValue(undefined), vi.fn());
+    trayMenu.setState('SYNCING'); // first call — state changes LOADING→SYNCING
+    trayInstance.setImage.mockClear();
+    trayInstance.setToolTip.mockClear();
+
+    // When — same state again
+    trayMenu.setState('SYNCING');
+
+    // Then — no native tray calls should be made
+    calls(trayInstance.setImage).toHaveLength(0);
+    calls(trayInstance.setToolTip).toHaveLength(0);
   });
 });

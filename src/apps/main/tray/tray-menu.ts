@@ -5,6 +5,7 @@ import { TrayMenuState } from './types';
 
 export class TrayMenu {
   private readonly tray: Tray;
+  private currentState: TrayMenuState | null = null;
 
   get bounds() {
     return this.tray.getBounds();
@@ -43,6 +44,9 @@ export class TrayMenu {
   }
 
   setState(state: TrayMenuState) {
+    if (state === this.currentState) return;
+    this.currentState = state;
+
     const iconPath = this.getIconPath(state);
     this.setImage(iconPath);
 

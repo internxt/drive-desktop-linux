@@ -3,7 +3,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import eventBus from '../../apps/main/event-bus';
 import { getIsLoggedIn } from '../../apps/main/auth/handlers';
 import { createAuthWindow } from '../../apps/main/windows/auth';
-import { setupTrayIcon, setTrayStatus } from '../../apps/main/tray/tray-setup';
+import { setupTrayIcon, resetTrayStatus } from '../../apps/main/tray/tray-setup';
 import { broadcastToWindows } from '../../apps/main/windows';
 import { setupThemeListener } from '../theme';
 import { registerAvailableUserProductsHandlers } from '../../backend/features/payments/ipc/register-available-user-products-handlers';
@@ -40,7 +40,7 @@ export function registerAppReadyFlow() {
 
       if (!isLoggedIn) {
         await createAuthWindow();
-        setTrayStatus('IDLE');
+        resetTrayStatus('IDLE');
       }
 
       await checkForUpdates({
