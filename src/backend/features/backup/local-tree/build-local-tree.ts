@@ -18,7 +18,7 @@ export async function buildLocalTree(
     return { error: new DriveDesktopError('BAD_REQUEST', `${folder} is not a directory`) };
   }
   const tree = new LocalTree(folder, root.mtime.getTime());
-  const result = await traverse(tree, folder, folder);
+  const result = await traverse({ tree, currentFolder: folder, rootFolder: folder });
   if (result.error) {
     return { error: result.error };
   }
