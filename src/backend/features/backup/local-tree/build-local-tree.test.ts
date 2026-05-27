@@ -36,7 +36,7 @@ describe('buildLocalTree', () => {
     expect(result.data?.tree.root.path).toBe(root);
     expect(result.data?.skippedItems).toStrictEqual([]);
     expect(safeStatMock).toHaveBeenCalledWith(root);
-    expect(traverseMock).toHaveBeenCalledWith(result.data?.tree, root, root);
+    expect(traverseMock).toHaveBeenCalledWith({ tree: result.data?.tree, currentFolder: root, rootFolder: root });
   });
 
   it('bubbles skipped items returned by traversal', async () => {
