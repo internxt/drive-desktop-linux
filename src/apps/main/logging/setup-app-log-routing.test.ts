@@ -43,6 +43,20 @@ describe('setup-app-log-routing', () => {
       expect(result).toBe('/tmp/internxt-logs/drive-important.log');
     });
 
+    it('should keep info level logs in the important file to match core logger behavior', () => {
+      // When
+      const result = resolveAppLogFilePath({
+        logsPath,
+        message: {
+          level: 'info',
+          data: [createSerializedLogMessage({ header: 'E - b - anti', msg: '[CLAM_AVD] clamd process exited' })],
+        },
+      });
+
+      // Then
+      expect(result).toBe('/tmp/internxt-logs/drive-important.log');
+    });
+
     it('should keep non-antivirus logs in the main log file', () => {
       // When
       const result = resolveAppLogFilePath({
@@ -65,6 +79,25 @@ describe('setup-app-log-routing', () => {
           level: 'debug',
           data: [
             createSerializedLogMessage({ header: '  - b -     ', msg: '[Main] Antivirus IPC handlers setup complete' }),
+          ],
+        },
+      });
+
+      // Then
+      expect(result).toBe('/tmp/internxt-logs/drive-antivirus.log');
+    });
+
+    it('should route structured antivirus logs when message data is an object', () => {
+      // When
+      const result = resolveAppLogFilePath({
+        logsPath,
+        message: {
+          level: 'debug',
+          data: [
+            {
+              tag: 'ANTIVIRUS',
+              msg: 'ClamAV initialized successfully',
+            },
           ],
         },
       });
