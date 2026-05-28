@@ -147,9 +147,11 @@ export function createClient<T>(opts: ClientOptions) {
       if (isAxiosError(error)) {
         const status = error.response?.status;
         const message = error.response?.data?.message ?? error.message;
-        const cause = status ? mapStatusToErrorCause(status) : 'UNKNOWN';
+        const cause = status ? mapStatusToErrorCause(status) : 'NETWORK_ERROR';
+
         return { error: new DriveServerError(cause, status, message) };
       }
+
       return {
         error: new DriveServerError('UNKNOWN', undefined, error instanceof Error ? error.message : 'Unexpected error'),
       };

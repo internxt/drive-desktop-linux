@@ -69,9 +69,11 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
       if (error.cause === 'TOO_MANY_REQUESTS') {
         return left(new DriveDesktopError('RATE_LIMITED', String(parseRetryAfterMs(error.message))));
       }
-      if (error.cause === 'SERVER_ERROR') {
+      if (error.cause === 'NETWORK_ERROR' || error.cause === 'SERVER_ERROR') {
         return left(new DriveDesktopError('INTERNAL_SERVER_ERROR'));
       }
+
+      return left(new DriveDesktopError('UNKNOWN'));
     }
     return left(new DriveDesktopError('UNKNOWN'));
   }
