@@ -49,7 +49,7 @@ const ANTIVIRUS_MESSAGE_PATTERNS = [
  * instance that bypasses webpack's module registry, so patching it has no
  * effect on the instance the logger actually uses.
  */
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const coreElectronLog = require('@internxt/drive-desktop-core/node_modules/electron-log') as ElectronLogModule;
 
 function isSerializedAntivirusLogEntry({ value }: { value: unknown }) {
