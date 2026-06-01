@@ -1,18 +1,22 @@
 package logger
 
 import (
-	"fmt"
 	"log/slog"
-	"os"
+
+	"gopkg.in/lumberjack.v2"
 )
+
 func New(logFilePath string) *slog.Logger {
-	f, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to open log file %s: %v\n", logFilePath, err)
-		os.Exit(1)
+
+	rotatingWriter := &lumberjack.Logger{
+		Filename:   logFilePath,
+		MaxSize:    500, // MB
+		MaxBackups: 3,
+		MaxAge:     30, // days
+		Compress:   true,
 	}
 
-	return slog.New(slog.NewJSONHandler(f, &slog.HandlerOptions{
+	return slog.New(slog.NewJSONHandler(rotatingWriter, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
 }
