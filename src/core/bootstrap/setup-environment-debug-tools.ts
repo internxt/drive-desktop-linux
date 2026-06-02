@@ -7,6 +7,8 @@ export function setupEnvironmentDebugTools() {
 
   if (process.env.NODE_ENV === 'development') {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require('electron-debug')({ showDevTools: false });
+    const electronDebug = require('electron-debug');
+    const debug = electronDebug.default ?? electronDebug;
+    debug({ showDevTools: false });
   }
 }
