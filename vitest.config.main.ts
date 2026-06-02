@@ -21,6 +21,11 @@ export default defineConfig({
     globals: true,
     env: {
       NEW_CRYPTO_KEY: 'test-crypto-key-for-vitest',
+      // Prevent electron/index.js from throwing "Electron failed to install" when
+      // the binary is absent (e.g. CI without electron download). The variable
+      // makes getElectronPath() return a path string instead of throwing, so
+      // vi.mock auto-mocking can load @internxt/drive-desktop-core without error.
+      ELECTRON_OVERRIDE_DIST_PATH: '/tmp',
     },
     coverage: {
       provider: 'v8',
