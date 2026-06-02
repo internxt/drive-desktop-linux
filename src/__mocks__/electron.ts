@@ -51,13 +51,4 @@ const shell = {
   openExternal: vi.fn(),
 };
 
-export {
-  app,
-  ipcMain,
-  ipcRenderer,
-  dialog,
-  BrowserWindow,
-  safeStorage,
-  nativeImage,
-  shell,
-};
+export { app, ipcMain, ipcRenderer, dialog, BrowserWindow, safeStorage, nativeImage, shell };
