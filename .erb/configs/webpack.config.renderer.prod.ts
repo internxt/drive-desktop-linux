@@ -64,7 +64,27 @@ const configuration: webpack.Configuration = {
         include: /\.module\.s?(c|a)ss$/,
       },
       {
-        test: /\.s?(a|c)ss$/,
+        // Plain CSS files (e.g. App.css with @tailwind directives).
+        // sass-loader v12 + Dart Sass 1.94+ returns undefined for plain CSS,
+        // so skip sass-loader here and only run postcss + css-loader.
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: [require('tailwindcss'), require('autoprefixer')],
+              },
+            },
+          },
+        ],
+        exclude: /\.module\.css$/,
+      },
+      {
+        // SCSS/SASS files: sass compiles first, then postcss.
+        test: /\.s[ac]ss$/,
         use: [
           MiniCssExtractPlugin.loader,
           'css-loader',
@@ -78,7 +98,7 @@ const configuration: webpack.Configuration = {
           },
           'sass-loader',
         ],
-        exclude: /\.module\.s?(c|a)ss$/,
+        exclude: /\.module\.s[ac]ss$/,
       },
       // Fonts
       {

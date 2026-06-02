@@ -49,8 +49,9 @@ vi.mock('electron-log', () => ({
   },
 }));
 
-// Mock the specific setup-electron-log module that's causing issues
-vi.mock('@internxt/drive-desktop-core/src/backend/core/logger/setup-electron-log', () => ({}));
+// Mock the specific setup-electron-log module that's causing issues.
+// Must use the build/ path since that's the compiled module actually required at runtime.
+vi.mock('@internxt/drive-desktop-core/build/backend/core/logger/setup-electron-log', () => ({}));
 
 // Mock @internxt/drive-desktop-core backend to prevent it from loading electron
 vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
