@@ -27,9 +27,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Electron binary
-        run: cd node_modules/electron && node install.js
-
       - name: Build main process
         run: npm run build:main
 
