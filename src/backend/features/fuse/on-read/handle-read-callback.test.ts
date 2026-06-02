@@ -150,53 +150,6 @@ describe('handleReadCallback', () => {
       expect(deps.saveToRepository).not.toHaveBeenCalled();
       expect(readChunkFromDiskMock).toHaveBeenCalledWith(expect.stringContaining(virtualFile.contentsId), 10, 0);
     });
-
-  describe('when process is a thumbnail generator', () => {
-    it('should download the exact requested range without block expansion', async () => {
-      const chunk = Buffer.from('image-header');
-      downloadFileRangeMock.mockResolvedValue({ data: chunk });
-      const deps = createDeps({ processName: 'pool-org.gnome.', range: { position: 0, length: 32768 } });
-
-      const result = await handleReadCallback(deps);
-
-      expect(result.data).toBe(chunk);
-      call(downloadFileRangeMock).toMatchObject({
-        fileId: virtualFile.contentsId,
-        bucketId: deps.bucketId,
-        mnemonic: deps.mnemonic,
-        range: { position: 0, length: 32768 },
-      });
-    });
-
-    it('should not allocate a cache file or download blocks', async () => {
-      downloadFileRangeMock.mockResolvedValue({ data: Buffer.from('bytes') });
-      const deps = createDeps({ processName: 'pool-org.gnome.' });
-
-      await handleReadCallback(deps);
-
-      expect(fileExistsOnDiskMock).not.toHaveBeenCalled();
-      expect(allocateFileMock).not.toHaveBeenCalled();
-      expect(downloadAndCacheBlockMock).not.toHaveBeenCalled();
-    });
-
-    it('should not emit download progress or register the file', async () => {
-      downloadFileRangeMock.mockResolvedValue({ data: Buffer.from('bytes') });
-      const deps = createDeps({ processName: 'pool-org.gnome.' });
-
-      await handleReadCallback(deps);
-
-      expect(deps.onDownloadProgress).not.toHaveBeenCalled();
-      expect(deps.saveToRepository).not.toHaveBeenCalled();
-    });
-
-    it('should return EIO when the ranged download fails', async () => {
-      downloadFileRangeMock.mockResolvedValue({ error: new Error('network error') });
-      const deps = createDeps({ processName: 'pool-org.gnome.' });
-
-      const result = await handleReadCallback(deps);
-
-      expect(result.error).toBeInstanceOf(FuseIOError);
-    });
   });
 
   describe('when process is a thumbnail generator', () => {

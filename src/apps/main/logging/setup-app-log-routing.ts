@@ -99,12 +99,8 @@ export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: 
   return join(logsPath, DEFAULT_LOG_FILE_NAME);
 }
 
-export function setupAppLogRouting({ logsPath }: Pops) {
-  coreElectronLog.transports.file.resolvePathFn = (_, message) => {
-    return resolveAppLogFilePath({ logsPath, message });
-  };
-
-  coreElectronLog.transports.file.resolvePath = coreElectronLog.transports.file.resolvePathFn;
+function getElectronLogModules(): ElectronLogModule[] {
+  return [coreElectronLog];
 }
 
 export function setupAppLogRouting({ logsPath }: Pops) {
