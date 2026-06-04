@@ -10,7 +10,6 @@ import { Environment } from '@internxt/inxt-js';
 import configStore from '../../../../apps/main/config';
 import * as maxFileSizeRejectionModule from '../../user/file-size-limit/add-max-file-size-rejection';
 
-
 describe('update-file-to-backup', () => {
   const uploadContentMock = partialSpyOn(uploadContentToEnvironmentModule, 'uploadContentToEnvironment');
   const overrideFileMock = partialSpyOn(overrideFileModule, 'overrideFile');
