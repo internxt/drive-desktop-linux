@@ -1,9 +1,6 @@
 import { app } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { handleDeeplink } from '../../apps/main/auth/deeplink/handle-deeplink';
-import { getIsLoggedIn } from '../../apps/main/auth/handlers';
-import { createAuthWindow, getAuthWindow } from '../../apps/main/windows/auth';
-import { getOrCreateWidged } from '../../apps/main/windows/widget';
 
 export function registerSecondInstanceFlow() {
   app.on('second-instance', async (_, argv) => {
