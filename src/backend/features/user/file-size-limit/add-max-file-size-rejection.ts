@@ -16,6 +16,7 @@ type MaxFileSizeRejection = {
   validation?: Extract<UploadFileSizeValidation, { allowed: false }>;
   fileSize: number;
   path: string;
+  blockUploadPath?: boolean;
 };
 
 type MaxFileSizeRejectionModalDraft = Omit<MaxFileSizeRejectionModalState, 'timeout'>;
@@ -35,7 +36,9 @@ export function clearUploadSizeLimitBlockedPath(path: string): void {
 }
 
 export function addMaxFileSizeRejection(rejection: MaxFileSizeRejection): void {
-  markUploadSizeLimitBlockedPath(rejection.path);
+  if (rejection.blockUploadPath ?? true) {
+    markUploadSizeLimitBlockedPath(rejection.path);
+  }
   if (state) clearTimeout(state.timeout);
 
   state = {

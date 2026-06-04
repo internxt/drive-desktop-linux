@@ -94,7 +94,7 @@ describe('TemporalFileUploader', () => {
   });
 
   it('should continue upload when the stored limit is unavailable', async () => {
-    configGetMock.mockReturnValue(-1);
+    configGetMock.mockReturnValue(0);
 
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 

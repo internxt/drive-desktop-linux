@@ -106,4 +106,23 @@ describe('addMaxFileSizeRejection', () => {
       fileSize: 150,
     });
   });
+
+  it('should allow backend rejections to skip blocked path tracking', () => {
+    addMaxFileSizeRejection({
+      path,
+      fileSize: 150,
+      blockUploadPath: false,
+    });
+
+    expect(isUploadSizeLimitBlockedPath(path)).toBe(false);
+
+    vi.advanceTimersByTime(2_000);
+
+    expect(showModalMock).toHaveBeenCalledWith({
+      variant: 'single',
+      showUpgradeCta: true,
+      maxFileSize: undefined,
+      fileSize: 150,
+    });
+  });
 });

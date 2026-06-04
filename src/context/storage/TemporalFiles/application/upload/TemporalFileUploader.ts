@@ -115,6 +115,7 @@ export class TemporalFileUploader {
       path: temporalFile.path.value,
       replaces: replaces?.contentsId,
       fileBuffer,
+      contentFilePath: temporalFile.contentFilePath,
     });
 
     await this.eventBus.publish([contentsUploadedEvent]);

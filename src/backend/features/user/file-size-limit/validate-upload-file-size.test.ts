@@ -19,8 +19,8 @@ describe('validateUploadFileSize', () => {
     });
   });
 
-  it('should pass when stored limit is invalid and file does not exceed absolute cap', () => {
-    expect(validateUploadFileSize({ size: 101, maxUploadFileSize: -1 })).toStrictEqual({ allowed: true });
+  it('should pass when stored limit is 0 and file does not exceed absolute cap', () => {
+    expect(validateUploadFileSize({ size: 101, maxUploadFileSize: 0 })).toStrictEqual({ allowed: true });
   });
 
   it('should pass when stored limit is null and file does not exceed absolute cap', () => {
@@ -28,7 +28,9 @@ describe('validateUploadFileSize', () => {
   });
 
   it('should return absolute cap error even when stored limit is unavailable', () => {
-    expect(validateUploadFileSize({ size: ABSOLUTE_UPLOAD_FILE_SIZE_LIMIT + 1, maxUploadFileSize: null })).toStrictEqual({
+    expect(
+      validateUploadFileSize({ size: ABSOLUTE_UPLOAD_FILE_SIZE_LIMIT + 1, maxUploadFileSize: null }),
+    ).toStrictEqual({
       allowed: false,
       reason: 'ABSOLUTE_CAP_EXCEEDED',
       maxFileSize: ABSOLUTE_UPLOAD_FILE_SIZE_LIMIT,
