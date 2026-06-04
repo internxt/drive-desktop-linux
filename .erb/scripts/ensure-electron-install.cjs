@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
@@ -11,18 +10,7 @@ const distPath = path.join(electronPath, 'dist');
 const pathFile = path.join(electronPath, 'path.txt');
 
 function getPlatformPath() {
-  switch (os.platform()) {
-    case 'darwin':
-      return 'Electron.app/Contents/MacOS/Electron';
-    case 'freebsd':
-    case 'openbsd':
-    case 'linux':
-      return 'electron';
-    case 'win32':
-      return 'electron.exe';
-    default:
-      throw new Error(`Electron builds are not available on platform: ${os.platform()}`);
-  }
+  return 'electron';
 }
 
 function isElectronInstalled(version, platformPath) {
