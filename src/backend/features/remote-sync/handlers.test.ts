@@ -1,7 +1,5 @@
-import { ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { vi } from 'vitest';
-import { getIpcHandler } from '../../../../tests/vitest/ipc.helper';
 import { call, calls, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 
 const mocks = vi.hoisted(() => {
@@ -22,11 +20,18 @@ vi.mock('./service', () => ({
   startRemoteSync: mocks.startRemoteSync,
 }));
 
+type IpcMainHandleMock = {
+  handle: { mock: { calls: Array<[string, (...args: unknown[]) => unknown]> } };
+};
+
 async function loadHandlersModule() {
   vi.resetModules();
 
+  const electronModule = await import('electron');
   const eventBusModule = await import('../../../apps/main/event-bus');
   const initialSyncReadyModule = await import('./InitialSyncReady');
+
+  const ipcMain = electronModule.ipcMain as unknown as IpcMainHandleMock;
 
   const eventBusOnMock = partialSpyOn(eventBusModule.default, 'on', false);
   const eventBusEmitMock = partialSpyOn(eventBusModule.default, 'emit');
@@ -37,8 +42,13 @@ async function loadHandlersModule() {
   return {
     eventBusEmitMock,
     eventBusOnMock,
+    ipcMain,
     setInitialSyncStateMock,
   };
+}
+
+function getIpcHandler(ipcMain: IpcMainHandleMock, eventName: string) {
+  return ipcMain.handle.mock.calls.find(([name]) => name === eventName)?.[1];
 }
 
 function getEventBusHandler(eventBusOnMock: ReturnType<typeof partialSpyOn>, eventName: string) {
@@ -57,7 +67,7 @@ describe('handlers.test', () => {
 
   it('should register ipc handlers and event listeners', async () => {
     // When
-    const { eventBusOnMock } = await loadHandlersModule();
+    const { eventBusOnMock, ipcMain } = await loadHandlersModule();
 
     // Then
     expect(ipcMain.handle).toHaveBeenCalledWith('START_REMOTE_SYNC', expect.any(Function));
@@ -69,8 +79,8 @@ describe('handlers.test', () => {
 
   it('should start a sync from the ipc handler and emit remote changes synched', async () => {
     // Given
-    const { eventBusEmitMock } = await loadHandlersModule();
-    const handler = getIpcHandler('START_REMOTE_SYNC');
+    const { eventBusEmitMock, ipcMain } = await loadHandlersModule();
+    const handler = getIpcHandler(ipcMain, 'START_REMOTE_SYNC');
 
     // When
     await handler?.();
@@ -83,8 +93,8 @@ describe('handlers.test', () => {
   it('should return the current sync status from the ipc handler', async () => {
     // Given
     mocks.remoteSyncController.getSyncStatus.mockReturnValue('SYNCED');
-    await loadHandlersModule();
-    const handler = getIpcHandler('get-remote-sync-status');
+    const { ipcMain } = await loadHandlersModule();
+    const handler = getIpcHandler(ipcMain, 'get-remote-sync-status');
 
     // When
     const result = await handler?.();

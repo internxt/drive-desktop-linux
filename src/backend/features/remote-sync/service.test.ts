@@ -41,7 +41,6 @@ function createUpdatedRemoteItemsDtoFixture(): UpdatedRemoteItemsDto {
 const mocks = vi.hoisted(() => {
   const filesCollection = {
     getAll: vi.fn(),
-    getAllWhere: vi.fn(),
   };
 
   const foldersCollection = {
@@ -69,11 +68,15 @@ vi.mock('lodash', () => ({
 }));
 
 vi.mock('../../../apps/main/database/collections/DriveFileCollection', () => ({
-  DriveFilesCollection: vi.fn(() => mocks.filesCollection),
+  DriveFilesCollection: vi.fn(function DriveFilesCollectionMock() {
+    return mocks.filesCollection;
+  }),
 }));
 
 vi.mock('../../../apps/main/database/collections/DriveFolderCollection', () => ({
-  DriveFoldersCollection: vi.fn(() => mocks.foldersCollection),
+  DriveFoldersCollection: vi.fn(function DriveFoldersCollectionMock() {
+    return mocks.foldersCollection;
+  }),
 }));
 
 vi.mock('./remote-sync-controller', () => ({
@@ -123,7 +126,6 @@ describe('service.test', () => {
     const result = createUpdatedRemoteItemsDtoFixture();
     mocks.filesCollection.getAll.mockResolvedValue({ success: true, result: result.files });
     mocks.foldersCollection.getAll.mockResolvedValue({ success: true, result: result.folders });
-    mocks.filesCollection.getAllWhere.mockResolvedValue({ result: [{ uuid: 'file-1' }] });
   });
 
   it('should mark initial sync as ready and broadcast when the controller becomes synced for the first time', async () => {
@@ -203,15 +205,4 @@ describe('service.test', () => {
     call(eventBusEmitMock).toBe('REMOTE_CHANGES_SYNCHED');
   });
 
-  it('should return only existing files from the local collection', async () => {
-    // Given
-    const { service } = await loadServiceModule();
-
-    // When
-    const result = await service.getExistingFiles();
-
-    // Then
-    call(mocks.filesCollection.getAllWhere).toStrictEqual({ status: 'EXISTS' });
-    expect(result).toStrictEqual([{ uuid: 'file-1' }]);
-  });
 });
