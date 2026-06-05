@@ -2,9 +2,13 @@ import Button from '../../components/Button';
 import { useTranslationContext } from '../../context/LocalContext';
 import { PLANS_URL } from './constants';
 import { formatBytes } from './format-bytes';
-import { getModalPropsFromUrlParams, getSuggestedUpgradePlan } from './service';
-import { getDescriptionTranslationKey } from './service';
+import { getDescriptionTranslationKey, getModalPropsFromUrlParams, getSuggestedUpgradePlan } from './service';
 import { UpgradePlanList } from './upgrade-plan-list';
+
+async function onUpgradePlan() {
+  await globalThis.window.electron.openUrl(PLANS_URL);
+  window.close();
+}
 
 export function MaxFileSizeRejectionModal() {
   const { translate } = useTranslationContext();
@@ -12,10 +16,6 @@ export function MaxFileSizeRejectionModal() {
   const modal = getModalPropsFromUrlParams();
   if (!modal) return null;
 
-  async function onUpgradePlan() {
-    await window.electron.openUrl(PLANS_URL);
-    window.close();
-  }
   const suggestedPlan = modal.showUpgradeCta ? getSuggestedUpgradePlan(modal.fileSize) : undefined;
 
   return (

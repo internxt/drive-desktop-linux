@@ -3,7 +3,11 @@ import { upgradePlans } from './constants';
 import { formatBytes } from './format-bytes';
 import { getSuggestedUpgradePlan } from './service';
 
-export function UpgradePlanList({ suggestedPlan }: { suggestedPlan: ReturnType<typeof getSuggestedUpgradePlan> }) {
+export function UpgradePlanList({
+  suggestedPlan,
+}: {
+  readonly suggestedPlan: ReturnType<typeof getSuggestedUpgradePlan>;
+}) {
   const { translate } = useTranslationContext();
 
   return (
