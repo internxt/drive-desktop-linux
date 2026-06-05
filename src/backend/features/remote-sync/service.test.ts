@@ -205,4 +205,19 @@ describe('service.test', () => {
     call(eventBusEmitMock).toBe('REMOTE_CHANGES_SYNCHED');
   });
 
+  it('should register the remote sync service singleton on import', async () => {
+    // Given
+    vi.resetModules();
+    const { getRemoteSyncService } = await import('../../../context/shared/application/sync/remote-sync-service');
+
+    // When
+    const remoteSyncServiceModule = await import('./service');
+    const registeredService = getRemoteSyncService();
+
+    // Then
+    expect(registeredService.getUpdatedRemoteItems).toBe(remoteSyncServiceModule.getUpdatedRemoteItems);
+    expect(registeredService.startRemoteSync).toBe(remoteSyncServiceModule.startRemoteSync);
+    expect(registeredService.resyncRemoteSync).toBe(remoteSyncServiceModule.resyncRemoteSync);
+  });
+
 });

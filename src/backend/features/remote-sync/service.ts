@@ -67,3 +67,9 @@ const debouncedSynchronization = debounce(async () => {
 export async function resyncRemoteSync() {
   await debouncedSynchronization();
 }
+
+registerRemoteSyncService({
+  getUpdatedRemoteItems,
+  startRemoteSync,
+  resyncRemoteSync,
+});
