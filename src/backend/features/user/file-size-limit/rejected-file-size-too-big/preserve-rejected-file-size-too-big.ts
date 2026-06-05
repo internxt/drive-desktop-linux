@@ -1,6 +1,7 @@
 import { constants } from 'node:fs';
 import { copyFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import { randomInt } from 'node:crypto';
 import { PATHS } from '../../../../../core/electron/paths';
 import { Result } from '../../../../../context/shared/domain/Result';
 
@@ -115,9 +116,7 @@ export function createCopyPath({ targetPath, copyNumber }: { targetPath: string;
 export function createLastResortCopyPath({ targetPath }: { targetPath: string }): string {
   const parsedPath = path.parse(targetPath);
   const timestamp = Date.now();
-  const randomNumber = Math.floor(Math.random() * 1_000_000);
-
-  return path.join(parsedPath.dir, `${parsedPath.name} (copy ${timestamp}-${randomNumber})${parsedPath.ext}`);
+  return path.join(parsedPath.dir, `${parsedPath.name} (copy ${timestamp}-${randomInt(1_000_000)})${parsedPath.ext}`);
 }
 
 function isFileAlreadyExistsError(error: unknown): boolean {

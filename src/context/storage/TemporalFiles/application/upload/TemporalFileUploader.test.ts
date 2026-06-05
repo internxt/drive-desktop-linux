@@ -29,7 +29,6 @@ describe('TemporalFileUploader', () => {
 
   const stopWatching = vi.fn();
   beforeEach(() => {
-    vi.resetAllMocks();
     repository.watchFile.mockReturnValue(stopWatching);
     eventBus.publish.mockResolvedValue(undefined);
     uploaderFactory.read.mockReturnValue(uploaderFactory);

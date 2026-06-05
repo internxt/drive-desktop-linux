@@ -1,6 +1,7 @@
 import { constants } from 'node:fs';
 import { copyFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import { randomInt } from 'node:crypto';
 import {
   copyWithoutOverwriting,
   createCopyPath,
@@ -14,8 +15,13 @@ vi.mock('node:fs/promises', () => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('node:crypto', () => ({
+  randomInt: vi.fn(() => 123456),
+}));
+
 const copyFileMock = vi.mocked(copyFile);
 const mkdirMock = vi.mocked(mkdir);
+const randomIntMock = vi.mocked(randomInt as (max: number) => number);
 const recoveryRoot = '/rejected-files-size-too-big';
 const temporalContentPath = '/tmp/internxt-drive-tmp/temporal-content';
 
@@ -24,6 +30,7 @@ afterEach(() => {
   vi.clearAllMocks();
   copyFileMock.mockResolvedValue(undefined);
   mkdirMock.mockResolvedValue(undefined);
+  randomIntMock.mockReturnValue(123456);
 });
 
 describe('preserve-rejected-file-size-too-big', () => {
@@ -136,7 +143,6 @@ describe('preserve-rejected-file-size-too-big', () => {
 
     it('should use a timestamp and random number on the last copy attempt', async () => {
       vi.spyOn(Date, 'now').mockReturnValue(1_717_171_717_171);
-      vi.spyOn(Math, 'random').mockReturnValue(0.123456);
       let calls = 0;
       copyFileMock.mockImplementation(async () => {
         calls += 1;
@@ -167,7 +173,6 @@ describe('preserve-rejected-file-size-too-big', () => {
   describe('createLastResortCopyPath', () => {
     it('should append a timestamp and random number before the file extension', () => {
       vi.spyOn(Date, 'now').mockReturnValue(1_717_171_717_171);
-      vi.spyOn(Math, 'random').mockReturnValue(0.123456);
 
       expect(createLastResortCopyPath({ targetPath: path.join(recoveryRoot, 'fotos', 'photo.jpg') })).toBe(
         path.join(recoveryRoot, 'fotos', 'photo (copy 1717171717171-123456).jpg'),

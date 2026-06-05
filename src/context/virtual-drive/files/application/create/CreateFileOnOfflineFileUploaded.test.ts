@@ -31,7 +31,6 @@ describe('Create File On Offline File Uploaded', () => {
 
   afterEach(() => {
     clearMaxFileSizeRejectionModal();
-    vi.clearAllMocks();
   });
 
   it('creates a new file when event replaces field is undefined', async () => {

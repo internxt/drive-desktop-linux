@@ -27,7 +27,6 @@ describe('write', () => {
   const temporalFileCreator = mockDeep<TemporalFileCreator>();
 
   beforeEach(() => {
-    vi.clearAllMocks();
     configGetMock.mockReturnValue(100);
     container = mockDeep<Container>();
     container.get.calledWith(TemporalFileWriter).mockReturnValue(temporalFileWriter);
