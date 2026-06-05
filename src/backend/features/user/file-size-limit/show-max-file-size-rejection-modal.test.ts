@@ -19,7 +19,13 @@ describe('showMaxFileSizeRejectionModal', () => {
       on: vi.fn(),
     };
 
-    browserWindowMock.mockReturnValue(windowMock as unknown as Electron.BrowserWindow);
+    browserWindowMock.mockImplementation(
+      class {
+        constructor() {
+          return windowMock;
+        }
+      } as unknown as typeof BrowserWindow,
+    );
 
     return windowMock;
   }
