@@ -4,7 +4,6 @@ import { Language } from '../../../apps/shared/Locale/Language';
 import { ConfigTheme } from '../../../apps/shared/types/Theme';
 
 type BackupList = Record<string, { enabled: boolean; folderId: number; folderUuid: string }>;
-
 export type SavedConfig = {
   lastOnboardingShown: string;
   backupsEnabled: boolean;
@@ -21,6 +20,7 @@ export type SavedConfig = {
   backupList: BackupList;
   nautilusExtensionVersion: number;
   discoveredBackup: number;
+  maxUploadFileSizeInBytes: number;
 };
 
 export type AppStore = {
@@ -61,4 +61,5 @@ export type AppStore = {
 
   // Drive
   availableUserProducts?: UserAvailableProducts;
+  maxUploadFileSizeInBytes: number;
 };

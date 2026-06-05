@@ -96,6 +96,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       lastOnboardingShown: '2025-01-01',
       nautilusExtensionVersion: 0,
       discoveredBackup: 1,
+      maxUploadFileSizeInBytes: 1024,
       savedConfigs: {},
       newToken: 'fake-new-token',
       newTokenEncrypted: false,
@@ -114,6 +115,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
     expect(savedConfigs[fakeUuid].backupList).toStrictEqual(fakeBackupList);
 
     expect(savedConfigs[fakeUuid].deviceUUID).toBe(fakeDeviceUUID);
+    expect(savedConfigs[fakeUuid].maxUploadFileSizeInBytes).toBe(1024);
 
     for (const field of fieldsToSave) {
       expect(savedConfigs[fakeUuid]).toHaveProperty(field);
@@ -122,6 +124,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
     expect(configState.backupList).toStrictEqual(defaults.backupList);
 
     expect(configState.deviceUUID).toStrictEqual(defaults.deviceUUID);
+    expect(configState.maxUploadFileSizeInBytes).toStrictEqual(defaults.maxUploadFileSizeInBytes);
   });
 
   it('should restore backupList and deviceUUID from savedConfigs on re-login', () => {
@@ -140,6 +143,8 @@ describe('saveConfig and canHisConfigBeRestored', () => {
         lastOnboardingShown: '2025-01-01',
         nautilusExtensionVersion: 0,
         discoveredBackup: 1,
+        backgroundScanEnabled: true,
+        maxUploadFileSizeInBytes: 1024,
       },
     };
 
@@ -147,6 +152,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       savedConfigs,
       backupList: {},
       deviceUUID: '',
+      maxUploadFileSizeInBytes: defaults.maxUploadFileSizeInBytes,
     });
 
     mockStoreForState(configState);
@@ -158,6 +164,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
     expect(configState.backupList).toStrictEqual(fakeBackupList);
 
     expect(configState.deviceUUID).toStrictEqual(fakeDeviceUUID);
+    expect(configState.maxUploadFileSizeInBytes).toBe(1024);
   });
 
   it('should return false when no saved config exists for uuid', () => {
@@ -191,6 +198,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
       lastOnboardingShown: '2025-01-01',
       nautilusExtensionVersion: 0,
       discoveredBackup: 1,
+      maxUploadFileSizeInBytes: 1024,
       savedConfigs: {},
       newToken: 'fake-new-token',
       newTokenEncrypted: false,
@@ -204,6 +212,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
 
     expect(configState.backupList).toStrictEqual({});
     expect(configState.deviceUUID).toStrictEqual('');
+    expect(configState.maxUploadFileSizeInBytes).toBe(defaults.maxUploadFileSizeInBytes);
 
     const restored = canHisConfigBeRestored({ uuid: fakeUuid });
 
@@ -211,5 +220,6 @@ describe('saveConfig and canHisConfigBeRestored', () => {
     expect(configState.backupList).toStrictEqual(fakeBackupList);
     expect(configState.deviceUUID).toStrictEqual(fakeDeviceUUID);
     expect(configState.backupsEnabled).toBe(true);
+    expect(configState.maxUploadFileSizeInBytes).toBe(1024);
   });
 });
