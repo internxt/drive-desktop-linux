@@ -1,11 +1,11 @@
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import Dotenv from 'dotenv-webpack';
 import chalk from 'chalk';
 import { merge } from 'webpack-merge';
-import { spawn, execSync } from 'child_process';
+import { spawn, execSync } from 'node:child_process';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import checkNodeEnv from '../scripts/check-node-env';
@@ -45,6 +45,11 @@ const configuration: webpack.Configuration = {
 
   target: ['web', 'electron-renderer'],
 
+  watchOptions: {
+    poll: 1000,
+    ignored: /node_modules|dist|build|coverage/,
+  },
+
   entry: [
     `webpack-dev-server/client?http://localhost:${port}/dist`,
     'webpack/hot/only-dev-server',
@@ -81,11 +86,10 @@ const configuration: webpack.Configuration = {
         include: /\.module\.s?(c|a)ss$/,
       },
       {
-        test: /\.s?css$/,
+        test: /\.css$/,
         use: [
           'style-loader',
           'css-loader',
-          'sass-loader',
           {
             loader: 'postcss-loader',
             options: {
@@ -95,7 +99,25 @@ const configuration: webpack.Configuration = {
             },
           },
         ],
-        exclude: /\.module\.s?(c|a)ss$/,
+        exclude: /\.module\.css$/,
+      },
+      {
+        // SCSS/SASS files: sass compiles first, then postcss.
+        test: /\.s[ac]ss$/,
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: [require('tailwindcss'), require('autoprefixer')],
+              },
+            },
+          },
+          'sass-loader',
+        ],
+        exclude: /\.module\.s[ac]ss$/,
       },
       // Fonts
       {
@@ -173,12 +195,28 @@ const configuration: webpack.Configuration = {
     hot: true,
     headers: { 'Access-Control-Allow-Origin': '*' },
     static: {
+      directory: path.join(webpackPaths.rootPath, 'public'),
       publicPath: '/',
+      watch: false,
     },
     historyApiFallback: {
       verbose: true,
     },
-    onBeforeSetupMiddleware() {
+    watchFiles: {
+      paths: [
+        path.join(webpackPaths.srcRendererPath, '**/*'),
+        path.join(webpackPaths.rootPath, 'public/**/*'),
+      ],
+      options: {
+        ignored: [
+          /node_modules/,
+          /dist/,
+          /build/,
+          /coverage/,
+        ],
+      },
+    },
+    setupMiddlewares(middlewares) {
       // Only auto-start main process if DEBUG_MODE is not set
       if (process.env.DEBUG_MODE !== 'true') {
         console.log('Starting Main Process...');
@@ -193,6 +231,8 @@ const configuration: webpack.Configuration = {
         console.log('DEBUG_MODE enabled - skipping auto-start of main process');
         console.log('Start main process manually with: npm run start:main:debug');
       }
+
+      return middlewares;
     },
   },
 };
