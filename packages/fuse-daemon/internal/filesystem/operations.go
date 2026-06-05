@@ -8,8 +8,6 @@ import (
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 
-	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
-
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/hanwen/go-fuse/v2/fuse/nodefs"
 	"github.com/hanwen/go-fuse/v2/fuse/pathfs"
