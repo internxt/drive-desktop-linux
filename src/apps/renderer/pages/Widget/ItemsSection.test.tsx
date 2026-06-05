@@ -154,6 +154,6 @@ describe('ItemsSection', () => {
     const referButton = screen.getByText('widget.header.dropdown.referAndEarn').closest('button')!;
     fireEvent.click(referButton);
 
-    expect(onOpenURL).toHaveBeenCalledWith('https://internxt.com/refer-friends');
+    expect(onOpenURL).toHaveBeenCalledWith('https://drive.internxt.com/?referral=open');
   });
 });
