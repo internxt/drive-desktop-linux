@@ -219,5 +219,4 @@ describe('service.test', () => {
     expect(registeredService.startRemoteSync).toBe(remoteSyncServiceModule.startRemoteSync);
     expect(registeredService.resyncRemoteSync).toBe(remoteSyncServiceModule.resyncRemoteSync);
   });
-
 });
