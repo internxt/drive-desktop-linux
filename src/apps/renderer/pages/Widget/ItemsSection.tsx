@@ -126,7 +126,7 @@ export function ItemsSection({ numberOfIssues, numberOfIssuesDisplay, onQuitClic
                     <div>
                       <DropdownItem
                         active={active}
-                        onClick={() => onOpenURL('https://internxt.com/refer-friends')}
+                        onClick={() => onOpenURL('https://drive.internxt.com/?referral=open')}
                         data-automation-id="menuItemReferAndEarn">
                         <span>{translate('widget.header.dropdown.referAndEarn')}</span>
                       </DropdownItem>
