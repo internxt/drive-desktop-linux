@@ -44,8 +44,6 @@ export async function clearDirectory(pathname: string): Promise<boolean> {
 export function setupRootFolder(pathname: string): void {
   const pathNameWithSepInTheEnd = normalizePathname(pathname);
   configStore.set('virtualDriveRoot', pathNameWithSepInTheEnd);
-  // Keep legacy key synchronized for older call paths still reading syncRoot.
-  configStore.set('syncRoot', pathNameWithSepInTheEnd);
   configStore.set('lastSavedListing', '');
 }
 

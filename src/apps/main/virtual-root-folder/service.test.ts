@@ -43,7 +43,6 @@ describe('service', () => {
   beforeEach(() => {
     const state: Record<string, string> = {
       virtualDriveRoot: '',
-      syncRoot: '',
       lastSavedListing: '',
     };
 
@@ -56,7 +55,6 @@ describe('service', () => {
   it('should fallback to default root folder when no saved path exists', () => {
     const state: Record<string, string> = {
       virtualDriveRoot: '',
-      syncRoot: '',
       lastSavedListing: '',
     };
 
@@ -71,13 +69,11 @@ describe('service', () => {
 
     expect(rootPath).toBe('/home/user/Internxt Drive/');
     expect(configSetMock).toHaveBeenCalledWith('virtualDriveRoot', '/home/user/');
-    expect(configSetMock).toHaveBeenCalledWith('syncRoot', '/home/user/');
   });
 
   it('should emit SYNC_ROOT_CHANGED with old and new paths when user picks a different folder', async () => {
     const state: Record<string, string> = {
       virtualDriveRoot: '/old/root/',
-      syncRoot: '/old/root/',
       lastSavedListing: '',
     };
 

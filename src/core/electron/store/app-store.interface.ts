@@ -11,7 +11,6 @@ export type SavedConfig = {
   backupInterval: number;
   lastBackup: number;
   virtualDriveRoot: string;
-  syncRoot: string;
   lastSavedListing: string;
   lastSync: number;
   /** @deprecated use deviceUUID instead */
@@ -37,7 +36,6 @@ export type AppStore = {
   backupInterval: number;
   lastBackup: number;
   virtualDriveRoot: string;
-  syncRoot: string;
   lastSavedListing: string;
   lastSync: number;
 
