@@ -92,6 +92,7 @@ describe('daemon.service', () => {
       const secondBootId = getBootIdFromSpawnCall();
       resolveDaemonReady({ bootId: secondBootId ?? '' });
       await expect(secondStart).resolves.toBeUndefined();
+      expect(secondResolved).toBe(true);
     });
   });
 

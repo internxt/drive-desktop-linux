@@ -1,7 +1,6 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { stopVirtualDriveOnce } from './virtual-drive.service';
+import { stopVirtualDriveOnce, startVirtualDrive } from './virtual-drive.service';
 import { removePreviousRootFolder } from './remove-previous-root-folder';
-import { startVirtualDrive } from './virtual-drive.service';
 
 type Props = {
   oldPath: string;

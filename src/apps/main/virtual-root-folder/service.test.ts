@@ -15,6 +15,7 @@ vi.mock('electron', () => ({
 vi.mock('../../../core/electron/paths', () => ({
   PATHS: {
     ROOT_DRIVE_FOLDER: '/home/user/Internxt Drive',
+    VIRTUAL_DRIVE_FOLDER_NAME: 'Internxt Drive',
   },
 }));
 

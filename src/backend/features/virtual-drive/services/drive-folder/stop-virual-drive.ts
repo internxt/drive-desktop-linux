@@ -16,6 +16,5 @@ export async function stopVirtualDrive({ container }: { container?: Container })
   }
   logger.debug({ msg: '[VIRTUAL DRIVE] stopping server...' });
   await stopFuseDaemonServer();
-  container = undefined;
   logger.debug({ msg: '[VIRTUAL DRIVE] stopped' });
 }

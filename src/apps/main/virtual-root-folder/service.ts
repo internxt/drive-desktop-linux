@@ -1,34 +1,14 @@
 import { dialog, shell } from 'electron';
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import configStore from '../config';
 import eventBus from '../event-bus';
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
 import { ensureFolderExists } from '../../shared/fs/ensure-folder-exists';
 import { PATHS } from '../../../core/electron/paths';
 
 const VIRTUAL_DRIVE_FOLDER = PATHS.ROOT_DRIVE_FOLDER;
-const VIRTUAL_DRIVE_FOLDER_NAME = 'Internxt Drive';
-
-function normalizePathname(pathname: string) {
-  return pathname[pathname.length - 1] === path.sep ? pathname : pathname + path.sep;
-}
-
-function getVirtualDriveMountPath(basePath: string) {
-  return path.join(basePath, VIRTUAL_DRIVE_FOLDER_NAME);
-}
-
-function getBasePathFromMountPath(pathname: string) {
-  if (path.basename(path.resolve(pathname)) === VIRTUAL_DRIVE_FOLDER_NAME) {
-    return path.dirname(path.resolve(pathname));
-  }
-
-  return pathname;
-}
-
-function getPathFromConfig() {
-  return configStore.get('virtualDriveRoot');
-}
+const VIRTUAL_DRIVE_FOLDER_NAME = PATHS.VIRTUAL_DRIVE_FOLDER_NAME;
 
 export async function clearDirectory(pathname: string): Promise<boolean> {
   try {
@@ -117,4 +97,24 @@ export async function openVirtualDriveRootFolder() {
   const errorMessage = await shell.openPath(syncFolderPath);
 
   if (errorMessage) throw new Error(errorMessage);
+}
+
+function normalizePathname(pathname: string) {
+  return pathname.endsWith(path.sep) ? pathname : pathname + path.sep;
+}
+
+function getVirtualDriveMountPath(basePath: string) {
+  return path.join(basePath, VIRTUAL_DRIVE_FOLDER_NAME);
+}
+
+function getBasePathFromMountPath(pathname: string) {
+  if (path.basename(path.resolve(pathname)) === VIRTUAL_DRIVE_FOLDER_NAME) {
+    return path.dirname(path.resolve(pathname));
+  }
+
+  return pathname;
+}
+
+function getPathFromConfig() {
+  return configStore.get('virtualDriveRoot');
 }

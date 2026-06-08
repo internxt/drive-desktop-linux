@@ -7,21 +7,6 @@ import { PATHS } from '../../../../../core/electron/paths';
 
 const execFileAsync = promisify(execFile);
 
-/**
- * Releases a stale FUSE mount at the given path using a lazy unmount.
- * The daemon may have exited without cleanly unmounting (e.g. open file handles),
- * leaving the kernel mount entry in a disconnected (ENOTCONN) state.
- * fusermount3 -uz detaches the mount even when the filesystem is busy.
- */
-async function releaseStaleFuseMount(mountPath: string): Promise<void> {
-  try {
-    await execFileAsync('fusermount3', ['-uz', mountPath]);
-    logger.debug({ msg: '[VIRTUAL DRIVE] stale fuse mount released', mountPath });
-  } catch {
-    // Not a FUSE mount point or already unmounted — proceed.
-  }
-}
-
 type Props = {
   oldPath: string;
   newPath: string;
@@ -49,5 +34,20 @@ export async function removePreviousRootFolder({ oldPath, newPath }: Props) {
     logger.debug({ msg: '[VIRTUAL DRIVE] previous root folder removed', oldPath: resolvedOldPath });
   } catch (error) {
     logger.error({ msg: '[VIRTUAL DRIVE] failed removing previous root folder', error, oldPath: resolvedOldPath });
+  }
+}
+
+/**
+ * Releases a stale FUSE mount at the given path using a lazy unmount.
+ * The daemon may have exited without cleanly unmounting (e.g. open file handles),
+ * leaving the kernel mount entry in a disconnected (ENOTCONN) state.
+ * fusermount3 -uz detaches the mount even when the filesystem is busy.
+ */
+async function releaseStaleFuseMount(mountPath: string): Promise<void> {
+  try {
+    await execFileAsync('fusermount3', ['-uz', mountPath]);
+    logger.debug({ msg: '[VIRTUAL DRIVE] stale fuse mount released', mountPath });
+  } catch {
+    // Not a FUSE mount point or already unmounted — proceed.
   }
 }

@@ -99,16 +99,10 @@ export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: 
   return join(logsPath, DEFAULT_LOG_FILE_NAME);
 }
 
-function getElectronLogModules(): ElectronLogModule[] {
-  return [coreElectronLog];
-}
-
 export function setupAppLogRouting({ logsPath }: Pops) {
-  for (const electronLog of getElectronLogModules()) {
-    electronLog.transports.file.resolvePathFn = (_, message) => {
-      return resolveAppLogFilePath({ logsPath, message });
-    };
+  coreElectronLog.transports.file.resolvePathFn = (_, message) => {
+    return resolveAppLogFilePath({ logsPath, message });
+  };
 
-    electronLog.transports.file.resolvePath = electronLog.transports.file.resolvePathFn;
-  }
+  coreElectronLog.transports.file.resolvePath = coreElectronLog.transports.file.resolvePathFn;
 }
