@@ -1,5 +1,5 @@
 import { dialog } from 'electron';
-import configStore from '../config';
+import configStore, { type AppStore } from '../config';
 import eventBus from '../event-bus';
 import { chooseSyncRootWithDialog, getRootVirtualDrive } from './service';
 
@@ -42,28 +42,28 @@ describe('service', () => {
   const eventBusEmitMock = vi.mocked(eventBus.emit);
 
   beforeEach(() => {
-    const state: Record<string, string> = {
-      virtualDriveRoot: '',
-      lastSavedListing: '',
-    };
+    const state = new Map<keyof AppStore, AppStore[keyof AppStore]>([
+      ['virtualDriveRoot', ''],
+      ['lastSavedListing', ''],
+    ]);
 
-    configGetMock.mockImplementation((key) => state[key]);
+    configGetMock.mockImplementation((key) => state.get(key) as AppStore[typeof key]);
     configSetMock.mockImplementation((key, value) => {
-      state[key] = value;
+      state.set(key, value);
     });
   });
 
   it('should fallback to default root folder when no saved path exists', () => {
-    const state: Record<string, string> = {
-      virtualDriveRoot: '',
-      lastSavedListing: '',
-    };
+    const state = new Map<keyof AppStore, AppStore[keyof AppStore]>([
+      ['virtualDriveRoot', ''],
+      ['lastSavedListing', ''],
+    ]);
 
     configGetMock.mockImplementation((key) => {
-      return state[key];
+      return state.get(key) as AppStore[typeof key];
     });
     configSetMock.mockImplementation((key, value) => {
-      state[key] = value;
+      state.set(key, value);
     });
 
     const rootPath = getRootVirtualDrive();
@@ -73,14 +73,14 @@ describe('service', () => {
   });
 
   it('should emit SYNC_ROOT_CHANGED with old and new paths when user picks a different folder', async () => {
-    const state: Record<string, string> = {
-      virtualDriveRoot: '/old/root/',
-      lastSavedListing: '',
-    };
+    const state = new Map<keyof AppStore, AppStore[keyof AppStore]>([
+      ['virtualDriveRoot', '/old/root/'],
+      ['lastSavedListing', ''],
+    ]);
 
-    configGetMock.mockImplementation((key) => state[key]);
+    configGetMock.mockImplementation((key) => state.get(key) as AppStore[typeof key]);
     configSetMock.mockImplementation((key, value) => {
-      state[key] = value;
+      state.set(key, value);
     });
 
     vi.mocked(dialog.showOpenDialog).mockResolvedValue({
