@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import coreElectronLog from 'electron-log';
+import { createRequire } from 'node:module';
 
 type Pops = {
   logsPath: string;
@@ -43,12 +43,16 @@ const ANTIVIRUS_MESSAGE_PATTERNS = [
 /**
  * Esteban Galvis Triana
  * v2.6.0
- * Keep using the exact electron-log instance that core logger uses.
- * Module resolution aliases map this bare import to the dependency bundled by
- * @internxt/drive-desktop-core, so this routing patch affects the same shared
- * logger instance configured in setupElectronLog().
+ * Resolve electron-log from @internxt/drive-desktop-core package context.
+ * This guarantees we patch the same logger instance used by setupElectronLog()
+ * and avoids depending on a root-level electron-log dependency.
  */
-const typedCoreElectronLog = coreElectronLog as unknown as ElectronLogModule;
+function getCoreElectronLog() {
+  const coreRequire = createRequire(require.resolve('@internxt/drive-desktop-core/package.json'));
+  return coreRequire('electron-log') as ElectronLogModule;
+}
+
+const typedCoreElectronLog = getCoreElectronLog();
 
 function isSerializedAntivirusLogEntry({ value }: { value: unknown }) {
   if (typeof value !== 'string') {
