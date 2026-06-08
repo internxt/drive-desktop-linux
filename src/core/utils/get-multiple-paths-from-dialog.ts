@@ -3,10 +3,19 @@ import type { OpenDialogOptions } from 'electron';
 import path from 'node:path';
 import { PathTypeChecker } from '../../apps/shared/fs/PathTypeChecker ';
 import type { PathInfo } from '../../context/shared/domain/system-path/PathInfo';
+import { createAbsolutePath } from '../../context/local/localFile/infrastructure/AbsolutePath';
 
 type Props = {
   allowFiles?: boolean;
 };
+
+function pathInfoMapper(filePath: string, isFolder: boolean): PathInfo {
+  return {
+    path: createAbsolutePath(filePath),
+    itemName: path.basename(filePath),
+    isDirectory: isFolder,
+  };
+}
 
 export async function getMultiplePathsFromDialog({ allowFiles = false }: Props = {}): Promise<PathInfo[] | null> {
   const properties: NonNullable<OpenDialogOptions['properties']> = [
@@ -23,13 +32,8 @@ export async function getMultiplePathsFromDialog({ allowFiles = false }: Props =
   const paths = await Promise.all(
     result.filePaths.map(async (filePath) => {
       const isFolder = await PathTypeChecker.isFolder(filePath);
-      const itemName = path.basename(filePath);
 
-      return {
-        path: filePath,
-        itemName,
-        isDirectory: isFolder,
-      };
+      return pathInfoMapper(filePath, isFolder);
     }),
   );
 
