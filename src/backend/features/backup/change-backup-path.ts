@@ -42,7 +42,7 @@ export async function changeBackupPath({ currentPath, newPath }: Props): Promise
 
     delete backupsList[currentPath];
 
-    const {data: migratedExistingBackup, error } = await migrateBackupEntryIfNeeded({
+    const { data: migratedExistingBackup, error } = await migrateBackupEntryIfNeeded({
       pathname: newPath,
       backup: existingBackup,
     });
