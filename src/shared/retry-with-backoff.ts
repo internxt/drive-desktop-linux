@@ -21,7 +21,6 @@ export async function retryWithBackoff<T>(
   onError: (error: DriveDesktopError) => number | null,
   signal: AbortSignal,
 ): Promise<Result<T, DriveDesktopError>> {
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (signal.aborted) {
       return { error: new DriveDesktopError('ABORTED') };

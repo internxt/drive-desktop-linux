@@ -1,4 +1,5 @@
 import { join } from 'node:path';
+import coreElectronLog from '@internxt/drive-desktop-core/node_modules/electron-log';
 
 type Pops = {
   logsPath: string;
@@ -49,8 +50,7 @@ const ANTIVIRUS_MESSAGE_PATTERNS = [
  * instance that bypasses webpack's module registry, so patching it has no
  * effect on the instance the logger actually uses.
  */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const coreElectronLog = require('@internxt/drive-desktop-core/node_modules/electron-log') as ElectronLogModule;
+const typedCoreElectronLog = coreElectronLog as unknown as ElectronLogModule;
 
 function isSerializedAntivirusLogEntry({ value }: { value: unknown }) {
   if (typeof value !== 'string') {
@@ -100,9 +100,9 @@ export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: 
 }
 
 export function setupAppLogRouting({ logsPath }: Pops) {
-  coreElectronLog.transports.file.resolvePathFn = (_, message) => {
+  typedCoreElectronLog.transports.file.resolvePathFn = (_, message) => {
     return resolveAppLogFilePath({ logsPath, message });
   };
 
-  coreElectronLog.transports.file.resolvePath = coreElectronLog.transports.file.resolvePathFn;
+  typedCoreElectronLog.transports.file.resolvePath = typedCoreElectronLog.transports.file.resolvePathFn;
 }

@@ -5,7 +5,7 @@ export class PathTypeChecker {
     try {
       const stats = await fs.stat(path);
       return stats.isDirectory();
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -14,7 +14,7 @@ export class PathTypeChecker {
     try {
       const stats = await fs.stat(path);
       return stats.isFile();
-    } catch (error) {
+    } catch {
       return false;
     }
   }

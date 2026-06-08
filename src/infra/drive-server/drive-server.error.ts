@@ -1,16 +1,15 @@
-const DriveServerErrorCauses = [
-  'NO_PERMISSION',
-  'BAD_REQUEST',
-  'UNAUTHORIZED',
-  'FORBIDDEN',
-  'NOT_FOUND',
-  'SERVER_ERROR',
-  'NETWORK_ERROR',
-  'TOO_MANY_REQUESTS',
-  'CONFLICT',
-  'UNKNOWN',
-] as const;
-export type DriveServerErrorCause = (typeof DriveServerErrorCauses)[number];
+export type DriveServerErrorCause =
+  | 'NO_PERMISSION'
+  | 'BAD_REQUEST'
+  | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
+  | 'NOT_FOUND'
+  | 'SERVER_ERROR'
+  | 'NETWORK_ERROR'
+  | 'TOO_MANY_REQUESTS'
+  | 'CONFLICT'
+  | 'UNKNOWN';
+
 export class DriveServerError extends Error {
   constructor(
     public readonly cause: DriveServerErrorCause,

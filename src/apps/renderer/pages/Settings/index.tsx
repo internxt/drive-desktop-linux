@@ -31,7 +31,6 @@ export default function Settings() {
       }),
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     resizeObserver.observe(rootRef.current!);
 
     return () => {

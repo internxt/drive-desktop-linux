@@ -38,7 +38,7 @@ export async function processDirent({
         customDirectoryFilter,
       });
     }
-  } catch (error) {
+  } catch {
     logger.warn({
       msg: `File or Directory with path ${fullPath} cannot be accessed, skipping`,
     });

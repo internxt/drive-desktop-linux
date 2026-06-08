@@ -20,7 +20,7 @@ export class TokenScheduler {
       const decoded = jwtDecode<JwtPayload>(token);
 
       return decoded.exp ? decoded.exp * 1000 : TokenScheduler.MAX_TIME;
-    } catch (err) {
+    } catch {
       logger.error({ msg: '[TOKEN] Token could be not decoded' });
 
       return TokenScheduler.MAX_TIME;

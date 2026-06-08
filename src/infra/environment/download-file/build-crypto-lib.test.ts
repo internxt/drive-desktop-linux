@@ -1,5 +1,5 @@
 import { Network } from '@internxt/sdk';
-import { Environment } from '@internxt/inxt-js';
+import { GenerateFileKey } from '@internxt/inxt-js/build/lib/utils/crypto';
 import { validateMnemonic } from 'bip39';
 import { buildCryptoLib } from './build-crypto-lib';
 
@@ -11,12 +11,8 @@ vi.mock('@internxt/sdk', () => ({
   },
 }));
 
-vi.mock('@internxt/inxt-js', () => ({
-  Environment: {
-    utils: {
-      generateFileKey: vi.fn(() => Buffer.from('file-key')),
-    },
-  },
+vi.mock('@internxt/inxt-js/build/lib/utils/crypto', () => ({
+  GenerateFileKey: vi.fn(() => Buffer.from('file-key')),
 }));
 
 vi.mock('bip39', () => ({
@@ -24,7 +20,7 @@ vi.mock('bip39', () => ({
 }));
 
 const validateMnemonicMock = vi.mocked(validateMnemonic);
-const generateFileKeyMock = vi.mocked(Environment.utils.generateFileKey);
+const generateFileKeyMock = vi.mocked(GenerateFileKey);
 
 describe('buildCryptoLib', () => {
   it('uses AES-256-CTR as the crypto algorithm', () => {
@@ -43,11 +39,11 @@ describe('buildCryptoLib', () => {
     expect(validateMnemonicMock).toHaveBeenCalledWith('seed phrase');
   });
 
-  it('delegates file-key generation to Environment utils', () => {
+  it('delegates file-key generation to Environment utils', async () => {
     const index = Buffer.from('index');
     const cryptoLib = buildCryptoLib();
 
-    const result = cryptoLib.generateFileKey('mnemonic', 'bucket-id', index);
+    const result = await cryptoLib.generateFileKey('mnemonic', 'bucket-id', index);
 
     expect(result).toStrictEqual(Buffer.from('file-key'));
     expect(generateFileKeyMock).toHaveBeenCalledWith('mnemonic', 'bucket-id', index);

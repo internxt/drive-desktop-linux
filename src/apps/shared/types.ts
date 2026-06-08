@@ -1,6 +1,4 @@
-const actionsInProgress = ['UPLOADING', 'DOWNLOADING'] as const;
-
-type ActionWithProgress = (typeof actionsInProgress)[number];
+type ActionWithProgress = 'UPLOADING' | 'DOWNLOADING';
 
 type DriveOperationWithProgress = {
   action: ActionWithProgress;
@@ -9,20 +7,17 @@ type DriveOperationWithProgress = {
   name: string;
 };
 
-const actions = [
-  'RENAMING',
-  'DELETING',
-  'UPLOADED',
-  'DOWNLOADED',
-  'RENAMED',
-  'DELETED',
-  'RENAMING_FOLDER',
-  'CREATING_FOLDER',
-  'FOLDER_RENAMED',
-  'FOLDER_CREATED',
-] as const;
-
-type Action = (typeof actions)[number];
+type Action =
+  | 'RENAMING'
+  | 'DELETING'
+  | 'UPLOADED'
+  | 'DOWNLOADED'
+  | 'RENAMED'
+  | 'DELETED'
+  | 'RENAMING_FOLDER'
+  | 'CREATING_FOLDER'
+  | 'FOLDER_RENAMED'
+  | 'FOLDER_CREATED';
 
 type DriveOperation = {
   action: Action;
