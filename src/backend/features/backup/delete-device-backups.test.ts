@@ -36,8 +36,8 @@ describe('delete-device-backups', () => {
       },
     ];
 
-    getBackupsFromDeviceMock.mockResolvedValue(backups);
-    deleteBackupMock.mockResolvedValue(undefined);
+    getBackupsFromDeviceMock.mockResolvedValue({ data: backups });
+    deleteBackupMock.mockResolvedValue({ data: undefined });
     getBackupFolderTreeSnapshotMock.mockResolvedValue({
       data: {
         tree: {
@@ -68,8 +68,8 @@ describe('delete-device-backups', () => {
       },
     ];
 
-    getBackupsFromDeviceMock.mockResolvedValue(backups);
-    deleteBackupMock.mockResolvedValue(undefined);
+    getBackupsFromDeviceMock.mockResolvedValue({ data: backups });
+    deleteBackupMock.mockResolvedValue({ data: undefined });
     getBackupFolderTreeSnapshotMock.mockResolvedValue({
       data: { tree: { children: [{ id: 10, uuid: 'folder-uuid-1' }] } },
     } as never);

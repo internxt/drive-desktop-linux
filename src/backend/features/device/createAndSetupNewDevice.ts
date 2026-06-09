@@ -9,17 +9,16 @@ export async function createAndSetupNewDevice() {
   const { error, data: deviceIdentifier } = getDeviceIdentifier();
   if (error) return { error };
 
-  const createNewDeviceEither = await createNewDevice(deviceIdentifier);
-  if (createNewDeviceEither.isLeft()) {
+  const { error: createDeviceError, data: device } = await createNewDevice(deviceIdentifier);
+  if (createDeviceError) {
     logger.error({
       tag: 'BACKUPS',
       msg: '[DEVICE] Error creating new device',
-      error: createNewDeviceEither.getLeft(),
+      error: createDeviceError,
     });
-    return { error: createNewDeviceEither.getLeft() };
+    return { error: createDeviceError };
   }
 
-  const device = createNewDeviceEither.getRight();
   const user = DependencyInjectionUserProvider.get();
   user.backupsBucket = device.bucket;
   DependencyInjectionUserProvider.updateUser(user);
