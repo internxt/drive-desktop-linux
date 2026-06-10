@@ -218,6 +218,7 @@ declare interface Window {
       getDiskSpace: () => Promise<number>;
     };
     getUpdateStatus(): Promise<{ version: string } | null>;
+    getNautilusAvailability(): Promise<boolean>;
     onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
   };
 }
