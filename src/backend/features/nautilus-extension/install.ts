@@ -1,10 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import {
-  copyNautilusExtensionFile,
-  deleteNautilusExtensionFile,
-  isInstalled,
-  reloadNautilus,
-} from './service';
+import { copyNautilusExtensionFile, deleteNautilusExtensionFile, isInstalled, reloadNautilus } from './service';
 import { isNautilusAvailable } from './is-nautilus-available';
 
 import configStore from '../../../apps/main/config';
