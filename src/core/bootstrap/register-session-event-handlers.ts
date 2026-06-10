@@ -14,6 +14,7 @@ import { registerBackupHandlers } from '../../backend/features/backup/register-b
 import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
 import { stopVirtualDriveOnce } from '../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
+import { uninstallNautilusExtension } from '../../apps/main/nautilus-extension/uninstall';
 
 function onWidgetIsReady() {
   registerBackupHandlers();
@@ -81,7 +82,7 @@ async function onUserLoggedOut() {
   await stopVirtualDriveOnce();
   await resetAppDataSourceOnLogout();
 
-  // await uninstallNautilusExtension();
+  await uninstallNautilusExtension();
 }
 
 export function registerSessionEventHandlers() {

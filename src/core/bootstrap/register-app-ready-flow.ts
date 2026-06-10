@@ -11,6 +11,7 @@ import { setupAppImageDeeplink } from '../../apps/main/auth/deeplink/setup-appim
 import { INTERNXT_VERSION } from '../utils/utils';
 import { checkForUpdates } from '../../apps/main/auto-update/check-for-updates';
 import { setPendingUpdateInfo } from './bootstrap-runtime-state';
+import { installNautilusExtension } from '../../apps/main/nautilus-extension/install';
 
 export function registerAppReadyFlow() {
   app
@@ -24,14 +25,7 @@ export function registerAppReadyFlow() {
        * This function manually registers the protocol handler for .AppImage installations.
        */
       await setupAppImageDeeplink();
-      /**
-       * TODO: Nautilus extension disabled temporarily
-       * v.2.5.4
-       * Esteban Galvis Triana
-       * The Nautilus extension will be temporarily disabled
-       * while the exact behavior of the context menu options is being determined.
-       */
-      // await installNautilusExtension();
+      await installNautilusExtension();
       setupThemeListener();
       setupTrayIcon();
 

@@ -51,4 +51,8 @@ const shell = {
   openExternal: vi.fn(),
 };
 
-export { app, ipcMain, ipcRenderer, dialog, BrowserWindow, safeStorage, nativeImage, shell };
+const clipboard = {
+  writeText: vi.fn(),
+};
+
+export { app, ipcMain, ipcRenderer, dialog, BrowserWindow, safeStorage, nativeImage, shell, clipboard };
