@@ -34,9 +34,7 @@ describe('generate-link', () => {
     getCredentialsMock.mockReturnValue({ newToken: 'token', mnemonic: 'valid mnemonic' });
     validateMnemonicMock.mockReturnValue(true);
     generateRandomStringUrlSafeMock.mockReturnValue('plain-code');
-    encryptMock
-      .mockReturnValueOnce('encrypted-mnemonic')
-      .mockReturnValueOnce('encrypted-code');
+    encryptMock.mockReturnValueOnce('encrypted-mnemonic').mockReturnValueOnce('encrypted-code');
     decryptMock.mockReturnValue('recovered-code');
     encodeV4UuidMock.mockReturnValue('encoded-sharing-id');
   });
