@@ -10,6 +10,6 @@ export function foldResult<T, E extends Error, R>(
   return isError(result) ? cases.error(result.error) : cases.data(result.data);
 }
 
-function isError<T, E extends Error>(result: Result<T, E>): result is { error: E; data?: undefined } {
+function isError<T, E extends Error>(result: Result<T, E>): result is { error: E } {
   return result.error !== undefined;
 }
