@@ -1,7 +1,7 @@
 import { aes, stringUtils } from '@internxt/lib';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { validateMnemonic } from 'bip39';
-import { clipboard } from 'electron';
+import { Notification, clipboard } from 'electron';
 import { getCredentials } from '../../../../apps/main/auth/get-credentials';
 import { createSharingResult } from './create-sharing-result';
 import { fetchRandomDomain } from './fetch-random-domain';
@@ -31,6 +31,11 @@ export async function generateLink({ path }: Props) {
   const shareLink = `${domain}/sh/${item.itemType}/${sharingId}/${recoveredCode}`;
 
   clipboard.writeText(shareLink);
+
+  new Notification({
+    title: 'Sharing Link Copied',
+    body: 'The sharing link has been copied successfully',
+  }).show();
 
   logger.debug({
     msg: 'link copied',

@@ -1,7 +1,7 @@
 import { aes, stringUtils } from '@internxt/lib';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { validateMnemonic } from 'bip39';
-import { clipboard } from 'electron';
+import { Notification, clipboard } from 'electron';
 import { DriveServerError } from '../../../../infra/drive-server/drive-server.error';
 import * as fetchFileMetaByPathModule from '../../../../infra/drive-server/services/files/services/fetch-file-meta-by-path';
 import * as fetchFolderMetaByPathModule from '../../../../infra/drive-server/services/folder/services/fetch-folder-meta-by-path';
@@ -23,6 +23,7 @@ describe('generate-link', () => {
   const createSharingMock = partialSpyOn(createSharingModule, 'createSharing');
   const loggerDebugMock = partialSpyOn(logger, 'debug');
   const clipboardWriteTextMock = partialSpyOn(clipboard, 'writeText');
+  const notificationShowMock = partialSpyOn(Notification, 'show');
 
   const validateMnemonicMock = vi.mocked(validateMnemonic);
   const encryptMock = partialSpyOn(aes, 'encrypt');
@@ -66,6 +67,7 @@ describe('generate-link', () => {
       },
     });
     call(clipboardWriteTextMock).toBe('https://share.internxt.test/sh/file/encoded-sharing-id/recovered-code');
+    calls(notificationShowMock).toHaveLength(1);
     call(loggerDebugMock).toMatchObject({
       msg: 'link copied',
       itemType: 'file',
@@ -101,5 +103,6 @@ describe('generate-link', () => {
     calls(fetchPublicSharingDomainsMock).toHaveLength(0);
     calls(createSharingMock).toHaveLength(0);
     calls(clipboardWriteTextMock).toHaveLength(0);
+    calls(notificationShowMock).toHaveLength(0);
   });
 });
