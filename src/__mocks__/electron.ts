@@ -55,4 +55,14 @@ const clipboard = {
   writeText: vi.fn(),
 };
 
-export { app, ipcMain, ipcRenderer, dialog, BrowserWindow, safeStorage, nativeImage, shell, clipboard };
+class Notification {
+  static show = vi.fn();
+
+  constructor(_options: { title: string; body: string }) {}
+
+  show() {
+    Notification.show();
+  }
+}
+
+export { app, ipcMain, ipcRenderer, dialog, BrowserWindow, safeStorage, nativeImage, shell, clipboard, Notification };

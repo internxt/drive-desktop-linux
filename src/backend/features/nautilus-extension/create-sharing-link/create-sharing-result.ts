@@ -1,6 +1,5 @@
 import { createSharing } from '../../../../infra/drive-server/services/sharings/services/create-sharing';
-import { CreateSharingPayload, ShareableItem, SharingResponse } from './types';
-import { toError } from './to-error';
+import { ShareableItem } from './types';
 
 type Props = {
   encryptedCode: string;
@@ -9,7 +8,7 @@ type Props = {
 };
 
 export async function createSharingResult({ encryptedCode, encryptionKey, item }: Props) {
-  const payload: CreateSharingPayload = {
+  const payload = {
     encryptedCode,
     encryptedPassword: null,
     encryptionAlgorithm: 'inxt-v2',
@@ -22,11 +21,8 @@ export async function createSharingResult({ encryptedCode, encryptionKey, item }
   const result = await createSharing({ body: payload });
 
   if (result.error) {
-    throw toError({
-      context: 'Error while creating sharing',
-      error: result.error,
-    });
+    throw new Error(`Error while creating sharing: ${result.error.message}`);
   }
 
-  return result.data as SharingResponse;
+  return result.data;
 }

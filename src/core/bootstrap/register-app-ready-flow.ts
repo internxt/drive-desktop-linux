@@ -11,7 +11,7 @@ import { setupAppImageDeeplink } from '../../apps/main/auth/deeplink/setup-appim
 import { INTERNXT_VERSION } from '../utils/utils';
 import { checkForUpdates } from '../../apps/main/auto-update/check-for-updates';
 import { setPendingUpdateInfo } from './bootstrap-runtime-state';
-import { installNautilusExtension } from '../../apps/main/nautilus-extension/install';
+import { installNautilusExtension } from '../../backend/features/nautilus-extension/install';
 
 export function registerAppReadyFlow() {
   app

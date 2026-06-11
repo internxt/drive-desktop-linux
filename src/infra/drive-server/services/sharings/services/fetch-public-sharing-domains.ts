@@ -6,7 +6,7 @@ type ShareDomainsResponse = {
   list: string[];
 };
 
-export async function fetchPublicSharingDomains(): Promise<Result<ShareDomainsResponse | string[], DriveServerError>> {
+export async function fetchPublicSharingDomains(): Promise<Result<ShareDomainsResponse, DriveServerError>> {
   const { data, error } = await driveServerClient.GET('/sharings/public/domains');
 
   if (error) return { error };

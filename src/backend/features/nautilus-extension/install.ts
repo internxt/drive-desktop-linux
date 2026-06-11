@@ -1,7 +1,7 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { copyNautilusExtensionFile, deleteNautilusExtensionFile, isInstalled, reloadNautilus } from './service';
 
-import configStore from '../config';
+import configStore from '../../../apps/main/config';
 import { LATEST_NAUTILUS_EXTENSION_VERSION } from './version';
 
 function isUpToDate(): boolean {

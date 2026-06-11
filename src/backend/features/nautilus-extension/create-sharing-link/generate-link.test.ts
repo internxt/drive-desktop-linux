@@ -7,7 +7,7 @@ import * as fetchFileMetaByPathModule from '../../../../infra/drive-server/servi
 import * as fetchFolderMetaByPathModule from '../../../../infra/drive-server/services/folder/services/fetch-folder-meta-by-path';
 import * as createSharingModule from '../../../../infra/drive-server/services/sharings/services/create-sharing';
 import * as fetchPublicSharingDomainsModule from '../../../../infra/drive-server/services/sharings/services/fetch-public-sharing-domains';
-import * as getCredentialsModule from '../../auth/get-credentials';
+import * as getCredentialsModule from '../../../../apps/main/auth/get-credentials';
 import { generateLink } from './generate-link';
 import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
 
@@ -76,7 +76,7 @@ describe('generate-link', () => {
   it('should fallback to folder metadata when file metadata is not found', async () => {
     fetchFileMetaByPathMock.mockResolvedValueOnce({ error: new DriveServerError('NOT_FOUND', 404) } as object);
     fetchFolderMetaByPathMock.mockResolvedValueOnce({ data: { uuid: 'folder-uuid' } } as object);
-    fetchPublicSharingDomainsMock.mockResolvedValueOnce({ data: ['https://share.internxt.test'] } as object);
+    fetchPublicSharingDomainsMock.mockResolvedValueOnce({ data: { list: ['https://share.internxt.test'] } } as object);
     createSharingMock.mockResolvedValueOnce({
       data: {
         encryptedCode: 'server-encrypted-code',

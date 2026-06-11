@@ -1,14 +1,12 @@
 import { Result } from '../../../../../context/shared/domain/Result';
-import { components } from '../../../../schemas';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
+import { CreateSharingPayload } from '../../../out/dto';
 
 type PublicSharingInfo = {
   id: string;
   encryptedCode: string;
 };
-
-type CreateSharingPayload = components['schemas']['CreateSharingDto'];
 
 type Props = {
   body: CreateSharingPayload;

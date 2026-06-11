@@ -2,7 +2,7 @@ import { aes, stringUtils } from '@internxt/lib';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { validateMnemonic } from 'bip39';
 import { clipboard } from 'electron';
-import { getCredentials } from '../../auth/get-credentials';
+import { getCredentials } from '../../../../apps/main/auth/get-credentials';
 import { createSharingResult } from './create-sharing-result';
 import { fetchRandomDomain } from './fetch-random-domain';
 import { resolveShareableItem } from './resolve-shareable-item';

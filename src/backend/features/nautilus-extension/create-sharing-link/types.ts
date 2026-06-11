@@ -1,5 +1,3 @@
-import { components } from '../../../../infra/schemas';
-
 export type ItemType = 'file' | 'folder';
 
 export type ShareableItem = {
@@ -15,5 +13,3 @@ export type SharingResponse = {
 export type ShareDomainsResponse = {
   list: string[];
 };
-
-export type CreateSharingPayload = components['schemas']['CreateSharingDto'];

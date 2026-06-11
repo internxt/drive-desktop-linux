@@ -1,7 +1,6 @@
 import { fetchFileMetaByPath } from '../../../../infra/drive-server/services/files/services/fetch-file-meta-by-path';
 import { fetchFolderMetaByPath } from '../../../../infra/drive-server/services/folder/services/fetch-folder-meta-by-path';
 import { ShareableItem } from './types';
-import { toError } from './to-error';
 
 type Props = {
   path: string;
@@ -41,10 +40,7 @@ async function tryGetFileMeta({ path }: { path: string }) {
       return null;
     }
 
-    throw toError({
-      context: 'Error while fetching file metadata by path',
-      error: result.error,
-    });
+    throw new Error(`Error while fetching file metadata by path: ${result.error.message}`);
   }
 
   return result.data;
@@ -58,10 +54,7 @@ async function tryGetFolderMeta({ path }: { path: string }) {
       return null;
     }
 
-    throw toError({
-      context: 'Error while fetching folder metadata by path',
-      error: result.error,
-    });
+    throw new Error(`Error while fetching folder metadata by path: ${result.error.message}`);
   }
 
   return result.data;
