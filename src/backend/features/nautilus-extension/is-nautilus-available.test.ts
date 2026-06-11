@@ -17,12 +17,12 @@ type ExecAsyncResult = {
   stderr: string;
 };
 
-type Pops = {
+type Props = {
   desktopEntry: string;
   hasNautilusBinary: boolean;
 };
 
-function mockExecWith({ desktopEntry, hasNautilusBinary }: Pops) {
+function mockExecWith({ desktopEntry, hasNautilusBinary }: Props) {
   execAsyncMock.mockImplementation(async (command: string) => {
     if (command === 'xdg-mime query default inode/directory') {
       return {
