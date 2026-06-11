@@ -93,7 +93,9 @@ describe('HydrationApi', () => {
 
       const middlewareCandidates = appUseMock.mock.calls.flatMap((args) => args as unknown[]);
       const debugMiddlewareCandidate = middlewareCandidates.find(
-        (arg) => typeof arg === 'function' && (arg as Function).length === 3,
+        (arg) =>
+          typeof arg === 'function' &&
+          (arg as (req: express.Request, res: express.Response, next: express.NextFunction) => void).length === 3,
       );
       const debugMiddleware = debugMiddlewareCandidate as express.RequestHandler | undefined;
 
