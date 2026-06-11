@@ -15,6 +15,7 @@ import { startBackupsIfAvailable } from '../../backend/features/backup/start-bac
 import { stopVirtualDriveOnce } from '../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
 import { uninstallNautilusExtension } from '../../backend/features/nautilus-extension/uninstall';
+import { showMarketingNotifications } from '../../backend/features/marketing';
 
 function onWidgetIsReady() {
   registerBackupHandlers();
@@ -56,6 +57,7 @@ async function onUserLoggedIn() {
     await resolveUserFileSizeLimit();
     await getUserAvailableProductsAndStore();
     await trySetupAntivirusIpcAndInitialize();
+    void showMarketingNotifications();
   } catch (error) {
     logger.error({
       msg: 'Error on main process while handling USER_LOGGED_IN event:',
