@@ -148,7 +148,8 @@ export function buildContentsController(container: Container) {
 
       const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
 
-      const link = await generateLink({ path });
+      const { error, data: link } = await generateLink({ path });
+      if (error) res.status(500).json({ error: 'Error generating sharing link' });
 
       res.status(202).json({ path, link });
     } catch (error) {
