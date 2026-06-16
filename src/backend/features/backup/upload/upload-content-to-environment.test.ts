@@ -58,6 +58,12 @@ describe('upload-content-to-environment', () => {
     });
   }
 
+  async function startUpload(size = SMALL_SIZE) {
+    const promise = callUpload(size);
+    await Promise.resolve();
+    return { promise };
+  }
+
   it('should resolve with contentsId on successful upload', async () => {
     const contentsId = 'abc123';
     uploadMock.mockResolvedValue(contentsId);
@@ -69,7 +75,10 @@ describe('upload-content-to-environment', () => {
   });
 
   it('should call upload with file size and abortSignal', async () => {
-    uploadMock.mockResolvedValue('id');
+    uploadMock.mockImplementation(async (_bucket: string, opts: UploadOptions) => {
+      capturedOpts = opts;
+      return 'id';
+    });
 
     await callUpload(SMALL_SIZE);
 
@@ -174,7 +183,7 @@ describe('upload-content-to-environment', () => {
         }),
     );
 
-    const promise = callUpload();
+    const { promise } = await startUpload();
 
     fakeStream.emit('error', Object.assign(new Error('permission denied'), { code: 'EACCES' }));
 
@@ -201,7 +210,7 @@ describe('upload-content-to-environment', () => {
         }),
     );
 
-    const promise = callUpload();
+    const { promise } = await startUpload();
     abortController.abort();
     await promise;
 
