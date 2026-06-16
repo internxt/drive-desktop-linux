@@ -52,7 +52,7 @@ describe('generate-link', () => {
 
     const result = await generateLink({ path: '/folder/file.txt' });
 
-    expect(result).toBe('https://share.internxt.test/sh/file/encoded-sharing-id/recovered-code');
+    expect(result).toStrictEqual({ data: 'https://share.internxt.test/sh/file/encoded-sharing-id/recovered-code' });
     call(fetchFileMetaByPathMock).toStrictEqual({ path: '/folder/file.txt' });
     call(fetchPublicSharingDomainsMock).toStrictEqual([]);
     call(createSharingMock).toStrictEqual({
@@ -88,7 +88,7 @@ describe('generate-link', () => {
 
     const result = await generateLink({ path: '/folder' });
 
-    expect(result).toBe('https://share.internxt.test/sh/folder/encoded-sharing-id/recovered-code');
+    expect(result).toStrictEqual({ data: 'https://share.internxt.test/sh/folder/encoded-sharing-id/recovered-code' });
     call(fetchFileMetaByPathMock).toStrictEqual({ path: '/folder' });
     call(fetchFolderMetaByPathMock).toStrictEqual({ path: '/folder' });
   });
@@ -96,7 +96,9 @@ describe('generate-link', () => {
   it('should fail before any network call when mnemonic is invalid', async () => {
     validateMnemonicMock.mockReturnValue(false);
 
-    await expect(generateLink({ path: '/folder/file.txt' })).rejects.toThrow('The user mnemonic is invalid');
+    await expect(generateLink({ path: '/folder/file.txt' })).resolves.toMatchObject({
+      error: new Error('The user mnemonic is invalid'),
+    });
 
     calls(fetchFileMetaByPathMock).toHaveLength(0);
     calls(fetchFolderMetaByPathMock).toHaveLength(0);

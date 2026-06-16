@@ -66,7 +66,7 @@ describe('contents', () => {
     makeStorageFileAvaliableOfflineRun.mockResolvedValue(undefined);
     makeFolderAvaliableOfflineRun.mockResolvedValue(undefined);
     storageFolderDeleterRun.mockResolvedValue(undefined);
-    generateLinkMock.mockResolvedValue('https://link.test');
+    generateLinkMock.mockResolvedValue({ data: 'https://link.test' });
   });
 
   it('should return generated link in copyLink', async () => {
@@ -90,6 +90,17 @@ describe('contents', () => {
     await controller.copyLink(req, res, next);
 
     call(next).toBe(error);
+  });
+
+  it('should return 500 when copyLink returns an error result', async () => {
+    generateLinkMock.mockResolvedValue({ error: new Error('copy failed') });
+
+    const controller = buildContentsController(createContainer());
+
+    await controller.copyLink(req, res, next);
+
+    call(res.status).toBe(500);
+    call(res.json).toStrictEqual({ error: 'Error generating sharing link' });
   });
 
   it('should resolve file availability in get', async () => {
