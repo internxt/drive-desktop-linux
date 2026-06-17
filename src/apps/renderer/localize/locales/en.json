@@ -155,6 +155,10 @@
           "dark": "Dark"
         }
       },
+      "virtual-drive-root": {
+        "label": "Internxt Folder",
+        "action": "Change"
+      },
       "app-info": {
         "open-logs": "Open logs",
         "more": "Learn more about Internxt"
@@ -429,5 +433,19 @@
     },
     "ctaUpgrade": "Upgrade plan",
     "plan": "{{planName}} -> up to {{planMaxFileSize}}"
+  },
+  "main": {
+    "tray": {
+      "menu": {
+        "open-app": "Internxt {{version}}",
+        "quit": "Quit"
+      },
+      "tooltip": {
+        "syncing": "Sync in process",
+        "idle": "Internxt {{version}}",
+        "alert": "There are some issues with your sync",
+        "loading": "Loading Internxt..."
+      }
+    }
   }
 }

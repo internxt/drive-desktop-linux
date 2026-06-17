@@ -12,8 +12,9 @@ import { trySetupAntivirusIpcAndInitialize } from '../../apps/main/background-pr
 import { getUserAvailableProductsAndStore } from '../../backend/features/payments/services/get-user-available-products-and-store';
 import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
 import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
-import { stopVirtualDrive } from '../../backend/features/virtual-drive/services/virtual-drive.service';
+import { stopVirtualDriveOnce } from '../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
+import { showMarketingNotifications } from '../../backend/features/marketing';
 
 function onWidgetIsReady() {
   registerBackupHandlers();
@@ -55,6 +56,7 @@ async function onUserLoggedIn() {
     await resolveUserFileSizeLimit();
     await getUserAvailableProductsAndStore();
     await trySetupAntivirusIpcAndInitialize();
+    void showMarketingNotifications();
   } catch (error) {
     logger.error({
       msg: 'Error on main process while handling USER_LOGGED_IN event:',
@@ -78,7 +80,7 @@ async function onUserLoggedOut() {
   if (widget) {
     widget.destroy();
   }
-  await stopVirtualDrive();
+  await stopVirtualDriveOnce();
   await resetAppDataSourceOnLogout();
 
   // await uninstallNautilusExtension();

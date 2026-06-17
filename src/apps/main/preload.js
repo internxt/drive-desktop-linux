@@ -12,6 +12,9 @@ const electronApi = {
   setConfigKey(key, value) {
     return ipcRenderer.send('set-config-key', { key, value });
   },
+  setPreferedLanguage(language) {
+    return ipcRenderer.send('set-prefered-language', language);
+  },
   listenToConfigKeyChange(key, fn) {
     const eventName = `${key}-updated`;
     const callback = (_, v) => fn(v);
@@ -276,7 +279,7 @@ const electronApi = {
     return () => ipcRenderer.removeListener(eventName, callbackWrapper);
   },
   openUrl: (url) => {
-    ipcRenderer.invoke('open-url', url);
+    return ipcRenderer.invoke('open-url', url);
   },
   getPreferredAppLanguage() {
     return ipcRenderer.invoke('APP:PREFERRED_LANGUAGE');
@@ -293,6 +296,12 @@ const electronApi = {
   onBackupFailed(callback) {
     ipcRenderer.on('backup-failed', (_, error) => callback(error));
     return () => ipcRenderer.removeListener('backup-failed', callback);
+  },
+  onMarketingNotifications(callback) {
+    const eventName = 'marketing-notifications';
+    const listener = (_, notifications) => callback(notifications);
+    ipcRenderer.on(eventName, listener);
+    return () => ipcRenderer.removeListener(eventName, listener);
   },
   antivirus: {
     /**
