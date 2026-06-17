@@ -30,7 +30,7 @@ export function createFolderWithFilesWritable(progress?: FlatFolderZipOpts['prog
       if (passthroughController) {
         try {
           passthroughController.close();
-        } catch (err) {
+        } catch {
           /* noop */
         }
         passthroughController = null;

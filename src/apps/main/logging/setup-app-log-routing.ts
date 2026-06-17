@@ -1,4 +1,5 @@
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
 
 type Pops = {
   logsPath: string;
@@ -42,15 +43,16 @@ const ANTIVIRUS_MESSAGE_PATTERNS = [
 /**
  * Esteban Galvis Triana
  * v2.6.0
- * Import the electron-log module that @internxt/drive-desktop-core
- * bundles (nested node_modules). When webpack processes this file, it resolves
- * this path to the same module instance used by setup-electron-log.js from the
- * core package. Using createRequire() at runtime would load a DIFFERENT native
- * instance that bypasses webpack's module registry, so patching it has no
- * effect on the instance the logger actually uses.
+ * Resolve electron-log from @internxt/drive-desktop-core package context.
+ * This guarantees we patch the same logger instance used by setupElectronLog()
+ * and avoids depending on a root-level electron-log dependency.
  */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const coreElectronLog = require('@internxt/drive-desktop-core/node_modules/electron-log') as ElectronLogModule;
+function getCoreElectronLog() {
+  const coreRequire = createRequire(require.resolve('@internxt/drive-desktop-core/package.json'));
+  return coreRequire('electron-log') as ElectronLogModule;
+}
+
+const typedCoreElectronLog = getCoreElectronLog();
 
 function isSerializedAntivirusLogEntry({ value }: { value: unknown }) {
   if (typeof value !== 'string') {
@@ -100,9 +102,9 @@ export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: 
 }
 
 export function setupAppLogRouting({ logsPath }: Pops) {
-  coreElectronLog.transports.file.resolvePathFn = (_, message) => {
+  typedCoreElectronLog.transports.file.resolvePathFn = (_, message) => {
     return resolveAppLogFilePath({ logsPath, message });
   };
 
-  coreElectronLog.transports.file.resolvePath = coreElectronLog.transports.file.resolvePathFn;
+  typedCoreElectronLog.transports.file.resolvePath = typedCoreElectronLog.transports.file.resolvePathFn;
 }

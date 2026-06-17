@@ -1,8 +1,11 @@
+/* global require, process */
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
 const { logger } = require('@internxt/drive-desktop-core/build/backend');
 
-contextBridge.exposeInMainWorld('electron', {
+const electronApi = {
   getConfigKey(key) {
     return ipcRenderer.invoke('get-config-key', key);
   },
@@ -424,4 +427,10 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.on(eventName, callbackWrapper);
     return () => ipcRenderer.removeListener(eventName, callbackWrapper);
   },
-});
+};
+
+if (process.contextIsolated) {
+  contextBridge.exposeInMainWorld('electron', electronApi);
+} else {
+  globalThis.electron = electronApi;
+}
