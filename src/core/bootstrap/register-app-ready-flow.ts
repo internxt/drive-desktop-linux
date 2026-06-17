@@ -12,6 +12,8 @@ import { INTERNXT_VERSION } from '../utils/utils';
 import { checkForUpdates } from '../../apps/main/auto-update/check-for-updates';
 import { setPendingUpdateInfo } from './bootstrap-runtime-state';
 import { installNautilusExtension } from '../../backend/features/nautilus-extension/install';
+import { setupMainI18n } from '../../apps/main/localize/i18n.service';
+import { getLanguage } from '../../apps/main/config/language';
 
 export function registerAppReadyFlow() {
   app
@@ -26,6 +28,7 @@ export function registerAppReadyFlow() {
        */
       await setupAppImageDeeplink();
       await installNautilusExtension();
+      await setupMainI18n({ language: getLanguage() });
       setupThemeListener();
       setupTrayIcon();
 
