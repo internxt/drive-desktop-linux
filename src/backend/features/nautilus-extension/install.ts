@@ -1,5 +1,6 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { copyNautilusExtensionFile, deleteNautilusExtensionFile, isInstalled, reloadNautilus } from './service';
+import { isNautilusAvailable } from './is-nautilus-available';
 
 import configStore from '../../../apps/main/config';
 import { LATEST_NAUTILUS_EXTENSION_VERSION } from './version';
@@ -26,6 +27,10 @@ async function install(): Promise<void> {
 
 export async function installNautilusExtension() {
   try {
+    const canInstall = await isNautilusAvailable();
+
+    if (!canInstall) return;
+
     const installed = await isInstalled();
     const hasLatestsVersion = isUpToDate();
 

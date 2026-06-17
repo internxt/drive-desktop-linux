@@ -1,11 +1,13 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import configStore from '../../../apps/main/config';
+import * as isNautilusAvailableModule from './is-nautilus-available';
 import * as serviceModule from './service';
 import { LATEST_NAUTILUS_EXTENSION_VERSION } from './version';
 import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
 import { installNautilusExtension } from './install';
 
 describe('install', () => {
+  const isNautilusAvailableMock = partialSpyOn(isNautilusAvailableModule, 'isNautilusAvailable');
   const isInstalledMock = partialSpyOn(serviceModule, 'isInstalled');
   const copyNautilusExtensionFileMock = partialSpyOn(serviceModule, 'copyNautilusExtensionFile');
   const deleteNautilusExtensionFileMock = partialSpyOn(serviceModule, 'deleteNautilusExtensionFile');
@@ -16,14 +18,30 @@ describe('install', () => {
   const loggerErrorMock = partialSpyOn(logger, 'error');
 
   beforeEach(() => {
-    vi.clearAllMocks();
     process.env.NODE_ENV = 'development';
 
+    isNautilusAvailableMock.mockResolvedValue(true);
     isInstalledMock.mockResolvedValue(false);
     copyNautilusExtensionFileMock.mockResolvedValue(undefined);
     deleteNautilusExtensionFileMock.mockResolvedValue(undefined);
     reloadNautilusMock.mockResolvedValue(undefined);
     configGetMock.mockReturnValue(0);
+  });
+
+  it('should skip installation when nautilus is unavailable', async () => {
+    // Given
+    isNautilusAvailableMock.mockResolvedValueOnce(false);
+
+    // When
+    await installNautilusExtension();
+
+    // Then
+    call(isNautilusAvailableMock).toStrictEqual([]);
+    calls(isInstalledMock).toHaveLength(0);
+    calls(copyNautilusExtensionFileMock).toHaveLength(0);
+    calls(deleteNautilusExtensionFileMock).toHaveLength(0);
+    calls(configSetMock).toHaveLength(0);
+    calls(reloadNautilusMock).toHaveLength(0);
   });
 
   it('should install and reload when extension is not installed', async () => {
