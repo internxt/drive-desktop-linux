@@ -136,7 +136,7 @@ export class FlatFolderZip {
   async close(): Promise<void> {
     if (this.abortController?.signal.aborted) return;
 
-    await this.zip.end();
+    this.zip.end();
 
     await this.finished;
   }
