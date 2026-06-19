@@ -159,6 +159,7 @@ export interface IElectronAPI {
   onMarketingNotifications(fn: (notifications: Array<UserNotification>) => void): () => void;
   getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
   onBackupProgress(func: (value: number) => void): () => void;
+  onBackupDownloadProgress(func: (value: { id: string; progress: number }) => void): () => void;
   startRemoteSync(): Promise<void>;
   getUpdateStatus(): Promise<{ version: string } | null>;
   getNautilusAvailability(): Promise<boolean>;

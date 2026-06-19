@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 
-type Pops = {
+type Props = {
   logsPath: string;
 };
 
@@ -87,7 +87,7 @@ function isAntivirusLogMessage({ message }: { message?: LogMessage }) {
   );
 }
 
-export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: LogMessage }) {
+export function resolveAppLogFilePath({ logsPath, message }: Props & { message?: LogMessage }) {
   if (message?.level === 'error' || message?.level === 'info') {
     return join(logsPath, IMPORTANT_LOG_FILE_NAME);
   }
@@ -99,7 +99,7 @@ export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: 
   return join(logsPath, DEFAULT_LOG_FILE_NAME);
 }
 
-export function setupAppLogRouting({ logsPath }: Pops) {
+export function setupAppLogRouting({ logsPath }: Props) {
   coreElectronLog.transports.file.resolvePathFn = (_, message) => {
     return resolveAppLogFilePath({ logsPath, message });
   };

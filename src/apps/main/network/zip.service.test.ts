@@ -1,5 +1,5 @@
 import { unzipSync } from 'fflate';
-import { WritableStream } from 'node:stream/web';
+import { ReadableStream, WritableStream } from 'node:stream/web';
 import { FlatFolderZip } from './zip.service';
 
 describe('zip.service', () => {

@@ -1,11 +1,11 @@
 import { resolveAppLogFilePath } from './setup-app-log-routing';
 
-type Pops = {
+type Props = {
   header: string;
   msg: string;
 };
 
-function createSerializedLogMessage({ header, msg }: Pops) {
+function createSerializedLogMessage({ header, msg }: Props) {
   return `{ header: '${header}', msg: '${msg}' }`;
 }
 
