@@ -1,15 +1,15 @@
 import { ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import eventBus from '../event-bus';
+import eventBus from '../../../apps/main/event-bus';
 import { setInitialSyncState } from './InitialSyncReady';
-import { remoteSyncManager, resyncRemoteSync, startRemoteSync } from './service';
+import { remoteSyncController, resyncRemoteSync, startRemoteSync } from './service';
 
 ipcMain.handle('START_REMOTE_SYNC', async () => {
   await startRemoteSync();
   eventBus.emit('REMOTE_CHANGES_SYNCHED');
 });
 
-ipcMain.handle('get-remote-sync-status', () => remoteSyncManager.getSyncStatus());
+ipcMain.handle('get-remote-sync-status', () => remoteSyncController.getSyncStatus());
 
 eventBus.on('RECEIVED_REMOTE_CHANGES', async () => {
   // Wait before checking for updates, could be possible
@@ -19,10 +19,10 @@ eventBus.on('RECEIVED_REMOTE_CHANGES', async () => {
 });
 
 eventBus.on('APP_DATA_SOURCE_INITIALIZED', async () => {
-  await remoteSyncManager.startRemoteSync().catch((error) => {
+  await startRemoteSync().catch((error) => {
     logger.error({
       tag: 'SYNC-ENGINE',
-      msg: 'Error starting remote sync manager',
+      msg: 'Error starting remote sync controller',
       error,
     });
   });
@@ -30,5 +30,5 @@ eventBus.on('APP_DATA_SOURCE_INITIALIZED', async () => {
 
 eventBus.on('USER_LOGGED_OUT', () => {
   setInitialSyncState('NOT_READY');
-  remoteSyncManager.resetRemoteSync();
+  remoteSyncController.resetRemoteSync();
 });

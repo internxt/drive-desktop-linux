@@ -59,6 +59,7 @@ func (serverMock *mockServer) setHandlers(handlers map[client.OperationPath]http
 	serverMock.server.Handler = router
 }
 
+
 func (serverMock *mockServer) close() {
 	_ = serverMock.server.Close()
 	_ = serverMock.socket.Close()
