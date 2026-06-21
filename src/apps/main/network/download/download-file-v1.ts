@@ -1,4 +1,4 @@
-import { createDecipheriv } from 'crypto';
+import { createDecipheriv } from 'node:crypto';
 import { ReadableStream } from 'node:stream/web';
 import { buildProgressStream } from './stream';
 import { IDownloadParams } from './download.types';

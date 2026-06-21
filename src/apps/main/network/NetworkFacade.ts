@@ -17,21 +17,52 @@ interface DownloadOptions {
 }
 
 export function convertToReadableStream(readStream: Readable): ReadableStream<Uint8Array> {
+  let isClosed = false;
+
   return new ReadableStream<Uint8Array>({
     start(controller) {
-      readStream.on('data', (chunk) => {
+      function handleData(chunk: Buffer) {
+        if (isClosed) {
+          return;
+        }
+
         controller.enqueue(new Uint8Array(chunk));
-      });
+      }
 
-      readStream.on('end', () => {
+      function handleEnd() {
+        if (isClosed) {
+          return;
+        }
+
+        isClosed = true;
         controller.close();
-      });
+      }
 
-      readStream.on('error', (err) => {
-        controller.error(err);
-      });
+      function handleError(error: unknown) {
+        if (isClosed) {
+          return;
+        }
+
+        isClosed = true;
+
+        try {
+          controller.error(error);
+        } catch {
+          // Ignore late stream errors after controller lifecycle has already completed.
+        }
+      }
+
+      function handleClose() {
+        isClosed = true;
+      }
+
+      readStream.on('data', handleData);
+      readStream.on('end', handleEnd);
+      readStream.on('error', handleError);
+      readStream.on('close', handleClose);
     },
     cancel() {
+      isClosed = true;
       readStream.destroy();
     },
   });

@@ -145,9 +145,11 @@ export async function downloadFolderAsZip(
       throw new Error('Download cancelled');
     }
 
-    return zip.close();
+    return await zip.close();
   } finally {
-    await outputFileHandle.close().catch(() => undefined);
+    if (!writeStream.writableEnded && !writeStream.destroyed) {
+      writeStream.destroy();
+    }
     await rm(tempFolderPath, { recursive: true, force: true });
   }
 }

@@ -1,4 +1,4 @@
-import type { Decipheriv } from 'crypto';
+import type { Decipheriv } from 'node:crypto';
 import { ReadableStream } from 'node:stream/web';
 
 type JoinPops = { streams: ReadableStream<Uint8Array>[] };

@@ -1,4 +1,4 @@
-import { Decipheriv } from 'crypto';
+import { Decipheriv } from 'node:crypto';
 import fetch from 'electron-fetch';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';

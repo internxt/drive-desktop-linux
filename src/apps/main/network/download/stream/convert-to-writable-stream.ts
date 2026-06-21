@@ -4,27 +4,55 @@ import { WritableStream } from 'node:stream/web';
 type Props = { writeStream: WriteStream };
 
 export function convertToWritableStream({ writeStream }: Props): WritableStream<Uint8Array> {
+  let isClosed = false;
+
   return new WritableStream<Uint8Array>({
     async write(chunk) {
-      const buffer = Buffer.from(chunk);
-      return new Promise<void>((resolve, reject) => {
-        writeStream.write(buffer, (err) => {
-          if (err) reject(err);
+      if (isClosed || writeStream.writableEnded || writeStream.destroyed) {
+        throw new Error('Write stream already closed');
+      }
 
-          resolve();
-        });
+      const buffer = Buffer.from(chunk);
+
+      return new Promise<void>((resolve, reject) => {
+        try {
+          writeStream.write(buffer, (err) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+
+            resolve();
+          });
+        } catch (error) {
+          reject(error);
+        }
       });
     },
     async close() {
-      return new Promise<void>((resolve, reject) => {
-        writeStream.end((err: Error) => {
-          if (err) reject(err);
+      if (isClosed || writeStream.writableEnded || writeStream.destroyed) {
+        isClosed = true;
+        return;
+      }
 
-          resolve();
-        });
+      return new Promise<void>((resolve, reject) => {
+        try {
+          writeStream.end((err: Error) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+
+            isClosed = true;
+            resolve();
+          });
+        } catch (error) {
+          reject(error);
+        }
       });
     },
     async abort(reason) {
+      isClosed = true;
       writeStream.destroy(reason);
     },
   });
