@@ -52,14 +52,10 @@ export function convertToReadableStream(readStream: Readable): ReadableStream<Ui
         }
       }
 
-      function handleClose() {
-        isClosed = true;
-      }
-
       readStream.on('data', handleData);
       readStream.on('end', handleEnd);
       readStream.on('error', handleError);
-      readStream.on('close', handleClose);
+      readStream.on('close', () => isClosed = true);
     },
     cancel() {
       isClosed = true;

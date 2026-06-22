@@ -1,10 +1,10 @@
 import { createDecipheriv } from 'node:crypto';
+import { GenerateFileKey } from '@internxt/inxt-js/build/lib/utils/crypto';
 import { ReadableStream } from 'node:stream/web';
 import { buildProgressStream } from './stream';
 import { IDownloadParams } from './download.types';
 import { getFileDownloadStream } from './get-file-download-stream';
 import { getRequiredFileMetadata } from './get-required-file-metadata';
-import { resolveDownloadKey } from './resolve-download-key';
 
 export async function downloadFileV1(params: IDownloadParams): Promise<ReadableStream<Uint8Array>> {
   const metadata = await getRequiredFileMetadata({
@@ -19,12 +19,7 @@ export async function downloadFileV1(params: IDownloadParams): Promise<ReadableS
 
   const index = Buffer.from(fileMeta.index, 'hex');
   const iv = index.subarray(0, 16);
-  const key = await resolveDownloadKey({
-    encryptionKey: params.encryptionKey,
-    mnemonic: params.mnemonic,
-    bucketId: params.bucketId,
-    index,
-  });
+  const key = params.encryptionKey || (await GenerateFileKey(params.mnemonic!, params.bucketId, index));
 
   const downloadStream = await getFileDownloadStream({
     downloadUrls,
