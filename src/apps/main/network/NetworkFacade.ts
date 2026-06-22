@@ -55,7 +55,7 @@ export function convertToReadableStream(readStream: Readable): ReadableStream<Ui
       readStream.on('data', handleData);
       readStream.on('end', handleEnd);
       readStream.on('error', handleError);
-      readStream.on('close', () => isClosed = true);
+      readStream.on('close', () => (isClosed = true));
     },
     cancel() {
       isClosed = true;
