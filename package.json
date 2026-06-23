@@ -234,7 +234,7 @@
     "form-data": "^4.0.0",
     "node-schedule": "^2.1.0",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.26",
+    "typeorm": "^0.3.29",
     "uuid": "^14.0.0"
   },
   "overrides": {
