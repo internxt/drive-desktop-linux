@@ -40,17 +40,6 @@ export async function readOrHydrate({
   filePath,
   range,
 }: Props): Promise<Result<Buffer, FuseError>> {
-  // v2.6.1
-  // Esteban Galvis Triana
-  // Zero-length reads on non-empty files are EOF probe reads issued by GIO/Nautilus
-  // (via splice). Passing length=0 into the block-download path generates an invalid
-  // HTTP Range header (bytes=pos-(pos-1)) which the storage server rejects, ultimately
-  // surfacing as EIO / "Error splicing file" in the file manager.
-  // Empty files (size=0) are excluded so finalization still runs for them.
-  if (range.length <= 0 && virtualFile.size > 0) {
-    return { data: EMPTY };
-  }
-
   logger.debug({
     msg: '[ReadCallback] read request:',
     file: virtualFile.nameWithExtension,
