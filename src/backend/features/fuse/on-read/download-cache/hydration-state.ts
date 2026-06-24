@@ -134,6 +134,7 @@ export function getHydratedBytes(state: FileHydrationState): number {
 }
 
 function blocksWithinRange({ position, length }: ReadRange): Array<number> {
+  if (length <= 0) return [];
   const first = blockIndexForByte(position);
   const last = blockIndexForByte(position + length - 1);
   const blocks: number[] = [];
