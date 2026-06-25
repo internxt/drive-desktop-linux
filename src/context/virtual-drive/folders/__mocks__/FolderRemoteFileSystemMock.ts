@@ -48,15 +48,6 @@ export class FolderRemoteFileSystemMock implements RemoteFileSystem {
     this.searchWithMock.mockResolvedValueOnce(folder);
   }
 
-  shouldFailPersistWith(plainName: string, parentFolderUuid: string, error: RemoteFileSystemErrors) {
-    this.persistMock(plainName, parentFolderUuid);
-    this.persistMock.mockResolvedValueOnce(left(error));
-  }
-
-  shouldFindFolder(folder?: Folder) {
-    this.searchWithMock.mockResolvedValueOnce(folder);
-  }
-
   shouldTrash(folder: Folder, error?: Error) {
     this.trashMock(folder.id);
 

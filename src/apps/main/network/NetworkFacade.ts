@@ -4,7 +4,11 @@ import { BinaryData } from '@internxt/sdk/dist/network/types';
 import { createDecipheriv, randomBytes } from 'crypto';
 import { validateMnemonic } from 'bip39';
 import { downloadFile } from '@internxt/sdk/dist/network/download';
-import { buildProgressStream, DownloadProgressCallback, getDecryptedStream } from './download';
+import {
+  buildProgressStream,
+  DownloadProgressCallback,
+  getDecryptedStream,
+} from '../../../backend/features/download/download-folder-as-zip';
 import fetch from 'electron-fetch';
 import { ReadableStream } from 'node:stream/web';
 import { Readable } from 'node:stream';
@@ -17,21 +21,48 @@ interface DownloadOptions {
 }
 
 export function convertToReadableStream(readStream: Readable): ReadableStream<Uint8Array> {
+  let isClosed = false;
+
   return new ReadableStream<Uint8Array>({
     start(controller) {
-      readStream.on('data', (chunk) => {
+      function handleData(chunk: Buffer) {
+        if (isClosed) {
+          return;
+        }
+
         controller.enqueue(new Uint8Array(chunk));
-      });
+      }
 
-      readStream.on('end', () => {
+      function handleEnd() {
+        if (isClosed) {
+          return;
+        }
+
+        isClosed = true;
         controller.close();
-      });
+      }
 
-      readStream.on('error', (err) => {
-        controller.error(err);
-      });
+      function handleError(error: unknown) {
+        if (isClosed) {
+          return;
+        }
+
+        isClosed = true;
+
+        try {
+          controller.error(error);
+        } catch {
+          // Ignore late stream errors after controller lifecycle has already completed.
+        }
+      }
+
+      readStream.on('data', handleData);
+      readStream.on('end', handleEnd);
+      readStream.on('error', handleError);
+      readStream.on('close', () => (isClosed = true));
     },
     cancel() {
+      isClosed = true;
       readStream.destroy();
     },
   });
@@ -92,13 +123,16 @@ export class NetworkFacade {
         const toUint8Array = (data: BinaryData | Buffer): Uint8Array =>
           Uint8Array.from(Buffer.isBuffer(data) ? data : Buffer.from(data.toString('hex'), 'hex'));
         const cipherKey = options?.key ?? key;
-        const decryptedStream = getDecryptedStream(
-          encryptedContentStreams,
-          createDecipheriv('aes-256-ctr', toUint8Array(cipherKey), toUint8Array(iv)),
-        );
+        const decryptedStream = getDecryptedStream({
+          encryptedContentSlices: encryptedContentStreams,
+          decipher: createDecipheriv('aes-256-ctr', toUint8Array(cipherKey), toUint8Array(iv)),
+        });
 
-        fileStream = buildProgressStream(decryptedStream, (readBytes) => {
-          options && options.downloadingCallback && options.downloadingCallback(fileSize, readBytes);
+        fileStream = buildProgressStream({
+          source: decryptedStream,
+          onRead: (readBytes: number) => {
+            options && options.downloadingCallback && options.downloadingCallback(fileSize, readBytes);
+          },
         });
       },
       (options?.token && { token: options.token }) || undefined,
