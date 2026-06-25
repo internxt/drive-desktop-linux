@@ -26,7 +26,7 @@ export class FlatFolderZip {
   private readonly finished: Promise<void>;
   private abortController?: AbortController;
   private processedSize = 0;
-  private readonly progress?: FlatFolderZipOpts['progress'];
+  private readonly progress: FlatFolderZipOpts['progress'];
 
   constructor(destination: globalThis.WritableStream<Uint8Array>, opts: FlatFolderZipOpts) {
     this.abortController = opts.abortController;
