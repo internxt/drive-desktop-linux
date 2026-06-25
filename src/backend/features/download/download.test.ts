@@ -42,7 +42,7 @@ vi.mock('node:fs/promises', () => {
   };
 });
 
-vi.mock('../zip.service', () => {
+vi.mock('../../../apps/main/network/zip.service', () => {
   class FlatFolderZip {
     constructor() {
       // noop
@@ -64,7 +64,7 @@ vi.mock('../zip.service', () => {
   return { FlatFolderZip };
 });
 
-vi.mock('../downloadv2', () => {
+vi.mock('./downloadv2', () => {
   return {
     default: downloadFileV2Mock,
   };
@@ -78,7 +78,7 @@ vi.mock('@internxt/lib', () => {
   };
 });
 
-vi.mock('../../../../backend/features/backup/get-backup-folder-tree-snapshot', () => {
+vi.mock('../backup/get-backup-folder-tree-snapshot', () => {
   return {
     getBackupFolderTreeSnapshot: getBackupFolderTreeSnapshotMock,
   };
