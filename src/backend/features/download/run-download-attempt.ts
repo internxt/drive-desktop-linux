@@ -9,7 +9,9 @@ type Props = {
   params: IDownloadParams;
 };
 
-export async function runDownloadAttempt({ params }: Props): Promise<Result<ReadableStream<Uint8Array>, DriveDesktopError>> {
+export async function runDownloadAttempt({
+  params,
+}: Props): Promise<Result<ReadableStream<Uint8Array>, DriveDesktopError>> {
   try {
     const data = await downloadFileWithVersionFallback(params);
     return { data };

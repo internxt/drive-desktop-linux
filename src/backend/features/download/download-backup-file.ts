@@ -18,7 +18,7 @@ export async function addBackupFileToZip({
 }: AddBackupFileToZipProps) {
   const tempFilePath = join(tempFolderPath, file.fileId);
 
-  const result =await downloadBackupFileToTemp({
+  const result = await downloadBackupFileToTemp({
     file,
     tempFolderPath,
     networkApiUrl,
@@ -32,7 +32,6 @@ export async function addBackupFileToZip({
   if (result.error && result.error.cause === 'ABORTED') {
     return { error: result.error };
   }
-
 
   try {
     await zip.addFile(file.zipPath, convertToReadableStream(createReadStream(tempFilePath)));

@@ -141,7 +141,6 @@ export async function downloadFolderAsZip(
             fileName: displayFilename,
           });
         }
-
       }
 
       pendingFolders.push(...folders.map((tree) => ({ path: folderPath, data: tree })));
