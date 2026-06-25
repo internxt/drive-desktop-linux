@@ -2,6 +2,7 @@ import { retryWithBackoff } from '../../../shared/retry-with-backoff';
 import { createTransientErrorHandler } from '../../common/rate-limit/transient-error-handler';
 import { DownloadBackupFileToTempProps } from './download.types';
 import { runDownloadBackupFileAttempt } from './run-download-backup-file-attempt';
+import { Result } from '../../../context/shared/domain/Result';
 
 export async function downloadBackupFileToTemp({
   file,
@@ -12,7 +13,7 @@ export async function downloadBackupFileToTemp({
   encryptionKey,
   abortController,
   onDownloadProgress,
-}: DownloadBackupFileToTempProps) {
+}: DownloadBackupFileToTempProps): Promise<Result<void, Error>> {
   const signal = abortController?.signal ?? new AbortController().signal;
   const state: { lastError?: unknown } = {};
   const onError = createTransientErrorHandler({
@@ -32,15 +33,5 @@ export async function downloadBackupFileToTemp({
     state,
   });
 
-  const result = await retryWithBackoff<void>(operation, onError, signal);
-
-  if (!result.error) {
-    return;
-  }
-
-  if (result.error.cause === 'ABORTED') {
-    throw new Error('Download aborted');
-  }
-
-  throw state.lastError instanceof Error ? state.lastError : result.error;
+  return await retryWithBackoff<void>(operation, onError, signal);
 }

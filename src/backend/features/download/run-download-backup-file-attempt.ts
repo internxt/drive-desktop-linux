@@ -20,34 +20,34 @@ export async function runDownloadBackupFileAttempt({
 }: DownloadBackupFileAttemptProps): Promise<Result<void, DriveDesktopError>> {
   const tempFilePath = join(tempFolderPath, file.fileId);
 
-  try {
-    await rm(tempFilePath, { force: true });
+  await rm(tempFilePath, { force: true });
 
-    const stream = await downloadFile({
-      networkApiUrl,
-      bucketId: file.bucketId,
-      fileId: file.fileId,
-      creds: {
-        pass: bridgePass,
-        user: bridgeUser,
-      },
-      mnemonic: encryptionKey,
-      options: {
-        notifyProgress: (_, readBytes) => onDownloadProgress(readBytes),
-        abortController,
-      },
-    });
-
-    await writeDownloadStreamToFile({
-      stream,
-      tempFilePath,
+  const result = await downloadFile({
+    networkApiUrl,
+    bucketId: file.bucketId,
+    fileId: file.fileId,
+    creds: {
+      pass: bridgePass,
+      user: bridgeUser,
+    },
+    mnemonic: encryptionKey,
+    options: {
+      notifyProgress: (_, readBytes) => onDownloadProgress(readBytes),
       abortController,
-    });
+    },
+  });
 
-    return { data: undefined };
-  } catch (error) {
-    state.lastError = error;
+  if (result.error) {
+    state.lastError = result.error;
     await rm(tempFilePath, { force: true });
-    return { error: mapDownloadError(error) };
+    return { error: mapDownloadError(result.error) };
   }
+
+  await writeDownloadStreamToFile({
+    stream: result.data,
+    tempFilePath,
+    abortController,
+  });
+
+  return { data: undefined };
 }

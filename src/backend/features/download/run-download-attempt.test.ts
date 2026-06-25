@@ -1,3 +1,5 @@
+import { ReadableStream } from 'node:stream/web';
+import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
 import * as downloadFileWithVersionFallbackModule from './download-file-with-version-fallback';
 import * as downloadErrorsModule from './download.errors';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
@@ -14,7 +16,6 @@ describe('run-download-attempt', () => {
     // Given
     const stream = new ReadableStream<Uint8Array>();
     downloadFileWithVersionFallbackMock.mockResolvedValue(stream);
-    const state: { lastError?: unknown } = {};
 
     // When
     const result = await runDownloadAttempt({
@@ -24,20 +25,18 @@ describe('run-download-attempt', () => {
         fileId: 'file-id',
         options: { notifyProgress: vi.fn() },
       },
-      state,
     });
 
     // Then
     expect(result).toStrictEqual({ data: stream });
   });
 
-  it('should map error and keep last error when fallback fails', async () => {
+  it('should map error when fallback fails', async () => {
     // Given
     const error = new Error('boom');
-    const mapped = { cause: 'UNKNOWN' };
+    const mapped = new DriveDesktopError('UNKNOWN', 'boom');
     downloadFileWithVersionFallbackMock.mockRejectedValue(error);
     mapDownloadErrorMock.mockReturnValue(mapped);
-    const state: { lastError?: unknown } = {};
 
     // When
     const result = await runDownloadAttempt({
@@ -47,11 +46,9 @@ describe('run-download-attempt', () => {
         fileId: 'file-id',
         options: { notifyProgress: vi.fn() },
       },
-      state,
     });
 
     // Then
-    expect(state.lastError).toBe(error);
     expect(result).toStrictEqual({ error: mapped });
   });
 });

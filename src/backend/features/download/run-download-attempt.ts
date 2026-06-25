@@ -7,18 +7,13 @@ import { IDownloadParams } from './download.types';
 
 type Props = {
   params: IDownloadParams;
-  state: { lastError?: unknown };
 };
 
-export async function runDownloadAttempt({
-  params,
-  state,
-}: Props): Promise<Result<ReadableStream<Uint8Array>, DriveDesktopError>> {
+export async function runDownloadAttempt({ params }: Props): Promise<Result<ReadableStream<Uint8Array>, DriveDesktopError>> {
   try {
     const data = await downloadFileWithVersionFallback(params);
     return { data };
   } catch (error) {
-    state.lastError = error;
     return { error: mapDownloadError(error) };
   }
 }

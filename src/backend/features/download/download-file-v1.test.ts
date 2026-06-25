@@ -19,7 +19,7 @@ describe('download-file-v1', () => {
     const encrypted = new ReadableStream<Uint8Array>();
     const progressed = new ReadableStream<Uint8Array>();
 
-    getRequiredFileMetadataMock.mockResolvedValue(metadata);
+    getRequiredFileMetadataMock.mockResolvedValue({ data: metadata });
     getFileDownloadStreamMock.mockResolvedValue(encrypted);
     buildProgressStreamMock.mockReturnValue(progressed);
 

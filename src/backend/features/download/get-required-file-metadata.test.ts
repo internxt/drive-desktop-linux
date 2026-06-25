@@ -21,7 +21,7 @@ describe('get-required-file-metadata', () => {
     });
 
     // Then
-    expect(result).toStrictEqual(metadata);
+    expect(result).toStrictEqual({ data: metadata });
   });
 
   it('should use token flow when token is provided', async () => {
@@ -38,17 +38,21 @@ describe('get-required-file-metadata', () => {
     });
 
     // Then
-    expect(result).toStrictEqual(metadata);
+    expect(result).toStrictEqual({ data: metadata });
   });
 
-  it('should throw when neither creds nor token are provided', async () => {
+  it('should return error when neither creds nor token are provided', async () => {
+    // When
+    const result = await getRequiredFileMetadata({
+      networkApiUrl: 'https://api',
+      bucketId: 'bucket-id',
+      fileId: 'file-id',
+    });
+
     // Then
-    await expect(
-      getRequiredFileMetadata({
-        networkApiUrl: 'https://api',
-        bucketId: 'bucket-id',
-        fileId: 'file-id',
-      }),
-    ).rejects.toThrow('Download error 1');
+    expect(result.error).toBeInstanceOf(Error);
+    expect(result).toStrictEqual({
+      error: new Error('Could not retrieve file metadata: Either creds or token must be provided'),
+    });
   });
 });

@@ -7,14 +7,17 @@ import { getFileDownloadStream } from './get-file-download-stream';
 import { getRequiredFileMetadata } from './get-required-file-metadata';
 
 export async function downloadFileV1(params: IDownloadParams): Promise<ReadableStream<Uint8Array>> {
-  const metadata = await getRequiredFileMetadata({
+  const { data, error } = await getRequiredFileMetadata({
     networkApiUrl: params.networkApiUrl,
     bucketId: params.bucketId,
     fileId: params.fileId,
     creds: params.creds,
     token: params.token,
   });
-  const { mirrors, fileMeta } = metadata;
+
+  if (error) throw error;
+
+  const { mirrors, fileMeta } = data;
   const downloadUrls: string[] = mirrors.map((mirror) => mirror.url);
 
   const index = Buffer.from(fileMeta.index, 'hex');
@@ -30,7 +33,7 @@ export async function downloadFileV1(params: IDownloadParams): Promise<ReadableS
   return buildProgressStream({
     source: downloadStream,
     onRead: (readBytes) => {
-      params.options?.notifyProgress(metadata.fileMeta.size, readBytes);
+      params.options?.notifyProgress(fileMeta.size, readBytes);
     },
   });
 }

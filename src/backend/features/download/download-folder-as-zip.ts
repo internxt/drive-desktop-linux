@@ -113,29 +113,35 @@ export async function downloadFolderAsZip(
           fileId: file.fileId ?? '',
         };
 
-        try {
-          await addBackupFileToZip({
-            file: backupFile,
-            zip,
-            tempFolderPath,
-            networkApiUrl,
-            bridgeUser,
-            bridgePass,
-            encryptionKey,
-            abortController: opts.abortController,
-            onDownloadProgress: (readBytes) => {
-              inFlightDownloadedBytesByFileId.set(backupFile.fileId, readBytes);
-              emitProgress();
-            },
-          });
+        const result = await addBackupFileToZip({
+          file: backupFile,
+          zip,
+          tempFolderPath,
+          networkApiUrl,
+          bridgeUser,
+          bridgePass,
+          encryptionKey,
+          abortController: opts.abortController,
+          onDownloadProgress: (readBytes) => {
+            inFlightDownloadedBytesByFileId.set(backupFile.fileId, readBytes);
+            emitProgress();
+          },
+        });
 
-          inFlightDownloadedBytesByFileId.delete(backupFile.fileId);
-          emitProgress();
-        } catch (error) {
-          inFlightDownloadedBytesByFileId.delete(backupFile.fileId);
-          emitProgress();
-          throw error;
+        inFlightDownloadedBytesByFileId.delete(backupFile.fileId);
+        emitProgress();
+
+        if (result.error) {
+          throw logger.error({
+            tag: 'BACKUPS',
+            msg: 'Error downloading backup file to zip',
+            error: result.error,
+            fileId: backupFile.fileId,
+            bucketId: backupFile.bucketId,
+            fileName: displayFilename,
+          });
         }
+
       }
 
       pendingFolders.push(...folders.map((tree) => ({ path: folderPath, data: tree })));

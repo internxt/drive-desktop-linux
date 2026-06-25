@@ -1,6 +1,7 @@
 import { IDownloadParams, MetadataRequiredForDownload } from './download.types';
 import { getRequiredFileMetadataWithAuth } from './get-required-file-metadata-with-auth';
 import { getRequiredFileMetadataWithToken } from './get-required-file-metadata-with-token';
+import { Result } from '../../../context/shared/domain/Result';
 
 type Props = Pick<IDownloadParams, 'networkApiUrl' | 'bucketId' | 'fileId' | 'creds' | 'token'>;
 
@@ -10,14 +11,16 @@ export async function getRequiredFileMetadata({
   fileId,
   creds,
   token,
-}: Props): Promise<MetadataRequiredForDownload> {
+}: Props): Promise<Result<MetadataRequiredForDownload, Error>> {
   if (creds) {
-    return getRequiredFileMetadataWithAuth({ networkApiUrl, bucketId, fileId, creds });
+    const result = await getRequiredFileMetadataWithAuth({ networkApiUrl, bucketId, fileId, creds });
+    return { data: result };
   }
 
   if (token) {
-    return getRequiredFileMetadataWithToken({ networkApiUrl, bucketId, fileId, token });
+    const result = await getRequiredFileMetadataWithToken({ networkApiUrl, bucketId, fileId, token });
+    return { data: result };
   }
 
-  throw new Error('Download error 1');
+  return { error: new Error('Could not retrieve file metadata: Either creds or token must be provided') };
 }

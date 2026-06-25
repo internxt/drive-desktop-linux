@@ -1,6 +1,7 @@
 import * as transientErrorHandlerModule from '../../common/rate-limit/transient-error-handler';
 import * as retryWithBackoffModule from '../../../shared/retry-with-backoff';
 import * as runDownloadAttemptModule from './run-download-attempt';
+import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { downloadFile } from './download-file';
 
@@ -45,18 +46,11 @@ describe('download-file', () => {
     ).rejects.toThrow('Download aborted');
   });
 
-  it('should throw lastError when available', async () => {
+  it('should throw retry error when download fails', async () => {
     // Given
-    const error = new Error('boom');
+    const error = new DriveDesktopError('UNKNOWN', 'boom');
     createTransientErrorHandlerMock.mockReturnValue(vi.fn());
-    retryWithBackoffMock.mockImplementation(async (operation: () => Promise<unknown>) => {
-      await operation();
-      return { error: { cause: 'UNKNOWN' } };
-    });
-    runDownloadAttemptMock.mockImplementation(async ({ state }: { state: { lastError?: unknown } }) => {
-      state.lastError = error;
-      return { error: { cause: 'UNKNOWN' } };
-    });
+    retryWithBackoffMock.mockResolvedValue({ error });
 
     // Then
     await expect(
@@ -66,6 +60,6 @@ describe('download-file', () => {
         fileId: 'file-id',
         options: { notifyProgress: vi.fn() },
       }),
-    ).rejects.toThrow('boom');
+    ).rejects.toThrow(error);
   });
 });
