@@ -25,41 +25,43 @@ describe('download-file', () => {
     });
 
     // Then
-    expect(result).toBe(stream);
+    expect(result).toStrictEqual({ data: stream });
     expect(retryWithBackoffMock).toHaveBeenCalledTimes(1);
     expect(runDownloadAttemptMock).toHaveBeenCalledTimes(0);
   });
 
-  it('should throw aborted error when retry returns aborted cause', async () => {
+  it('should return aborted error when retry returns aborted cause', async () => {
     // Given
     createTransientErrorHandlerMock.mockReturnValue(vi.fn());
     retryWithBackoffMock.mockResolvedValue({ error: { cause: 'ABORTED' } });
 
+    // When
+    const result = await downloadFile({
+      networkApiUrl: 'https://api',
+      bucketId: 'bucket-id',
+      fileId: 'file-id',
+      options: { notifyProgress: vi.fn() },
+    });
+
     // Then
-    await expect(
-      downloadFile({
-        networkApiUrl: 'https://api',
-        bucketId: 'bucket-id',
-        fileId: 'file-id',
-        options: { notifyProgress: vi.fn() },
-      }),
-    ).rejects.toThrow('Download aborted');
+    expect(result).toStrictEqual({ error: { cause: 'ABORTED' } });
   });
 
-  it('should throw retry error when download fails', async () => {
+  it('should return retry error when download fails', async () => {
     // Given
     const error = new DriveDesktopError('UNKNOWN', 'boom');
     createTransientErrorHandlerMock.mockReturnValue(vi.fn());
     retryWithBackoffMock.mockResolvedValue({ error });
 
+    // When
+    const result = await downloadFile({
+      networkApiUrl: 'https://api',
+      bucketId: 'bucket-id',
+      fileId: 'file-id',
+      options: { notifyProgress: vi.fn() },
+    });
+
     // Then
-    await expect(
-      downloadFile({
-        networkApiUrl: 'https://api',
-        bucketId: 'bucket-id',
-        fileId: 'file-id',
-        options: { notifyProgress: vi.fn() },
-      }),
-    ).rejects.toThrow(error);
+    expect(result).toStrictEqual({ error });
   });
 });
