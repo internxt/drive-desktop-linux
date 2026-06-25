@@ -1,8 +1,8 @@
 import { Network } from '@internxt/sdk/dist/network';
-import { sha256 } from './requests';
-import { NetworkFacade } from './NetworkFacade';
+import { sha256 } from '../../../apps/main/network/requests';
+import { NetworkFacade } from '../../../apps/main/network/NetworkFacade';
 import { ReadableStream } from 'node:stream/web';
-import { appInfo } from '../app-info/app-info';
+import { appInfo } from '../../../apps/main/app-info/app-info';
 
 type DownloadProgressCallback = (totalBytes: number, downloadedBytes: number) => void;
 type FileStream = ReadableStream<Uint8Array>;

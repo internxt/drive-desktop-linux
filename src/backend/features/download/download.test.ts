@@ -1,6 +1,6 @@
 import type { WriteStream } from 'node:fs';
 import { Readable } from 'node:stream';
-import { call } from '../../../../../tests/vitest/utils.helper';
+import { call } from '../../../../tests/vitest/utils.helper';
 
 const {
   addFileMock,

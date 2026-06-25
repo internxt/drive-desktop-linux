@@ -1,6 +1,6 @@
 import { ReadableStream } from 'node:stream/web';
-import { retryWithBackoff } from '../../../../shared/retry-with-backoff';
-import { createTransientErrorHandler } from '../../../../backend/common/rate-limit/transient-error-handler';
+import { retryWithBackoff } from '../../../shared/retry-with-backoff';
+import { createTransientErrorHandler } from '../../common/rate-limit/transient-error-handler';
 import { IDownloadParams } from './download.types';
 import { runDownloadAttempt } from './run-download-attempt';
 

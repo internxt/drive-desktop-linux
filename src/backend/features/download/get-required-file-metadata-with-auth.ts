@@ -1,4 +1,4 @@
-import { FileInfo, getFileInfoWithAuth, getMirrors, Mirror, NetworkCredentials } from '../requests';
+import { FileInfo, getFileInfoWithAuth, getMirrors, Mirror, NetworkCredentials } from '../../../apps/main/network/requests';
 import { MetadataRequiredForDownload } from './download.types';
 
 type Props = {

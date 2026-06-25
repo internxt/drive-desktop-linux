@@ -1,6 +1,6 @@
 import * as fetchFolderModule from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import * as getCredentialsModule from '../../../apps/main/auth/get-credentials';
-import * as downloadModule from '../../../apps/main/network/download/download-folder-as-zip';
+import * as downloadModule from '../download/download-folder-as-zip';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { downloadDeviceBackupZip } from './download-device-backup-zip';
 import { User } from '../../../apps/main/types';

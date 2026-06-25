@@ -1,7 +1,7 @@
 import { createReadStream } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { convertToReadableStream } from '../NetworkFacade';
+import { convertToReadableStream } from '../../../apps/main/network/NetworkFacade';
 import { downloadBackupFileToTemp } from './download-backup-file-to-temp';
 import { AddBackupFileToZipProps } from './download.types';
 

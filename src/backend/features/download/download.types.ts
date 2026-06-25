@@ -1,5 +1,5 @@
-import { FlatFolderZip } from '../zip.service';
-import { FileInfo, Mirror, NetworkCredentials } from '../requests';
+import { FlatFolderZip } from '../../../apps/main/network/zip.service';
+import { FileInfo, Mirror, NetworkCredentials } from '../../../apps/main/network/requests';
 
 export interface MetadataRequiredForDownload {
   mirrors: Mirror[];

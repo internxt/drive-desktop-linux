@@ -1,7 +1,7 @@
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
-import { Result } from '../../../../context/shared/domain/Result';
+import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
+import { Result } from '../../../context/shared/domain/Result';
 import { downloadFile } from './download-file';
 import { mapDownloadError } from './download.errors';
 import { writeDownloadStreamToFile } from './stream';

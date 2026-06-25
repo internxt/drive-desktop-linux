@@ -1,5 +1,5 @@
-import { retryWithBackoff } from '../../../../shared/retry-with-backoff';
-import { createTransientErrorHandler } from '../../../../backend/common/rate-limit/transient-error-handler';
+import { retryWithBackoff } from '../../../shared/retry-with-backoff';
+import { createTransientErrorHandler } from '../../common/rate-limit/transient-error-handler';
 import { DownloadBackupFileToTempProps } from './download.types';
 import { runDownloadBackupFileAttempt } from './run-download-backup-file-attempt';
 

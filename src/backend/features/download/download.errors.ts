@@ -1,6 +1,6 @@
 import type { AxiosError } from 'axios';
-import { parseRetryAfterMs } from '../../../../backend/common/rate-limit/transient-error-handler';
-import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
+import { parseRetryAfterMs } from '../../common/rate-limit/transient-error-handler';
+import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
 
 type AxiosLikeError = AxiosError & { status?: number; code?: string };
 

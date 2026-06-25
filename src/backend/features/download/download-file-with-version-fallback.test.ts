@@ -1,7 +1,7 @@
 import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
 import { ReadableStream } from 'node:stream/web';
 import * as downloadFileV1Module from './download-file-v1';
-import * as downloadFileV2Module from '../downloadv2';
+import * as downloadFileV2Module from './downloadv2';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { downloadFileWithVersionFallback } from './download-file-with-version-fallback';
 

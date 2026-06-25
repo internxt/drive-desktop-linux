@@ -1,11 +1,11 @@
 import * as fsModule from 'node:fs';
 import * as fsPromisesModule from 'node:fs/promises';
-import * as transientErrorHandlerModule from '../../../../backend/common/rate-limit/transient-error-handler';
-import * as retryWithBackoffModule from '../../../../shared/retry-with-backoff';
-import * as networkFacadeModule from '../NetworkFacade';
+import * as transientErrorHandlerModule from '../../common/rate-limit/transient-error-handler';
+import * as retryWithBackoffModule from '../../../shared/retry-with-backoff';
+import * as networkFacadeModule from '../../../apps/main/network/NetworkFacade';
 import * as downloadFileModule from './download-file';
 import * as streamModule from './stream';
-import type { FlatFolderZip } from '../zip.service';
+import type { FlatFolderZip } from '../../../apps/main/network/zip.service';
 import { ReadableStream } from 'node:stream/web';
 import { mockDeep } from 'vitest-mock-extended';
 import { deepMocked, partialSpyOn } from 'tests/vitest/utils.helper';

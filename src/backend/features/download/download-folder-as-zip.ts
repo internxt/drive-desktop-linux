@@ -1,10 +1,10 @@
-import { FlatFolderZip } from '../zip.service';
+import { FlatFolderZip } from '../../../apps/main/network/zip.service';
 import { items } from '@internxt/lib';
 import { PathLike } from 'node:fs';
 import { mkdtemp, open, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { getBackupFolderTreeSnapshot } from '../../../../backend/features/backup/get-backup-folder-tree-snapshot';
+import { getBackupFolderTreeSnapshot } from '../backup/get-backup-folder-tree-snapshot';
 import { FolderTree } from '@internxt/sdk/dist/drive/storage/types';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { convertToWritableStream, createEmptyReadableStream, isEmptyBackupFileWithoutFileId } from './stream';

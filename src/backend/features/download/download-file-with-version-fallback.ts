@@ -1,5 +1,5 @@
 import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
-import downloadFileV2 from '../downloadv2';
+import downloadFileV2 from './downloadv2';
 import { IDownloadParams } from './download.types';
 import { downloadFileV1 } from './download-file-v1';
 

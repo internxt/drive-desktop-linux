@@ -2,7 +2,7 @@ import { Decipheriv } from 'node:crypto';
 import fetch from 'electron-fetch';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
-import { convertToReadableStream } from '../NetworkFacade';
+import { convertToReadableStream } from '../../../apps/main/network/NetworkFacade';
 import { getDecryptedStream } from './stream';
 
 type Props = {

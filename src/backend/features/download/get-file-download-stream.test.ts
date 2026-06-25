@@ -1,5 +1,5 @@
 import fetch from 'electron-fetch';
-import * as networkFacadeModule from '../NetworkFacade';
+import * as networkFacadeModule from '../../../apps/main/network/NetworkFacade';
 import * as streamModule from './stream';
 import { ReadableStream } from 'node:stream/web';
 import { deepMocked, partialSpyOn } from 'tests/vitest/utils.helper';

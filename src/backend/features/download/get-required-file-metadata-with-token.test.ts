@@ -1,4 +1,4 @@
-import * as requestsModule from '../requests';
+import * as requestsModule from '../../../apps/main/network/requests';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { getRequiredFileMetadataWithToken } from './get-required-file-metadata-with-token';
 

@@ -1,5 +1,5 @@
-import * as transientErrorHandlerModule from '../../../../backend/common/rate-limit/transient-error-handler';
-import * as retryWithBackoffModule from '../../../../shared/retry-with-backoff';
+import * as transientErrorHandlerModule from '../../common/rate-limit/transient-error-handler';
+import * as retryWithBackoffModule from '../../../shared/retry-with-backoff';
 import * as runDownloadAttemptModule from './run-download-attempt';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { downloadFile } from './download-file';

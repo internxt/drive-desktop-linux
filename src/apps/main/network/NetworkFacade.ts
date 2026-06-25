@@ -4,7 +4,7 @@ import { BinaryData } from '@internxt/sdk/dist/network/types';
 import { createDecipheriv, randomBytes } from 'crypto';
 import { validateMnemonic } from 'bip39';
 import { downloadFile } from '@internxt/sdk/dist/network/download';
-import { buildProgressStream, DownloadProgressCallback, getDecryptedStream } from './download/download-folder-as-zip';
+import { buildProgressStream, DownloadProgressCallback, getDecryptedStream } from '../../../backend/features/download/download-folder-as-zip';
 import fetch from 'electron-fetch';
 import { ReadableStream } from 'node:stream/web';
 import { Readable } from 'node:stream';

@@ -1,6 +1,6 @@
 import { ReadableStream } from 'node:stream/web';
-import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
-import { Result } from '../../../../context/shared/domain/Result';
+import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
+import { Result } from '../../../context/shared/domain/Result';
 import { mapDownloadError } from './download.errors';
 import { downloadFileWithVersionFallback } from './download-file-with-version-fallback';
 import { IDownloadParams } from './download.types';
