@@ -9,8 +9,8 @@ export async function readController(req: Request, res: Response, container: Con
   const { path: rawPath, length, offset } = req.body;
   const processName = typeof req.body.processName === 'string' ? req.body.processName : '';
 
-  if (rawPath === undefined || length === undefined || offset === undefined) {
-    logger.error({ msg: '[FUSE DAEMON] Read: missing required fields', body: req.body });
+  if (!isValidReadPayload(rawPath, length, offset)) {
+    logger.error({ msg: '[FUSE DAEMON] Read: invalid payload', body: req.body });
     res.set('X-Errno', String(FuseCodes.EINVAL));
     res.send(Buffer.alloc(0));
     return;
@@ -33,4 +33,25 @@ export async function readController(req: Request, res: Response, container: Con
   res.set('X-Errno', '0');
   res.set('Content-Type', 'application/octet-stream');
   res.send(result.data);
+}
+
+function isValidReadPayload(path: unknown, length: unknown, offset: unknown): boolean {
+  if (typeof path !== 'string' || path.length === 0) return false;
+  if (!isValidReadLength(length)) return false;
+  if (!isValidReadOffset(offset)) return false;
+  return true;
+}
+
+function isValidReadLength(length: unknown): length is number {
+  if (typeof length !== 'number') return false;
+  if (!Number.isInteger(length)) return false;
+  if (length < 0) return false;
+  return true;
+}
+
+function isValidReadOffset(offset: unknown): offset is number {
+  if (typeof offset !== 'number') return false;
+  if (!Number.isInteger(offset)) return false;
+  if (offset < 0) return false;
+  return true;
 }

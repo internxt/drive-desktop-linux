@@ -1,4 +1,4 @@
-import { delay } from './delay';
+import { delay } from '../../../../../shared/async/delay';
 import { DelayState } from './rate-limiter.types';
 
 export async function waitForDelay(delayState: DelayState, ms: number): Promise<void> {

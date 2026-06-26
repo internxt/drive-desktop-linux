@@ -52,6 +52,26 @@ describe('readController', () => {
     expect(readMock).not.toHaveBeenCalled();
   });
 
+  it('should send EINVAL and empty buffer when length is not a number', async () => {
+    req.body = { path: '/file.mp4', length: '10', offset: 0, processName: 'vlc' };
+
+    await readController(req, res, container);
+
+    expect(res.set).toHaveBeenCalledWith('X-Errno', String(FuseCodes.EINVAL));
+    expect(res.send).toHaveBeenCalledWith(Buffer.alloc(0));
+    expect(readMock).not.toHaveBeenCalled();
+  });
+
+  it('should send EINVAL and empty buffer when offset is negative', async () => {
+    req.body = { path: '/file.mp4', length: 10, offset: -1, processName: 'vlc' };
+
+    await readController(req, res, container);
+
+    expect(res.set).toHaveBeenCalledWith('X-Errno', String(FuseCodes.EINVAL));
+    expect(res.send).toHaveBeenCalledWith(Buffer.alloc(0));
+    expect(readMock).not.toHaveBeenCalled();
+  });
+
   it('should normalize path by adding leading slash', async () => {
     req.body = { path: 'file.mp4', length: 10, offset: 0, processName: 'vlc' };
     readMock.mockResolvedValue({ data: Buffer.alloc(0) });
