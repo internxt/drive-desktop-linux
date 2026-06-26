@@ -41,4 +41,13 @@ describe('validateUploadFileSize', () => {
   it('should ignore zero-byte files', () => {
     expect(validateUploadFileSize({ size: 0, maxUploadFileSize: 100 })).toStrictEqual({ allowed: true });
   });
+
+  it('should reject zero-byte files when empty files are not allowed', () => {
+    expect(validateUploadFileSize({ size: 0, maxUploadFileSize: 100, allowEmptyFile: false })).toStrictEqual({
+      allowed: false,
+      reason: 'EMPTY_FILE',
+      maxFileSize: 0,
+      showUpgradeCta: false,
+    });
+  });
 });
