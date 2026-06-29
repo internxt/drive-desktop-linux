@@ -164,8 +164,10 @@ export interface IElectronAPI {
   getUpdateStatus(): Promise<{ version: string } | null>;
   getNautilusAvailability(): Promise<boolean>;
   onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
-  getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
-  onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
+  getRemoteSyncStatus(): Promise<import('../../backend/features/remote-sync/helpers').RemoteSyncStatus>;
+  onRemoteSyncStatusChange(
+    callback: (status: import('../../backend/features/remote-sync/helpers').RemoteSyncStatus) => void,
+  ): () => void;
   getVirtualDriveStatus(): Promise<import('../../backend/features/virtual-drive').FuseDriveStatus>;
   onVirtualDriveStatusChange(
     callback: (event: { status: import('../../backend/features/virtual-drive').FuseDriveStatus }) => void,
