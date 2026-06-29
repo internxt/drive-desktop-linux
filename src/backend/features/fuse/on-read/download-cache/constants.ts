@@ -1,9 +1,9 @@
 /**
- * 2MB default blocks — lower latency on slow links while preserving cache locality.
+ * 4MB default blocks — lower latency on slow links while preserving cache locality.
  * Each block is downloaded in full on first access regardless of how small the FUSE read is,
  * so subsequent reads within the same block are served from disk.
  */
-const DEFAULT_BLOCK_SIZE_MB = 2;
+const DEFAULT_BLOCK_SIZE_MB = 4;
 const ALLOWED_BLOCK_SIZE_MB = new Set([1, 2, 4, 8]);
 
 function getConfiguredBlockSizeInMb() {
