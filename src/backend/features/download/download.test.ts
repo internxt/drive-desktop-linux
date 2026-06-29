@@ -10,6 +10,7 @@ const {
   createWriteStreamMock,
   downloadFileV2Mock,
   getBackupFolderTreeSnapshotMock,
+  mkdirMock,
   mkdtempMock,
   openMock,
   rmMock,
@@ -22,6 +23,7 @@ const {
     createWriteStreamMock: vi.fn(),
     downloadFileV2Mock: vi.fn(),
     getBackupFolderTreeSnapshotMock: vi.fn(),
+    mkdirMock: vi.fn(),
     mkdtempMock: vi.fn(),
     openMock: vi.fn(),
     rmMock: vi.fn(),
@@ -36,6 +38,7 @@ vi.mock('node:fs', () => {
 
 vi.mock('node:fs/promises', () => {
   return {
+    mkdir: mkdirMock,
     mkdtemp: mkdtempMock,
     open: openMock,
     rm: rmMock,
@@ -97,6 +100,7 @@ describe('download', () => {
     createWriteStreamMock.mockReturnValue(fakeWriteStream);
     createReadStreamMock.mockImplementation(() => Readable.from([]));
     mkdtempMock.mockResolvedValue('/tmp/internxt-backup-download-test');
+    mkdirMock.mockResolvedValue(undefined);
     rmMock.mockResolvedValue(undefined);
     openMock.mockResolvedValue({
       createWriteStream: createWriteStreamMock,

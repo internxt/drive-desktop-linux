@@ -1,11 +1,15 @@
-const { closeMock, createWriteStreamMock, openMock, convertToWritableStreamMock } = vi.hoisted(() => ({
+import { ReadableStream, WritableStream } from 'node:stream/web';
+
+const { closeMock, createWriteStreamMock, mkdirMock, openMock, convertToWritableStreamMock } = vi.hoisted(() => ({
   closeMock: vi.fn().mockResolvedValue(undefined),
   createWriteStreamMock: vi.fn(),
+  mkdirMock: vi.fn().mockResolvedValue(undefined),
   openMock: vi.fn(),
   convertToWritableStreamMock: vi.fn(),
 }));
 
 vi.mock('node:fs/promises', () => ({
+  mkdir: mkdirMock,
   open: openMock,
 }));
 
@@ -19,10 +23,12 @@ import { writeDownloadStreamToFile } from './write-download-stream-to-file';
 describe('write-download-stream-to-file', () => {
   beforeEach(() => {
     createWriteStreamMock.mockReset();
+    mkdirMock.mockReset();
     openMock.mockReset();
     convertToWritableStreamMock.mockReset();
     closeMock.mockReset();
     closeMock.mockResolvedValue(undefined);
+    mkdirMock.mockResolvedValue(undefined);
   });
 
   it('should pipe stream to writable destination and close file handle', async () => {
@@ -54,6 +60,7 @@ describe('write-download-stream-to-file', () => {
     });
 
     // Then
+    call(mkdirMock).toStrictEqual(['/tmp', { recursive: true }]);
     call(openMock).toStrictEqual(['/tmp/file.tmp', 'w']);
     expect(createWriteStreamMock).toHaveBeenCalledTimes(1);
     expect(convertToWritableStreamMock).toHaveBeenCalledTimes(1);

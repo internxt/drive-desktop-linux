@@ -152,9 +152,6 @@ export async function downloadFolderAsZip(
 
     return await zip.close();
   } finally {
-    if (!writeStream.writableEnded && !writeStream.destroyed) {
-      writeStream.destroy();
-    }
     await rm(tempFolderPath, { recursive: true, force: true });
   }
 }

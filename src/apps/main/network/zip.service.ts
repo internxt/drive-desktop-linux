@@ -24,6 +24,7 @@ export class FlatFolderZip {
   private readonly pendingFiles = new Set<Promise<void>>();
   private readonly destination: Writable;
   private readonly finished: Promise<void>;
+  private readonly finishedSettled: Promise<void>;
   private abortController?: AbortController;
   private processedSize = 0;
   private readonly progress: FlatFolderZipOpts['progress'];
@@ -43,6 +44,7 @@ export class FlatFolderZip {
       this.destination.on('error', reject);
       this.archive.on('error', reject);
     });
+    this.finishedSettled = this.finished.catch(() => undefined);
 
     this.archive.pipe(this.destination);
   }
@@ -105,11 +107,24 @@ export class FlatFolderZip {
   async close(): Promise<void> {
     if (this.abortController?.signal.aborted) return;
 
-    await Promise.all(this.pendingFiles);
+    try {
+      await Promise.all(this.pendingFiles);
+      await this.archive.finalize();
+      await this.finished;
+    } catch (error) {
+      const normalizedError = error instanceof Error ? error : new Error(String(error));
 
-    await this.archive.finalize();
+      this.abort();
+      this.archive.abort();
 
-    await this.finished;
+      if (!this.destination.destroyed) {
+        this.destination.destroy(normalizedError);
+      }
+
+      await this.finishedSettled;
+
+      throw normalizedError;
+    }
   }
 
   abort(): void {
