@@ -51,4 +51,28 @@ describe('updateStateFromHeaders', () => {
     expect(state.remaining).toBe(199);
     expect(state.reset).toBe(5000);
   });
+
+  it('should normalize reset header in seconds to milliseconds', () => {
+    const state: RateLimitState = { limit: null, remaining: null, reset: null };
+
+    updateStateFromHeaders(state, {
+      'x-internxt-ratelimit-reset': '10',
+    });
+
+    expect(state.reset).toBe(10000);
+  });
+
+  it('should ignore invalid numeric header values', () => {
+    const state: RateLimitState = { limit: 10, remaining: 5, reset: 1000 };
+
+    updateStateFromHeaders(state, {
+      'x-internxt-ratelimit-limit': 'NaN',
+      'x-internxt-ratelimit-remaining': 'bad',
+      'x-internxt-ratelimit-reset': 'oops',
+    });
+
+    expect(state.limit).toBe(10);
+    expect(state.remaining).toBe(5);
+    expect(state.reset).toBe(1000);
+  });
 });

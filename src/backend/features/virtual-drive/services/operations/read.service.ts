@@ -13,6 +13,34 @@ import { getCredentials } from '../../../../../apps/main/auth/get-credentials';
 import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
 import { buildNetworkClient } from '../../../../../infra/environment/download-file/build-network-client';
 
+const PROGRESS_UPDATE_INTERVAL_MS = 250;
+
+type ProgressReporterState = {
+  lastUpdateAt: number;
+};
+
+function shouldEmitProgress({
+  now,
+  bytesDownloaded,
+  fileSize,
+  state,
+}: {
+  now: number;
+  bytesDownloaded: number;
+  fileSize: number;
+  state: ProgressReporterState;
+}) {
+  const reachedEnd = bytesDownloaded >= fileSize;
+  const elapsedSinceLastUpdate = now - state.lastUpdateAt;
+
+  if (!reachedEnd && elapsedSinceLastUpdate < PROGRESS_UPDATE_INTERVAL_MS) {
+    return false;
+  }
+
+  state.lastUpdateAt = now;
+  return true;
+}
+
 export async function read(
   path: string,
   length: number,
@@ -21,6 +49,7 @@ export async function read(
   container: Container,
 ): Promise<Result<Buffer, FuseError>> {
   try {
+    const progressReporterState: ProgressReporterState = { lastUpdateAt: 0 };
     const { mnemonic } = getCredentials();
     const user = DependencyInjectionUserProvider.get();
     const network = buildNetworkClient({ bridgeUser: user.bridgeUser, userId: user.userId });
@@ -31,6 +60,17 @@ export async function read(
       findVirtualFile: (p) => container.get(FirstsFileSearcher).run({ path: p }),
       findTemporalFile: (p) => container.get(TemporalFileByPathFinder).run(p),
       onDownloadProgress: (name, extension, bytesDownloaded, fileSize, elapsedTime) => {
+        if (
+          !shouldEmitProgress({
+            now: Date.now(),
+            bytesDownloaded,
+            fileSize,
+            state: progressReporterState,
+          })
+        ) {
+          return;
+        }
+
         tracker.downloadUpdate(name, extension, {
           percentage: Math.min(bytesDownloaded / fileSize, 1),
           elapsedTime,

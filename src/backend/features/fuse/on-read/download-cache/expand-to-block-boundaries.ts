@@ -10,8 +10,18 @@ export function expandToBlockBoundaries({ range, fileSize }: { range: ReadRange;
   blockStart: number;
   blockLength: number;
 } {
-  const blockStart = Math.floor(range.position / BLOCK_SIZE) * BLOCK_SIZE;
-  const end = range.position + range.length;
-  const blockEnd = Math.min(Math.ceil(end / BLOCK_SIZE) * BLOCK_SIZE, fileSize);
+  if (fileSize <= 0 || range.length <= 0 || range.position >= fileSize) {
+    return { blockStart: Math.max(0, Math.min(range.position, fileSize)), blockLength: 0 };
+  }
+
+  const clampedStart = Math.max(0, range.position);
+  const clampedEndExclusive = Math.min(clampedStart + range.length, fileSize);
+
+  if (clampedEndExclusive <= clampedStart) {
+    return { blockStart: clampedStart, blockLength: 0 };
+  }
+
+  const blockStart = Math.floor(clampedStart / BLOCK_SIZE) * BLOCK_SIZE;
+  const blockEnd = Math.min(Math.ceil(clampedEndExclusive / BLOCK_SIZE) * BLOCK_SIZE, fileSize);
   return { blockStart, blockLength: blockEnd - blockStart };
 }

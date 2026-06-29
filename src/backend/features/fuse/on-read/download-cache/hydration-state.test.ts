@@ -164,6 +164,15 @@ describe('hydration-state lifecycle', () => {
     expect(getHydratedBytes(state)).toBe(BLOCK_SIZE);
   });
 
+  it('does not mark bytes when the range starts after EOF', () => {
+    const fileSize = BLOCK_SIZE * 2;
+    const state = getOrCreateHydrationState('out-of-bounds', fileSize);
+
+    markBlocksInRangeDownloaded(state, { position: fileSize + BLOCK_SIZE, length: BLOCK_SIZE });
+
+    expect(getHydratedBytes(state)).toBe(0);
+  });
+
   it('treats an empty file as fully hydrated without marking any blocks', () => {
     const state = getOrCreateHydrationState('empty-contents-id', 0);
 
