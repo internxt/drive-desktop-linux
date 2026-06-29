@@ -28,6 +28,7 @@ type Props = HandleReadDeps & {
   virtualFile: File;
   filePath: string;
   range: ReadRange;
+  prefetchBlocksAhead?: number;
 };
 
 export async function readOrHydrate({
@@ -39,6 +40,7 @@ export async function readOrHydrate({
   virtualFile,
   filePath,
   range,
+  prefetchBlocksAhead = 0,
 }: Props): Promise<Result<Buffer, FuseError>> {
   logger.debug({
     msg: '[ReadCallback] read request:',
@@ -70,6 +72,20 @@ export async function readOrHydrate({
       if (downloadResult.error) return { error: fuseIOErrorFrom(downloadResult.error) };
     }
 
+    if (prefetchBlocksAhead > 0) {
+      schedulePrefetchBlocksAhead({
+        bucketId,
+        mnemonic,
+        network,
+        onDownloadProgress,
+        virtualFile,
+        filePath,
+        state: state.data,
+        range,
+        blocksAhead: prefetchBlocksAhead,
+      });
+    }
+
     await finalizeFullyHydratedFileIfNeeded(saveToRepository, virtualFile, state.data);
     if (wasAborted(state.data)) return { data: EMPTY };
 
@@ -77,6 +93,102 @@ export async function readOrHydrate({
   } catch (error) {
     if (wasAborted(state.data)) return { data: EMPTY };
     return { error: fuseIOErrorFrom(error) };
+  }
+}
+
+function schedulePrefetchBlocksAhead({
+  bucketId,
+  mnemonic,
+  network,
+  onDownloadProgress,
+  virtualFile,
+  filePath,
+  state,
+  range,
+  blocksAhead,
+}: {
+  onDownloadProgress: HandleReadDeps['onDownloadProgress'];
+  bucketId: HandleReadDeps['bucketId'];
+  mnemonic: HandleReadDeps['mnemonic'];
+  network: HandleReadDeps['network'];
+  virtualFile: File;
+  filePath: string;
+  range: ReadRange;
+  state: FileHydrationState;
+  blocksAhead: number;
+}) {
+  if (wasAborted(state)) {
+    return;
+  }
+
+  const { blockStart, blockLength } = expandToBlockBoundaries({ range, fileSize: virtualFile.size });
+  const nextBlockStart = blockStart + blockLength;
+
+  if (nextBlockStart >= virtualFile.size) {
+    return;
+  }
+
+  const missingBlocksAhead = getMissingBlocks(state, {
+    position: nextBlockStart,
+    length: blocksAhead * BLOCK_SIZE,
+  });
+  if (missingBlocksAhead.length === 0) {
+    return;
+  }
+
+  const prefetchedBlocks = missingBlocksAhead.slice(0, blocksAhead);
+
+  logger.debug({
+    msg: '[ReadCallback] prefetching next blocks',
+    file: virtualFile.nameWithExtension,
+    blocks: prefetchedBlocks,
+  });
+
+  for (const block of prefetchedBlocks) {
+    const start = block * BLOCK_SIZE;
+    const end = Math.min(start + BLOCK_SIZE, virtualFile.size);
+    const blockLength = end - start;
+
+    if (blockLength <= 0) {
+      logger.debug({
+        msg: '[ReadCallback] skipping invalid prefetch block outside file bounds',
+        file: virtualFile.nameWithExtension,
+        block,
+        start,
+        end,
+        fileSize: virtualFile.size,
+      });
+      continue;
+    }
+
+    const download = downloadAndCacheBlock({
+      bucketId,
+      mnemonic,
+      network,
+      onDownloadProgress,
+      virtualFile,
+      filePath,
+      state,
+      blockStart: start,
+      blockLength,
+    });
+
+    setBlockDownloadInFlight(state, block, download);
+
+    void download
+      .then((result) => {
+        if (result.error) {
+          logger.warn({
+            msg: '[ReadCallback] next-block prefetch failed',
+            file: virtualFile.nameWithExtension,
+            block,
+            error: result.error,
+          });
+        }
+      })
+      .finally(() => {
+        clearBlockDownloadInFlight(state, block, download);
+      });
   }
 }
 
@@ -118,6 +230,10 @@ async function ensureRangeDownloaded({
 }): Promise<Result<void, Error>> {
   const { blockStart, blockLength } = expandToBlockBoundaries({ range, fileSize: virtualFile.size });
 
+  if (blockLength <= 0 || blockStart >= virtualFile.size) {
+    return { data: undefined };
+  }
+
   const blocksBeingDownloaded = getBlocksBeingDownloaded(state, { position: blockStart, length: blockLength });
   if (blocksBeingDownloaded.size > 0) {
     logger.debug({
@@ -140,6 +256,20 @@ async function ensureRangeDownloaded({
     const downloads = missingBlocks.map((block) => {
       const start = block * BLOCK_SIZE;
       const end = Math.min(start + BLOCK_SIZE, virtualFile.size);
+      const boundedBlockLength = end - start;
+
+      if (boundedBlockLength <= 0) {
+        logger.debug({
+          msg: '[ReadCallback] skipping invalid download block outside file bounds',
+          file: virtualFile.nameWithExtension,
+          block,
+          start,
+          end,
+          fileSize: virtualFile.size,
+        });
+        return Promise.resolve({ data: undefined });
+      }
+
       const download = downloadAndCacheBlock({
         bucketId,
         mnemonic,
@@ -149,7 +279,7 @@ async function ensureRangeDownloaded({
         filePath,
         state,
         blockStart: start,
-        blockLength: end - start,
+        blockLength: boundedBlockLength,
       });
       setBlockDownloadInFlight(state, block, download);
       download.finally(() => clearBlockDownloadInFlight(state, block, download));

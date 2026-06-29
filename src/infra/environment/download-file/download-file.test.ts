@@ -67,4 +67,19 @@ describe('downloadFileRange', () => {
       },
     });
   });
+
+  it('returns empty data and skips network when range length is non-positive', async () => {
+    const result = await downloadFileRange({
+      fileId: 'file-id',
+      bucketId: 'bucket-id',
+      mnemonic: 'mnemonic',
+      network: {} as never,
+      range: { position: 10, length: 0 },
+      signal: new AbortController().signal,
+    });
+
+    expect(result).toStrictEqual({ data: Buffer.alloc(0) });
+    expect(sdkDownloadFileMock).not.toHaveBeenCalled();
+    expect(axiosGetMock).not.toHaveBeenCalled();
+  });
 });

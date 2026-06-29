@@ -74,7 +74,7 @@ describe('createResponseInterceptor', () => {
 
   beforeEach(() => {
     state = { limit: null, remaining: null, reset: null };
-    delayState = { pending: null };
+    delayState = { pending: null, requestKey: null };
     retryResponse = makeResponse();
     instance = { request: vi.fn().mockResolvedValue(retryResponse) } as unknown as AxiosInstance;
   });
@@ -134,6 +134,7 @@ describe('createResponseInterceptor', () => {
       call(waitForDelay).toMatchObject([delayState, 3050]);
       call(instance.request).toMatchObject(config);
       expect(result).toBe(retryResponse);
+      expect(delayState.requestKey).toBeNull();
     });
 
     it('should default to 5000ms when state.reset is null', async () => {

@@ -34,7 +34,7 @@ describe('attachRateLimiterInterceptors', () => {
   it('should create a request interceptor with a fresh delay state', () => {
     attachRateLimiterInterceptors(instance);
 
-    call(createRequestInterceptor).toMatchObject({ pending: null });
+    call(createRequestInterceptor).toMatchObject({ pending: null, requestKey: null });
   });
 
   it('should register the request interceptor on the instance', () => {
@@ -49,7 +49,7 @@ describe('attachRateLimiterInterceptors', () => {
     call(createResponseInterceptor).toMatchObject([
       instance,
       { limit: null, remaining: null, reset: null },
-      { pending: null },
+      { pending: null, requestKey: null },
     ]);
   });
 
@@ -60,7 +60,7 @@ describe('attachRateLimiterInterceptors', () => {
   });
 
   it('should share the same delay state between request and response interceptors', () => {
-    const delayState = { pending: null };
+    const delayState = { pending: null, requestKey: null };
 
     attachRateLimiterInterceptors(instance);
 

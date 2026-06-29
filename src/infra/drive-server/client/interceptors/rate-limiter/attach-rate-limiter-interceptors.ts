@@ -5,7 +5,7 @@ import { createResponseInterceptor } from './create-response-interceptor';
 
 export function attachRateLimiterInterceptors(instance: AxiosInstance): void {
   const state: RateLimitState = { limit: null, remaining: null, reset: null };
-  const delayState: DelayState = { pending: null };
+  const delayState: DelayState = { pending: null, requestKey: null };
 
   instance.interceptors.request.use(createRequestInterceptor(delayState));
 

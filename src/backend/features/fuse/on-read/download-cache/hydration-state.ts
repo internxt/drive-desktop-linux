@@ -133,10 +133,20 @@ export function getHydratedBytes(state: FileHydrationState): number {
   return state.hydratedBytes;
 }
 
-function blocksWithinRange({ position, length }: ReadRange): Array<number> {
-  if (length <= 0) return [];
-  const first = blockIndexForByte(position);
-  const last = blockIndexForByte(position + length - 1);
+function blocksWithinRange(state: FileHydrationState, { position, length }: ReadRange): Array<number> {
+  if (length <= 0 || state.totalBlocks === 0 || position >= state.fileSize) {
+    return [];
+  }
+
+  const clampedStart = Math.max(0, position);
+  const clampedEndExclusive = Math.min(position + length, state.fileSize);
+
+  if (clampedEndExclusive <= clampedStart) {
+    return [];
+  }
+
+  const first = blockIndexForByte(clampedStart);
+  const last = blockIndexForByte(clampedEndExclusive - 1);
   const blocks: number[] = [];
   for (let block = first; block <= last; block++) {
     blocks.push(block);
@@ -145,11 +155,11 @@ function blocksWithinRange({ position, length }: ReadRange): Array<number> {
 }
 
 export function isRangeHydrated(state: FileHydrationState, { position, length }: ReadRange): boolean {
-  return blocksWithinRange({ position, length }).every((block) => getBit(state.bitmap, block));
+  return blocksWithinRange(state, { position, length }).every((block) => getBit(state.bitmap, block));
 }
 
 export function markBlocksInRangeDownloaded(state: FileHydrationState, { position, length }: ReadRange): void {
-  for (const block of blocksWithinRange({ position, length })) {
+  for (const block of blocksWithinRange(state, { position, length })) {
     if (!getBit(state.bitmap, block)) {
       setBit(state.bitmap, block);
       state.hydratedBytes += blockByteLength(state, block);
@@ -167,7 +177,7 @@ function blockByteLength(state: FileHydrationState, block: number): number {
  * Call after waiting for existing in-flight blocks to identify the remaining work.
  */
 export function getMissingBlocks(state: FileHydrationState, { position, length }: ReadRange): number[] {
-  return blocksWithinRange({ position, length }).filter(
+  return blocksWithinRange(state, { position, length }).filter(
     (block) => !getBit(state.bitmap, block) && !state.blocksBeingDownloaded.has(block),
   );
 }
@@ -177,7 +187,7 @@ export function getBlocksBeingDownloaded(
   { position, length }: ReadRange,
 ): Map<number, Promise<Result<void, Error>>> {
   const blocksBeingDownloadedWithinRange = new Map<number, Promise<Result<void, Error>>>();
-  for (const block of blocksWithinRange({ position, length })) {
+  for (const block of blocksWithinRange(state, { position, length })) {
     const existing = state.blocksBeingDownloaded.get(block);
     if (existing) blocksBeingDownloadedWithinRange.set(block, existing);
   }

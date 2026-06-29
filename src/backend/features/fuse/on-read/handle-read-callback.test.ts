@@ -3,9 +3,9 @@ import * as readChunkModule from './read-chunk-from-disk';
 import * as fileExistsModule from './download-cache/file-exists-on-disk';
 import * as allocateFileModule from './download-cache/allocate-file';
 import * as downloadAndSaveBlockModule from './download-cache/download-and-save-block';
-import * as downloadFileModule from '../../../../infra/environment/download-file/download-file';
 import { clearHydrationState } from './download-cache/hydration-state';
-import { partialSpyOn, call } from '../../../../../tests/vitest/utils.helper';
+import { BLOCK_SIZE } from './download-cache/constants';
+import { partialSpyOn, call, testSleep } from '../../../../../tests/vitest/utils.helper';
 import { type File } from '../../../../context/virtual-drive/files/domain/File';
 import { FuseIOError, FuseNoSuchFileOrDirectoryError } from '../../../../apps/drive/fuse/callbacks/FuseErrors';
 
@@ -13,7 +13,6 @@ const readChunkFromDiskMock = partialSpyOn(readChunkModule, 'readChunkFromDisk')
 const fileExistsOnDiskMock = partialSpyOn(fileExistsModule, 'fileExistsOnDisk');
 const allocateFileMock = partialSpyOn(allocateFileModule, 'allocateFile');
 const downloadAndCacheBlockMock = partialSpyOn(downloadAndSaveBlockModule, 'downloadAndCacheBlock');
-const downloadFileRangeMock = partialSpyOn(downloadFileModule, 'downloadFileRange');
 
 const virtualFile = {
   contentsId: 'contents-123',
@@ -92,35 +91,27 @@ describe('handleReadCallback', () => {
   });
 
   describe('when process is a thumbnail generator', () => {
-    it('should download the exact requested range without block expansion', async () => {
-      const chunk = Buffer.from('image-header');
-      downloadFileRangeMock.mockResolvedValue({ data: chunk });
+    it('should route thumbnail reads through cache hydration', async () => {
       const deps = createDeps({ processName: 'pool-org.gnome.', range: { position: 0, length: 32768 } });
 
       const result = await handleReadCallback(deps);
 
-      expect(result.data).toBe(chunk);
-      call(downloadFileRangeMock).toMatchObject({
-        fileId: virtualFile.contentsId,
-        bucketId: deps.bucketId,
-        mnemonic: deps.mnemonic,
-        range: { position: 0, length: 32768 },
-      });
+      expect(result.data).toStrictEqual(Buffer.from('data'));
+      expect(downloadAndCacheBlockMock).toHaveBeenCalledOnce();
     });
 
-    it('should not allocate a cache file or download blocks', async () => {
-      downloadFileRangeMock.mockResolvedValue({ data: Buffer.from('bytes') });
+    it('should allocate and download cache blocks when needed', async () => {
+      fileExistsOnDiskMock.mockResolvedValue(false);
       const deps = createDeps({ processName: 'pool-org.gnome.' });
 
       await handleReadCallback(deps);
 
-      expect(fileExistsOnDiskMock).not.toHaveBeenCalled();
-      expect(allocateFileMock).not.toHaveBeenCalled();
-      expect(downloadAndCacheBlockMock).not.toHaveBeenCalled();
+      expect(fileExistsOnDiskMock).toHaveBeenCalled();
+      expect(allocateFileMock).toHaveBeenCalledOnce();
+      expect(downloadAndCacheBlockMock).toHaveBeenCalledOnce();
     });
 
     it('should not emit download progress or register the file', async () => {
-      downloadFileRangeMock.mockResolvedValue({ data: Buffer.from('bytes') });
       const deps = createDeps({ processName: 'pool-org.gnome.' });
 
       await handleReadCallback(deps);
@@ -129,13 +120,35 @@ describe('handleReadCallback', () => {
       expect(deps.saveToRepository).not.toHaveBeenCalled();
     });
 
-    it('should return EIO when the ranged download fails', async () => {
-      downloadFileRangeMock.mockResolvedValue({ error: new Error('network error') });
+    it('should return EIO when block hydration fails', async () => {
+      downloadAndCacheBlockMock.mockResolvedValue({ error: new Error('network error') });
       const deps = createDeps({ processName: 'pool-org.gnome.' });
 
       const result = await handleReadCallback(deps);
 
       expect(result.error).toBeInstanceOf(FuseIOError);
+    });
+  });
+
+  describe('when process is a normal reader', () => {
+    it('should prefetch blocks while reading the requested range', async () => {
+      const largeVirtualFile = {
+        ...virtualFile,
+        contentsId: 'large-normal-reader-file',
+        size: BLOCK_SIZE * 8 + 100,
+      } as unknown as File;
+      const deps = createDeps({ processName: 'vlc', range: { position: 0, length: 10 } });
+
+      fileExistsOnDiskMock.mockResolvedValue(false);
+      readChunkFromDiskMock.mockResolvedValue(Buffer.from('data'));
+      deps.findVirtualFile = vi.fn().mockResolvedValue(largeVirtualFile);
+
+      await handleReadCallback(deps);
+
+      await testSleep(0);
+
+      expect(downloadAndCacheBlockMock).toHaveBeenCalledTimes(6);
+      expect(readChunkFromDiskMock).toHaveBeenCalled();
     });
   });
 

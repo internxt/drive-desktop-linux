@@ -5,7 +5,10 @@ export type RateLimitState = {
   remaining: number | null;
   reset: number | null;
 };
-export type DelayState = { pending: Promise<void> | null };
+export type DelayState = {
+  pending: Promise<void> | null;
+  requestKey: string | null;
+};
 
 export type ResponseInterceptor = {
   onFulfilled: (response: AxiosResponse) => AxiosResponse;
