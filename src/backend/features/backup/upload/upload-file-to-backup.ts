@@ -26,9 +26,20 @@ async function uploadFile(file: UploadFileParams): Promise<Result<File | null, D
   const validation = validateUploadFileSize({
     size: file.size,
     maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
+    allowEmptyFile: false,
   });
 
   if (!validation.allowed) {
+    if (validation.reason === 'EMPTY_FILE') {
+      logger.warn({
+        tag: 'BACKUPS',
+        msg: 'Skipping backup file because it is empty',
+        path: file.path,
+        size: file.size,
+      });
+      return { data: null };
+    }
+
     addMaxFileSizeRejection({ path: file.path, fileSize: file.size, validation, blockUploadPath: false });
     logger.warn({
       tag: 'BACKUPS',
