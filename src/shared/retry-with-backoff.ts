@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { Result } from '../context/shared/domain/Result';
 import { DriveDesktopError } from '../context/shared/domain/errors/DriveDesktopError';
 

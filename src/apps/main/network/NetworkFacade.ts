@@ -131,7 +131,9 @@ export class NetworkFacade {
         fileStream = buildProgressStream({
           source: decryptedStream,
           onRead: (readBytes: number) => {
-            options && options.downloadingCallback && options.downloadingCallback(fileSize, readBytes);
+            if (options?.downloadingCallback) {
+              options.downloadingCallback(fileSize, readBytes);
+            }
           },
         });
       },

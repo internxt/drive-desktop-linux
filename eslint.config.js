@@ -21,7 +21,7 @@ module.exports = defineConfig([{
     extends: compat.extends("@internxt/eslint-config-internxt"),
 
     rules: {
-        "no-await-in-loop": "warn",
+        "no-await-in-loop": "off",
 
         "@typescript-eslint/no-use-before-define": ["warn", {
             functions: false,

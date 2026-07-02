@@ -38,7 +38,6 @@ export class RetryHandler {
     while (attempt <= maxRetries) {
       try {
         // * In this case, we need to wait for the promise to resolve in order to return the value
-        // eslint-disable-next-line no-await-in-loop
         const result = await fn();
         if (result instanceof Error) {
           throw result;
@@ -54,7 +53,6 @@ export class RetryHandler {
         }
 
         attempt++;
-        // eslint-disable-next-line no-await-in-loop
         await this.waitBeforeRetry(delay, maxDelay, jitter, attempt, error);
 
         delay *= backoffFactor;
