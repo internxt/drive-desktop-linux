@@ -4,7 +4,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 export function ensureFolderExists(folder: PathLike) {
   try {
     accessSync(folder, constants.F_OK);
-  } catch (err) {
+  } catch {
     logger.debug({ msg: `Folder <${folder}> does not exists, going to  create it` });
     try {
       mkdirSync(folder, { recursive: true });

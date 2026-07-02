@@ -46,8 +46,8 @@ export async function changeBackupPath({ currentPath, newPath }: Props): Promise
       pathname: newPath,
       backup: existingBackup,
     });
-    if (error) return { error };
 
+    if (error) return { error };
     backupsList[newPath] = migratedExistingBackup;
 
     configStore.set('backupList', backupsList);

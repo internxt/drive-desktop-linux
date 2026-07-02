@@ -23,8 +23,6 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
 
     do {
       const offset = page * HttpRemoteFileSystem.PAGE_SIZE;
-
-      // eslint-disable-next-line no-await-in-loop
       const { data, error } = await searchFolder({
         parentId: parentId.value,
         offset,

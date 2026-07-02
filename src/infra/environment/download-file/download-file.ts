@@ -27,7 +27,6 @@ export async function downloadFileRange({
       if (signal.aborted) {
         return;
       }
-      // eslint-disable-next-line no-await-in-loop
       encryptedBytes = await fetchEncryptedRange(downloadable.url, range.position, range.length, signal);
     }
   };

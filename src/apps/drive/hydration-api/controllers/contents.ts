@@ -16,7 +16,7 @@ export function buildContentsController(container: Container) {
       const fileIsAvaliable = await container.get(StorageFileIsAvailableOffline).run(path);
 
       return Optional.of(fileIsAvaliable);
-    } catch (error) {
+    } catch {
       // If the path is from a folder it will not find it as a file
       return Optional.empty();
     }
@@ -26,7 +26,7 @@ export function buildContentsController(container: Container) {
     try {
       const folderIsAvaliable = await container.get(AllFilesInFolderAreAvailableOffline).run(path);
       return Optional.of(folderIsAvaliable);
-    } catch (error) {
+    } catch {
       // If the path is from a file it will not find it as a folder
       return Optional.empty();
     }

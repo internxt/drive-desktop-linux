@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { Result } from '../context/shared/domain/Result';
 import { DriveDesktopError } from '../context/shared/domain/errors/DriveDesktopError';
 
@@ -21,7 +20,6 @@ export async function retryWithBackoff<T>(
   onError: (error: DriveDesktopError) => number | null,
   signal: AbortSignal,
 ): Promise<Result<T, DriveDesktopError>> {
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (signal.aborted) {
       return { error: new DriveDesktopError('ABORTED') };

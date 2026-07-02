@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { homedir } from 'node:os';
 import { ScannedItem } from '../database/entities/ScannedItem';
 import { queue, QueueObject } from 'async';
