@@ -1,5 +1,13 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
+function isContentLengthMismatch(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return error.message.includes('ERR_CONTENT_LENGTH_MISMATCH');
+}
+
 export function registerProcessHandlers() {
   process.on('uncaughtException', (error) => {
     /**
@@ -13,6 +21,11 @@ export function registerProcessHandlers() {
 
     if (error.name === 'AbortError') {
       logger.debug({ msg: 'Fetch request was aborted' });
+      return;
+    }
+
+    if (isContentLengthMismatch(error)) {
+      logger.warn({ msg: 'Transient network mismatch captured in main process', error });
       return;
     }
 

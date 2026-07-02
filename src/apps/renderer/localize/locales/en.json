@@ -108,6 +108,10 @@
       "message": "We are having issues mounting your Internxt Drive, try unmounting it manually and starting the app again"
     },
     "banners": {
+      "nautilus-unavailable": {
+        "body": "File explorer not supported. Some features may not work properly.",
+        "action": "Learn more"
+      },
       "update-available": {
         "body": "A new version is available.",
         "action": "Download update"
@@ -157,7 +161,14 @@
       },
       "virtual-drive-root": {
         "label": "Internxt Folder",
-        "action": "Change"
+        "action": "Change",
+        "errors": {
+          "title": "Path change is not allowed",
+          "removable-device": "You cannot mount Internxt Drive inside a removable device.",
+          "other-cloud-provider": "You cannot mount Internxt Drive inside folders owned by other cloud providers.",
+          "insufficient-permission": "You do not have enough permissions to use this path.",
+          "unknown": "The selected path could not be applied."
+        }
       },
       "app-info": {
         "open-logs": "Open logs",

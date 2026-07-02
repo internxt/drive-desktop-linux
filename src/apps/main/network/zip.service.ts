@@ -1,5 +1,6 @@
-import { AsyncZipDeflate, Zip } from 'fflate';
-import { ReadableStream, WritableStream } from 'node:stream/web';
+import { Readable, Writable } from 'node:stream';
+import { ReadableStream } from 'node:stream/web';
+import { ZipArchive } from 'archiver';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 type FlatFolderZipOpts = {
@@ -7,128 +8,123 @@ type FlatFolderZipOpts = {
   progress?: (loadedBytes: number) => void;
 };
 
-type AddFileToZipFunction = (name: string, source: ReadableStream<Uint8Array>) => void;
-
-type AddFolderToZipFunction = (name: string) => void;
-
-export interface ZipStream {
-  addFile: AddFileToZipFunction;
-  addFolder: AddFolderToZipFunction;
-  stream: ReadableStream<Uint8Array>;
-  end: () => void;
+function createZipArchiver() {
+  return new ZipArchive({
+    zlib: { level: 0 },
+    forceZip64: true,
+  });
 }
 
-export function createFolderWithFilesWritable(progress?: FlatFolderZipOpts['progress']): ZipStream {
-  const zip = new Zip();
-  let passthroughController: ReadableStreamDefaultController<Uint8Array> | null = null;
-
-  const passthrough = new ReadableStream<Uint8Array>({
-    start(controller) {
-      passthroughController = controller;
-    },
-    cancel() {
-      if (passthroughController) {
-        try {
-          passthroughController.close();
-        } catch {
-          /* noop */
-        }
-        passthroughController = null;
-      }
-    },
-  });
-
-  zip.ondata = (err, data, final) => {
-    if (err) {
-      logger.error({ msg: 'Error in ZIP data event', err });
-      return;
-    }
-
-    if (data) {
-      passthroughController?.enqueue(data);
-    }
-
-    if (final) {
-      passthroughController?.close();
-      passthroughController = null;
-    }
-  };
-
-  let processedSize = 0;
-
-  // todo: abort with .terminate()
-  return {
-    addFile: (name: string, source: ReadableStream<Uint8Array>): void => {
-      const writer = new AsyncZipDeflate(name, {
-        level: 0,
-      });
-
-      zip.add(writer);
-
-      source.pipeTo(
-        new WritableStream({
-          write(chunk) {
-            processedSize += chunk.length;
-
-            progress?.(processedSize);
-
-            writer.push(chunk, false);
-          },
-          close() {
-            writer.push(new Uint8Array(0), true);
-          },
-        }),
-      );
-    },
-    addFolder: (name: string): void => {
-      const writer = new AsyncZipDeflate(name + '/', {
-        level: 0,
-      });
-      zip.add(writer);
-      writer.push(new Uint8Array(0), true);
-    },
-    stream: passthrough,
-    end: () => {
-      zip.end();
-    },
-  };
+function toNodeReadable(stream: ReadableStream<Uint8Array>) {
+  return Readable.fromWeb(stream);
 }
 
 export class FlatFolderZip {
-  private finished!: Promise<void>;
-  private zip: ZipStream;
-  private passThrough: ReadableStream<Uint8Array>;
+  private readonly archive = createZipArchiver();
+  private readonly pendingFiles = new Set<Promise<void>>();
+  private readonly destination: Writable;
+  private readonly finished: Promise<void>;
+  private readonly finishedSettled: Promise<void>;
   private abortController?: AbortController;
+  private processedSize = 0;
+  private readonly progress: FlatFolderZipOpts['progress'];
 
-  constructor(destination: WritableStream<Uint8Array>, opts: FlatFolderZipOpts) {
-    this.zip = createFolderWithFilesWritable(opts.progress);
+  constructor(destination: globalThis.WritableStream<Uint8Array>, opts: FlatFolderZipOpts) {
     this.abortController = opts.abortController;
+    this.progress = opts.progress;
+    this.destination = Writable.fromWeb(destination);
 
-    this.passThrough = this.zip.stream;
+    this.archive.on('error', (error: Error) => {
+      logger.error({ msg: 'Error while creating ZIP archive', error });
+      this.destination.destroy(error);
+    });
 
-    this.finished = this.passThrough.pipeTo(destination, {
-      signal: opts.abortController?.signal,
+    this.finished = new Promise<void>((resolve, reject) => {
+      this.destination.on('finish', resolve);
+      this.destination.on('error', reject);
+      this.archive.on('error', reject);
+    });
+    this.finishedSettled = this.finished.catch(() => undefined);
+
+    this.archive.pipe(this.destination);
+  }
+
+  private trackProgress(chunkLength: number) {
+    this.processedSize += chunkLength;
+    this.progress?.(this.processedSize);
+  }
+
+  private createProgressTrackingStream(source: ReadableStream<Uint8Array>) {
+    const reader = source.getReader();
+
+    return new ReadableStream<Uint8Array>({
+      async pull(controller) {
+        const status = await reader.read();
+
+        if (status.done) {
+          controller.close();
+          return;
+        }
+
+        controller.enqueue(status.value);
+      },
+      cancel() {
+        return reader.cancel();
+      },
     });
   }
 
-  addFile(name: string, source: ReadableStream<Uint8Array>): void {
-    if (this.abortController?.signal.aborted) return;
+  addFile(name: string, source: ReadableStream<Uint8Array>): Promise<void> {
+    if (this.abortController?.signal.aborted) return Promise.resolve();
 
-    this.zip.addFile(name, source);
+    const progressStream = this.createProgressTrackingStream(source);
+    const nodeStream = toNodeReadable(progressStream);
+
+    const pending = new Promise<void>((resolve, reject) => {
+      nodeStream.on('data', (chunk: Buffer | Uint8Array) => {
+        this.trackProgress(chunk.length);
+      });
+
+      nodeStream.on('error', reject);
+      nodeStream.on('end', resolve);
+
+      this.archive.append(nodeStream, { name, store: true });
+    }).finally(() => {
+      this.pendingFiles.delete(pending);
+    });
+
+    this.pendingFiles.add(pending);
+
+    return pending;
   }
 
   addFolder(name: string): void {
     if (this.abortController?.signal.aborted) return;
 
-    this.zip.addFolder(name);
+    this.archive.append('', { name: name + '/', store: true });
   }
 
   async close(): Promise<void> {
     if (this.abortController?.signal.aborted) return;
 
-    this.zip.end();
+    try {
+      await Promise.all(this.pendingFiles);
+      await this.archive.finalize();
+      await this.finished;
+    } catch (error) {
+      const normalizedError = error instanceof Error ? error : new Error(String(error));
 
-    await this.finished;
+      this.abort();
+      this.archive.abort();
+
+      if (!this.destination.destroyed) {
+        this.destination.destroy(normalizedError);
+      }
+
+      await this.finishedSettled;
+
+      throw normalizedError;
+    }
   }
 
   abort(): void {

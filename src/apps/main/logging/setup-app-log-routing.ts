@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
 
-type Pops = {
+type Props = {
   logsPath: string;
 };
 
@@ -89,7 +89,7 @@ function isAntivirusLogMessage({ message }: { message?: LogMessage }) {
   );
 }
 
-export function resolveAppLogFilePath({ logsPath, message }: Pops & { message?: LogMessage }) {
+export function resolveAppLogFilePath({ logsPath, message }: Props & { message?: LogMessage }) {
   if (message?.level === 'error' || message?.level === 'info') {
     return join(logsPath, IMPORTANT_LOG_FILE_NAME);
   }

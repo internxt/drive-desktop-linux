@@ -421,6 +421,9 @@ const electronApi = {
   getUpdateStatus() {
     return ipcRenderer.invoke('get-update-status');
   },
+  getNautilusAvailability() {
+    return ipcRenderer.invoke('get-nautilus-availability');
+  },
   onUpdateAvailable(callback) {
     const eventName = 'update-available';
     const callbackWrapper = (_, info) => callback(info);

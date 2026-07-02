@@ -19,8 +19,11 @@ export function useBackupDownloadProgress(): BackupDownloadContextProps {
   useEffect(() => {
     const removeListener = window.electron.onBackupDownloadProgress(
       ({ id, progress }: { id: string; progress: number }) => {
+        const normalizedProgress = Math.round(progress * 100);
+        const visibleProgress = progress > 0 && normalizedProgress === 0 ? 1 : normalizedProgress;
+
         setBackupDownloadProgress((prevState) => {
-          return { ...prevState, [id]: Math.round(progress * 100) };
+          return { ...prevState, [id]: visibleProgress };
         });
       },
     );
@@ -32,10 +35,10 @@ export function useBackupDownloadProgress(): BackupDownloadContextProps {
 
   useEffect(() => {
     if (!selected?.uuid) return;
-    const downloadProgress = backupDownloadProgress[selected.uuid];
-    if (downloadProgress && downloadProgress < 100) {
+    const selectedProgress = backupDownloadProgress[selected.uuid];
+    if (selectedProgress !== undefined && selectedProgress < 100) {
       setThereIsDownloadProgress(true);
-      setDownloadProgress(downloadProgress);
+      setDownloadProgress(selectedProgress);
     } else {
       setThereIsDownloadProgress(false);
       setDownloadProgress(0);

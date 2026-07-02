@@ -176,6 +176,31 @@ describe('downloadAndCacheBlock', () => {
     expect(props.onDownloadProgress).not.toHaveBeenCalled();
   });
 
+  it('retries range download and writes once a later attempt succeeds', async () => {
+    const props = createProps();
+    downloadFileRangeMock
+      .mockResolvedValueOnce({ error: new Error('network failed') })
+      .mockResolvedValueOnce({ data: Buffer.from('downloaded') });
+
+    await expect(downloadAndCacheBlock(props)).resolves.toStrictEqual({ data: undefined });
+
+    expect(downloadFileRangeMock).toHaveBeenCalledTimes(2);
+    expect(writeChunkToDiskMock).toHaveBeenCalledWith('/tmp/cache-file', Buffer.from('downloaded'), 100);
+    expect(isRangeHydrated(props.state, { position: props.blockStart, length: props.blockLength })).toBe(true);
+  });
+
+  it('stops retrying after max attempts when download keeps failing', async () => {
+    const props = createProps();
+    downloadFileRangeMock.mockResolvedValue({ error: new Error('network failed') });
+
+    await expect(downloadAndCacheBlock(props)).resolves.toStrictEqual({ error: new Error('network failed') });
+
+    expect(downloadFileRangeMock).toHaveBeenCalledTimes(3);
+    expect(writeChunkToDiskMock).not.toHaveBeenCalled();
+    expect(isRangeHydrated(props.state, { position: props.blockStart, length: props.blockLength })).toBe(false);
+    expect(props.onDownloadProgress).not.toHaveBeenCalled();
+  });
+
   it('does not mark hydrated or emit progress when the disk write fails', async () => {
     const props = createProps();
     writeChunkToDiskMock.mockRejectedValue(new Error('write failed'));
