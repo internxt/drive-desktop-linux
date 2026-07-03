@@ -93,20 +93,19 @@ export class RemoteSyncManager {
     logger.debug({ tag: 'SYNC-ENGINE', msg: 'Starting' });
     this.changeStatus('SYNCING');
     try {
-      await Promise.all([
-        this.config.syncFiles
-          ? this.syncRemoteFiles({
-              retry: 1,
-              maxRetries: 3,
-            })
-          : Promise.resolve(),
-        this.config.syncFolders
-          ? this.syncRemoteFolders({
-              retry: 1,
-              maxRetries: 3,
-            })
-          : Promise.resolve(),
-      ]);
+      if (this.config.syncFolders) {
+        await this.syncRemoteFolders({
+          retry: 1,
+          maxRetries: 3,
+        });
+      }
+
+      if (this.config.syncFiles) {
+        await this.syncRemoteFiles({
+          retry: 1,
+          maxRetries: 3,
+        });
+      }
     } catch (error) {
       this.changeStatus('SYNC_FAILED');
       logger.error({
@@ -333,7 +332,7 @@ export class RemoteSyncManager {
     const { data, error } = await fetchFiles({
       limit: this.config.fetchFilesLimitPerRequest,
       offset: 0,
-      status: 'ALL',
+      status: 'EXISTS',
       updatedAt: updatedAtCheckpoint?.toISOString(),
     });
 
@@ -357,9 +356,9 @@ export class RemoteSyncManager {
     result: RemoteSyncedFolder[];
   }> {
     const { data, error } = await fetchFolders({
-      limit: this.config.fetchFilesLimitPerRequest,
+      limit: this.config.fetchFoldersLimitPerRequest,
       offset: 0,
-      status: 'ALL',
+      status: 'EXISTS',
       updatedAt: updatedAtCheckpoint?.toISOString(),
     });
 

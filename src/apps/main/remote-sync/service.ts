@@ -19,8 +19,8 @@ export const remoteSyncManager = new RemoteSyncManager(
     folders: driveFoldersCollection,
   },
   {
-    fetchFilesLimitPerRequest: 1000,
-    fetchFoldersLimitPerRequest: 1000,
+    fetchFilesLimitPerRequest: 250,
+    fetchFoldersLimitPerRequest: 500,
     syncFiles: true,
     syncFolders: true,
   },

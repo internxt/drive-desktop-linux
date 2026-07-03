@@ -104,6 +104,19 @@ export class InMemoryFileRepository implements FileRepository {
     return isAlreadyStored;
   }
 
+  async deleteMatchingPartial(partial: Partial<FileAttributes>): Promise<void> {
+    const keys = Object.keys(partial) as Array<keyof Partial<FileAttributes>>;
+
+    for (const [uuid, attributes] of this.filesByUuid.entries()) {
+      const matches = keys.every((key: keyof FileAttributes) => attributes[key] === partial[key]);
+
+      if (matches) {
+        this.filesByUuid.delete(uuid);
+        this.filesByContentsId.delete(attributes.contentsId);
+      }
+    }
+  }
+
   async update(file: File): Promise<void> {
     if (!this.filesByUuid.has(file.uuid)) {
       throw new FileNotFoundError(file.uuid);

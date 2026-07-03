@@ -3,10 +3,8 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { type Result } from '../../../../../context/shared/domain/Result';
 import { FuseError, FuseIOError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
-import { TemporalFileUploader } from '../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
+import { TemporalFileUploadQueue } from '../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploadQueue';
 import { TemporalFileDeleter } from '../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
-import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
-import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
 import { UploadSizeLimitError } from '../../../user/file-size-limit/upload-size-limit-error';
 import { DriveDesktopError } from '../../../../../context/shared/domain/errors/DriveDesktopError';
 import { addVirtualDriveIssue } from '../../../../../apps/main/issues/virtual-drive';
@@ -28,8 +26,6 @@ type Props = {
 // one for metadata and one for the actual content.
 // The issue is that when each descriptor closes, it triggers a release,
 // resulting in a duplicate request to create the file remotely.
-const uploadsInProgress = new Set<string>();
-
 export async function release({ path, processName, container }: Props): Promise<Result<void, FuseError>> {
   try {
     const temporalFile = await container.get(TemporalFileByPathFinder).run(path);
@@ -55,21 +51,9 @@ export async function release({ path, processName, container }: Props): Promise<
       return { data: undefined };
     }
 
-    if (uploadsInProgress.has(path)) {
-      logger.debug({ msg: '[Release] Upload already in progress, skipping duplicate release', path, processName });
-      return { data: undefined };
-    }
-
-    uploadsInProgress.add(path);
-
     try {
-      const existingFile = await container.get(FirstsFileSearcher).run({ path, status: FileStatuses.EXISTS });
-      const replaces = existingFile
-        ? { contentsId: existingFile.contentsId, name: existingFile.name, extension: existingFile.type }
-        : undefined;
-
-      await container.get(TemporalFileUploader).run(temporalFile, replaces);
-      logger.debug({ msg: '[Release] Temporal file uploaded', path, processName });
+      await container.get(TemporalFileUploadQueue).enqueue({ temporalFile, path, processName });
+      logger.debug({ msg: '[Release] Temporal file queued for upload', path, processName });
       return { data: undefined };
     } catch (uploadError) {
       if (uploadError instanceof UploadSizeLimitError) {
@@ -102,8 +86,6 @@ export async function release({ path, processName, container }: Props): Promise<
       logger.error({ msg: '[Release] Upload failed, deleting temporal file', error: uploadError, path, processName });
       await container.get(TemporalFileDeleter).run(path);
       return { error: new FuseIOError('Upload failed due to insufficient storage or network issues.') };
-    } finally {
-      uploadsInProgress.delete(path);
     }
   } catch (err: unknown) {
     logger.error({ msg: '[Release] Unexpected error', error: err, path, processName });

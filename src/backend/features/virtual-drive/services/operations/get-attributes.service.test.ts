@@ -9,6 +9,7 @@ import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import type { File } from '../../../../../context/virtual-drive/files/domain/File';
 import type { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import type { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import { LazyVirtualDriveHydrator } from '../lazy/LazyVirtualDriveHydrator';
 
 vi.mock('@internxt/drive-desktop-core/build/backend');
 
@@ -18,13 +19,19 @@ describe('getAttributes', () => {
   const fileSearcher = mockDeep<FirstsFileSearcher>();
   const folderSearcher = mockDeep<SingleFolderMatchingSearcher>();
   const temporalFinder = mockDeep<TemporalFileByPathFinder>();
+  const hydrator = mockDeep<LazyVirtualDriveHydrator>();
 
   beforeEach(() => {
     now = new Date();
     container = mockDeep<Container>();
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
+    container.get.calledWith(SingleFolderMatchingSearcher).mockReturnValue(folderSearcher);
+    container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
+    container.get.calledWith(LazyVirtualDriveHydrator).mockReturnValue(hydrator);
     fileSearcher.run.mockResolvedValue(undefined);
     folderSearcher.run.mockResolvedValue(undefined);
+    temporalFinder.run.mockResolvedValue(undefined);
+    hydrator.ensurePathLoaded.mockResolvedValue(undefined);
   });
 
   describe('when path is root', () => {
@@ -57,7 +64,6 @@ describe('getAttributes', () => {
   describe('when a folder is found', () => {
     it('should return folder attributes', async () => {
       folderSearcher.run.mockResolvedValue({ createdAt: now, updatedAt: now } as unknown as Folder);
-      container.get.calledWith(SingleFolderMatchingSearcher).mockReturnValue(folderSearcher);
 
       const { data, error } = await getAttributes('/some/folder', container);
 
@@ -68,10 +74,7 @@ describe('getAttributes', () => {
 
   describe('when a temporal file is found', () => {
     it('should return file attributes', async () => {
-      container.get.calledWith(SingleFolderMatchingSearcher).mockReturnValue(folderSearcher);
-
       temporalFinder.run.mockResolvedValue({ size: { value: 2048 }, createdAt: now } as unknown as TemporalFile);
-      container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
 
       const { data, error } = await getAttributes('/some/temp.txt', container);
 
@@ -82,11 +85,6 @@ describe('getAttributes', () => {
 
   describe('when nothing is found', () => {
     it('should return ENOENT error', async () => {
-      container.get.calledWith(SingleFolderMatchingSearcher).mockReturnValue(folderSearcher);
-
-      temporalFinder.run.mockResolvedValue(undefined);
-      container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
-
       const { data, error } = await getAttributes('/missing/file.txt', container);
 
       expect(data).toBeUndefined();

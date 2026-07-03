@@ -158,6 +158,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
 
       expect(mockedGet).toBeCalledTimes(2);
+      expect(mockedGet.mock.calls[0]?.[1]).toMatchObject({ query: { status: 'EXISTS', limit: 2 } });
       expect(sut.getSyncStatus()).toBe('SYNCED');
     });
     it('Should sync all the folders', async () => {
@@ -207,6 +208,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
 
       expect(mockedGet).toBeCalledTimes(3);
+      expect(mockedGet.mock.calls[0]?.[1]).toMatchObject({ query: { status: 'EXISTS', limit: 2 } });
       expect(sut.getSyncStatus()).toBe('SYNCED');
     });
 
@@ -252,7 +254,7 @@ describe('RemoteSyncManager', () => {
 
       expect(mockedGet).toBeCalledTimes(6);
       expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
-    });
+    }, 15000);
 
     it('Should fail the sync if some files or folders cannot be retrieved', async () => {
       mockedGet.mockResolvedValueOnce({ error: new DriveServerError('UNKNOWN', undefined, 'Fail on purpose') });
@@ -261,7 +263,7 @@ describe('RemoteSyncManager', () => {
 
       expect(mockedGet).toBeCalledTimes(6);
       expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
-    });
+    }, 15000);
 
     it('should handle the error while syncing files by calling the error handler properly', async () => {
       const sut = new RemoteSyncManager(

@@ -132,6 +132,31 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     return readFile(id);
   }
 
+  async stage(documentPath: TemporalFilePath, targetFolder: string): Promise<TemporalFile> {
+    const currentPath = this.map.get(documentPath.value);
+
+    if (!currentPath) {
+      throw new Error(`Document with path ${documentPath.value} not found`);
+    }
+
+    await ensureFolderExists(targetFolder);
+
+    const targetPath = path.join(targetFolder, path.basename(currentPath));
+
+    await fs.promises.rename(currentPath, targetPath);
+    this.map.set(documentPath.value, targetPath);
+
+    const stat = await fs.promises.stat(targetPath);
+
+    return TemporalFile.from({
+      createdAt: stat.ctime,
+      modifiedAt: stat.mtime,
+      path: documentPath.value,
+      size: stat.size,
+      contentFilePath: targetPath,
+    });
+  }
+
   async write(documentPath: TemporalFilePath, buffer: Buffer, length: number, position: number): Promise<void> {
     const pathToWrite = this.map.get(documentPath.value);
 
