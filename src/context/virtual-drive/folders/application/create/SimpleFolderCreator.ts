@@ -24,7 +24,7 @@ export class SimpleFolderCreator {
           msg: 'The folder was not been able to create',
           error,
         });
-        if (error !== 'ALREADY_EXISTS') {
+        if (error.cause !== 'FILE_ALREADY_EXISTS') {
           return;
         }
         return this.rfs.searchWith(folderParentId, folderPath);

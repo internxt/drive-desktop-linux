@@ -39,11 +39,7 @@ export const LazyVirtualDriveHydrator = Symbol('LazyVirtualDriveHydrator');
 
 export type LazyVirtualDriveHydrator = ReturnType<typeof createLazyVirtualDriveHydrator>;
 
-export function createLazyVirtualDriveHydrator({
-  folderRepository,
-  fileRepository,
-  directoryStateRepository,
-}: Props) {
+export function createLazyVirtualDriveHydrator({ folderRepository, fileRepository, directoryStateRepository }: Props) {
   const inflight = new Map<string, Promise<void>>();
 
   async function readDirectory({ path: requestedPath }: ReadDirectoryProps) {
@@ -128,13 +124,7 @@ export function createLazyVirtualDriveHydrator({
     return task;
   }
 
-  async function fetchAndStoreChildren({
-    folder,
-    statusScope,
-  }: {
-    folder: Folder;
-    statusScope: DirectoryStatusScope;
-  }) {
+  async function fetchAndStoreChildren({ folder, statusScope }: { folder: Folder; statusScope: DirectoryStatusScope }) {
     try {
       const { data, error } = await fetchFolder(folder.uuid);
 

@@ -36,7 +36,11 @@ describe('virtual-drive.service', () => {
     startFuseDaemonServer.mockResolvedValue(undefined);
     startHydrationApi.mockResolvedValue(undefined);
     getRootVirtualDrive.mockReturnValue('/mock/root/');
-    getUser.mockReturnValue({ root_folder_id: 99, rootFolderId: '123e4567-e89b-12d3-a456-426614174000', createdAt: '2026-01-01T00:00:00.000Z' } as never);
+    getUser.mockReturnValue({
+      root_folder_id: 99,
+      rootFolderId: '123e4567-e89b-12d3-a456-426614174000',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    } as never);
     buildContainer.mockResolvedValue(containerMock);
     deleteAll.mockResolvedValue(undefined);
     add.mockResolvedValue(undefined);

@@ -73,7 +73,11 @@ export function createTemporalFileUploadQueue({ repository, uploader, deleter, f
           if (error instanceof UploadSizeLimitError) {
             await preserveRejected(task);
           } else {
-            logger.error({ msg: '[UploadQueue] Upload failed, keeping staged file in queue folder', error, path: task.path });
+            logger.error({
+              msg: '[UploadQueue] Upload failed, keeping staged file in queue folder',
+              error,
+              path: task.path,
+            });
           }
         } finally {
           tasks.shift();

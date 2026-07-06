@@ -83,39 +83,38 @@ export async function getAttributes(
   const document = await container.get(TemporalFileByPathFinder).run(path);
 
   if (document) {
+    await container.get(LazyVirtualDriveHydrator).ensurePathLoaded({ path });
 
-  await container.get(LazyVirtualDriveHydrator).ensurePathLoaded({ path });
+    const hydratedEntry = await findLocalEntry(path, container);
+    if (hydratedEntry.file) {
+      return {
+        data: {
+          mode: FILE_MODE,
+          size: hydratedEntry.file.size,
+          ctime: hydratedEntry.file.createdAt,
+          mtime: hydratedEntry.file.updatedAt,
+          atime: new Date(),
+          uid: process.getuid?.() || 0,
+          gid: process.getgid?.() || 0,
+          nlink: 1,
+        },
+      };
+    }
 
-  const hydratedEntry = await findLocalEntry(path, container);
-  if (hydratedEntry.file) {
-    return {
-      data: {
-        mode: FILE_MODE,
-        size: hydratedEntry.file.size,
-        ctime: hydratedEntry.file.createdAt,
-        mtime: hydratedEntry.file.updatedAt,
-        atime: new Date(),
-        uid: process.getuid?.() || 0,
-        gid: process.getgid?.() || 0,
-        nlink: 1,
-      },
-    };
-  }
-
-  if (hydratedEntry.folder) {
-    return {
-      data: {
-        mode: FOLDER_MODE,
-        size: 0,
-        ctime: hydratedEntry.folder.createdAt,
-        mtime: hydratedEntry.folder.updatedAt,
-        atime: hydratedEntry.folder.createdAt,
-        uid: process.getuid?.() || 0,
-        gid: process.getgid?.() || 0,
-        nlink: 2,
-      },
-    };
-  }
+    if (hydratedEntry.folder) {
+      return {
+        data: {
+          mode: FOLDER_MODE,
+          size: 0,
+          ctime: hydratedEntry.folder.createdAt,
+          mtime: hydratedEntry.folder.updatedAt,
+          atime: hydratedEntry.folder.createdAt,
+          uid: process.getuid?.() || 0,
+          gid: process.getgid?.() || 0,
+          nlink: 2,
+        },
+      };
+    }
 
     return {
       data: {

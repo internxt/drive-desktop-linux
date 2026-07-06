@@ -8,14 +8,20 @@ import {
   createDirectoryStateSqliteRepository,
   DirectoryStateSqliteRepository,
 } from '../../../../backend/features/virtual-drive/services/lazy/DirectoryStateSqliteRepository';
-import { createLazyVirtualDriveHydrator, LazyVirtualDriveHydrator } from '../../../../backend/features/virtual-drive/services/lazy/LazyVirtualDriveHydrator';
+import {
+  createLazyVirtualDriveHydrator,
+  LazyVirtualDriveHydrator,
+} from '../../../../backend/features/virtual-drive/services/lazy/LazyVirtualDriveHydrator';
 
 export async function registerVirtualDriveSharedServices(builder: ContainerBuilder): Promise<void> {
   const downloaded = PATHS.DOWNLOADED;
 
   builder.register(RelativePathToAbsoluteConverter).useFactory(() => new RelativePathToAbsoluteConverter(downloaded));
   builder.register(AbsolutePathToRelativeConverter).useFactory(() => new AbsolutePathToRelativeConverter(downloaded));
-  builder.register(DirectoryStateSqliteRepository).useFactory(() => createDirectoryStateSqliteRepository()).asSingleton();
+  builder
+    .register(DirectoryStateSqliteRepository)
+    .useFactory(() => createDirectoryStateSqliteRepository())
+    .asSingleton();
   builder
     .register(LazyVirtualDriveHydrator)
     .useFactory((container) =>

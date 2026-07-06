@@ -1,6 +1,10 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import eventBus from '../../apps/main/event-bus';
-import { AppDataSource, initializeVirtualDriveSqlite, resetAppDataSourceOnLogout } from '../../apps/main/database/data-source';
+import {
+  AppDataSource,
+  initializeVirtualDriveSqlite,
+  resetAppDataSourceOnLogout,
+} from '../../apps/main/database/data-source';
 import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from '../../apps/main/windows/widget';
 import { createAuthWindow, getAuthWindow } from '../../apps/main/windows/auth';
 import configStore from '../../apps/main/config';
