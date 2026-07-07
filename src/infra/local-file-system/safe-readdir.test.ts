@@ -1,4 +1,3 @@
-import type { Dirent } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 import { safeReadDir } from './safe-readdir';
