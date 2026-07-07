@@ -44,7 +44,11 @@ export async function initializeVirtualDriveSqlite() {
   }
 
   for (const statement of SQLITE_BOOTSTRAP_STATEMENTS) {
-    await AppDataSource.query(statement);
+    try {
+      await AppDataSource.query(statement);
+    } catch (error) {
+      logger.error({ msg: 'Error running SQLite bootstrap statement', statement, error });
+    }
   }
 }
 
