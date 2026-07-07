@@ -7,37 +7,10 @@ import { readChunkFromDisk } from './read-chunk-from-disk';
 import nodePath from 'node:path';
 import { PATHS } from '../../../../core/electron/paths';
 import { EMPTY } from './constants';
+import { getReadPrefetchBlocksAhead } from './download-cache/constants';
 import { readOrHydrate } from './read-or-hydrate';
 import { type HandleReadDeps, type ReadRange } from './types';
 import { isThumbnailProcess } from './thumbnail-processes';
-
-const PREFETCH_DEFAULT_BLOCKS_AHEAD = 5;
-const PREFETCH_MAX_BLOCKS_AHEAD = 8;
-
-function getPrefetchBlocksAhead({ configuredValue }: { configuredValue: string | undefined }) {
-  if (!configuredValue) {
-    return PREFETCH_DEFAULT_BLOCKS_AHEAD;
-  }
-
-  const parsed = Number.parseInt(configuredValue, 10);
-  if (Number.isNaN(parsed)) {
-    return PREFETCH_DEFAULT_BLOCKS_AHEAD;
-  }
-
-  return Math.max(0, Math.min(parsed, PREFETCH_MAX_BLOCKS_AHEAD));
-}
-
-function getThumbnailPrefetchBlocksAhead() {
-  return getPrefetchBlocksAhead({
-    configuredValue: process.env.INTERNXT_DRIVE_THUMBNAIL_PREFETCH_BLOCKS_AHEAD,
-  });
-}
-
-function getReadPrefetchBlocksAhead() {
-  return getPrefetchBlocksAhead({
-    configuredValue: process.env.INTERNXT_DRIVE_READ_PREFETCH_BLOCKS_AHEAD,
-  });
-}
 
 export type HandleReadCallbackProps = HandleReadDeps & {
   findVirtualFile: (path: string) => Promise<File | undefined>;
@@ -91,7 +64,7 @@ export async function handleReadCallback({
       virtualFile,
       filePath,
       range,
-      prefetchBlocksAhead: getThumbnailPrefetchBlocksAhead(),
+      prefetchBlocksAhead: 0,
     });
   }
 

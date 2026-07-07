@@ -12,34 +12,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { getCredentials } from '../../../../../apps/main/auth/get-credentials';
 import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
 import { buildNetworkClient } from '../../../../../infra/environment/download-file/build-network-client';
-
-const PROGRESS_UPDATE_INTERVAL_MS = 250;
-
-type ProgressReporterState = {
-  lastUpdateAt: number;
-};
-
-function shouldEmitProgress({
-  now,
-  bytesDownloaded,
-  fileSize,
-  state,
-}: {
-  now: number;
-  bytesDownloaded: number;
-  fileSize: number;
-  state: ProgressReporterState;
-}) {
-  const reachedEnd = bytesDownloaded >= fileSize;
-  const elapsedSinceLastUpdate = now - state.lastUpdateAt;
-
-  if (!reachedEnd && elapsedSinceLastUpdate < PROGRESS_UPDATE_INTERVAL_MS) {
-    return false;
-  }
-
-  state.lastUpdateAt = now;
-  return true;
-}
+import { shouldEmitProgress, type ProgressReporterState } from './should-emit-progress';
 
 export async function read(
   path: string,
@@ -60,14 +33,7 @@ export async function read(
       findVirtualFile: (p) => container.get(FirstsFileSearcher).run({ path: p }),
       findTemporalFile: (p) => container.get(TemporalFileByPathFinder).run(p),
       onDownloadProgress: (name, extension, bytesDownloaded, fileSize, elapsedTime) => {
-        if (
-          !shouldEmitProgress({
-            now: Date.now(),
-            bytesDownloaded,
-            fileSize,
-            state: progressReporterState,
-          })
-        ) {
+        if (!shouldEmitProgress({ bytesDownloaded, fileSize, state: progressReporterState })) {
           return;
         }
 

@@ -258,18 +258,6 @@ async function ensureRangeDownloaded({
       const end = Math.min(start + BLOCK_SIZE, virtualFile.size);
       const boundedBlockLength = end - start;
 
-      if (boundedBlockLength <= 0) {
-        logger.debug({
-          msg: '[ReadCallback] skipping invalid download block outside file bounds',
-          file: virtualFile.nameWithExtension,
-          block,
-          start,
-          end,
-          fileSize: virtualFile.size,
-        });
-        return Promise.resolve({ data: undefined });
-      }
-
       const download = downloadAndCacheBlock({
         bucketId,
         mnemonic,
