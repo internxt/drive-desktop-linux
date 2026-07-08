@@ -11,9 +11,9 @@ import { refreshChildrenIfNeeded } from './refresh-children-if-needed';
 import { fetchAndStoreChildren } from './fetch-and-store-children';
 import { readLocalDirectory } from './children';
 
-export const LazyVirtualDriveHydrator = Symbol(
-  'LazyVirtualDriveHydrator',
-) as unknown as Identifier<ReturnType<typeof createLazyVirtualDriveHydratorService>>;
+export const LazyVirtualDriveHydrator = Symbol('LazyVirtualDriveHydrator') as unknown as Identifier<
+  ReturnType<typeof createLazyVirtualDriveHydratorService>
+>;
 
 export type LazyVirtualDriveHydrator = ReturnType<typeof createLazyVirtualDriveHydratorService>;
 

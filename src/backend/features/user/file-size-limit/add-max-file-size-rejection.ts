@@ -6,11 +6,7 @@ import {
   isUploadSizeLimitBlockedPath,
   markUploadSizeLimitBlockedPath,
 } from './upload-size-limit-blocked-paths';
-export {
-  clearUploadSizeLimitBlockedPath,
-  isUploadSizeLimitBlockedPath,
-  markUploadSizeLimitBlockedPath,
-};
+export { clearUploadSizeLimitBlockedPath, isUploadSizeLimitBlockedPath, markUploadSizeLimitBlockedPath };
 
 type MaxFileSizeRejectionModalState = {
   rejectedFilesCount: number;
