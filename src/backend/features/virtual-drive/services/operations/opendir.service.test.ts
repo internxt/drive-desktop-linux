@@ -5,7 +5,7 @@ import { TemporalFileByFolderFinder } from '../../../../../context/storage/Tempo
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FILE_MODE, FOLDER_MODE } from '../../constants';
 import type { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
-import { LazyVirtualDriveHydrator } from '../lazy/LazyVirtualDriveHydrator';
+import { LazyVirtualDriveHydrator } from '../lazy/virtual-drive-hydrator/create-lazy-virtual-drive-hydrator-service';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 
 describe('opendir', () => {

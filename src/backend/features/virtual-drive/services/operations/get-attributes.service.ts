@@ -7,7 +7,7 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
-import { LazyVirtualDriveHydrator } from '../lazy/LazyVirtualDriveHydrator';
+import { LazyVirtualDriveHydrator } from '../lazy/virtual-drive-hydrator/create-lazy-virtual-drive-hydrator-service';
 
 async function findLocalEntry(path: string, container: Container) {
   const file = await container.get(FirstsFileSearcher).run({

@@ -1,8 +1,16 @@
 import { MODAL_DEBOUNCE_MS } from './constants';
 import { showMaxFileSizeRejectionModal } from './show-max-file-size-rejection-modal';
 import { type UploadFileSizeValidation } from './validate-upload-file-size';
-
-const uploadSizeLimitBlockedPaths = new Set<string>();
+import {
+  clearUploadSizeLimitBlockedPath,
+  isUploadSizeLimitBlockedPath,
+  markUploadSizeLimitBlockedPath,
+} from './upload-size-limit-blocked-paths';
+export {
+  clearUploadSizeLimitBlockedPath,
+  isUploadSizeLimitBlockedPath,
+  markUploadSizeLimitBlockedPath,
+};
 
 type MaxFileSizeRejectionModalState = {
   rejectedFilesCount: number;
@@ -22,18 +30,6 @@ type MaxFileSizeRejection = {
 type MaxFileSizeRejectionModalDraft = Omit<MaxFileSizeRejectionModalState, 'timeout'>;
 
 let state: MaxFileSizeRejectionModalState | undefined;
-
-export function markUploadSizeLimitBlockedPath(path: string): void {
-  uploadSizeLimitBlockedPaths.add(path);
-}
-
-export function isUploadSizeLimitBlockedPath(path: string): boolean {
-  return uploadSizeLimitBlockedPaths.has(path);
-}
-
-export function clearUploadSizeLimitBlockedPath(path: string): void {
-  uploadSizeLimitBlockedPaths.delete(path);
-}
 
 export function addMaxFileSizeRejection(rejection: MaxFileSizeRejection): void {
   if (rejection.blockUploadPath ?? true) {

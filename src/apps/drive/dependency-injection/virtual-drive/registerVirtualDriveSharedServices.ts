@@ -9,9 +9,9 @@ import {
   DirectoryStateSqliteRepository,
 } from '../../../../backend/features/virtual-drive/services/lazy/DirectoryStateSqliteRepository';
 import {
-  createLazyVirtualDriveHydrator,
+  createLazyVirtualDriveHydratorService,
   LazyVirtualDriveHydrator,
-} from '../../../../backend/features/virtual-drive/services/lazy/LazyVirtualDriveHydrator';
+} from '../../../../backend/features/virtual-drive/services/lazy/virtual-drive-hydrator/create-lazy-virtual-drive-hydrator-service';
 
 export async function registerVirtualDriveSharedServices(builder: ContainerBuilder): Promise<void> {
   const downloaded = PATHS.DOWNLOADED;
@@ -25,7 +25,7 @@ export async function registerVirtualDriveSharedServices(builder: ContainerBuild
   builder
     .register(LazyVirtualDriveHydrator)
     .useFactory((container) =>
-      createLazyVirtualDriveHydrator({
+      createLazyVirtualDriveHydratorService({
         folderRepository: container.get(FolderRepository),
         fileRepository: container.get(FileRepository),
         directoryStateRepository: container.get(DirectoryStateSqliteRepository),

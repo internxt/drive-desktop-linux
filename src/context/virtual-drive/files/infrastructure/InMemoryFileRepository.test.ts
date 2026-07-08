@@ -457,4 +457,31 @@ describe('InMemoryFileRepository', () => {
       expect(await sut.searchByUuid('550e8400-e29b-41d4-a716-446655440018')).toBeDefined();
     });
   });
+
+  describe('deleteMatchingPartial', () => {
+    it('should delete files when contentsId matches after normalization', async () => {
+      const normalizedContentsId = 'aaaaaaaaaaaaaaaaaaaaaaa\u00E9';
+      const decomposedContentsId = 'aaaaaaaaaaaaaaaaaaaaaaae\u0301';
+      const uuid = '550e8400-e29b-41d4-a716-446655440099';
+
+      await sut.upsert(
+        File.from({
+          id: 1,
+          uuid,
+          contentsId: normalizedContentsId,
+          folderId: 100,
+          createdAt: '10-03-2025',
+          modificationTime: '10-03-2025',
+          path: '/documents/file.txt',
+          size: 1000,
+          updatedAt: '10-03-2025',
+          status: FileStatuses.EXISTS,
+        }),
+      );
+
+      await sut.deleteMatchingPartial({ contentsId: decomposedContentsId });
+
+      expect(await sut.searchByUuid(uuid)).toBeUndefined();
+    });
+  });
 });

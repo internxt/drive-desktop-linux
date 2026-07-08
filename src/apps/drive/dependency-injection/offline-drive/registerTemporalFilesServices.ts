@@ -9,10 +9,8 @@ import { TemporalFileByFolderFinder } from '../../../../context/storage/Temporal
 import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFilePathsByFolderFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFilePathsByFolderFinder';
 import { TemporalFileTruncater } from '../../../../context/storage/TemporalFiles/application/truncate/TemporalFileTruncater';
-import {
-  createTemporalFileUploadQueue,
-  TemporalFileUploadQueue,
-} from '../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploadQueue';
+import { createTemporalFileUploadQueueService } from '../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploadQueue/create-temporal-file-upload-queue-service';
+import { TemporalFileUploadQueue } from '../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploadQueue/types';
 import { TemporalFileUploader } from '../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileWriter } from '../../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { TemporalFileRepository } from '../../../../context/storage/TemporalFiles/domain/TemporalFileRepository';
@@ -60,7 +58,7 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
   builder
     .register(TemporalFileUploadQueue)
     .useFactory((container) =>
-      createTemporalFileUploadQueue({
+      createTemporalFileUploadQueueService({
         repository: container.get(TemporalFileRepository),
         uploader: container.get(TemporalFileUploader),
         deleter: container.get(TemporalFileDeleter),

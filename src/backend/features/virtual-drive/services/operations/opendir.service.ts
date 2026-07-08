@@ -4,7 +4,7 @@ import { FILE_MODE, FOLDER_MODE } from '../../constants';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { TemporalFileByFolderFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { LazyVirtualDriveHydrator } from '../lazy/LazyVirtualDriveHydrator';
+import { LazyVirtualDriveHydrator } from '../lazy/virtual-drive-hydrator/create-lazy-virtual-drive-hydrator-service';
 
 export type DirEntry = {
   name: string;

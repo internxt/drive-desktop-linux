@@ -1,8 +1,8 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mockDeep } from 'vitest-mock-extended';
-import { Container, type Identifier } from 'diod';
 import { release } from './release.service';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
-import { TemporalFileUploadQueue } from '../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploadQueue';
+import type { TemporalFileUploadQueue as TemporalFileUploadQueueService } from '../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploadQueue/types';
 import { TemporalFileDeleter } from '../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
@@ -13,7 +13,9 @@ import {
   clearUploadSizeLimitBlockedPath,
   isUploadSizeLimitBlockedPath,
   markUploadSizeLimitBlockedPath,
-} from '../../../user/file-size-limit/add-max-file-size-rejection';
+} from '../../../user/file-size-limit/upload-size-limit-blocked-paths';
+
+vi.mock('../../../user/file-size-limit', () => ({}));
 
 const { addVirtualDriveIssueMock } = vi.hoisted(() => ({
   addVirtualDriveIssueMock: vi.fn(),
@@ -27,25 +29,16 @@ function createTemporalFile(path: string): TemporalFile {
   return TemporalFile.from({ path, size: 100, createdAt: new Date(), modifiedAt: new Date() });
 }
 
-function asIdentifier(identifier: unknown): Identifier<unknown> {
-  return identifier as unknown as Identifier<unknown>;
-}
-
 function createAuxiliaryFile(path: string): TemporalFile {
   return TemporalFile.from({ path, size: 0, createdAt: new Date(), modifiedAt: new Date() });
 }
 
 describe('release', () => {
-  let container: ReturnType<typeof mockDeep<Container>>;
   const finder = mockDeep<TemporalFileByPathFinder>();
-  const queue = mockDeep<TemporalFileUploadQueue>();
+  const queue = mockDeep<TemporalFileUploadQueueService>();
   const deleter = mockDeep<TemporalFileDeleter>();
 
   beforeEach(() => {
-    container = mockDeep<Container>();
-    container.get.calledWith(asIdentifier(TemporalFileByPathFinder)).mockReturnValue(finder);
-    container.get.calledWith(asIdentifier(TemporalFileUploadQueue)).mockReturnValue(queue);
-    container.get.calledWith(asIdentifier(TemporalFileDeleter)).mockReturnValue(deleter);
     addVirtualDriveIssueMock.mockReset();
     queue.enqueue.mockResolvedValue(undefined);
     clearUploadSizeLimitBlockedPath('/Documents/report.pdf');
@@ -55,7 +48,13 @@ describe('release', () => {
     it('should return success without uploading', async () => {
       finder.run.mockResolvedValue(undefined);
 
-      const { data, error } = await release({ path: '/Documents/file.pdf', processName: 'cat', container });
+      const { data, error } = await release({
+        path: '/Documents/file.pdf',
+        processName: 'cat',
+        findTemporalFileByPath: finder.run.bind(finder),
+        deleteTemporalFile: deleter.run.bind(deleter),
+        enqueueTemporalFile: queue.enqueue.bind(queue),
+      });
 
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
@@ -67,7 +66,13 @@ describe('release', () => {
     it('should return success, skip upload and delete it', async () => {
       finder.run.mockResolvedValue(createAuxiliaryFile('/Documents/.~lock.file.odt#'));
 
-      const { data, error } = await release({ path: '/Documents/.~lock.file.odt#', processName: 'cat', container });
+      const { data, error } = await release({
+        path: '/Documents/.~lock.file.odt#',
+        processName: 'cat',
+        findTemporalFileByPath: finder.run.bind(finder),
+        deleteTemporalFile: deleter.run.bind(deleter),
+        enqueueTemporalFile: queue.enqueue.bind(queue),
+      });
 
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
@@ -81,7 +86,13 @@ describe('release', () => {
       const temporalFile = createTemporalFile('/Documents/report.pdf');
       finder.run.mockResolvedValue(temporalFile);
 
-      const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
+      const { data, error } = await release({
+        path: '/Documents/report.pdf',
+        processName: 'cat',
+        findTemporalFileByPath: finder.run.bind(finder),
+        deleteTemporalFile: deleter.run.bind(deleter),
+        enqueueTemporalFile: queue.enqueue.bind(queue),
+      });
 
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
@@ -93,7 +104,13 @@ describe('release', () => {
       finder.run.mockResolvedValue(temporalFile);
       markUploadSizeLimitBlockedPath('/Documents/report.pdf');
 
-      const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
+      const { data, error } = await release({
+        path: '/Documents/report.pdf',
+        processName: 'cat',
+        findTemporalFileByPath: finder.run.bind(finder),
+        deleteTemporalFile: deleter.run.bind(deleter),
+        enqueueTemporalFile: queue.enqueue.bind(queue),
+      });
 
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
@@ -106,7 +123,13 @@ describe('release', () => {
       finder.run.mockResolvedValue(createTemporalFile('/Documents/report.pdf'));
       queue.enqueue.mockRejectedValue(new UploadSizeLimitError());
 
-      const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
+      const { data, error } = await release({
+        path: '/Documents/report.pdf',
+        processName: 'cat',
+        findTemporalFileByPath: finder.run.bind(finder),
+        deleteTemporalFile: deleter.run.bind(deleter),
+        enqueueTemporalFile: queue.enqueue.bind(queue),
+      });
 
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
@@ -117,7 +140,13 @@ describe('release', () => {
       finder.run.mockResolvedValue(createTemporalFile('/Documents/report.pdf'));
       queue.enqueue.mockRejectedValue(new DriveDesktopError('NOT_ENOUGH_SPACE', 'No space left'));
 
-      const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
+      const { data, error } = await release({
+        path: '/Documents/report.pdf',
+        processName: 'cat',
+        findTemporalFileByPath: finder.run.bind(finder),
+        deleteTemporalFile: deleter.run.bind(deleter),
+        enqueueTemporalFile: queue.enqueue.bind(queue),
+      });
 
       expect(data).toBeUndefined();
       expect(error?.code).toBe(FuseCodes.EIO);
@@ -133,7 +162,13 @@ describe('release', () => {
       finder.run.mockResolvedValue(createTemporalFile('/Documents/report.pdf'));
       queue.enqueue.mockRejectedValue(new Error('Network error'));
 
-      const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
+      const { data, error } = await release({
+        path: '/Documents/report.pdf',
+        processName: 'cat',
+        findTemporalFileByPath: finder.run.bind(finder),
+        deleteTemporalFile: deleter.run.bind(deleter),
+        enqueueTemporalFile: queue.enqueue.bind(queue),
+      });
 
       expect(data).toBeUndefined();
       expect(error?.code).toBe(FuseCodes.EIO);
@@ -145,7 +180,13 @@ describe('release', () => {
     it('should return EIO without uploading or deleting', async () => {
       finder.run.mockRejectedValue(new Error('DB error'));
 
-      const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
+      const { data, error } = await release({
+        path: '/Documents/report.pdf',
+        processName: 'cat',
+        findTemporalFileByPath: finder.run.bind(finder),
+        deleteTemporalFile: deleter.run.bind(deleter),
+        enqueueTemporalFile: queue.enqueue.bind(queue),
+      });
 
       expect(data).toBeUndefined();
       expect(error?.code).toBe(FuseCodes.EIO);

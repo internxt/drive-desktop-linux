@@ -9,7 +9,7 @@ import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import type { File } from '../../../../../context/virtual-drive/files/domain/File';
 import type { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import type { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
-import { LazyVirtualDriveHydrator } from '../lazy/LazyVirtualDriveHydrator';
+import { LazyVirtualDriveHydrator } from '../lazy/virtual-drive-hydrator/create-lazy-virtual-drive-hydrator-service';
 
 vi.mock('@internxt/drive-desktop-core/build/backend');
 
