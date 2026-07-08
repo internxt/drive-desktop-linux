@@ -37,7 +37,11 @@ export class TemporalFileUploader {
     });
 
     if (!sizeValidation.allowed) {
-      addMaxFileSizeRejection({ path: temporalFile.path.value, fileSize: temporalFile.size.value, validation: sizeValidation });
+      addMaxFileSizeRejection({
+        path: temporalFile.path.value,
+        fileSize: temporalFile.size.value,
+        validation: sizeValidation,
+      });
 
       throw new UploadSizeLimitError();
     }
@@ -48,7 +52,10 @@ export class TemporalFileUploader {
     }
 
     if (spaceValidation.data.hasSpace === false) {
-      throw new DriveDesktopError('NOT_ENOUGH_SPACE', 'The size of the file to upload is greater than the available space');
+      throw new DriveDesktopError(
+        'NOT_ENOUGH_SPACE',
+        'The size of the file to upload is greater than the available space',
+      );
     }
 
     const controller = new AbortController();
