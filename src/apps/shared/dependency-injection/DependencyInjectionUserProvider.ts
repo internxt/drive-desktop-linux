@@ -8,7 +8,7 @@ function getUser(): User | null {
 }
 
 export class DependencyInjectionUserProvider {
-  private static _user: User;
+  private static _user: User | null = null;
 
   static get() {
     if (DependencyInjectionUserProvider._user) return DependencyInjectionUserProvider._user;
@@ -26,5 +26,9 @@ export class DependencyInjectionUserProvider {
   static updateUser(user: User) {
     DependencyInjectionUserProvider._user = user;
     ConfigStore.set('userData', user);
+  }
+
+  static clearUser() {
+    DependencyInjectionUserProvider._user = null;
   }
 }

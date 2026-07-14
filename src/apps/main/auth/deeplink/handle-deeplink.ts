@@ -9,6 +9,7 @@ import { processDeeplink } from './proccess-deeplink';
 import { initializeCurrentUser } from './initialize_current_user';
 import configStore from '../../config';
 import { PATHS } from '../../../../core/electron/paths';
+import { waitForLogoutToFinish } from '../logout';
 
 type Props = {
   url: string;
@@ -16,6 +17,8 @@ type Props = {
 
 export async function handleDeeplink({ url }: Props) {
   try {
+    await waitForLogoutToFinish();
+
     const deeplinkParams = await processDeeplink({ url });
 
     if (!deeplinkParams) {

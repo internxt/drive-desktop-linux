@@ -51,6 +51,7 @@ vi.mock('electron-store', () => {
       return {
         get: vi.fn(),
         set: vi.fn(),
+        delete: vi.fn(),
         clear: vi.fn(),
       };
     }),

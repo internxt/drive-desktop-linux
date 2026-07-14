@@ -1,6 +1,6 @@
 import { AuthService } from './auth.service';
 import * as authClientModule from './auth.client';
-import * as authServiceModule from '../../../../apps/main/auth/service';
+import * as authHeadersModule from '../../../../apps/main/auth/headers';
 import { LoginAccessRequest, LoginAccessResponse, LoginResponse } from './auth.types';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
@@ -25,8 +25,8 @@ vi.mock('../../drive-server.module', () => ({
 
 describe('AuthService', () => {
   let sut: AuthService;
-  const getNewApiHeadersMock = partialSpyOn(authServiceModule, 'getNewApiHeaders');
-  const getBaseApiHeadersMock = partialSpyOn(authServiceModule, 'getBaseApiHeaders');
+  const getNewApiHeadersMock = partialSpyOn(authHeadersModule, 'getNewApiHeaders');
+  const getBaseApiHeadersMock = partialSpyOn(authHeadersModule, 'getBaseApiHeaders');
   const authGetMock = partialSpyOn(authClientModule.authClient, 'GET') as unknown as MockInstance;
   const authPostMock = partialSpyOn(authClientModule.authClient, 'POST') as unknown as MockInstance;
 

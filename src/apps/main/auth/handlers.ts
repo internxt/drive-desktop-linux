@@ -3,8 +3,10 @@ import { ipcMain } from 'electron';
 import eventBus from '../event-bus';
 import { getWidget } from '../windows/widget';
 import { createTokenScheduleWithRetry } from './refresh-token/create-token-schedule-with-retry';
-import { getNewApiHeaders, getUser, logout } from './service';
+import { getNewApiHeaders } from './headers';
+import { getUser } from './user-session';
 import { getCredentials } from './get-credentials';
+import { logout } from './logout';
 
 let isLoggedIn = false;
 
@@ -32,7 +34,7 @@ ipcMain.handle('get-headers-for-new-api', () => getNewApiHeaders());
 
 export function closeUserSession() {
   setIsLoggedIn(false);
-  logout();
+  void logout();
 }
 
 ipcMain.on('user-logged-out', closeUserSession);

@@ -6,9 +6,9 @@ import eventBus from '../../../../apps/main/event-bus';
 import { getUserAvailableProductsAndStore } from './get-user-available-products-and-store';
 import * as getCredentialsModule from '../../../../apps/main/auth/get-credentials';
 
-vi.mock(import('../../../../apps/shared/HttpClient/background-process-clients'));
 vi.mock(import('../../../../apps/main/auth/service'));
 vi.mock(import('../../../../apps/main/app-info/app-info'));
+vi.mock(import('../../../../apps/main/auth/handlers'));
 
 const fetchedProducts: UserAvailableProducts = {
   antivirus: true,
@@ -33,18 +33,18 @@ describe('getUserAvailableProductsAndStore', () => {
 
     await getUserAvailableProductsAndStore();
 
-    expect(configSetMock).not.toBeCalled();
-    expect(eventBusEmitMock).not.toBeCalled();
+    expect(configSetMock).not.toHaveBeenCalled();
+    expect(eventBusEmitMock).not.toHaveBeenCalled();
   });
 
-  it('should not store or emit when products are equal', async () => {
+  it('should not store when products are equal but should still emit update', async () => {
     getUserAvailableProductsMock.mockResolvedValue(fetchedProducts);
     areProductsEqualMock.mockReturnValue(true);
 
     await getUserAvailableProductsAndStore();
 
-    expect(configSetMock).not.toBeCalled();
-    expect(eventBusEmitMock).not.toBeCalled();
+    expect(configSetMock).not.toHaveBeenCalled();
+    call(eventBusEmitMock).toStrictEqual(['USER_AVAILABLE_PRODUCTS_UPDATED', fetchedProducts]);
   });
 
   it('should store and emit when products differ', async () => {

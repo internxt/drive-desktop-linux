@@ -65,7 +65,7 @@ export class TokenScheduler {
     return { isRetryable: false, job };
   }
 
-  public cancelAll(): void {
+  public static cancelAll(): void {
     Object.keys(nodeSchedule.scheduledJobs).forEach((jobName: string) => nodeSchedule.cancelJob(jobName));
   }
 }

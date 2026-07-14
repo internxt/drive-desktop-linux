@@ -32,7 +32,7 @@ interface Events {
 
   GET_USER_AVAILABLE_PRODUCTS: () => void;
 
-  USER_AVAILABLE_PRODUCTS_UPDATED: (products: UserAvailableProducts) => void;
+  USER_AVAILABLE_PRODUCTS_UPDATED: (products: UserAvailableProducts | undefined) => void;
 }
 
 class EventBus extends EventEmitter {
