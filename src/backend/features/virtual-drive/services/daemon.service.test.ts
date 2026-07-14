@@ -2,9 +2,14 @@ import { EventEmitter } from 'node:events';
 import { spawn } from 'node:child_process';
 import { resolveDaemonReady, stopDaemon, startDaemon } from './daemon.service';
 
-vi.mock('node:child_process', () => ({
-  spawn: vi.fn(),
-}));
+vi.mock('node:child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:child_process')>();
+
+  return {
+    ...actual,
+    spawn: vi.fn(),
+  };
+});
 
 function getBootIdFromSpawnCall() {
   const latestCall = vi.mocked(spawn).mock.calls.at(-1);
