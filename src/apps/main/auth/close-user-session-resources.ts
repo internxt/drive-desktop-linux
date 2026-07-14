@@ -37,12 +37,17 @@ async function runCleanupStep({ step, task }: CleanupStepProps) {
 async function executeCloseUserSessionResources() {
   logger.debug({ tag: 'AUTH', msg: '[LOGOUT] Closing user session resources' });
 
-  resetTrayStatus('IDLE');
-  const widget = getWidget();
+  await runCleanupStep({
+    step: 'hide-widget-and-tray',
+    task: () => {
+      resetTrayStatus('IDLE');
+      const widget = getWidget();
 
-  if (widget && !widget.isDestroyed()) {
-    widget.hide();
-  }
+      if (widget && !widget.isDestroyed()) {
+        widget.hide();
+      }
+    },
+  });
 
   await runCleanupStep({
     step: 'clear-dependency-injection-user',
