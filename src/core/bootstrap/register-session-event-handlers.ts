@@ -1,7 +1,7 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import eventBus from '../../apps/main/event-bus';
 import { AppDataSource } from '../../apps/main/database/data-source';
-import { getOrCreateWidged, getWidget, setBoundsOfWidgetByPath } from '../../apps/main/windows/widget';
+import { getOrCreateWidged, setBoundsOfWidgetByPath } from '../../apps/main/windows/widget';
 import { getAuthWindow } from '../../apps/main/windows/auth';
 import configStore from '../../apps/main/config';
 import { getTray, resetTrayStatus } from '../../apps/main/tray/tray-setup';

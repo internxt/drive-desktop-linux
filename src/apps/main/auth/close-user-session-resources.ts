@@ -7,8 +7,7 @@ import { stopVirtualDriveOnce } from '../../../backend/features/virtual-drive/se
 import { resetAppDataSourceOnLogout } from '../database/data-source';
 import { uninstallNautilusExtension } from '../../../backend/features/nautilus-extension/uninstall';
 import { setInitialSyncState } from '../remote-sync/InitialSyncReady';
-import { remoteSyncManager } from '../remote-sync/service';
-import { cancelPendingRemoteSync } from '../remote-sync/service';
+import { remoteSyncManager, cancelPendingRemoteSync } from '../remote-sync/service';
 import { AntivirusScanService } from '../antivirus/AntivirusScanService';
 import { getAntivirusManager } from '../antivirus/antivirusManager';
 import { cleanupAntivirusIpc } from '../background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';

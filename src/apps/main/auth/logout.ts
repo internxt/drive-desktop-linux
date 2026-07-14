@@ -6,12 +6,12 @@ import eventBus from '../event-bus';
 import { closeUserSessionResources } from './close-user-session-resources';
 import { getUser } from './user-session';
 
-const keepFields: Array<keyof typeof defaults> = ['preferedLanguage', 'lastOnboardingShown'];
+const keepFields = new Set<keyof typeof defaults>(['preferedLanguage', 'lastOnboardingShown']);
 let logoutInFlight: Promise<void> | null = null;
 
 function resetConfig() {
   for (const field of fieldsToSave) {
-    if (!keepFields.includes(field)) {
+    if (!keepFields.has(field)) {
       ConfigStore.set(field, defaults[field]);
     }
   }
