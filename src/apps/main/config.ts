@@ -55,5 +55,9 @@ function set<T extends keyof AppStore>(key: T, value: AppStore[T]): void {
   configStore.set(key, value);
 }
 
-export const electronStore = { get, set };
+function remove<T extends keyof AppStore>(key: T): void {
+  configStore.delete(key);
+}
+
+export const electronStore = { get, set, delete: remove };
 export default electronStore;

@@ -11,6 +11,10 @@ vi.mock('../../../infra/drive-server/drive-server.module', () => ({
   },
 }));
 
+vi.mock('./close-user-session-resources', () => ({
+  closeUserSessionResources: vi.fn(async () => undefined),
+}));
+
 describe('saveConfig and canHisConfigBeRestored', () => {
   const mockConfigStoreGet = partialSpyOn(ConfigStore, 'get');
   const mockConfigStoreSet = partialSpyOn(ConfigStore, 'set');
@@ -80,7 +84,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
     mockConfigStoreSet.mockImplementation(setImpl);
   };
 
-  it('should save backupList and deviceUUID into savedConfigs during logout', () => {
+  it('should save backupList and deviceUUID into savedConfigs during logout', async () => {
     const configState = createConfigState({
       userData: fakeUser,
       backupList: fakeBackupList,
@@ -105,7 +109,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
 
     mockStoreForState(configState);
 
-    logout();
+    await logout();
 
     const savedConfigs = configState.savedConfigs;
     expect(savedConfigs).toBeDefined();
@@ -180,7 +184,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
     expect(result).toBe(false);
   });
 
-  it('should preserve backupList through full logout -> re-login cycle', () => {
+  it('should preserve backupList through full logout -> re-login cycle', async () => {
     const configState = createConfigState({
       userData: fakeUser,
       backupList: fakeBackupList,
@@ -205,7 +209,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
 
     mockStoreForState(configState);
 
-    logout();
+    await logout();
 
     expect(configState.backupList).toStrictEqual({});
     expect(configState.deviceUUID).toStrictEqual('');

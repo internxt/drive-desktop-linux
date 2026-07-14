@@ -7,6 +7,10 @@ const FIVE_SECONDS = 5 * 60;
 export class TokenScheduler {
   private static MAX_TIME = 8640000000000000;
 
+  public static cancelAllJobs(): void {
+    Object.keys(nodeSchedule.scheduledJobs).forEach((jobName: string) => nodeSchedule.cancelJob(jobName));
+  }
+
   constructor(
     private daysBefore: number,
     private readonly newToken: string,
@@ -66,6 +70,6 @@ export class TokenScheduler {
   }
 
   public cancelAll(): void {
-    Object.keys(nodeSchedule.scheduledJobs).forEach((jobName: string) => nodeSchedule.cancelJob(jobName));
+    TokenScheduler.cancelAllJobs();
   }
 }
