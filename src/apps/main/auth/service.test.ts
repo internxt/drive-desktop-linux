@@ -140,6 +140,7 @@ describe('saveConfig and canHisConfigBeRestored', () => {
         lastSync: -1,
         lastOnboardingShown: '2025-01-01',
         nautilusExtensionVersion: 0,
+        fileManagerExtensionVersion: 0,
         discoveredBackup: 1,
         backgroundScanEnabled: true,
         maxUploadFileSizeInBytes: 1024,

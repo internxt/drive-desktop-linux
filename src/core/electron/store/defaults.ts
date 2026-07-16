@@ -34,6 +34,7 @@ export const defaults: AppStore = {
 
   // Linux-specific: nautilus
   nautilusExtensionVersion: 0,
+  fileManagerExtensionVersion: 0,
   discoveredBackup: 0,
 
   // Drive
@@ -54,6 +55,7 @@ export const fieldsToSave: Array<keyof AppStore> = [
   'deviceUUID',
   'backupList',
   'nautilusExtensionVersion',
+  'fileManagerExtensionVersion',
   'discoveredBackup',
   'maxUploadFileSizeInBytes',
 ];

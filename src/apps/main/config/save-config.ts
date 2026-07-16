@@ -13,6 +13,7 @@ export const savedConfigFields = [
   'deviceUUID',
   'backupList',
   'nautilusExtensionVersion',
+  'fileManagerExtensionVersion',
   'discoveredBackup',
   'maxUploadFileSizeInBytes',
 ] as (keyof SavedConfig)[];
@@ -33,6 +34,7 @@ export function saveConfig({ uuid }: { uuid: string }) {
     deviceUUID: ConfigStore.get('deviceUUID'),
     backupList: ConfigStore.get('backupList'),
     nautilusExtensionVersion: ConfigStore.get('nautilusExtensionVersion'),
+    fileManagerExtensionVersion: ConfigStore.get('fileManagerExtensionVersion'),
     discoveredBackup: ConfigStore.get('discoveredBackup'),
     maxUploadFileSizeInBytes: ConfigStore.get('maxUploadFileSizeInBytes'),
   };

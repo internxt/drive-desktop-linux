@@ -34,6 +34,7 @@ const schema: Schema<AppStore> = {
   preferedTheme: { type: 'string' },
 
   nautilusExtensionVersion: { type: 'number' },
+  fileManagerExtensionVersion: { type: 'number' },
   discoveredBackup: { type: 'number' },
   availableUserProducts: { type: 'object' },
   maxUploadFileSizeInBytes: { type: 'number' },

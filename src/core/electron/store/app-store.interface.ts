@@ -18,6 +18,7 @@ export type SavedConfig = {
   deviceUUID: string;
   backupList: BackupList;
   nautilusExtensionVersion: number;
+  fileManagerExtensionVersion: number;
   discoveredBackup: number;
   maxUploadFileSizeInBytes: number;
 };
@@ -55,6 +56,7 @@ export type AppStore = {
 
   // Linux-specific: nautilus extension
   nautilusExtensionVersion: number;
+  fileManagerExtensionVersion: number;
   discoveredBackup: number;
 
   // Drive

@@ -1,0 +1,1 @@
+export const LATEST_EXTENSION_VERSION = 3;

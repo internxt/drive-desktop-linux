@@ -3,9 +3,7 @@
     "src/apps/main/main.ts",
     "src/apps/renderer/index.tsx",
     "src/apps/main/antivirus/ManualSystemScan.ts",
-    "src/apps/main/nautilus-extension/install.ts",
-    "src/apps/main/nautilus-extension/reload.ts",
-    "src/apps/main/nautilus-extension/uninstall.ts",
+    "src/backend/features/file-manager-extension/install.ts",
     "src/backend/features/virtual-drive/services/virtual-drive.service.ts"
   ],
   "exclude": [
