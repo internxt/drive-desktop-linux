@@ -75,7 +75,7 @@
       "category": "Development"
     },
     "deb": {
-      "depends": [
+      "recommends": [
         "python3-nautilus"
       ]
     },

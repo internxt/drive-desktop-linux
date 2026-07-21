@@ -1,4 +1,4 @@
-import { detectAvailableFileManager, isNautilusAvailable, isNemoAvailable } from './detect-available';
+import { detectAvailableFileManager, isDolphinAvailable, isNautilusAvailable, isNemoAvailable } from './detect-available';
 
 const { execAsyncMock } = vi.hoisted(() => ({
   execAsyncMock: vi.fn(),
@@ -21,9 +21,10 @@ type Props = {
   desktopEntry?: string;
   hasNautilus?: boolean;
   hasNemo?: boolean;
+  hasDolphin?: boolean;
 };
 
-function mockExecWith({ desktopEntry, hasNautilus = false, hasNemo = false }: Props) {
+function mockExecWith({ desktopEntry, hasNautilus = false, hasNemo = false, hasDolphin = false }: Props) {
   execAsyncMock.mockImplementation(async (command: string) => {
     if (command === 'xdg-mime query default inode/directory') {
       if (!desktopEntry) throw new Error('not found');
@@ -52,6 +53,17 @@ function mockExecWith({ desktopEntry, hasNautilus = false, hasNemo = false }: Pr
         } as ExecAsyncResult;
       } else {
         throw new Error('nemo not found');
+      }
+    }
+
+    if (command === 'command -v dolphin') {
+      if (hasDolphin) {
+        return {
+          stdout: '/usr/bin/dolphin\n',
+          stderr: '',
+        } as ExecAsyncResult;
+      } else {
+        throw new Error('dolphin not found');
       }
     }
 
@@ -85,6 +97,16 @@ describe('detect-available', () => {
       expect(result).toBe('nemo');
     });
 
+    it('should detect dolphin when it is the default directory manager', async () => {
+      mockExecWith({
+        desktopEntry: 'org.kde.dolphin.desktop',
+        hasDolphin: true,
+      });
+
+      const result = await detectAvailableFileManager();
+      expect(result).toBe('dolphin');
+    });
+
     it('should fallback to nemo if only nemo binary is available', async () => {
       mockExecWith({
         hasNemo: true,
@@ -92,6 +114,15 @@ describe('detect-available', () => {
 
       const result = await detectAvailableFileManager();
       expect(result).toBe('nemo');
+    });
+
+    it('should fallback to dolphin if only dolphin binary is available', async () => {
+      mockExecWith({
+        hasDolphin: true,
+      });
+
+      const result = await detectAvailableFileManager();
+      expect(result).toBe('dolphin');
     });
 
     it('should return null when no file manager is available', async () => {
@@ -136,6 +167,25 @@ describe('detect-available', () => {
       mockExecWith({});
 
       const result = await isNemoAvailable();
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isDolphinAvailable', () => {
+    it('should return true when dolphin is available', async () => {
+      mockExecWith({
+        desktopEntry: 'org.kde.dolphin.desktop',
+        hasDolphin: true,
+      });
+
+      const result = await isDolphinAvailable();
+      expect(result).toBe(true);
+    });
+
+    it('should return false when dolphin is not available', async () => {
+      mockExecWith({});
+
+      const result = await isDolphinAvailable();
       expect(result).toBe(false);
     });
   });

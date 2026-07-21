@@ -53,6 +53,17 @@ describe('service', () => {
       expect(result).toBe('nemo');
     });
 
+    it('should return dolphin when available', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
+
+      // When
+      const result = await getFileManagerType();
+
+      // Then
+      expect(result).toBe('dolphin');
+    });
+
     it('should return null when no file manager is available', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce(null);
@@ -112,6 +123,20 @@ describe('service', () => {
       // Then
       expect(result).toBe(true);
     });
+
+    it('should return true when dolphin extension assets exist', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
+      doesFileExistMock.mockResolvedValueOnce(true);
+      doesFileExistMock.mockResolvedValueOnce(true);
+      doesFileExistMock.mockResolvedValueOnce(true);
+
+      // When
+      const result = await isInstalled();
+
+      // Then
+      expect(result).toBe(true);
+    });
   });
 
   describe('reloadFileManager', () => {
@@ -154,6 +179,52 @@ describe('service', () => {
 
       // Then
       expect(execMock).toHaveBeenCalled();
+    });
+
+    it('should execute dolphin reload command when dolphin is available', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
+      execMock.mockImplementation((cmd, callback) => {
+        expect(cmd).toBe('kquitapp6 dolphin || kquitapp5 dolphin || true');
+        callback(null, '', '');
+      });
+
+      // When
+      await reloadFileManager();
+
+      // Then
+      expect(execMock).toHaveBeenCalled();
+    });
+
+    it('should ignore dolphin stderr when dolphin is not running', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
+      execMock.mockImplementation((cmd, callback) => {
+        expect(cmd).toBe('kquitapp6 dolphin || kquitapp5 dolphin || true');
+        callback(
+          null,
+          '',
+          'Application dolphin could not be found using service org.kde.dolphin and path /MainApplication.',
+        );
+      });
+
+      // When
+      await reloadFileManager();
+
+      // Then
+      expect(execMock).toHaveBeenCalled();
+    });
+
+    it('should reject unexpected dolphin stderr', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
+      execMock.mockImplementation((cmd, callback) => {
+        expect(cmd).toBe('kquitapp6 dolphin || kquitapp5 dolphin || true');
+        callback(null, '', 'unexpected dolphin stderr');
+      });
+
+      // When / Then
+      await expect(reloadFileManager()).rejects.toThrow('unexpected dolphin stderr');
     });
 
     it('should handle exit code 255 gracefully', async () => {

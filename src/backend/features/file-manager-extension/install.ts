@@ -33,7 +33,7 @@ export async function installFileManagerExtension() {
 
     if (!fileManager) {
       logger.debug({
-        msg: '[FILE_MANAGER_EXTENSION] No compatible file manager found (Nautilus or Nemo)',
+        msg: '[FILE_MANAGER_EXTENSION] No compatible file manager found (Nautilus, Nemo or Dolphin)',
       });
       return;
     }
