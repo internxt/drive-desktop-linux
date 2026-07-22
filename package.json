@@ -226,7 +226,7 @@
     "@internxt/sdk": "1.17.4",
     "archiver": "^8.0.0",
     "async": "^3.2.4",
-    "axios": "^1.17.0",
+    "axios": "^1.18.1",
     "better-sqlite3": "12.10.0",
     "bottleneck": "^2.19.5",
     "check-disk-space": "^3.4.0",
