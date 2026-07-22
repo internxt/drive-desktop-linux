@@ -17,6 +17,7 @@ type FileManagerAsset = {
   source: string;
   destination: string;
   executable?: boolean;
+  template?: boolean;
 };
 
 type FileManagerConfig = {
@@ -30,7 +31,9 @@ function isIgnorableReloadStderr({ fileManagerType, stderr }: { fileManagerType:
     return false;
   }
 
-  return stderr.includes('Application dolphin could not be found using service org.kde.dolphin and path /MainApplication.');
+  return stderr.includes(
+    'Application dolphin could not be found using service org.kde.dolphin and path /MainApplication.',
+  );
 }
 
 async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
@@ -44,10 +47,14 @@ async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
         {
           source: 'dolphin/internxt-virtual-drive.desktop',
           destination: `${homedir}/.local/share/kio/servicemenus/${dolphinMenuFileName}`,
+          template: true,
+          executable: true,
         },
         {
           source: 'dolphin/internxt-virtual-drive.desktop',
           destination: `${homedir}/.local/share/kservices5/ServiceMenus/${dolphinMenuFileName}`,
+          template: true,
+          executable: true,
         },
         {
           source: `dolphin/${dolphinHelperFileName}`,
@@ -117,30 +124,33 @@ export async function copyExtensionFile(): Promise<void> {
 
   await Promise.all(
     config.assets.map(async (asset) => {
-    const source = getExtensionFile(asset.source);
-    const destination = asset.destination;
+      const source = getExtensionFile(asset.source);
+      const destination = asset.destination;
 
-    const destinationExists = await doesFileExist(destination);
-    if (destinationExists) {
+      const destinationExists = await doesFileExist(destination);
+      if (destinationExists) {
+        if (asset.executable) {
+          await fs.chmod(destination, 0o755);
+        }
+        return;
+      }
+
+      await fs.mkdir(path.dirname(destination), {
+        recursive: true,
+      });
+
+      if (asset.template) {
+        const template = await fs.readFile(source, 'utf8');
+        await fs.writeFile(destination, template.replaceAll('{{HOME}}', homedir), 'utf8');
+      } else if (process.env.NODE_ENV !== 'production') {
+        await fs.link(source, destination);
+      } else {
+        await fs.cp(source, destination);
+      }
+
       if (asset.executable) {
         await fs.chmod(destination, 0o755);
       }
-      return;
-    }
-
-    await fs.mkdir(path.dirname(destination), {
-      recursive: true,
-    });
-
-    if (process.env.NODE_ENV !== 'production') {
-      await fs.link(source, destination);
-    } else {
-      await fs.cp(source, destination);
-    }
-
-    if (asset.executable) {
-      await fs.chmod(destination, 0o755);
-    }
     }),
   );
 

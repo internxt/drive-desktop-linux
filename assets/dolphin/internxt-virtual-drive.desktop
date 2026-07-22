@@ -1,5 +1,6 @@
 [Desktop Entry]
 Type=Service
+Name=Internxt Drive Actions
 MimeType=all/allfiles;inode/directory;
 ServiceTypes=KonqPopupMenu/Plugin
 X-KDE-ServiceTypes=KonqPopupMenu/Plugin
@@ -11,4 +12,4 @@ X-KDE-StartupNotify=false
 [Desktop Action InternxtCopyLink]
 Name=Copy Internxt Link
 Icon=insert-link
-Exec=/usr/bin/env bash -lc '"$HOME/.local/share/internxt-dolphin-extension/internxt-dolphin-actions.sh" copy-link "$@"' _ %F
+Exec=/usr/bin/env bash {{HOME}}/.local/share/internxt-dolphin-extension/internxt-dolphin-actions.sh copy-link %f

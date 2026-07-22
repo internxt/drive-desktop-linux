@@ -1,1 +1,1 @@
-export const LATEST_EXTENSION_VERSION = 3;
+export const LATEST_EXTENSION_VERSION = 4;

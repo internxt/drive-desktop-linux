@@ -1,7 +1,9 @@
 import * as detectModule from './detect-available';
 import * as fileExistsModule from '../../../apps/shared/fs/fileExists';
-import { getFileManagerType, isInstalled, reloadFileManager } from './service';
+import fs from 'node:fs/promises';
+import { copyExtensionFile, getFileManagerType, isInstalled, reloadFileManager } from './service';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
+import { homedir } from 'node:os';
 
 const { execMock } = vi.hoisted(() => ({
   execMock: vi.fn(),
@@ -17,15 +19,20 @@ vi.mock('node:fs/promises', () => ({
     link: vi.fn(),
     cp: vi.fn(),
     rm: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+    chmod: vi.fn(),
   },
 }));
 
 describe('service', () => {
   const detectAvailableFileManagerMock = partialSpyOn(detectModule, 'detectAvailableFileManager');
   const doesFileExistMock = partialSpyOn(fileExistsModule, 'doesFileExist');
+  const fsMock = vi.mocked(fs);
 
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.NODE_ENV = 'development';
     detectAvailableFileManagerMock.mockResolvedValue('nautilus');
     doesFileExistMock.mockResolvedValue(false);
   });
@@ -240,6 +247,31 @@ describe('service', () => {
 
       // Then - should not throw
       expect(true).toBe(true);
+    });
+  });
+
+  describe('copyExtensionFile', () => {
+    it('should template dolphin service menu with the current home path', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
+      doesFileExistMock.mockResolvedValue(false);
+      fsMock.readFile.mockResolvedValue(
+        'Exec=/usr/bin/env bash "{{HOME}}/.local/share/internxt-dolphin-extension/internxt-dolphin-actions.sh" copy-link %f',
+      );
+
+      // When
+      await copyExtensionFile();
+
+      // Then
+      expect(fsMock.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining('/.local/share/kio/servicemenus/internxt-virtual-drive.desktop'),
+        expect.stringContaining(`${homedir}/.local/share/internxt-dolphin-extension/internxt-dolphin-actions.sh`),
+        'utf8',
+      );
+      expect(fsMock.chmod).toHaveBeenCalledWith(
+        expect.stringContaining('/.local/share/kio/servicemenus/internxt-virtual-drive.desktop'),
+        0o755,
+      );
     });
   });
 });
