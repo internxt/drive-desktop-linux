@@ -5,43 +5,34 @@ const execAsync = promisify(exec);
 
 export type FileManagerType = 'nautilus' | 'nemo' | 'dolphin' | null;
 
+type FileManagerCandidate = {
+  type: Exclude<FileManagerType, null>;
+  desktopEntry: string;
+  hasBinary: () => Promise<boolean>;
+};
+
+const FILE_MANAGER_CANDIDATES: FileManagerCandidate[] = [
+  { type: 'dolphin', desktopEntry: 'dolphin.desktop', hasBinary: hasDolphinBinary },
+  { type: 'nemo', desktopEntry: 'nemo.desktop', hasBinary: hasNemoBinary },
+  { type: 'nautilus', desktopEntry: 'nautilus.desktop', hasBinary: hasNautilusBinary },
+];
+
 export async function detectAvailableFileManager(): Promise<FileManagerType> {
   const desktopEntry = await getDefaultDirectoryDesktopEntry();
 
   if (desktopEntry) {
-    if (desktopEntry.includes('dolphin.desktop')) {
-      if (await hasDolphinBinary()) {
-        return 'dolphin';
-      }
-    }
-
-    if (desktopEntry.includes('nemo.desktop')) {
-      if (await hasNemoBinary()) {
-        return 'nemo';
-      }
-    }
-
-    if (desktopEntry.includes('nautilus.desktop')) {
-      if (await hasNautilusBinary()) {
-        return 'nautilus';
+    for (const candidate of FILE_MANAGER_CANDIDATES) {
+      if (desktopEntry.includes(candidate.desktopEntry) && (await candidate.hasBinary())) {
+        return candidate.type;
       }
     }
   }
 
   // Fallback: check for available binaries
-  const hasDolphin = await hasDolphinBinary();
-  if (hasDolphin) {
-    return 'dolphin';
-  }
-
-  const hasNemo = await hasNemoBinary();
-  if (hasNemo) {
-    return 'nemo';
-  }
-
-  const hasNautilus = await hasNautilusBinary();
-  if (hasNautilus) {
-    return 'nautilus';
+  for (const candidate of FILE_MANAGER_CANDIDATES) {
+    if (await candidate.hasBinary()) {
+      return candidate.type;
+    }
   }
 
   return null;
