@@ -20,6 +20,31 @@ Download and install the `.deb` package for full compatibility:
 sudo dpkg -i internxt_2.6.0_amd64.deb
 ```
 
+## Prerequisites
+
+Our system requires the key manager to be properly configured. On KDE-based distributions, this configuration often needs to be done manually before using the application.
+
+### Step 1: Install Kleopatra
+Install **Kleopatra**, which will be used to generate your GPG encryption key:
+
+`sudo apt update && sudo apt install kleopatra`
+
+### Step 2: Generate a GPG Key Pair
+1. Open **Kleopatra** and click **New Key Pair** (or **File > New Key Pair**).
+2. Select **Create a personal OpenPGP key pair**.
+3. Enter your **Name** and **Email Address**.
+4. Click **Create** (or **Finish**) to complete the setup.
+
+### Step 3: Configure KDE Wallet
+1. Open **System Settings** and search for **KDE Wallet**.
+2. Under **Automatic Wallet Selection**, click **Create New Wallet...**
+3. Select **Use GPG encryption for added security** and click **Next**.
+4. Choose the GPG key you created earlier in Kleopatra and click **Finish**.
+
+---
+*You're all set! You can now use the application as expected.*
+
+
 ### AppImage
 
 Alternatively, you can use the AppImage format:
