@@ -52,6 +52,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
+      - name: Ensure Electron install
+        run: node ./.erb/scripts/ensure-electron-install.cjs
+
       - name: Run extension smoke test
         env:
           EXPECTED_FILE_MANAGER: ${{ matrix.fileManager }}
