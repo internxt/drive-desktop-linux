@@ -20,7 +20,7 @@ jobs:
       - name: Install base dependencies
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl git python3 xdg-utils
+          DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl git python3 unzip xdg-utils
 
       - name: Check out Git repository
         uses: actions/checkout@v4
