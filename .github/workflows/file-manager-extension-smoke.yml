@@ -58,7 +58,7 @@ jobs:
       - name: Run extension smoke test
         env:
           EXPECTED_FILE_MANAGER: ${{ matrix.fileManager }}
-          HOME: /tmp/internxt-home
+          HOME: ${{ github.workspace }}/.tmp/internxt-home
         run: |
           mkdir -p "$HOME"
           npm run smoke:file-manager-extension
