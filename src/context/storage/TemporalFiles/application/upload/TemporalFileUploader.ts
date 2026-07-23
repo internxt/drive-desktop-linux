@@ -23,6 +23,8 @@ import { validateUploadFileSize } from '../../../../../backend/features/user/fil
 
 @Service()
 export class TemporalFileUploader {
+  private static readonly EMPTY_CONTENTS_ID = '' as ContentsId;
+
   constructor(
     private readonly repository: TemporalFileRepository,
     private readonly uploaderFactory: TemporalFileUploaderFactory,
@@ -30,6 +32,17 @@ export class TemporalFileUploader {
   ) {}
 
   async run(temporalFile: TemporalFile, replaces?: Replaces): Promise<ContentsId> {
+    if (this.isZeroSizeFile(temporalFile)) {
+      logger.debug({
+        msg: '[TemporalFileUploader] Skipping upload for empty temporal file',
+        path: temporalFile.path.value,
+      });
+
+      await this.publishUploadEvent(TemporalFileUploader.EMPTY_CONTENTS_ID, temporalFile, replaces);
+
+      return TemporalFileUploader.EMPTY_CONTENTS_ID;
+    }
+
     const validation = validateUploadFileSize({
       size: temporalFile.size.value,
       maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
@@ -129,5 +142,9 @@ export class TemporalFileUploader {
     }
 
     return this.repository.read(temporalFile.path);
+  }
+
+  private isZeroSizeFile(temporalFile: TemporalFile) {
+    return temporalFile.size.value === 0;
   }
 }
