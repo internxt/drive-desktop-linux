@@ -135,6 +135,10 @@ export class TemporalFileUploader {
   }
 
   private async getThumbnailBufferIfNeeded(temporalFile: TemporalFile): Promise<Buffer | undefined> {
+    if (this.isZeroSizeFile(temporalFile)) {
+      return undefined;
+    }
+
     const ext = extname(temporalFile.path.value).replace('.', '').toLowerCase();
 
     if (!canGenerateThumbnail(ext)) {
