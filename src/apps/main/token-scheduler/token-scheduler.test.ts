@@ -14,8 +14,8 @@ function createExpiredToken(): string {
   return jwt.sign({ email }, 'JWT_SECRET', { expiresIn: -1 });
 }
 
-function getDateInFuture(daysFromNow: number): Date {
-  return new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000);
+function getDateInFuture(hoursFromNow: number): Date {
+  return new Date(Date.now() + hoursFromNow * 60 * 60 * 1000);
 }
 
 describe('TokenScheduler', () => {
@@ -43,9 +43,9 @@ describe('TokenScheduler', () => {
         vi.useFakeTimers();
 
         const token30Days = createTokenExpiringIn('30d');
-        const daysBefore = 5;
+        const hoursBefore = 120;
 
-        scheduler = new TokenScheduler(daysBefore, token30Days, unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(hoursBefore, token30Days, unauthorizedCallbackMock);
         scheduler.schedule(refreshCallback);
 
         calls(refreshCallback).toHaveLength(0);
@@ -59,9 +59,9 @@ describe('TokenScheduler', () => {
         vi.useFakeTimers();
 
         const token2Days = createTokenExpiringIn('2d');
-        const daysBefore = 5;
+        const hoursBefore = 48;
 
-        scheduler = new TokenScheduler(daysBefore, token2Days, unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(hoursBefore, token2Days, unauthorizedCallbackMock);
         scheduler.schedule(refreshCallback);
 
         calls(refreshCallback).toHaveLength(0);
@@ -69,16 +69,16 @@ describe('TokenScheduler', () => {
         calls(refreshCallback).toHaveLength(1);
       });
 
-      it('schedules refresh N days before the earliest expiration date', () => {
+      it('schedules refresh N hours before the expiration date', () => {
         const token30Days = createTokenExpiringIn('30d');
-        const daysBefore = 5;
+        const hoursBefore = 5;
 
-        scheduler = new TokenScheduler(daysBefore, token30Days, unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(hoursBefore, token30Days, unauthorizedCallbackMock);
 
         const schedule = scheduler.schedule(vi.fn());
         const nextInvocation = schedule?.nextInvocation();
 
-        const expectedDate = getDateInFuture(30 - daysBefore);
+        const expectedDate = getDateInFuture(30 * 24 - hoursBefore);
 
         expect(schedule).toBeDefined();
         expect(nextInvocation?.getDate()).toBe(expectedDate.getDate());
@@ -88,9 +88,9 @@ describe('TokenScheduler', () => {
         vi.useFakeTimers();
 
         const token10Days = createTokenExpiringIn('10d');
-        const daysBefore = 3;
+        const hoursBefore = 72;
 
-        scheduler = new TokenScheduler(daysBefore, token10Days, unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(hoursBefore, token10Days, unauthorizedCallbackMock);
         scheduler.schedule(refreshCallback);
 
         calls(refreshCallback).toHaveLength(0);
@@ -99,9 +99,9 @@ describe('TokenScheduler', () => {
       });
 
       it('ignores tokens without expiration field and uses valid tokens', () => {
-        const daysBefore = 5;
+        const hoursBefore = 5;
 
-        scheduler = new TokenScheduler(daysBefore, jwtWithoutExpiration, unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(hoursBefore, jwtWithoutExpiration, unauthorizedCallbackMock);
 
         const schedule = scheduler.schedule(vi.fn());
 
@@ -109,9 +109,9 @@ describe('TokenScheduler', () => {
       });
 
       it('ignores invalid tokens and uses valid tokens', () => {
-        const daysBefore = 5;
+        const hoursBefore = 5;
 
-        scheduler = new TokenScheduler(daysBefore, invalidToken, unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(hoursBefore, invalidToken, unauthorizedCallbackMock);
 
         const schedule = scheduler.schedule(vi.fn());
 
@@ -133,11 +133,11 @@ describe('TokenScheduler', () => {
 
       it('schedules for 300ms from now when renewal date would be in the past (bug: should be 5 minutes)', () => {
         const token2Days = createTokenExpiringIn('2d');
-        const daysBefore = 5;
+        const hoursBefore = 48;
 
         const beforeSchedule = Date.now();
 
-        scheduler = new TokenScheduler(daysBefore, token2Days, unauthorizedCallbackMock);
+        scheduler = new TokenScheduler(hoursBefore, token2Days, unauthorizedCallbackMock);
         const schedule = scheduler.schedule(vi.fn());
 
         const afterSchedule = Date.now();

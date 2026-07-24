@@ -8,7 +8,7 @@ export class TokenScheduler {
   private static MAX_TIME = 8640000000000000;
 
   constructor(
-    private daysBefore: number,
+    private hoursBefore: number,
     private readonly newToken: string,
     private unauthorized: () => void,
   ) {}
@@ -28,7 +28,7 @@ export class TokenScheduler {
   }
 
   private calculateRenewDate(expiration: number): Date {
-    const renewMillisBefore = this.daysBefore * 24 * 60 * 60 * 1000;
+    const renewMillisBefore = this.hoursBefore * 60 * 60 * 1000;
 
     const renewDateInMillis = expiration - renewMillisBefore;
 
