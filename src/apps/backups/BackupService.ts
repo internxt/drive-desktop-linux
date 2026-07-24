@@ -175,8 +175,6 @@ export class BackupService {
       }
 
       const parent = remote.getParent(relative(local.root.path, localFolder.path));
-
-      // eslint-disable-next-line no-await-in-loop
       const folder = await this.simpleFolderCreator.run(
         relative(local.root.path, localFolder.path),
         parent.id,
@@ -254,8 +252,6 @@ export class BackupService {
       if (signal.aborted) {
         return;
       }
-
-      // eslint-disable-next-line no-await-in-loop
       await addFileToTrash(file.uuid);
       tracker.incrementProcessed(1);
     }

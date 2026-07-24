@@ -19,7 +19,7 @@ export async function scanSingleFile(filePath: string): Promise<CleanableItem[]>
 
     const item = await createCleanableItem(filePath);
     return [item];
-  } catch (error) {
+  } catch {
     logger.warn({
       msg: `Single file with file path ${filePath} cannot be accessed, skipping`,
     });

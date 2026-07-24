@@ -9,6 +9,14 @@ type Props = {
   allowFiles?: boolean;
 };
 
+function pathInfoMapper(filePath: string, isFolder: boolean): PathInfo {
+  return {
+    path: createAbsolutePath(filePath),
+    itemName: path.basename(filePath),
+    isDirectory: isFolder,
+  };
+}
+
 export async function getMultiplePathsFromDialog({ allowFiles = false }: Props = {}): Promise<PathInfo[] | null> {
   const properties: NonNullable<OpenDialogOptions['properties']> = [
     'multiSelections',
@@ -24,13 +32,8 @@ export async function getMultiplePathsFromDialog({ allowFiles = false }: Props =
   const paths = await Promise.all(
     result.filePaths.map(async (filePath) => {
       const isFolder = await PathTypeChecker.isFolder(filePath);
-      const itemName = path.basename(filePath);
 
-      return {
-        path: createAbsolutePath(filePath),
-        itemName,
-        isDirectory: isFolder,
-      };
+      return pathInfoMapper(filePath, isFolder);
     }),
   );
 

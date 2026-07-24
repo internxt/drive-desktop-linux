@@ -7,6 +7,10 @@ import * as registerSessionEventHandlersModule from './register-session-event-ha
 import * as setupEnvironmentDebugToolsModule from './setup-environment-debug-tools';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 
+vi.mock('electron-debug', () => ({
+  default: vi.fn(),
+}));
+
 describe('main-process-bootstrap', () => {
   const setupEnvironmentDebugToolsMock = partialSpyOn(setupEnvironmentDebugToolsModule, 'setupEnvironmentDebugTools');
   const registerMainIpcHandlersMock = partialSpyOn(registerMainIpcHandlersModule, 'registerMainIpcHandlers');

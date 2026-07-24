@@ -131,8 +131,6 @@ async function addFoldersToTreeAndTraverseChildren({
   for (const { path, stats } of folders) {
     const folder = LocalFolder.from(path, stats.mtime.getTime());
     tree.addFolder(currentLocalFolder, folder);
-
-    // eslint-disable-next-line no-await-in-loop
     const result = await traverse({ tree, currentFolder: path, rootFolder });
     if (result.error) {
       return { error: result.error };

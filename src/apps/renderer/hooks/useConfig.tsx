@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { StoredValues } from '../../main/config/service';
+import { StoredValues } from '../../main/config/service.types';
 
 export default function useConfig(key: StoredValues) {
   const [value, setValue] = useState<StoredValues | undefined>(undefined);

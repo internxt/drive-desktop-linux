@@ -59,7 +59,7 @@ export async function scanSubDirectory({
         cleanableItems.push(...result.value);
       }
     });
-  } catch (error) {
+  } catch {
     logger.warn({
       msg: `[CLEANER] Directory ${subPath} within ${baseDir} might not exist or be accesible, skipping it`,
     });

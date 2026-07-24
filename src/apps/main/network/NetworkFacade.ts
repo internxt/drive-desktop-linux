@@ -1,4 +1,4 @@
-import { Environment } from '@internxt/inxt-js';
+import { GenerateFileKey } from '@internxt/inxt-js/build/lib/utils/crypto';
 import { Network as NetworkModule } from '@internxt/sdk';
 import { BinaryData } from '@internxt/sdk/dist/network/types';
 import { createDecipheriv, randomBytes } from 'crypto';
@@ -81,7 +81,7 @@ export class NetworkFacade {
         return validateMnemonic(mnemonic);
       },
       generateFileKey: (mnemonic, bucketId, index) => {
-        return Environment.utils.generateFileKey(mnemonic, bucketId, index as Buffer);
+        return GenerateFileKey(mnemonic, bucketId, index as Buffer);
       },
       randomBytes,
     };
@@ -131,14 +131,15 @@ export class NetworkFacade {
         fileStream = buildProgressStream({
           source: decryptedStream,
           onRead: (readBytes: number) => {
-            options && options.downloadingCallback && options.downloadingCallback(fileSize, readBytes);
+            if (options?.downloadingCallback) {
+              options.downloadingCallback(fileSize, readBytes);
+            }
           },
         });
       },
       (options?.token && { token: options.token }) || undefined,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return fileStream!;
   }
 }

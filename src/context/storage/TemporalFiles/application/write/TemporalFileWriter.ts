@@ -12,7 +12,7 @@ export class TemporalFileWriter {
 
     try {
       await this.repository.write(documentPath, buffer, length, position);
-    } catch (error: unknown) {
+    } catch {
       throw new TemporalFileIOError();
     }
   }

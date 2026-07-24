@@ -24,7 +24,6 @@ export class AllFilesInFolderAreAvailableOffline {
     });
 
     for (const subfolder of subfolders) {
-      // eslint-disable-next-line no-await-in-loop
       const locallyAvailable = await this.folderIsAvaliableOffline(subfolder);
 
       if (!locallyAvailable) return false;
@@ -45,8 +44,6 @@ export class AllFilesInFolderAreAvailableOffline {
 
     for (const file of files) {
       const id = new StorageFileId(file.contentsId);
-
-      // eslint-disable-next-line no-await-in-loop
       const locallyAvailable = await this.repository.exists(id);
 
       if (!locallyAvailable) return false;

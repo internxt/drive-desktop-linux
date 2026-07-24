@@ -64,7 +64,6 @@ export async function copyWithoutOverwriting({
 }): Promise<Result<string, Error>> {
   for (let copyNumber = 0; copyNumber <= 101; copyNumber += 1) {
     const candidatePath = createCandidatePath({ targetPath, copyNumber });
-    // eslint-disable-next-line no-await-in-loop
     const { data: copiedPath, error } = await tryCopyWithoutOverwriting({ sourcePath, targetPath: candidatePath });
 
     if (error) {

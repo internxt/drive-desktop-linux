@@ -37,6 +37,16 @@ const configuration: webpack.Configuration = {
     filename: '[name].js',
   },
 
+  resolve: {
+    alias: {
+      // Ensure main app and core logger share the same electron-log instance.
+      'electron-log': path.resolve(
+        webpackPaths.rootPath,
+        'node_modules/@internxt/drive-desktop-core/node_modules/electron-log',
+      ),
+    },
+  },
+
   optimization: {
     chunkIds: 'deterministic',
     minimizer: [

@@ -47,7 +47,7 @@ export async function scanDirectory({
     }
 
     return items;
-  } catch (error) {
+  } catch {
     logger.warn({
       msg: `Directory ${dirPath} does not exist or cannot be accessed, skipping`,
     });

@@ -19,8 +19,6 @@ export async function calculateBackupsItemsCount({ backups, signal, container }:
       logger.debug({ tag: 'BACKUPS', msg: 'Precalculation aborted' });
       break;
     }
-
-    // eslint-disable-next-line no-await-in-loop
     const result = await precalculateBackupItemCount(backup, remoteTreeBuilder);
     if (result.error) {
       logger.error({

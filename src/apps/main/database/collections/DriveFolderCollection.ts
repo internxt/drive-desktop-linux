@@ -27,7 +27,7 @@ export class DriveFoldersCollection implements DatabaseCollectionAdapter<DriveFo
         success: true,
         result,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         result: [],

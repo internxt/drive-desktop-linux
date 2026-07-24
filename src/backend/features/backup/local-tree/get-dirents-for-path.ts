@@ -24,8 +24,6 @@ export async function getDirentsForPath(
       });
       continue;
     }
-
-    // eslint-disable-next-line no-await-in-loop
     const statResult = await safeStat(currentPath);
     if (statResult.error) {
       skippedItems.push({ path: currentPath, error: statResult.error });

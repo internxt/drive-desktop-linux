@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { Service } from 'diod';
 import { TemporalFilePath } from '../../domain/TemporalFilePath';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';

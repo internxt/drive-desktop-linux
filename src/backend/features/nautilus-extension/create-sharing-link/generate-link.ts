@@ -46,7 +46,7 @@ export async function generateLink({ path }: Props): Promise<Result<string, Erro
     });
 
     return { data: shareLink };
-  } catch (error) {
+  } catch {
     new Notification({
       title: 'Sharing Link Not Copied',
       body: 'Could not generate the sharing link. Please try again.',

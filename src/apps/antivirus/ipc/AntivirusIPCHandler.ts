@@ -156,7 +156,7 @@ export class AntivirusIPCHandler {
         try {
           ipcMain.removeHandler(name);
           AntivirusIPCMain.removeHandler(name);
-        } catch (error) {
+        } catch {
           continue;
         }
       }

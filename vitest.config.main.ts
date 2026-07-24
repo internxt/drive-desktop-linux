@@ -50,6 +50,11 @@ export default defineConfig({
       // check (module.exports = getElectronPath() throws at load time if the
       // binary is absent, which breaks test collection before vi.mock applies).
       electron: path.resolve(__dirname, './src/__mocks__/electron.ts'),
+      // Keep tests aligned with main bundle resolution for setup-app-log-routing.
+      'electron-log': path.resolve(
+        __dirname,
+        './node_modules/@internxt/drive-desktop-core/node_modules/electron-log',
+      ),
     },
   },
 });

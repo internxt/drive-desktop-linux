@@ -22,7 +22,7 @@ export function DownloadBackups({ className }: ViewBackupsProps) {
 
     try {
       abortDownloadBackups(selected);
-    } catch (err) {
+    } catch {
       // error while aborting (aborting also throws an exception itself)
     } finally {
       setTimeout(() => {

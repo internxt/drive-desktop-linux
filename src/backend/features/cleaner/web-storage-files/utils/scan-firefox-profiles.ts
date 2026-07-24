@@ -79,7 +79,7 @@ export async function scanFirefoxProfiles(firefoxProfilesDir: string): Promise<C
         items.push(...result.value);
       }
     });
-  } catch (error) {
+  } catch {
     /**
      * v.2.5.0
      * Alexis Mora
