@@ -71,7 +71,11 @@ describe('SDKRemoteFileSystem', () => {
 
   it('maps EMPTY_FILE to EMPTY_FILE', async () => {
     createFileMock.mockResolvedValue({
-      error: new DriveServerError('EMPTY_FILE', 402, 'You can not have empty files, upgrade your plan to get more features'),
+      error: new DriveServerError(
+        'EMPTY_FILE',
+        402,
+        'You can not have empty files, upgrade your plan to get more features',
+      ),
     });
 
     const result = await sut.persist(dataToPersist);
