@@ -69,6 +69,18 @@ describe('SDKRemoteFileSystem', () => {
     expect(result.getLeft().message).toBe('too large');
   });
 
+  it('maps EMPTY_FILE to EMPTY_FILE', async () => {
+    createFileMock.mockResolvedValue({
+      error: new DriveServerError('EMPTY_FILE', 402, 'You can not have empty files, upgrade your plan to get more features'),
+    });
+
+    const result = await sut.persist(dataToPersist);
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.getLeft().cause).toBe('EMPTY_FILE');
+    expect(result.getLeft().message).toBe('You can not have empty files, upgrade your plan to get more features');
+  });
+
   it('returns persisted file data on success', async () => {
     createFileMock.mockResolvedValue({ data: fileResponse });
 

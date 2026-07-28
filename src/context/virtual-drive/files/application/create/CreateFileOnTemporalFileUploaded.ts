@@ -1,5 +1,6 @@
 import { Environment } from '@internxt/inxt-js';
 import { Service } from 'diod';
+import { basename } from 'path';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { addMaxFileSizeRejection } from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
 import { generateThumbnail } from '../../../../../backend/features/thumbnails/generate-thumbnail';
@@ -11,6 +12,7 @@ import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktop
 import { FileCreator } from './FileCreator';
 import { FileOverrider } from '../override/FileOverrider';
 import { preserveRejectedFileSizeTooBig } from '../../../../../backend/features/user/file-size-limit';
+import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 
 @Service()
 export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<TemporalFileUploadedDomainEvent> {
@@ -19,6 +21,7 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
     private readonly fileOverrider: FileOverrider,
     private readonly environment: Environment,
     private readonly bucket: string,
+    private readonly notifier?: SyncFileMessenger,
   ) {}
 
   subscribedTo(): DomainEventClass[] {
@@ -55,6 +58,16 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
     try {
       await this.create(event);
     } catch (err) {
+      const cause = err instanceof DriveDesktopError ? err.cause : 'UNKNOWN';
+
+      if (event.replaces && this.notifier) {
+        await this.notifier.issues({
+          error: 'UPLOAD_ERROR',
+          cause,
+          name: basename(event.path),
+        });
+      }
+
       if (err instanceof DriveDesktopError && err.cause === 'FILE_TOO_BIG') {
         const preserved = await this.preserveBackendRejectedFile(event);
         if (!preserved) {
