@@ -1,6 +1,6 @@
 import { Environment } from '@internxt/inxt-js';
 import { Service } from 'diod';
-import { basename } from 'path';
+import { basename } from 'node:path';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { addMaxFileSizeRejection } from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
 import { generateThumbnail } from '../../../../../backend/features/thumbnails/generate-thumbnail';
