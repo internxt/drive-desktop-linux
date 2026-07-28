@@ -164,7 +164,7 @@
     "dotenv": "^10.0.0",
     "dotenv-webpack": "^7.0.3",
     "electron": "40.10.2",
-    "electron-builder": "26.8.1",
+    "electron-builder": "26.15.3",
     "electron-debug": "^4.1.0",
     "electron-fetch": "^1.9.1",
     "electron-store": "^8.2.0",
