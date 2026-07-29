@@ -141,11 +141,14 @@ async function run() {
     await assertPathRemoved({ filePath });
   }
 
+  // eslint-disable-next-line no-console
   console.log(`File manager extension smoke passed for: ${manager}`);
 }
 
 run().catch((error: unknown) => {
+  // eslint-disable-next-line no-console
   console.error('File manager extension smoke failed');
+  // eslint-disable-next-line no-console
   console.error(error);
   process.exit(1);
 });
