@@ -6,6 +6,7 @@ const {
   canHisConfigBeRestoredMock,
   updateCredentialsMock,
   setIsLoggedInMock,
+  closeUserSessionMock,
   setupRootFolderMock,
   processDeeplinkMock,
   initializeCurrentUserMock,
@@ -17,6 +18,7 @@ const {
   canHisConfigBeRestoredMock: vi.fn(),
   updateCredentialsMock: vi.fn(),
   setIsLoggedInMock: vi.fn(),
+  closeUserSessionMock: vi.fn(),
   setupRootFolderMock: vi.fn(),
   processDeeplinkMock: vi.fn(),
   initializeCurrentUserMock: vi.fn(),
@@ -46,6 +48,7 @@ vi.mock('../update-credentials', () => ({
 
 vi.mock('../handlers', () => ({
   setIsLoggedIn: setIsLoggedInMock,
+  closeUserSession: closeUserSessionMock,
 }));
 
 vi.mock('../../virtual-root-folder/service', () => ({
@@ -56,7 +59,7 @@ vi.mock('./proccess-deeplink', () => ({
   processDeeplink: processDeeplinkMock,
 }));
 
-vi.mock('./initialize_current_user', () => ({
+vi.mock('./initialize-current-user', () => ({
   initializeCurrentUser: initializeCurrentUserMock,
 }));
 
