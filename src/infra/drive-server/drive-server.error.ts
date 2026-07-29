@@ -23,23 +23,45 @@ export class DriveServerError extends Error {
   }
 }
 
+function isEmptyFileMessage(message?: string) {
+  if (!message) {
+    return false;
+  }
+
+  const normalizedMessage = message.toLowerCase();
+
+  return normalizedMessage.includes('empty file') || normalizedMessage.includes('empty files');
+}
+
+function isFileSizeLimitMessage(message?: string) {
+  if (!message) {
+    return false;
+  }
+
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    normalizedMessage.includes('too big') ||
+    normalizedMessage.includes('too large') ||
+    normalizedMessage.includes('file size exceeds') ||
+    normalizedMessage.includes('size exceeds the maximum allowed')
+  );
+}
+
 export function mapStatusToErrorCause(status: number, message?: string): DriveServerErrorCause {
   if (status === 401) return 'NO_PERMISSION';
   if (status === 403) return 'FORBIDDEN';
   if (status === 404) return 'NOT_FOUND';
   if (status === 409) return 'CONFLICT';
+  if (status === 400) {
+    if (isEmptyFileMessage(message)) return 'EMPTY_FILE';
+    if (isFileSizeLimitMessage(message)) return 'FILE_TOO_BIG';
+
+    return 'BAD_REQUEST';
+  }
   if (status === 402) {
-    if (message) {
-      const normalizedMessage = message.toLowerCase();
-
-      if (normalizedMessage.includes('empty file') || normalizedMessage.includes('empty files')) {
-        return 'EMPTY_FILE';
-      }
-
-      if (normalizedMessage.includes('too big') || normalizedMessage.includes('too large')) {
-        return 'FILE_TOO_BIG';
-      }
-    }
+    if (isEmptyFileMessage(message)) return 'EMPTY_FILE';
+    if (isFileSizeLimitMessage(message)) return 'FILE_TOO_BIG';
 
     return 'FILE_TOO_BIG';
   }

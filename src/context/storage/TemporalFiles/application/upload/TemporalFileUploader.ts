@@ -32,7 +32,7 @@ export class TemporalFileUploader {
   ) {}
 
   async run(temporalFile: TemporalFile, replaces?: Replaces): Promise<ContentsId> {
-    if (this.isZeroSizeFile(temporalFile)) {
+    if (temporalFile.isEmpty()) {
       logger.debug({
         msg: '[TemporalFileUploader] Skipping upload for empty temporal file',
         path: temporalFile.path.value,
@@ -135,7 +135,7 @@ export class TemporalFileUploader {
   }
 
   private async getThumbnailBufferIfNeeded(temporalFile: TemporalFile): Promise<Buffer | undefined> {
-    if (this.isZeroSizeFile(temporalFile)) {
+    if (temporalFile.isEmpty()) {
       return undefined;
     }
 
@@ -146,9 +146,5 @@ export class TemporalFileUploader {
     }
 
     return this.repository.read(temporalFile.path);
-  }
-
-  private isZeroSizeFile(temporalFile: TemporalFile) {
-    return temporalFile.size.value === 0;
   }
 }
