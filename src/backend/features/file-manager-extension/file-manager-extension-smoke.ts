@@ -4,6 +4,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { copyExtensionFile, deleteExtensionFile, isInstalled } from './service';
 import { detectAvailableFileManager, type FileManagerType } from './detect-available';
+import { isSupportedFileManager } from './constants';
 
 type SupportedFileManager = Exclude<FileManagerType, null>;
 
@@ -21,14 +22,9 @@ function assertOrThrow({ condition, message }: AssertProps) {
 function expectedManagerFromEnv() {
   const raw = process.env.EXPECTED_FILE_MANAGER?.trim().toLowerCase();
 
-  if (!raw) {
-    return null;
-  }
+  if (!raw) return null;
 
-  const supported: SupportedFileManager[] = ['nautilus', 'nemo', 'dolphin'];
-  if (supported.includes(raw as SupportedFileManager)) {
-    return raw as SupportedFileManager;
-  }
+  if (isSupportedFileManager(raw)) return raw;
 
   throw new Error(`Invalid EXPECTED_FILE_MANAGER: ${raw}`);
 }
@@ -60,6 +56,21 @@ async function assertExecutable({ filePath }: { filePath: string }) {
   assertOrThrow({
     condition: (fileStat.mode & 0o111) !== 0,
     message: `Expected executable permissions for ${filePath}`,
+  });
+}
+
+async function assertPathRemoved({ filePath }: { filePath: string }) {
+  let exists = true;
+
+  try {
+    await access(filePath, fsConstants.F_OK);
+  } catch {
+    exists = false;
+  }
+
+  assertOrThrow({
+    condition: !exists,
+    message: `Expected file to be removed: ${filePath}`,
   });
 }
 
@@ -127,18 +138,7 @@ async function run() {
   });
 
   for (const filePath of expectedPaths) {
-    let exists = true;
-
-    try {
-      await access(filePath, fsConstants.F_OK);
-    } catch {
-      exists = false;
-    }
-
-    assertOrThrow({
-      condition: !exists,
-      message: `Expected file to be removed: ${filePath}`,
-    });
+    await assertPathRemoved({ filePath });
   }
 
   console.log(`File manager extension smoke passed for: ${manager}`);
