@@ -173,7 +173,12 @@ class InternxtVirtualDrive(GObject.Object, Nemo.MenuProvider, Nemo.ColumnProvide
         return active_items
 
     def _encode_file_path(self, file):
-      relative_path = file.get_uri().replace(self.file_base_dir, '')
+      file_uri = file.get_uri()
+      parsed_uri = urllib.parse.urlparse(file_uri)
+      file_path = urllib.parse.unquote(parsed_uri.path)
+
+      root_folder = urllib.parse.unquote(self.root_folder)
+      relative_path = file_path.replace(root_folder, '', 1)
 
       parsed = urllib.parse.unquote(relative_path)
 
@@ -205,7 +210,7 @@ class InternxtVirtualDrive(GObject.Object, Nemo.MenuProvider, Nemo.ColumnProvide
       url = base_url + 'copy-link/' + base64_encoded
 
       try:
-        response = requests.post(url)
+        response = requests.post(url, timeout=10)
 
         if response.status_code != 202:
           print(response.status_code)

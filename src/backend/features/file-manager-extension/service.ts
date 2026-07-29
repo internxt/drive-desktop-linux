@@ -108,13 +108,19 @@ export async function reloadFileManager(): Promise<void> {
   }
 
   return new Promise((resolve, reject) => {
-    exec(config.reloadCommand, (error, _, stderr) => {
+    const childProcess = exec(config.reloadCommand, { timeout: 3000 }, (error, _, stderr) => {
       if (error) {
         if (error.code === 255) {
           // nautilus -q and nemo -q typically return 255 status
           resolve();
           return;
         }
+
+        if (error.killed && error.signal === 'SIGTERM') {
+          reject(new Error('File manager reload timed out'));
+          return;
+        }
+
         reject(error);
         return;
       }
@@ -126,5 +132,7 @@ export async function reloadFileManager(): Promise<void> {
 
       resolve();
     });
+
+    childProcess.on('error', reject);
   });
 }
