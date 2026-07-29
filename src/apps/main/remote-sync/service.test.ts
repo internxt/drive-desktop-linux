@@ -5,14 +5,22 @@ import * as initialSyncReadyModule from './InitialSyncReady';
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import type { DebouncedFunc } from 'lodash';
 
-const { startRemoteSyncMock, onStatusChangeMock, emitMock, broadcastToWindowsMock, setInitialSyncStateMock, isInitialSyncReadyMock, debounceMock } = vi.hoisted(() => ({
-  startRemoteSyncMock: vi.fn(),
-  onStatusChangeMock: vi.fn(),
-  emitMock: vi.fn(),
-  broadcastToWindowsMock: vi.fn(),
-  setInitialSyncStateMock: vi.fn(),
-  isInitialSyncReadyMock: vi.fn(() => true),
-  debounceMock: vi.fn(),
+const {
+    startRemoteSyncMock,
+    onStatusChangeMock,
+    emitMock,
+    broadcastToWindowsMock,
+    setInitialSyncStateMock,
+    isInitialSyncReadyMock,
+    debounceMock
+} = vi.hoisted(() => ({
+    startRemoteSyncMock: vi.fn(),
+    onStatusChangeMock: vi.fn(),
+    emitMock: vi.fn(),
+    broadcastToWindowsMock: vi.fn(),
+    setInitialSyncStateMock: vi.fn(),
+    isInitialSyncReadyMock: vi.fn(() => true),
+    debounceMock: vi.fn(),
 }));
 
 vi.mock('lodash', () => ({
@@ -53,7 +61,13 @@ vi.mock('../database/collections/DriveFolderCollection', () => ({
 }));
 
 vi.mock('./RemoteSyncManager', () => ({
-  RemoteSyncManager: vi.fn(function RemoteSyncManagerMock(this: { startRemoteSync: typeof startRemoteSyncMock; onStatusChange: typeof onStatusChangeMock }) {
+    RemoteSyncManager: vi.fn(
+        function RemoteSyncManagerMock(
+            this: {
+                startRemoteSync: typeof startRemoteSyncMock;
+                onStatusChange: typeof onStatusChangeMock
+            }
+    ) {
     this.startRemoteSync = startRemoteSyncMock;
     this.onStatusChange = onStatusChangeMock;
   }),
