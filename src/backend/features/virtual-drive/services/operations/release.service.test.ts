@@ -19,6 +19,14 @@ import {
   markUploadSizeLimitBlockedPath,
 } from '../../../user/file-size-limit/add-max-file-size-rejection';
 
+const { addVirtualDriveIssueMock } = vi.hoisted(() => ({
+  addVirtualDriveIssueMock: vi.fn(),
+}));
+
+vi.mock('../../../../../apps/main/issues/virtual-drive', () => ({
+  addVirtualDriveIssue: addVirtualDriveIssueMock,
+}));
+
 const fileAttrs: FileAttributes = {
   id: 1,
   uuid: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
@@ -54,6 +62,7 @@ describe('release', () => {
     container.get.calledWith(TemporalFileDeleter).mockReturnValue(deleter);
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
     fileSearcher.run.mockResolvedValue(undefined);
+    addVirtualDriveIssueMock.mockReset();
     clearUploadSizeLimitBlockedPath('/Documents/report.pdf');
   });
 
@@ -147,6 +156,11 @@ describe('release', () => {
 
       expect(data).toBeUndefined();
       expect(error?.code).toBe(FuseCodes.EIO);
+      expect(addVirtualDriveIssueMock).toHaveBeenCalledWith({
+        error: 'UPLOAD_ERROR',
+        cause: 'NOT_ENOUGH_SPACE',
+        name: 'report.pdf',
+      });
       calls(deleter.run).toHaveLength(0);
     });
 

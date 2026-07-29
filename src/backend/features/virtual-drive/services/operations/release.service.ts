@@ -9,6 +9,7 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
 import { UploadSizeLimitError } from '../../../user/file-size-limit/upload-size-limit-error';
 import { DriveDesktopError } from '../../../../../context/shared/domain/errors/DriveDesktopError';
+import { addVirtualDriveIssue } from '../../../../../apps/main/issues/virtual-drive';
 
 import {
   clearUploadSizeLimitBlockedPath,
@@ -88,6 +89,13 @@ export async function release({ path, processName, container }: Props): Promise<
           path,
           processName,
         });
+
+        addVirtualDriveIssue({
+          error: 'UPLOAD_ERROR',
+          cause: 'NOT_ENOUGH_SPACE',
+          name: path.split('/').pop() ?? path,
+        });
+
         return { error: new FuseIOError('Upload failed due to insufficient storage or network issues.') };
       }
 
