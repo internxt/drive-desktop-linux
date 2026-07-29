@@ -177,6 +177,23 @@ describe('service', () => {
       await expect(reloadFileManager()).resolves.toBeUndefined();
     });
 
+    it('should reject when the reload command times out', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
+      const error = { code: 124, killed: true, signal: 'SIGTERM' } as unknown as NodeJS.ErrnoException;
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(error, '', '');
+
+        return {
+          on: vi.fn(),
+        };
+      });
+
+      // When / Then
+      await expect(reloadFileManager()).rejects.toThrow('File manager reload timed out');
+    });
+
     it('should handle exit code 255 gracefully', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
