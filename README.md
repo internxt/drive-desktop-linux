@@ -22,26 +22,61 @@ sudo dpkg -i internxt_2.6.0_amd64.deb
 
 ## Prerequisites
 
-Our system requires the key manager to be properly configured. On KDE-based distributions, this configuration often needs to be done manually before using the application.
+### KDE Wallet Configuration Guide
 
-### Step 1: Install Kleopatra
+Our application requires the KDE key manager to be properly configured. Depending on your security needs, you can choose between two methods:
+
+* **Method 1 (Recommended / Easy):** Uses standard symmetric encryption with a master password. It is fast, requires no additional software, and supports **automatic unlocking when you log in**.
+* **Method 2 (Advanced / GPG):** Uses an OpenPGP key pair via Kleopatra for higher security, though it requires manual entry of your passphrase or PIN upon logging in.
+
+> **Why Kleopatra?** > It is the official KDE key manager, offering native integration with KDE Wallet, fewer permission conflicts, and a user-friendly setup wizard compared to generic GPG tools.
+
+---
+
+### Method 1: Standard Setup (Easy & Recommended)
+
+This is the simplest way to set up KDE Wallet and allows seamless automatic unlocking upon system login.
+
+#### Step 1: Open KDE Wallet Settings
+1. Open **System Settings**.
+2. Navigate to **KDE Wallet** (or search for *Wallet* in the search bar).
+3. Ensure **Enable the KDE wallet subsystem** is checked.
+
+#### Step 2: Create a New Wallet
+1. Under **Automatic Wallet Selection**, click **Create New Wallet...**
+2. Enter a name for your wallet (e.g., `kdewallet`).
+3. Select **Blowfish encryption** (standard password) and click **Next**.
+4. Enter and confirm your **Master Password**. 
+   > **Note:** If you set this password to match your Linux user login password, the wallet will unlock automatically when you sign in!
+5. Click **Finish**.
+
+---
+
+### Method 2: GPG Key Setup (Advanced)
+
+Use this method if you prefer asymmetric GPG encryption managed via external key managers.
+
+#### Step 1: Install Kleopatra
 Install **Kleopatra**, which will be used to generate your GPG encryption key:
 
-`sudo apt update && sudo apt install kleopatra`
+```bash
+sudo apt update && sudo apt install kleopatra
+```
 
-### Step 2: Generate a GPG Key Pair
+#### Step 2: Generate a GPG Key Pair
 1. Open **Kleopatra** and click **New Key Pair** (or **File > New Key Pair**).
 2. Select **Create a personal OpenPGP key pair**.
 3. Enter your **Name** and **Email Address**.
 4. Click **Create** (or **Finish**) to complete the setup.
 
-### Step 3: Configure KDE Wallet
+### Step 3: Configure KDE Wallet for GPG
 1. Open **System Settings** and search for **KDE Wallet**.
 2. Under **Automatic Wallet Selection**, click **Create New Wallet...**
 3. Select **Use GPG encryption for added security** and click **Next**.
 4. Choose the GPG key you created earlier in Kleopatra and click **Finish**.
 
 ---
+
 *You're all set! You can now use the application as expected.*
 
 
