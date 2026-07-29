@@ -6,7 +6,7 @@ import { updateCredentials } from '../update-credentials';
 import { setIsLoggedIn } from '../handlers';
 import { setupRootFolder } from '../../virtual-root-folder/service';
 import { processDeeplink } from './proccess-deeplink';
-import { initializeCurrentUser } from './initialize_current_user';
+import { initializeCurrentUser } from './initialize-current-user';
 import configStore from '../../config';
 import { PATHS } from '../../../../core/electron/paths';
 import { waitForLogoutToFinish } from '../logout';
