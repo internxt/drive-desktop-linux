@@ -86,7 +86,6 @@ describe('register-session-event-handlers', () => {
   const eventBusOnSpy = partialSpyOn(eventBusModule.default, 'on');
   const appDataSourceInitializeSpy = partialSpyOn(appDataSourceModule.AppDataSource, 'initialize');
   const getOrCreateWidgedSpy = partialSpyOn(widgetModule, 'getOrCreateWidged');
-  const setBoundsOfWidgetByPathSpy = partialSpyOn(widgetModule, 'setBoundsOfWidgetByPath');
   const getAuthWindowSpy = partialSpyOn(authWindowModule, 'getAuthWindow');
   const configStoreGetSpy = partialSpyOn(configStoreModule.default, 'get');
   const getTraySpy = partialSpyOn(trayModule, 'getTray');
@@ -94,14 +93,15 @@ describe('register-session-event-handlers', () => {
   const openOnboardingWindowSpy = partialSpyOn(onboardingModule, 'openOnboardingWindow');
   const getThemeSpy = partialSpyOn(themeModule, 'getTheme');
   const trySetupAntivirusSpy = partialSpyOn(antivirusModule, 'trySetupAntivirusIpcAndInitialize');
-  const getUserAvailableProductsAndStoreSpy = partialSpyOn(paymentsModule, 'getUserAvailableProductsAndStore');
+  const getUserAvailableProductsAndStoreSpy = partialSpyOn(
+    paymentsModule, 'getUserAvailableProductsAndStore'
+  );
   const registerBackupHandlersSpy = partialSpyOn(backupModule, 'registerBackupHandlers');
   const startBackupsIfAvailableSpy = partialSpyOn(backupStartModule, 'startBackupsIfAvailable');
   const resolveUserFileSizeLimitSpy = partialSpyOn(fileSizeLimitModule, 'resolveUserFileSizeLimit');
   const showMarketingNotificationsSpy = partialSpyOn(marketingModule, 'showMarketingNotifications');
 
   beforeEach(() => {
-    vi.clearAllMocks();
     eventBusOnSpy.mockImplementation(() => ({}) as never);
     appDataSourceInitializeSpy.mockResolvedValue({} as never);
     getOrCreateWidgedSpy.mockResolvedValue({ show: vi.fn() } as never);
