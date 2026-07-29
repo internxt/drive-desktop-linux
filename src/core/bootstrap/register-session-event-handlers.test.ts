@@ -93,9 +93,7 @@ describe('register-session-event-handlers', () => {
   const openOnboardingWindowSpy = partialSpyOn(onboardingModule, 'openOnboardingWindow');
   const getThemeSpy = partialSpyOn(themeModule, 'getTheme');
   const trySetupAntivirusSpy = partialSpyOn(antivirusModule, 'trySetupAntivirusIpcAndInitialize');
-  const getUserAvailableProductsAndStoreSpy = partialSpyOn(
-    paymentsModule, 'getUserAvailableProductsAndStore'
-  );
+  const getUserAvailableProductsAndStoreSpy = partialSpyOn(paymentsModule, 'getUserAvailableProductsAndStore');
   const registerBackupHandlersSpy = partialSpyOn(backupModule, 'registerBackupHandlers');
   const startBackupsIfAvailableSpy = partialSpyOn(backupStartModule, 'startBackupsIfAvailable');
   const resolveUserFileSizeLimitSpy = partialSpyOn(fileSizeLimitModule, 'resolveUserFileSizeLimit');

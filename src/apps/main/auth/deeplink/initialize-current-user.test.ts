@@ -1,18 +1,12 @@
 import { User } from '../../types';
 import { loggerMock } from 'tests/vitest/mocks.helper';
 
-const {
-  refreshMock,
-  updateCredentialsMock,
-  configGetMock,
-  updateUserMock,
-} = vi.hoisted(() => ({
+const { refreshMock, updateCredentialsMock, configGetMock, updateUserMock } = vi.hoisted(() => ({
   refreshMock: vi.fn(),
   updateCredentialsMock: vi.fn(),
   configGetMock: vi.fn(),
   updateUserMock: vi.fn(),
 }));
-
 
 vi.mock('../../../../infra/drive-server/drive-server.module', () => ({
   driveServerModule: {
