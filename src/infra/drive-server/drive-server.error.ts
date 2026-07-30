@@ -43,8 +43,7 @@ function isFileSizeLimitMessage(message?: string) {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes('file size exceeds') ||
-    normalizedMessage.includes('size exceeds the maximum allowed')
+    normalizedMessage.includes('file size exceeds') || normalizedMessage.includes('size exceeds the maximum allowed')
   );
 }
 
