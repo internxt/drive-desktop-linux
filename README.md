@@ -31,7 +31,9 @@ Our application requires the KDE key manager to be properly configured. Dependin
 * **Method 1 (Recommended / Easy):** Uses standard symmetric encryption with a master password. It is fast, requires no additional software, and supports **automatic unlocking when you log in**.
 * **Method 2 (Advanced / GPG):** Uses an OpenPGP key pair via Kleopatra for higher security, though it requires manual entry of your passphrase or PIN upon logging in.
 
-> **Why Kleopatra?** > It is the official KDE key manager, offering native integration with KDE Wallet, fewer permission conflicts, and a user-friendly setup wizard compared to generic GPG tools.
+> **Why Kleopatra?** It is the official KDE key manager, offering native integration with KDE Wallet, fewer permission conflicts, and a user-friendly setup wizard compared to generic GPG tools.
+>
+> For reference, Electron's secure storage API is documented here: [safe-storage](https://www.electronjs.org/docs/latest/api/safe-storage).
 
 ---
 
