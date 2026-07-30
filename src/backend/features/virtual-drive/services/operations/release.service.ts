@@ -8,6 +8,8 @@ import { TemporalFileDeleter } from '../../../../../context/storage/TemporalFile
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
 import { UploadSizeLimitError } from '../../../user/file-size-limit/upload-size-limit-error';
+import { DriveDesktopError } from '../../../../../context/shared/domain/errors/DriveDesktopError';
+import { addVirtualDriveIssue } from '../../../../../apps/main/issues/virtual-drive';
 
 import {
   clearUploadSizeLimitBlockedPath,
@@ -78,6 +80,23 @@ export async function release({ path, processName, container }: Props): Promise<
           processName,
         });
         return { data: undefined };
+      }
+
+      if (uploadError instanceof DriveDesktopError && uploadError.cause === 'NOT_ENOUGH_SPACE') {
+        logger.warn({
+          msg: '[Release] Upload preflight rejected file because drive space is insufficient, preserving temporal file without upload',
+          error: uploadError,
+          path,
+          processName,
+        });
+
+        addVirtualDriveIssue({
+          error: 'UPLOAD_ERROR',
+          cause: 'NOT_ENOUGH_SPACE',
+          name: path.split('/').pop() ?? path,
+        });
+
+        return { error: new FuseIOError('Upload failed due to insufficient storage or network issues.') };
       }
 
       logger.error({ msg: '[Release] Upload failed, deleting temporal file', error: uploadError, path, processName });

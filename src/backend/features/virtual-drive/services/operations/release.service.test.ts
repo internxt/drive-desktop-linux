@@ -11,12 +11,21 @@ import { ContentsId } from '../../../../../apps/main/database/entities/DriveFile
 import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { UploadSizeLimitError } from '../../../user/file-size-limit/upload-size-limit-error';
+import { DriveDesktopError } from '../../../../../context/shared/domain/errors/DriveDesktopError';
 import { call, calls } from '../../../../../../tests/vitest/utils.helper';
 import {
   clearUploadSizeLimitBlockedPath,
   isUploadSizeLimitBlockedPath,
   markUploadSizeLimitBlockedPath,
 } from '../../../user/file-size-limit/add-max-file-size-rejection';
+
+const { addVirtualDriveIssueMock } = vi.hoisted(() => ({
+  addVirtualDriveIssueMock: vi.fn(),
+}));
+
+vi.mock('../../../../../apps/main/issues/virtual-drive', () => ({
+  addVirtualDriveIssue: addVirtualDriveIssueMock,
+}));
 
 const fileAttrs: FileAttributes = {
   id: 1,
@@ -53,6 +62,7 @@ describe('release', () => {
     container.get.calledWith(TemporalFileDeleter).mockReturnValue(deleter);
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
     fileSearcher.run.mockResolvedValue(undefined);
+    addVirtualDriveIssueMock.mockReset();
     clearUploadSizeLimitBlockedPath('/Documents/report.pdf');
   });
 
@@ -135,6 +145,22 @@ describe('release', () => {
 
       expect(error).toBeUndefined();
       expect(data).toBeUndefined();
+      calls(deleter.run).toHaveLength(0);
+    });
+
+    it('should preserve the temporal file and return EIO when upload preflight fails because drive space is insufficient', async () => {
+      finder.run.mockResolvedValue(createTemporalFile('/Documents/report.pdf'));
+      uploader.run.mockRejectedValue(new DriveDesktopError('NOT_ENOUGH_SPACE', 'No space left'));
+
+      const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
+
+      expect(data).toBeUndefined();
+      expect(error?.code).toBe(FuseCodes.EIO);
+      expect(addVirtualDriveIssueMock).toHaveBeenCalledWith({
+        error: 'UPLOAD_ERROR',
+        cause: 'NOT_ENOUGH_SPACE',
+        name: 'report.pdf',
+      });
       calls(deleter.run).toHaveLength(0);
     });
 
