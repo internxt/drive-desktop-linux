@@ -161,9 +161,12 @@ describe('service', () => {
     it('should execute nautilus -q when nautilus is available', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
-      execMock.mockImplementation((cmd, callback) => {
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
         expect(cmd).toBe('nautilus -q');
-        callback(null, '', '');
+        expect(optionsOrCallback).toMatchObject({ timeout: 3000 });
+
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(null, '', '');
       });
 
       // When
@@ -176,9 +179,12 @@ describe('service', () => {
     it('should execute nemo -q when nemo is available', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('nemo');
-      execMock.mockImplementation((cmd, callback) => {
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
         expect(cmd).toBe('nemo -q');
-        callback(null, '', '');
+        expect(optionsOrCallback).toMatchObject({ timeout: 3000 });
+
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(null, '', '');
       });
 
       // When
@@ -233,13 +239,46 @@ describe('service', () => {
       // When / Then
       await expect(reloadFileManager()).rejects.toThrow('unexpected dolphin stderr');
     });
+    
+    it('should pass a timeout to the reload command', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
+        expect(cmd).toBe('nautilus -q');
+        expect(optionsOrCallback).toMatchObject({ timeout: 3000 });
+
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(null, '', '');
+      });
+
+      // When
+      await expect(reloadFileManager()).resolves.toBeUndefined();
+    });
+
+    it('should reject when the reload command times out', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
+      const error = { code: 124, killed: true, signal: 'SIGTERM' } as unknown as NodeJS.ErrnoException;
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(error, '', '');
+
+        return {
+          on: vi.fn(),
+        };
+      });
+
+      // When / Then
+      await expect(reloadFileManager()).rejects.toThrow('File manager reload timed out');
+    });
 
     it('should handle exit code 255 gracefully', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
       const error = { code: 255 } as unknown as NodeJS.ErrnoException;
-      execMock.mockImplementation((cmd, callback) => {
-        callback(error, '', '');
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(error, '', '');
       });
 
       // When
