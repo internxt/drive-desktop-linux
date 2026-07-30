@@ -65,6 +65,8 @@ describe('NodeTemporalFileRepository', () => {
     const result = await repository.matchingDirectory('/Documents');
 
     expect(result).toHaveLength(2);
-    expect(result.map((path) => path.value)).toEqual(expect.arrayContaining(['/Documents/file-one.txt', '/Documents/file-two.txt']));
+    expect(result.map((path) => path.value)).toEqual(
+      expect.arrayContaining(['/Documents/file-one.txt', '/Documents/file-two.txt']),
+    );
   });
 });

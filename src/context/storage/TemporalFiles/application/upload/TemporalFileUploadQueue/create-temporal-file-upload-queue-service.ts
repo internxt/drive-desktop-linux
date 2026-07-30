@@ -1,14 +1,19 @@
 import { createTemporalFileUploadQueueState } from './state';
-import type { FactoryProps } from './types';
+import type { EnqueueProps, FactoryProps } from './types';
 import { enqueueUpload } from './enqueue-upload';
 
 export function createTemporalFileUploadQueueService(props: FactoryProps) {
   const state = createTemporalFileUploadQueueState();
 
-  return {
-    enqueue: enqueueUpload.bind(null, {
+  async function enqueue(enqueueProps: EnqueueProps) {
+    return enqueueUpload({
       ...props,
       state,
-    }),
+      ...enqueueProps,
+    });
+  }
+
+  return {
+    enqueue,
   };
 }

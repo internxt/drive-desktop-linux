@@ -1,4 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import type { RemoteSyncedFile } from '../../../../apps/main/remote-sync/helpers';
 import { AppDataSource } from '../../../../apps/main/database/data-source';
 import { createOrUpdateFileByBatch } from './create-or-update-file-by-batch';
 import { parseData } from './parse-data';
@@ -32,9 +33,22 @@ describe('create-or-update-file-by-batch', () => {
   });
 
   it('should upsert files in batches and parse the result', async () => {
-    const files = Array.from({ length: 600 }, (_, index) => ({
+    const files: RemoteSyncedFile[] = Array.from({ length: 600 }, (_, index) => ({
+      id: index + 1,
       uuid: `uuid-${index}`,
-      bucket: index % 2 === 0 ? 'bucket' : undefined,
+      fileId: `file-${index}`,
+      type: 'file',
+      size: 100,
+      bucket: index % 2 === 0 ? 'bucket' : 'other-bucket',
+      folderId: 1,
+      folderUuid: 'folder-uuid',
+      userId: 1,
+      modificationTime: '2024-01-01T00:00:00.000Z',
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+      plainName: `file-${index}`,
+      name: `file-${index}`,
+      status: 'EXISTS',
     }));
 
     const repository = {
@@ -45,8 +59,9 @@ describe('create-or-update-file-by-batch', () => {
       getRepository: vi.fn().mockReturnValue(repository),
     };
 
-    transactionMock.mockImplementation(async (callback: (manager: typeof manager) => Promise<void>) => {
-      await callback(manager);
+    transactionMock.mockImplementation(async (...args: unknown[]) => {
+      const runInTransaction = args[1] as (manager: unknown) => Promise<unknown>;
+      await runInTransaction(manager);
     });
 
     const result = await createOrUpdateFileByBatch({ files });
@@ -68,7 +83,25 @@ describe('create-or-update-file-by-batch', () => {
   });
 
   it('should log and return a sqlite error when the transaction fails', async () => {
-    const files = [{ uuid: 'uuid-1' }];
+    const files: RemoteSyncedFile[] = [
+      {
+        id: 1,
+        uuid: 'uuid-1',
+        fileId: 'file-1',
+        type: 'file',
+        size: 100,
+        bucket: 'bucket',
+        folderId: 1,
+        folderUuid: 'folder-uuid',
+        userId: 1,
+        modificationTime: '2024-01-01T00:00:00.000Z',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+        plainName: 'file-1',
+        name: 'file-1',
+        status: 'EXISTS',
+      },
+    ];
 
     transactionMock.mockRejectedValue(new Error('boom'));
 

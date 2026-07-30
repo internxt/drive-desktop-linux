@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TemporalFile } from '../../../domain/TemporalFile';
+import type { TemporalFileDeleter } from '../../deletion/TemporalFileDeleter';
+import type { TemporalFileUploader } from '../TemporalFileUploader';
+import type { TemporalFileRepository } from '../../../domain/TemporalFileRepository';
+import type { FirstsFileSearcher } from '../../../../../virtual-drive/files/application/search/FirstsFileSearcher';
 import { createTemporalFileUploadQueueState } from './state';
 import { enqueueUpload } from './enqueue-upload';
 
@@ -30,13 +34,13 @@ describe('enqueue-upload', () => {
             resolveStage = resolve;
           }),
       ),
-    };
+    } as unknown as TemporalFileRepository;
 
     const props = {
       repository,
-      uploader: {} as never,
-      deleter: {} as never,
-      fileSearcher: {} as never,
+      uploader: {} as unknown as TemporalFileUploader,
+      deleter: {} as unknown as TemporalFileDeleter,
+      fileSearcher: {} as unknown as FirstsFileSearcher,
       state,
       temporalFile: { path: '/source/file.txt' } as unknown as TemporalFile,
       path: '/target/file.txt',
@@ -63,12 +67,12 @@ describe('enqueue-upload', () => {
     const state = createTemporalFileUploadQueueState();
     const repository = {
       stage: vi.fn().mockResolvedValue({ path: '/staged/file.txt' }),
-    };
+    } as unknown as TemporalFileRepository;
     const context = {
       repository,
-      uploader: {} as never,
-      deleter: {} as never,
-      fileSearcher: {} as never,
+      uploader: {} as unknown as TemporalFileUploader,
+      deleter: {} as unknown as TemporalFileDeleter,
+      fileSearcher: {} as unknown as FirstsFileSearcher,
       state,
     };
     const temporalFile = { path: '/source/file.txt' } as unknown as TemporalFile;
@@ -98,13 +102,13 @@ describe('enqueue-upload', () => {
 
     const repository = {
       stage: vi.fn(),
-    };
+    } as unknown as TemporalFileRepository;
 
     await enqueueUpload({
       repository,
-      uploader: {} as never,
-      deleter: {} as never,
-      fileSearcher: {} as never,
+      uploader: {} as unknown as TemporalFileUploader,
+      deleter: {} as unknown as TemporalFileDeleter,
+      fileSearcher: {} as unknown as FirstsFileSearcher,
       state,
       temporalFile: { path: '/source/file.txt' } as unknown as TemporalFile,
       path: '/target/file.txt',

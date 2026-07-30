@@ -1,4 +1,4 @@
-import type { TemporalFileDeleter } from '../deletion/TemporalFileDeleter';
+import type { TemporalFileDeleter } from '../../deletion/TemporalFileDeleter';
 import type { TemporalFile } from '../../../domain/TemporalFile';
 import type { TemporalFileRepository } from '../../../domain/TemporalFileRepository';
 import type { TemporalFileUploader } from '../TemporalFileUploader';

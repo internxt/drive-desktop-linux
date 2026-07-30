@@ -1,6 +1,6 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { preserveRejectedFileSizeTooBig } from '../../../../../../backend/features/user/file-size-limit';
-import type { TemporalFileDeleter } from '../deletion/TemporalFileDeleter';
+import type { TemporalFileDeleter } from '../../deletion/TemporalFileDeleter';
 import type { UploadTask } from './types';
 
 export async function preserveRejectedUpload({ task, deleter }: { task: UploadTask; deleter: TemporalFileDeleter }) {
