@@ -55,6 +55,13 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       if (errorCause === 'TOO_MANY_REQUESTS') {
         return left(new DriveDesktopError('RATE_LIMITED', String(parseRetryAfterMs(error.message))));
       }
+      if (
+        errorCause === 'EMPTY_FILE' ||
+        errorCause === 'EMPTY_FILE_LIMIT_REACHED' ||
+        errorCause === 'EMPTY_FILE_UPGRADE_REQUIRED'
+      ) {
+        return left(new DriveDesktopError(errorCause, error.message));
+      }
       if (errorCause === 'FILE_TOO_BIG') {
         return left(new DriveDesktopError('FILE_TOO_BIG', error.message));
       }

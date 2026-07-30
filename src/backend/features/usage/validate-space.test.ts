@@ -87,6 +87,15 @@ describe('validateSpace', () => {
     expect(result.error).toBeUndefined();
   });
 
+  it('should return error when requested space is negative', async () => {
+    const result = await validateSpace(-1);
+
+    expect(result.error).toBeInstanceOf(Error);
+    expect(result.error?.message).toBe('Desired space to use must be a finite non-negative number');
+    expect(result.data).toBeUndefined();
+    expect(mockGetRawUsageAndLimit).not.toHaveBeenCalled();
+  });
+
   it('should return error when getRawUsageAndLimit returns an error', async () => {
     const mockError = new Error('Failed to get usage');
     const mockResult: Result<RawUsage, Error> = { error: mockError };

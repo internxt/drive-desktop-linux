@@ -80,6 +80,102 @@ describe('File Overrider', () => {
     expect(eventBus.publishMock).not.toHaveBeenCalled();
   });
 
+  it('throws EMPTY_FILE when backend rejects empty files during override', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    overrideFileMock.mockResolvedValueOnce({
+      error: new DriveServerError('EMPTY_FILE', 402, 'You can not have empty files'),
+    });
+
+    await expect(overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value)).rejects.toMatchObject({
+      cause: 'EMPTY_FILE',
+      message: 'You can not have empty files',
+    } satisfies Partial<DriveDesktopError>);
+
+    expect(repository.updateMock).not.toHaveBeenCalled();
+    expect(eventBus.publishMock).not.toHaveBeenCalled();
+  });
+
+  it('throws RATE_LIMITED when backend returns TOO_MANY_REQUESTS', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    overrideFileMock.mockResolvedValueOnce({
+      error: new DriveServerError('TOO_MANY_REQUESTS', 429, JSON.stringify({ retry_after: 7 })),
+    });
+
+    await expect(overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value)).rejects.toMatchObject({
+      cause: 'RATE_LIMITED',
+      message: '7000',
+    } satisfies Partial<DriveDesktopError>);
+
+    expect(repository.updateMock).not.toHaveBeenCalled();
+    expect(eventBus.publishMock).not.toHaveBeenCalled();
+  });
+
+  it('throws INTERNAL_SERVER_ERROR when backend returns SERVER_ERROR', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    overrideFileMock.mockResolvedValueOnce({
+      error: new DriveServerError('SERVER_ERROR', 500, 'server exploded'),
+    });
+
+    await expect(overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value)).rejects.toMatchObject({
+      cause: 'INTERNAL_SERVER_ERROR',
+      message: 'server exploded',
+    } satisfies Partial<DriveDesktopError>);
+
+    expect(repository.updateMock).not.toHaveBeenCalled();
+    expect(eventBus.publishMock).not.toHaveBeenCalled();
+  });
+
+  it('throws UNKNOWN when backend returns an unmapped error cause', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    overrideFileMock.mockResolvedValueOnce({
+      error: new DriveServerError('BAD_REQUEST', 400, 'bad request'),
+    });
+
+    await expect(overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value)).rejects.toMatchObject({
+      cause: 'UNKNOWN',
+      message: 'bad request',
+    } satisfies Partial<DriveDesktopError>);
+
+    expect(repository.updateMock).not.toHaveBeenCalled();
+    expect(eventBus.publishMock).not.toHaveBeenCalled();
+  });
+
   it('emits the FileOverridden domain event when successfully overridden ', async () => {
     const repository = new FileRepositoryMock();
     const eventBus = new EventBusMock();

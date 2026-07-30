@@ -110,6 +110,10 @@ export class TemporalFile extends AggregateRoot {
     return isLockFile || isTemporal || isOutputStream || isVimSwap || isVimBackup || isVimProbe;
   }
 
+  isEmpty(): boolean {
+    return this._size.value === 0;
+  }
+
   isLockFile(): boolean {
     return this.nameWithExtension.startsWith(TemporalFile.LOCK_FILE_NAME_PREFIX);
   }

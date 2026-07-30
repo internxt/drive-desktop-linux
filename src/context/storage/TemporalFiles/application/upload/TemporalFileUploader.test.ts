@@ -7,6 +7,7 @@ import {
   clearUploadSizeLimitBlockedPath,
   isUploadSizeLimitBlockedPath,
 } from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
+import * as validateSpaceModule from '../../../../../backend/features/usage/validate-space';
 import { EventBus } from '../../../../virtual-drive/shared/domain/EventBus';
 import { TemporalFile } from '../../domain/TemporalFile';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
@@ -16,6 +17,7 @@ import { call, calls } from '../../../../../../tests/vitest/utils.helper';
 
 describe('TemporalFileUploader', () => {
   const configGetMock = partialSpyOn(configStore, 'get');
+  const validateSpaceMock = partialSpyOn(validateSpaceModule, 'validateSpace');
   const repository = mockDeep<TemporalFileRepository>();
   const uploaderFactory = mockDeep<TemporalFileUploaderFactory>();
   const eventBus = mockDeep<EventBus>();
@@ -25,6 +27,13 @@ describe('TemporalFileUploader', () => {
     modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
     path: '/file.txt',
     size: 101,
+  });
+
+  const emptyTemporalFile = TemporalFile.from({
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+    path: '/new-zero-file.png',
+    size: 0,
   });
 
   const stopWatching = vi.fn();
@@ -37,6 +46,7 @@ describe('TemporalFileUploader', () => {
     uploaderFactory.abort.mockReturnValue(uploaderFactory);
     uploaderFactory.build.mockReturnValue(async () => 'contents-id');
     repository.stream.mockResolvedValue(Readable.from(['content']));
+    validateSpaceMock.mockResolvedValue({ data: { hasSpace: true } });
   });
 
   afterEach(() => {
@@ -92,6 +102,22 @@ describe('TemporalFileUploader', () => {
     expect(eventBus.publish).not.toHaveBeenCalled();
   });
 
+  it('should reject temporal files when drive space is insufficient before opening the upload stream', async () => {
+    configGetMock.mockReturnValue(101);
+    validateSpaceMock.mockResolvedValue({ data: { hasSpace: false } });
+
+    const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await expect(uploader.run(temporalFile)).rejects.toMatchObject({
+      cause: 'NOT_ENOUGH_SPACE',
+      message: 'The size of the file to upload is greater than the available space',
+    });
+    expect(repository.watchFile).not.toHaveBeenCalled();
+    expect(repository.stream).not.toHaveBeenCalled();
+    expect(uploaderFactory.build).not.toHaveBeenCalled();
+    expect(eventBus.publish).not.toHaveBeenCalled();
+  });
+
   it('should continue upload when the stored limit is unavailable', async () => {
     configGetMock.mockReturnValue(0);
 
@@ -111,5 +137,27 @@ describe('TemporalFileUploader', () => {
     expect(repository.stream).toHaveBeenCalledWith(temporalFile.path);
     expect(uploaderFactory.build).toHaveBeenCalled();
     expect(eventBus.publish).toHaveBeenCalled();
+  });
+
+  it('should skip upload for zero-byte files and only publish creation event', async () => {
+    const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await expect(uploader.run(emptyTemporalFile)).resolves.toBe('');
+    calls(repository.watchFile).toHaveLength(0);
+    calls(repository.stream).toHaveLength(0);
+    calls(repository.read).toHaveLength(0);
+    calls(uploaderFactory.read).toHaveLength(0);
+    calls(eventBus.publish).toHaveLength(1);
+
+    expect(eventBus.publish.mock.calls[0]?.[0]).toMatchObject([
+      {
+        aggregateId: '',
+        size: 0,
+        path: '/new-zero-file.png',
+        replaces: undefined,
+        contentFilePath: undefined,
+        fileBuffer: undefined,
+      },
+    ]);
   });
 });

@@ -84,23 +84,10 @@ vi.mock('axios', () => {
 });
 
 // Mock @internxt/inxt-js
-vi.mock('@internxt/inxt-js', () => {
-  class Environment {
-    static utils = {
-      generateFileKey: vi.fn(),
-    };
-
-    upload = vi.fn();
-    download = vi.fn();
-
-    constructor(..._args: unknown[]) {}
-  }
-
-  return {
-    default: Environment,
-    Environment,
-  };
-});
+vi.mock('@internxt/inxt-js', () => ({
+  default: vi.fn(),
+  Environment: class Environment {},
+}));
 
 // Mock event-bus with EventEmitter
 vi.mock('./src/apps/main/event-bus', async () => {

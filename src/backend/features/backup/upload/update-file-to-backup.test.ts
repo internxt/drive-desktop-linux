@@ -59,6 +59,15 @@ describe('update-file-to-backup', () => {
     });
   });
 
+  it('should skip file update when file size is zero', async () => {
+    const result = await updateFileToBackup({ ...baseParams, size: 0, signal: abortController.signal });
+
+    expect(result).toStrictEqual({ data: undefined });
+    expect(uploadContentMock).not.toHaveBeenCalled();
+    expect(overrideFileMock).not.toHaveBeenCalled();
+    expect(addMaxFileSizeRejectionMock).not.toHaveBeenCalled();
+  });
+
   it('should return ABORTED error when signal is already aborted', async () => {
     abortController.abort();
 

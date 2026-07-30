@@ -69,6 +69,7 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
         c.get(FileOverrider),
         c.get(Environment),
         user.bucket,
+        c.get(SyncFileMessenger),
       );
     })
     .addTag('event-handler');

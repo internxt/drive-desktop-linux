@@ -53,6 +53,14 @@ function mapOverrideFileError(error: DriveServerError): DriveDesktopError {
     return new DriveDesktopError('FILE_TOO_BIG', error.message);
   }
 
+  if (
+    error.cause === 'EMPTY_FILE' ||
+    error.cause === 'EMPTY_FILE_LIMIT_REACHED' ||
+    error.cause === 'EMPTY_FILE_UPGRADE_REQUIRED'
+  ) {
+    return new DriveDesktopError(error.cause, error.message);
+  }
+
   if (error.cause === 'TOO_MANY_REQUESTS') {
     return new DriveDesktopError('RATE_LIMITED', String(parseRetryAfterMs(error.message)));
   }

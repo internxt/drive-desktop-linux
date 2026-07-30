@@ -62,6 +62,15 @@ describe('upload-file-to-backup', () => {
     });
   });
 
+  it('should skip file upload when file size is zero', async () => {
+    const result = await uploadFileToBackup({ ...baseParams, size: 0, signal: abortController.signal });
+
+    expect(result).toStrictEqual({ data: null });
+    expect(uploadContentMock).not.toHaveBeenCalled();
+    expect(createFileToBackendMock).not.toHaveBeenCalled();
+    expect(addMaxFileSizeRejectionMock).not.toHaveBeenCalled();
+  });
+
   it('should return error when content upload fails with a non-retryable error', async () => {
     const uploadError = new DriveDesktopError('UNKNOWN', 'Upload failed');
     uploadContentMock.mockResolvedValue({ error: uploadError });

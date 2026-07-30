@@ -8,6 +8,7 @@ import { overrideFileToBackend } from './override-file-to-backend';
 import configStore from '../../../../apps/main/config';
 import { addMaxFileSizeRejection } from '../../user/file-size-limit/add-max-file-size-rejection';
 import { validateUploadFileSize } from '../../user/file-size-limit/validate-upload-file-size';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 export type UpdateFileParams = {
   path: string;
@@ -22,9 +23,20 @@ async function updateFile(file: UpdateFileParams): Promise<Result<void, DriveDes
   const validation = validateUploadFileSize({
     size: file.size,
     maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
+    allowEmptyFile: false,
   });
 
   if (!validation.allowed) {
+    if (validation.reason === 'EMPTY_FILE') {
+      logger.warn({
+        tag: 'BACKUPS',
+        msg: 'Skipping backup file update because it is empty',
+        path: file.path,
+        size: file.size,
+      });
+      return { data: undefined };
+    }
+
     addMaxFileSizeRejection({ path: file.path, fileSize: file.size, validation, blockUploadPath: false });
     return { data: undefined };
   }

@@ -11,6 +11,7 @@ import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { OfflineContentsUploadedDomainEventMother } from '../../domain/events/__test-helpers__/OfflineContentsUploadedDomainEventMother';
 import { call } from 'tests/vitest/utils.helper';
 import { preserveRejectedFileSizeTooBig } from '../../../../../backend/features/user/file-size-limit';
+import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 
 vi.mock('../../../../../backend/features/user/file-size-limit', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../../../backend/features/user/file-size-limit')>();
@@ -96,5 +97,25 @@ describe('Create File On Offline File Uploaded', () => {
       size: uploadedEvent.size,
     });
     expect(isUploadSizeLimitBlockedPath(uploadedEvent.path)).toBe(false);
+  });
+
+  it('publishes an upload issue when an override upload is rejected with a specific cause', async () => {
+    const creator = new FileCreatorTestClass();
+    const overrider = new FileOverriderTestClass();
+    const notifier = { issues: vi.fn().mockResolvedValue(undefined) } as unknown as SyncFileMessenger;
+    const uploadedEvent = OfflineContentsUploadedDomainEventMother.replacesContents();
+
+    overrider.mock.mockRejectedValue(new DriveDesktopError('EMPTY_FILE', 'You can not have empty files'));
+
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, notifier);
+
+    await sut.on(uploadedEvent);
+
+    expect(notifier.issues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: 'UPLOAD_ERROR',
+        cause: 'EMPTY_FILE',
+      }),
+    );
   });
 });

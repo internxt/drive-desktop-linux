@@ -42,7 +42,7 @@ func nonEmptyFileAttrHandler(size uint64) http.HandlerFunc {
 
 func TestRelease(t *testing.T) {
 	t.Run("sends path and processName to electron on close", func(t *testing.T) {
-		var received releaseRequest
+		releasePaths := make(chan string, 32)
 
 		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
 			client.OperationGetAttr: fileAttrHandler,
@@ -50,8 +50,13 @@ func TestRelease(t *testing.T) {
 				respondJSON(w, client.ErrorResponse{Errno: 0})
 			},
 			client.OperationRelease: func(w http.ResponseWriter, r *http.Request) {
+				var received releaseRequest
 				body, _ := io.ReadAll(r.Body)
 				_ = json.Unmarshal(body, &received)
+				select {
+				case releasePaths <- received.Path:
+				default:
+				}
 				respondJSON(w, client.ErrorResponse{Errno: 0})
 			},
 		})
@@ -63,11 +68,16 @@ func TestRelease(t *testing.T) {
 		}
 		_ = f.Close()
 
-		// give the async Release call time to reach the mock server
-		time.Sleep(50 * time.Millisecond)
-
-		if received.Path != fileName {
-			t.Errorf("path: got %q, want %q", received.Path, fileName)
+		timeout := time.After(2 * time.Second)
+		for {
+			select {
+			case releasedPath := <-releasePaths:
+				if releasedPath == fileName {
+					return
+				}
+			case <-timeout:
+				t.Fatalf("timeout waiting for Release call for %q", fileName)
+			}
 		}
 	})
 
@@ -78,7 +88,7 @@ func TestRelease(t *testing.T) {
 				respondJSON(w, client.ErrorResponse{Errno: 0})
 			},
 			client.OperationRelease: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusInternalServerError)
+				respondJSON(w, client.ErrorResponse{Errno: 0})
 			},
 		})
 
@@ -87,6 +97,10 @@ func TestRelease(t *testing.T) {
 		if err != nil {
 			t.Fatalf("open: %v", err)
 		}
+
+		sharedMount.mockServer.setHandler(client.OperationRelease, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		})
 
 		done := make(chan struct{})
 		go func() {
