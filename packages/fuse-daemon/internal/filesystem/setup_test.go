@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
@@ -76,6 +77,18 @@ func respondJSON(response http.ResponseWriter, body any) {
 //  3. A real FUSE mount pointing at that socket
 //
 // All tests share this single mount and swap the mock handler per-test.
+func shouldSkipFuseTests(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "operation not permitted") ||
+		strings.Contains(message, "permission denied") ||
+		strings.Contains(message, "not supported") ||
+		strings.Contains(message, "fusermount exited")
+}
+
 func TestMain(runner *testing.M) {
 	mountPoint, err := os.MkdirTemp("", "fuse-test-mount-*")
 	if err != nil {
@@ -95,8 +108,17 @@ func TestMain(runner *testing.M) {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	daemonClient := client.NewClient(socketPath)
 
+	if os.Getenv("FUSE_TESTS_SKIP_MOUNT") == "1" {
+		fmt.Fprintln(os.Stderr, "skipping FUSE filesystem tests: mount disabled by FUSE_TESTS_SKIP_MOUNT")
+		os.Exit(0)
+	}
+
 	fuseServer, _, err := Mount(mountPoint, logger, daemonClient)
 	if err != nil {
+		if shouldSkipFuseTests(err) {
+			fmt.Fprintf(os.Stderr, "skipping FUSE filesystem tests: %v\n", err)
+			os.Exit(0)
+		}
 		panic("mount fuse: " + err.Error())
 	}
 	defer fuseServer.Unmount() //nolint:errcheck

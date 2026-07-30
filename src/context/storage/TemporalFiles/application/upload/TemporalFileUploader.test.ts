@@ -29,6 +29,13 @@ describe('TemporalFileUploader', () => {
     size: 101,
   });
 
+  const emptyTemporalFile = TemporalFile.from({
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+    path: '/new-zero-file.png',
+    size: 0,
+  });
+
   const stopWatching = vi.fn();
   beforeEach(() => {
     repository.watchFile.mockReturnValue(stopWatching);
@@ -130,5 +137,27 @@ describe('TemporalFileUploader', () => {
     expect(repository.stream).toHaveBeenCalledWith(temporalFile.path);
     expect(uploaderFactory.build).toHaveBeenCalled();
     expect(eventBus.publish).toHaveBeenCalled();
+  });
+
+  it('should skip upload for zero-byte files and only publish creation event', async () => {
+    const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await expect(uploader.run(emptyTemporalFile)).resolves.toBe('');
+    calls(repository.watchFile).toHaveLength(0);
+    calls(repository.stream).toHaveLength(0);
+    calls(repository.read).toHaveLength(0);
+    calls(uploaderFactory.read).toHaveLength(0);
+    calls(eventBus.publish).toHaveLength(1);
+
+    expect(eventBus.publish.mock.calls[0]?.[0]).toMatchObject([
+      {
+        aggregateId: '',
+        size: 0,
+        path: '/new-zero-file.png',
+        replaces: undefined,
+        contentFilePath: undefined,
+        fileBuffer: undefined,
+      },
+    ]);
   });
 });

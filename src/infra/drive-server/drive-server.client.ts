@@ -147,7 +147,7 @@ export function createClient<T>(opts: ClientOptions) {
       if (isAxiosError(error)) {
         const status = error.response?.status;
         const message = error.response?.data?.message ?? error.message;
-        const cause = status ? mapStatusToErrorCause(status) : 'NETWORK_ERROR';
+        const cause = status ? mapStatusToErrorCause(status, message) : 'NETWORK_ERROR';
 
         return { error: new DriveServerError(cause, status, message) };
       }
