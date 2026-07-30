@@ -4,9 +4,11 @@
 
 ## Compatibility
 
-As of right now, Internxt Drive Desktop for Linux is only compatible with Ubuntu and Debian with the File explorer **Nautilus** (The default file explorer for Gnome).
+Internxt Drive Desktop for Linux is currently tested and supported on Ubuntu and Debian with the file managers **Nautilus**, **Nemo**, and **Dolphin**.
 
-We cannot guarantee that the app will work properly on other Linux distributions or with other file explorers as our development and testing efforts are focused on ensuring the best experience for Ubuntu and Debian users.
+The application is also available through the **.deb** and **.rpm** packages for these distributions.
+
+We cannot guarantee full compatibility on other Linux distributions or with unsupported file managers, although the app may still work in some environments.
 
 ## Installation
 
@@ -76,8 +78,6 @@ sudo apt update && sudo apt install kleopatra
 4. Choose the GPG key you created earlier in Kleopatra and click **Finish**.
 
 ---
-
-*You're all set! You can now use the application as expected.*
 
 
 ### AppImage
