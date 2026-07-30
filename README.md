@@ -22,7 +22,7 @@ Download and install the `.deb` package for full compatibility:
 sudo dpkg -i internxt_2.6.0_amd64.deb
 ```
 
-## Prerequisites
+## Prerequisites for KDE based distros
 
 ### KDE Wallet Configuration Guide
 
@@ -48,7 +48,7 @@ This is the simplest way to set up KDE Wallet and allows seamless automatic unlo
 1. Under **Automatic Wallet Selection**, click **Create New Wallet...**
 2. Enter a name for your wallet (e.g., `kdewallet`).
 3. Select **Blowfish encryption** (standard password) and click **Next**.
-4. Enter and confirm your **Master Password**. 
+4. Enter and confirm your **Master Password**.
    > **Note:** If you set this password to match your Linux user login password, the wallet will unlock automatically when you sign in!
 5. Click **Finish**.
 
