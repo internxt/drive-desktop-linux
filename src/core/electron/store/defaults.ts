@@ -32,8 +32,7 @@ export const defaults: AppStore = {
   preferedLanguage: DEFAULT_LANGUAGE,
   preferedTheme: 'system',
 
-  // Linux-specific: nautilus
-  nautilusExtensionVersion: 0,
+  // Linux-specific: file manager extension
   fileManagerExtensionVersion: 0,
   discoveredBackup: 0,
 
@@ -54,7 +53,6 @@ export const fieldsToSave: Array<keyof AppStore> = [
   'deviceId',
   'deviceUUID',
   'backupList',
-  'nautilusExtensionVersion',
   'fileManagerExtensionVersion',
   'discoveredBackup',
   'maxUploadFileSizeInBytes',

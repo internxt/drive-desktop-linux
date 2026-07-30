@@ -9,7 +9,7 @@ import { MakeStorageFileAvaliableOffline } from '../../../../context/storage/Sto
 import { StorageFileIsAvailableOffline } from '../../../../context/storage/StorageFiles/application/offline/StorageFileIsAvailableOffline';
 import { MakeFolderAvaliableOffline } from '../../../../context/storage/StorageFolders/application/offline/MakeFolderAvaliableOffline';
 import { StorageFolderDeleter } from '../../../../context/storage/StorageFolders/application/delete/StorageFolderDeleter';
-import * as generateLinkModule from '../../../../backend/features/nautilus-extension/create-sharing-link/generate-link';
+import * as generateLinkModule from '../../../../backend/features/file-manager-extension/create-sharing-link/generate-link';
 
 describe('contents', () => {
   const generateLinkMock = vi.spyOn(generateLinkModule, 'generateLink');
