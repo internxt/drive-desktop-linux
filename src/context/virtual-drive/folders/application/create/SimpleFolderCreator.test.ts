@@ -17,7 +17,6 @@ describe('SimpleFolderCreator', () => {
   let sut: SimpleFolderCreator;
 
   beforeEach(() => {
-
     remoteFileSystem = {
       persist: persistMock,
       searchWith: searchWithMock,
@@ -70,7 +69,9 @@ describe('SimpleFolderCreator', () => {
     persistMock.mockResolvedValue(left({ cause: 'NETWORK_ERROR' }));
     searchWithMock.mockResolvedValue(undefined);
 
-    await expect(sut.run('/photos', 1, 'parent-uuid')).rejects.toThrow('Could not create folder and was not found either');
+    await expect(sut.run('/photos', 1, 'parent-uuid')).rejects.toThrow(
+      'Could not create folder and was not found either',
+    );
 
     expect(loggerMock.warn).toHaveBeenCalledWith(
       expect.objectContaining({
