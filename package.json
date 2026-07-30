@@ -35,6 +35,7 @@
     "test:renderer": "vitest --config vitest.config.renderer.ts",
     "test:renderer:coverage": "vitest --config vitest.config.renderer.ts --coverage",
     "test:coverage": "concurrently \"npm:test:main:coverage\" \"npm:test:renderer:coverage\"",
+    "smoke:file-manager-extension": "NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true ts-node src/backend/features/file-manager-extension/file-manager-extension-smoke.ts",
     "coverage:merge": "lcov-result-merger 'coverage/*/lcov.info' 'coverage/lcov.info'",
     "type-check": "./scripts/tsc-max-errors.sh",
     "prepare": "husky install",
