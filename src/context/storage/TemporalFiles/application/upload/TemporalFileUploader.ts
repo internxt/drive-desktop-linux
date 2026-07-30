@@ -20,6 +20,7 @@ import configStore from '../../../../../apps/main/config';
 import { addMaxFileSizeRejection } from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
 import { UploadSizeLimitError } from '../../../../../backend/features/user/file-size-limit/upload-size-limit-error';
 import { validateUploadFileSize } from '../../../../../backend/features/user/file-size-limit/validate-upload-file-size';
+import { validateSpace } from '../../../../../backend/features/usage/validate-space';
 
 @Service()
 export class TemporalFileUploader {
@@ -43,16 +44,33 @@ export class TemporalFileUploader {
       return TemporalFileUploader.EMPTY_CONTENTS_ID;
     }
 
-    const validation = validateUploadFileSize({
+    const sizeValidation = validateUploadFileSize({
       size: temporalFile.size.value,
       maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
     });
 
-    if (!validation.allowed) {
-      addMaxFileSizeRejection({ path: temporalFile.path.value, fileSize: temporalFile.size.value, validation });
+    if (!sizeValidation.allowed) {
+      addMaxFileSizeRejection({
+        path: temporalFile.path.value,
+        fileSize: temporalFile.size.value,
+        validation: sizeValidation,
+      });
 
       throw new UploadSizeLimitError();
     }
+
+    const spaceValidation = await validateSpace(temporalFile.size.value);
+    if (spaceValidation.error) {
+      throw new DriveDesktopError('BAD_RESPONSE', spaceValidation.error.message);
+    }
+
+    if (spaceValidation.data.hasSpace === false) {
+      throw new DriveDesktopError(
+        'NOT_ENOUGH_SPACE',
+        'The size of the file to upload is greater than the available space',
+      );
+    }
+
     const controller = new AbortController();
     const stopWatching = this.repository.watchFile(temporalFile.path, () => controller.abort());
 

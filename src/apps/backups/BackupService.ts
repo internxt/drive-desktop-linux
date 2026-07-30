@@ -141,15 +141,15 @@ export class BackupService {
       return acc;
     }, 0);
 
-    const bytesToUpdate = Array.from(filesDiff.modified.entries()).reduce((acc, [local, remote]) => {
-      acc += local.size - remote.size;
+    const bytesToUpdate = Array.from(filesDiff.modified.entries()).reduce((acc, [local]) => {
+      acc += local.size;
 
       return acc;
     }, 0);
 
-    const total = bytesToUpdate + bytesToUpload;
+    const bytesToReserve = bytesToUpdate + bytesToUpload;
 
-    const validateSpaceResult = await UsageModule.validateSpace(total);
+    const validateSpaceResult = await UsageModule.validateSpace(bytesToReserve);
     if (validateSpaceResult.error) {
       throw new DriveDesktopError('BAD_RESPONSE', validateSpaceResult.error.message);
     }
