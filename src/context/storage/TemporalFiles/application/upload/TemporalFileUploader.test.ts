@@ -7,6 +7,7 @@ import {
   clearUploadSizeLimitBlockedPath,
   isUploadSizeLimitBlockedPath,
 } from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
+import * as validateSpaceModule from '../../../../../backend/features/usage/validate-space';
 import { EventBus } from '../../../../virtual-drive/shared/domain/EventBus';
 import { TemporalFile } from '../../domain/TemporalFile';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
@@ -16,6 +17,7 @@ import { call, calls } from '../../../../../../tests/vitest/utils.helper';
 
 describe('TemporalFileUploader', () => {
   const configGetMock = partialSpyOn(configStore, 'get');
+  const validateSpaceMock = partialSpyOn(validateSpaceModule, 'validateSpace');
   const repository = mockDeep<TemporalFileRepository>();
   const uploaderFactory = mockDeep<TemporalFileUploaderFactory>();
   const eventBus = mockDeep<EventBus>();
@@ -37,6 +39,7 @@ describe('TemporalFileUploader', () => {
     uploaderFactory.abort.mockReturnValue(uploaderFactory);
     uploaderFactory.build.mockReturnValue(async () => 'contents-id');
     repository.stream.mockResolvedValue(Readable.from(['content']));
+    validateSpaceMock.mockResolvedValue({ data: { hasSpace: true } });
   });
 
   afterEach(() => {
@@ -88,6 +91,22 @@ describe('TemporalFileUploader', () => {
 
     await expect(uploader.run(temporalFile)).rejects.toThrow('UPLOAD_SIZE_LIMIT_EXCEEDED');
     expect(isUploadSizeLimitBlockedPath('/file.txt')).toBe(true);
+    expect(uploaderFactory.build).not.toHaveBeenCalled();
+    expect(eventBus.publish).not.toHaveBeenCalled();
+  });
+
+  it('should reject temporal files when drive space is insufficient before opening the upload stream', async () => {
+    configGetMock.mockReturnValue(101);
+    validateSpaceMock.mockResolvedValue({ data: { hasSpace: false } });
+
+    const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await expect(uploader.run(temporalFile)).rejects.toMatchObject({
+      cause: 'NOT_ENOUGH_SPACE',
+      message: 'The size of the file to upload is greater than the available space',
+    });
+    expect(repository.watchFile).not.toHaveBeenCalled();
+    expect(repository.stream).not.toHaveBeenCalled();
     expect(uploaderFactory.build).not.toHaveBeenCalled();
     expect(eventBus.publish).not.toHaveBeenCalled();
   });

@@ -35,21 +35,31 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const refreshDevice = () => {
-    setDeviceState({ status: 'LOADING' });
-    window.electron.getOrCreateDevice().then(({ error, data: device }) => {
-      if (error || !device) {
-        setDeviceState({ status: 'ERROR' });
-        return;
-      }
-      setCurrentDevice(device);
+  const setDeviceErrorState = () => {
+    setDeviceState((previousState) => {
+      if (previousState.status === 'SUCCESS') return previousState;
+      return { status: 'ERROR' };
     });
   };
 
+  const refreshDevice = async () => {
+    setDeviceState({ status: 'LOADING' });
+
+    const { error, data: device } = await window.electron.getOrCreateDevice();
+
+    if (error || !device) {
+      setDeviceErrorState();
+      return;
+    }
+
+    setCurrentDevice(device);
+  };
+
   useEffect(() => {
+    const removeDeviceCreatedListener = window.electron.onDeviceCreated(setCurrentDevice);
+
     refreshDevice();
 
-    const removeDeviceCreatedListener = window.electron.onDeviceCreated(setCurrentDevice);
     return () => {
       removeDeviceCreatedListener();
     };

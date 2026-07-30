@@ -86,7 +86,7 @@ vi.mock('axios', () => {
 // Mock @internxt/inxt-js
 vi.mock('@internxt/inxt-js', () => ({
   default: vi.fn(),
-  Environment: vi.fn(),
+  Environment: class Environment {},
 }));
 
 // Mock event-bus with EventEmitter
