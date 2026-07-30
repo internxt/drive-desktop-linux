@@ -1,12 +1,12 @@
 import { mapStatusToErrorCause } from './drive-server.error';
 
 describe('mapStatusToErrorCause', () => {
-  it('maps 400 to EMPTY_FILE when the server rejects additional empty files', () => {
-    expect(mapStatusToErrorCause(400, 'You can not have more empty files')).toBe('EMPTY_FILE');
+  it('maps 400 to EMPTY_FILE_LIMIT_REACHED when the server rejects additional empty files', () => {
+    expect(mapStatusToErrorCause(400, 'You can not have more empty files')).toBe('EMPTY_FILE_LIMIT_REACHED');
   });
 
-  it('maps 400 to FILE_TOO_BIG when the message indicates a size limit', () => {
-    expect(mapStatusToErrorCause(400, 'File size exceeds the maximum allowed by your plan')).toBe('FILE_TOO_BIG');
+  it('maps 400 to BAD_REQUEST when the message indicates a size limit', () => {
+    expect(mapStatusToErrorCause(400, 'File size exceeds the maximum allowed by your plan')).toBe('BAD_REQUEST');
   });
 
   it('maps 400 to BAD_REQUEST when the message does not match known cases', () => {
@@ -21,9 +21,9 @@ describe('mapStatusToErrorCause', () => {
     expect(mapStatusToErrorCause(402, 'File size exceeds the maximum allowed by your plan')).toBe('FILE_TOO_BIG');
   });
 
-  it('maps 402 to EMPTY_FILE when the server rejects empty files', () => {
+  it('maps 402 to EMPTY_FILE_UPGRADE_REQUIRED when the server rejects empty files for plan upgrades', () => {
     expect(mapStatusToErrorCause(402, 'You can not have empty files, upgrade your plan to get more features')).toBe(
-      'EMPTY_FILE',
+      'EMPTY_FILE_UPGRADE_REQUIRED',
     );
   });
 

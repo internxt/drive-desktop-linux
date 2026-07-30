@@ -9,6 +9,8 @@ const DriveServerErrorCauses = [
   'TOO_MANY_REQUESTS',
   'CONFLICT',
   'EMPTY_FILE',
+  'EMPTY_FILE_LIMIT_REACHED',
+  'EMPTY_FILE_UPGRADE_REQUIRED',
   'FILE_TOO_BIG',
   'UNKNOWN',
 ] as const;
@@ -41,8 +43,6 @@ function isFileSizeLimitMessage(message?: string) {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes('too big') ||
-    normalizedMessage.includes('too large') ||
     normalizedMessage.includes('file size exceeds') ||
     normalizedMessage.includes('size exceeds the maximum allowed')
   );
@@ -54,13 +54,12 @@ export function mapStatusToErrorCause(status: number, message?: string): DriveSe
   if (status === 404) return 'NOT_FOUND';
   if (status === 409) return 'CONFLICT';
   if (status === 400) {
-    if (isEmptyFileMessage(message)) return 'EMPTY_FILE';
-    if (isFileSizeLimitMessage(message)) return 'FILE_TOO_BIG';
+    if (isEmptyFileMessage(message)) return 'EMPTY_FILE_LIMIT_REACHED';
 
     return 'BAD_REQUEST';
   }
   if (status === 402) {
-    if (isEmptyFileMessage(message)) return 'EMPTY_FILE';
+    if (isEmptyFileMessage(message)) return 'EMPTY_FILE_UPGRADE_REQUIRED';
     if (isFileSizeLimitMessage(message)) return 'FILE_TOO_BIG';
 
     return 'FILE_TOO_BIG';
