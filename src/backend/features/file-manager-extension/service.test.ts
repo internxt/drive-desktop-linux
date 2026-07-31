@@ -197,9 +197,11 @@ describe('service', () => {
     it('should execute dolphin reload command when dolphin is available', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
-      execMock.mockImplementation((cmd, callback) => {
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
         expect(cmd).toBe('kquitapp6 dolphin || kquitapp5 dolphin || true');
-        callback(null, '', '');
+
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(null, '', '');
       });
 
       // When
@@ -212,9 +214,11 @@ describe('service', () => {
     it('should ignore dolphin stderr when dolphin is not running', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
-      execMock.mockImplementation((cmd, callback) => {
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
         expect(cmd).toBe('kquitapp6 dolphin || kquitapp5 dolphin || true');
-        callback(
+
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(
           null,
           '',
           'Application dolphin could not be found using service org.kde.dolphin and path /MainApplication.',
@@ -231,15 +235,17 @@ describe('service', () => {
     it('should reject unexpected dolphin stderr', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
-      execMock.mockImplementation((cmd, callback) => {
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
         expect(cmd).toBe('kquitapp6 dolphin || kquitapp5 dolphin || true');
-        callback(null, '', 'unexpected dolphin stderr');
+
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(null, '', 'unexpected dolphin stderr');
       });
 
       // When / Then
       await expect(reloadFileManager()).rejects.toThrow('unexpected dolphin stderr');
     });
-    
+
     it('should pass a timeout to the reload command', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
