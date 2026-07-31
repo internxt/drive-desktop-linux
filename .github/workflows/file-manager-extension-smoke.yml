@@ -14,7 +14,7 @@ jobs:
         fileManager: [nautilus, nemo, dolphin]
 
     container:
-      image: ubuntu:24.04
+      image: ubuntu:22.04
 
     steps:
       - name: Install base dependencies

@@ -1,7 +1,7 @@
 import * as detectModule from './detect-available';
 import * as fileExistsModule from '../../../apps/shared/fs/fileExists';
 import fs from 'node:fs/promises';
-import { copyExtensionFile, getFileManagerType, isInstalled, reloadFileManager } from './service';
+import { copyExtensionFile, deleteExtensionFile, getFileManagerType, isInstalled, reloadFileManager } from './service';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { homedir } from 'node:os';
 
@@ -296,6 +296,60 @@ describe('service', () => {
   });
 
   describe('copyExtensionFile', () => {
+    it('should do nothing when no file manager is available', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce(null);
+
+      // When
+      await copyExtensionFile();
+
+      // Then
+      expect(fsMock.mkdir).not.toHaveBeenCalled();
+      expect(fsMock.link).not.toHaveBeenCalled();
+      expect(fsMock.cp).not.toHaveBeenCalled();
+    });
+
+    it('should skip copying when assets are already installed', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
+      doesFileExistMock.mockResolvedValue(true);
+
+      // When
+      await copyExtensionFile();
+
+      // Then
+      expect(fsMock.mkdir).not.toHaveBeenCalled();
+      expect(fsMock.link).not.toHaveBeenCalled();
+      expect(fsMock.cp).not.toHaveBeenCalled();
+    });
+
+    it('should use fs.link for non-template assets in development mode', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
+      doesFileExistMock.mockResolvedValue(false);
+
+      // When
+      await copyExtensionFile();
+
+      // Then
+      expect(fsMock.link).toHaveBeenCalled();
+      expect(fsMock.cp).not.toHaveBeenCalled();
+    });
+
+    it('should use fs.cp for non-template assets in production mode', async () => {
+      // Given
+      process.env.NODE_ENV = 'production';
+      detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
+      doesFileExistMock.mockResolvedValue(false);
+
+      // When
+      await copyExtensionFile();
+
+      // Then
+      expect(fsMock.cp).toHaveBeenCalled();
+      expect(fsMock.link).not.toHaveBeenCalled();
+    });
+
     it('should template dolphin service menu with the current home path', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
@@ -317,6 +371,31 @@ describe('service', () => {
         expect.stringContaining('/.local/share/kio/servicemenus/internxt-virtual-drive.desktop'),
         0o755,
       );
+    });
+  });
+
+  describe('deleteExtensionFile', () => {
+    it('should remove installed assets for the detected file manager', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
+      doesFileExistMock.mockResolvedValue(true);
+
+      // When
+      await deleteExtensionFile();
+
+      // Then
+      expect(fsMock.rm).toHaveBeenCalled();
+    });
+
+    it('should do nothing when no file manager is available', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce(null);
+
+      // When
+      await deleteExtensionFile();
+
+      // Then
+      expect(fsMock.rm).not.toHaveBeenCalled();
     });
   });
 });

@@ -4,10 +4,8 @@ import { constants as fsConstants } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { copyExtensionFile, deleteExtensionFile, isInstalled } from './service';
-import { detectAvailableFileManager, type FileManagerType } from './detect-available';
-import { isSupportedFileManager } from './constants';
-
-type SupportedFileManager = Exclude<FileManagerType, null>;
+import { detectAvailableFileManager } from './detect-available';
+import { isSupportedFileManager, type SupportedFileManager } from './constants';
 
 type AssertProps = {
   condition: boolean;
@@ -21,7 +19,7 @@ function assertOrThrow({ condition, message }: AssertProps) {
 }
 
 function expectedManagerFromEnv() {
-  const raw = process.env.EXPECTED_FILE_MANAGER?.trim().toLowerCase();
+  const raw = process.env.EXPECTED_FILE_MANAGER?.trim().toLowerCase() as SupportedFileManager;
 
   if (!raw) return null;
 
@@ -98,7 +96,11 @@ async function run() {
     });
   }
 
-  const manager = detected as SupportedFileManager;
+  if (detected === null) {
+    throw new Error('No supported file manager detected in smoke environment');
+  }
+
+  const manager = detected;
   const expectedPaths = getExpectedPaths({ manager });
 
   await deleteExtensionFile();

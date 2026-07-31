@@ -4,14 +4,16 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { doesFileExist } from '../../../apps/shared/fs/fileExists';
-import { detectAvailableFileManager, type FileManagerType } from './detect-available';
+import { detectAvailableFileManager } from './detect-available';
+import {
+  type SupportedFileManager,
+  NAUTILUS_EXTENSION_FILENAME,
+  NEMO_EXTENSION_FILENAME,
+  DOLPHIN_MENU_FILENAME,
+  DOLPHIN_HELPER_FILENAME,
+} from './constants';
 
 const homedir = os.homedir();
-
-const nautilusExtensionFileName = 'internxt-virtual-drive.py';
-const nemoExtensionFileName = 'internxt-virtual-drive.py';
-const dolphinMenuFileName = 'internxt-virtual-drive.desktop';
-const dolphinHelperFileName = 'internxt-dolphin-actions.sh';
 
 type FileManagerAsset = {
   source: string;
@@ -21,12 +23,12 @@ type FileManagerAsset = {
 };
 
 type FileManagerConfig = {
-  type: FileManagerType;
+  type: SupportedFileManager;
   reloadCommand: string;
   assets: FileManagerAsset[];
 };
 
-function isIgnorableReloadStderr({ fileManagerType, stderr }: { fileManagerType: FileManagerType; stderr: string }) {
+function isIgnorableReloadStderr({ fileManagerType, stderr }: { fileManagerType: SupportedFileManager; stderr: string }) {
   if (fileManagerType !== 'dolphin') {
     return false;
   }
@@ -46,19 +48,19 @@ async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
       assets: [
         {
           source: 'dolphin/internxt-virtual-drive.desktop',
-          destination: `${homedir}/.local/share/kio/servicemenus/${dolphinMenuFileName}`,
+          destination: `${homedir}/.local/share/kio/servicemenus/${DOLPHIN_MENU_FILENAME}`,
           template: true,
           executable: true,
         },
         {
           source: 'dolphin/internxt-virtual-drive.desktop',
-          destination: `${homedir}/.local/share/kservices5/ServiceMenus/${dolphinMenuFileName}`,
+          destination: `${homedir}/.local/share/kservices5/ServiceMenus/${DOLPHIN_MENU_FILENAME}`,
           template: true,
           executable: true,
         },
         {
-          source: `dolphin/${dolphinHelperFileName}`,
-          destination: `${homedir}/.local/share/internxt-dolphin-extension/${dolphinHelperFileName}`,
+          source: `dolphin/${DOLPHIN_HELPER_FILENAME}`,
+          destination: `${homedir}/.local/share/internxt-dolphin-extension/${DOLPHIN_HELPER_FILENAME}`,
           executable: true,
         },
       ],
@@ -71,8 +73,8 @@ async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
       reloadCommand: 'nemo -q',
       assets: [
         {
-          source: `python-nemo/${nemoExtensionFileName}`,
-          destination: `${homedir}/.local/share/nemo-python/extensions/${nemoExtensionFileName}`,
+          source: `python-nemo/${NEMO_EXTENSION_FILENAME}`,
+          destination: `${homedir}/.local/share/nemo-python/extensions/${NEMO_EXTENSION_FILENAME}`,
         },
       ],
     };
@@ -84,8 +86,8 @@ async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
       reloadCommand: 'nautilus -q',
       assets: [
         {
-          source: `python-nautilus/${nautilusExtensionFileName}`,
-          destination: `${homedir}/.local/share/nautilus-python/extensions/${nautilusExtensionFileName}`,
+          source: `python-nautilus/${NAUTILUS_EXTENSION_FILENAME}`,
+          destination: `${homedir}/.local/share/nautilus-python/extensions/${NAUTILUS_EXTENSION_FILENAME}`,
         },
       ],
     };
@@ -102,7 +104,7 @@ function getExtensionFile(source: string): string {
   }
 }
 
-export async function getFileManagerType(): Promise<FileManagerType> {
+export async function getFileManagerType(): Promise<SupportedFileManager> {
   return await detectAvailableFileManager();
 }
 

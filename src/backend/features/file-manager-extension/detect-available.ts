@@ -1,12 +1,11 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import { type SupportedFileManager } from './constants';
 
 const execAsync = promisify(exec);
 
-export type FileManagerType = 'nautilus' | 'nemo' | 'dolphin' | null;
-
 type FileManagerCandidate = {
-  type: Exclude<FileManagerType, null>;
+  type: SupportedFileManager;
   desktopEntry: string;
   hasBinary: () => Promise<boolean>;
 };
@@ -17,7 +16,7 @@ const FILE_MANAGER_CANDIDATES: FileManagerCandidate[] = [
   { type: 'nautilus', desktopEntry: 'nautilus.desktop', hasBinary: hasNautilusBinary },
 ];
 
-export async function detectAvailableFileManager(): Promise<FileManagerType> {
+export async function detectAvailableFileManager(): Promise<SupportedFileManager> {
   const desktopEntry = await getDefaultDirectoryDesktopEntry();
 
   if (desktopEntry) {
@@ -40,14 +39,6 @@ export async function detectAvailableFileManager(): Promise<FileManagerType> {
 
 export async function isNautilusAvailable(): Promise<boolean> {
   return (await detectAvailableFileManager()) === 'nautilus';
-}
-
-export async function isNemoAvailable(): Promise<boolean> {
-  return (await detectAvailableFileManager()) === 'nemo';
-}
-
-export async function isDolphinAvailable(): Promise<boolean> {
-  return (await detectAvailableFileManager()) === 'dolphin';
 }
 
 async function getDefaultDirectoryDesktopEntry(): Promise<string> {

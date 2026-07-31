@@ -1,8 +1,6 @@
 import {
   detectAvailableFileManager,
-  isDolphinAvailable,
   isNautilusAvailable,
-  isNemoAvailable,
 } from './detect-available';
 
 const { execAsyncMock } = vi.hoisted(() => ({
@@ -153,44 +151,6 @@ describe('detect-available', () => {
       mockExecWith({});
 
       const result = await isNautilusAvailable();
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('isNemoAvailable', () => {
-    it('should return true when nemo is available', async () => {
-      mockExecWith({
-        desktopEntry: 'nemo.desktop',
-        hasNemo: true,
-      });
-
-      const result = await isNemoAvailable();
-      expect(result).toBe(true);
-    });
-
-    it('should return false when nemo is not available', async () => {
-      mockExecWith({});
-
-      const result = await isNemoAvailable();
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('isDolphinAvailable', () => {
-    it('should return true when dolphin is available', async () => {
-      mockExecWith({
-        desktopEntry: 'org.kde.dolphin.desktop',
-        hasDolphin: true,
-      });
-
-      const result = await isDolphinAvailable();
-      expect(result).toBe(true);
-    });
-
-    it('should return false when dolphin is not available', async () => {
-      mockExecWith({});
-
-      const result = await isDolphinAvailable();
       expect(result).toBe(false);
     });
   });
