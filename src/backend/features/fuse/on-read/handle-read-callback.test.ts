@@ -147,7 +147,7 @@ describe('handleReadCallback', () => {
 
       await testSleep(0);
 
-      expect(downloadAndCacheBlockMock).toHaveBeenCalledTimes(6);
+      expect(downloadAndCacheBlockMock).toHaveBeenCalledTimes(4);
       expect(readChunkFromDiskMock).toHaveBeenCalled();
     });
   });
