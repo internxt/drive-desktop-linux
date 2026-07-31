@@ -75,4 +75,16 @@ describe('updateStateFromHeaders', () => {
     expect(state.remaining).toBe(5);
     expect(state.reset).toBe(1000);
   });
+
+  it('should ignore partially numeric header values', () => {
+    const state: RateLimitState = { limit: 10, remaining: 5, reset: 1000 };
+
+    updateStateFromHeaders(state, {
+      'x-internxt-ratelimit-reset': '10seconds',
+    });
+
+    expect(state.limit).toBe(10);
+    expect(state.remaining).toBe(5);
+    expect(state.reset).toBe(1000);
+  });
 });

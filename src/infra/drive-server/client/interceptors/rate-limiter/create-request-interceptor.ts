@@ -7,8 +7,8 @@ export function createRequestInterceptor(
 ): (config: InternalAxiosRequestConfig) => Promise<InternalAxiosRequestConfig> {
   return async (config: InternalAxiosRequestConfig) => {
     const currentRequestKey = getRequestKey({ method: config.method, url: config.url });
-    if (delayState.pending && delayState.requestKey === currentRequestKey) {
-      await delayState.pending;
+    if (delayState.pendingByKey[currentRequestKey]) {
+      await delayState.pendingByKey[currentRequestKey];
     }
 
     return config;

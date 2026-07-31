@@ -6,7 +6,7 @@ describe('createRequestInterceptor', () => {
   const mockConfig = { url: '/test' } as InternalAxiosRequestConfig;
 
   it('should return the config immediately when there is no pending delay', async () => {
-    const state: DelayState = { pending: null, requestKey: null };
+    const state: DelayState = { pendingByKey: {} };
     const interceptor = createRequestInterceptor(state);
 
     const result = await interceptor(mockConfig);
@@ -17,10 +17,11 @@ describe('createRequestInterceptor', () => {
   it('should wait for the pending delay before returning the config', async () => {
     let resolveDelay!: () => void;
     const state: DelayState = {
-      pending: new Promise((resolve) => {
-        resolveDelay = resolve;
-      }),
-      requestKey: 'GET:/test',
+      pendingByKey: {
+        'GET:/test': new Promise((resolve) => {
+          resolveDelay = resolve;
+        }),
+      },
     };
     const interceptor = createRequestInterceptor(state);
 
@@ -43,10 +44,11 @@ describe('createRequestInterceptor', () => {
   it('should make multiple concurrent requests with the same key wait for the same delay', async () => {
     let resolveDelay!: () => void;
     const state: DelayState = {
-      pending: new Promise((resolve) => {
-        resolveDelay = resolve;
-      }),
-      requestKey: 'GET:/a',
+      pendingByKey: {
+        'GET:/a': new Promise((resolve) => {
+          resolveDelay = resolve;
+        }),
+      },
     };
     const interceptor = createRequestInterceptor(state);
 
@@ -67,10 +69,11 @@ describe('createRequestInterceptor', () => {
   it('should not wait when there is a pending delay for a different request key', async () => {
     let resolveDelay!: () => void;
     const state: DelayState = {
-      pending: new Promise((resolve) => {
-        resolveDelay = resolve;
-      }),
-      requestKey: 'GET:/different',
+      pendingByKey: {
+        'GET:/different': new Promise((resolve) => {
+          resolveDelay = resolve;
+        }),
+      },
     };
     const interceptor = createRequestInterceptor(state);
 

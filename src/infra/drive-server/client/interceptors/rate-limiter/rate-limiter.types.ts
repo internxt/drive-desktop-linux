@@ -6,8 +6,7 @@ export type RateLimitState = {
   reset: number | null;
 };
 export type DelayState = {
-  pending: Promise<void> | null;
-  requestKey: string | null;
+  pendingByKey: Record<string, Promise<void>>;
 };
 
 export type ResponseInterceptor = {

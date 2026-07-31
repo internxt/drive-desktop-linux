@@ -50,9 +50,8 @@ export function createResponseInterceptor(
       maxRetries: MAX_RETRIES,
     });
 
-    delayState.requestKey = getRequestKey(config);
-    await waitForDelay(delayState, waitMs);
-    delayState.requestKey = null;
+    const requestKey = getRequestKey(config);
+    await waitForDelay(delayState, requestKey, waitMs);
 
     config[RETRY_CONFIG_KEY] = retryCount + 1;
     return instance.request(config);

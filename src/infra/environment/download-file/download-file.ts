@@ -17,6 +17,10 @@ export async function downloadFileRange({
 }: DownloadFileProps): Promise<Result<Buffer, Error>> {
   if (range.length <= 0) return { data: Buffer.alloc(0) };
 
+  if (!isValidRange(range)) {
+    return { error: new Error('Invalid range') };
+  }
+
   let encryptedBytes: Buffer | undefined;
   let decryptedBuffer: Buffer | undefined;
   let operationError: Error | undefined;
@@ -88,19 +92,39 @@ function abortedDownloadResult(): Result<Buffer, Error> {
   return { data: Buffer.alloc(0) };
 }
 
+function isValidRange(range: DownloadFileProps['range']): boolean {
+  if (!isSafeInteger(range.position) || !isSafeInteger(range.length) || range.position < 0 || range.length <= 0) {
+    return false;
+  }
+
+  const endOffset = range.position + range.length - 1;
+  return isSafeInteger(endOffset);
+}
+
+function isSafeInteger(value: number): boolean {
+  return Number.isSafeInteger(value);
+}
+
 async function fetchEncryptedRange(
   url: string,
   position: number,
   length: number,
   signal: AbortSignal,
 ): Promise<Buffer> {
-  if (length <= 0) return Buffer.alloc(0);
+  if (!isSafeInteger(position) || !isSafeInteger(length) || position < 0 || length <= 0) {
+    throw new Error('Invalid range');
+  }
+
+  const endOffset = position + length - 1;
+  if (!isSafeInteger(endOffset)) {
+    throw new Error('Invalid range');
+  }
 
   const response = await axios.get<NodeJS.ReadableStream>(url, {
     responseType: 'stream',
     signal,
     headers: {
-      range: `bytes=${position}-${position + length - 1}`,
+      range: `bytes=${position}-${endOffset}`,
     },
   });
 

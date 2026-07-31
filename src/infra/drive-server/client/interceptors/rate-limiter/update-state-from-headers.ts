@@ -7,6 +7,10 @@ function parseNumberHeader(value: string | null | undefined) {
     return null;
   }
 
+  if (!/^\d+$/.test(value)) {
+    return null;
+  }
+
   const parsed = Number.parseInt(value, 10);
   if (Number.isNaN(parsed)) {
     return null;

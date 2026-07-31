@@ -82,4 +82,29 @@ describe('downloadFileRange', () => {
     expect(sdkDownloadFileMock).not.toHaveBeenCalled();
     expect(axiosGetMock).not.toHaveBeenCalled();
   });
+
+  it.each([
+    { position: -1, length: 5 },
+    { position: 10.5, length: 5 },
+    { position: Number.NaN, length: 5 },
+    { position: Number.POSITIVE_INFINITY, length: 5 },
+    { position: Number.MAX_SAFE_INTEGER + 1, length: 5 },
+    { position: 10, length: Number.NaN },
+    { position: 10, length: Number.POSITIVE_INFINITY },
+    { position: Number.MAX_SAFE_INTEGER, length: 3 },
+  ])('rejects invalid range values: %j', async (range) => {
+    const result = await downloadFileRange({
+      fileId: 'file-id',
+      bucketId: 'bucket-id',
+      mnemonic: 'mnemonic',
+      network: {} as never,
+      range: range as never,
+      signal: new AbortController().signal,
+    });
+
+    expect(result).toMatchObject({ error: expect.any(Error) });
+    expect(result.error?.message).toBe('Invalid range');
+    expect(sdkDownloadFileMock).not.toHaveBeenCalled();
+    expect(axiosGetMock).not.toHaveBeenCalled();
+  });
 });

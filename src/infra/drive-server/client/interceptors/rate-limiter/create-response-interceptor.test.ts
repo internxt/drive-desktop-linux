@@ -74,9 +74,16 @@ describe('createResponseInterceptor', () => {
 
   beforeEach(() => {
     state = { limit: null, remaining: null, reset: null };
-    delayState = { pending: null, requestKey: null };
+    delayState = { pendingByKey: {} };
     retryResponse = makeResponse();
     instance = { request: vi.fn().mockResolvedValue(retryResponse) } as unknown as AxiosInstance;
+
+    vi.mocked(waitForDelay).mockImplementation(async (currentDelayState, key) => {
+      const pending = Promise.resolve().then(() => undefined);
+      currentDelayState.pendingByKey[key] = pending;
+      await pending;
+      delete currentDelayState.pendingByKey[key];
+    });
   });
 
   describe('onFulfilled', () => {
@@ -131,10 +138,10 @@ describe('createResponseInterceptor', () => {
       const result = await onRejected(error);
 
       call(addJitter).toStrictEqual(3000);
-      call(waitForDelay).toMatchObject([delayState, 3050]);
+      call(waitForDelay).toMatchObject([delayState, 'GET:', 3050]);
       call(instance.request).toMatchObject(config);
       expect(result).toBe(retryResponse);
-      expect(delayState.requestKey).toBeNull();
+      expect(delayState.pendingByKey).toStrictEqual({});
     });
 
     it('should default to 5000ms when state.reset is null', async () => {
@@ -147,6 +154,27 @@ describe('createResponseInterceptor', () => {
       await onRejected(error);
 
       call(addJitter).toStrictEqual(5000);
+    });
+
+    it('keeps pending delays isolated per request key when two 429s overlap', async () => {
+      const firstConfig = { url: '/first' } as InternalAxiosRequestConfig;
+      const secondConfig = { url: '/second' } as InternalAxiosRequestConfig;
+      const firstError = make429Error(firstConfig);
+      const secondError = make429Error(secondConfig);
+      const { onRejected } = createResponseInterceptor(instance, state, delayState);
+
+      const firstPromise = onRejected(firstError);
+      const secondPromise = onRejected(secondError);
+
+      await Promise.resolve();
+
+      expect(Object.keys(delayState.pendingByKey)).toHaveLength(2);
+      expect(delayState.pendingByKey['GET:/first']).toBeDefined();
+      expect(delayState.pendingByKey['GET:/second']).toBeDefined();
+
+      await Promise.all([firstPromise, secondPromise]);
+
+      expect(Object.keys(delayState.pendingByKey)).toHaveLength(0);
     });
 
     it('should increment the retry count on the config', async () => {
