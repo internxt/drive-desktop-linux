@@ -1,7 +1,4 @@
-import {
-  detectAvailableFileManager,
-  isNautilusAvailable,
-} from './detect-available';
+import { detectAvailableFileManager, isNautilusAvailable } from './detect-available';
 
 const { execAsyncMock } = vi.hoisted(() => ({
   execAsyncMock: vi.fn(),

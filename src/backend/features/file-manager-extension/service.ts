@@ -28,7 +28,13 @@ type FileManagerConfig = {
   assets: FileManagerAsset[];
 };
 
-function isIgnorableReloadStderr({ fileManagerType, stderr }: { fileManagerType: SupportedFileManager; stderr: string }) {
+function isIgnorableReloadStderr({
+  fileManagerType,
+  stderr,
+}: {
+  fileManagerType: SupportedFileManager;
+  stderr: string;
+}) {
   if (fileManagerType !== 'dolphin') {
     return false;
   }

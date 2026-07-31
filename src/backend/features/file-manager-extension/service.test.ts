@@ -339,6 +339,7 @@ describe('service', () => {
     it('should use fs.cp for non-template assets in production mode', async () => {
       // Given
       process.env.NODE_ENV = 'production';
+      process.resourcesPath = '/tmp/resources';
       detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
       doesFileExistMock.mockResolvedValue(false);
 
