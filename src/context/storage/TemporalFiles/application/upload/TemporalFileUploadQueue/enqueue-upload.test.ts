@@ -63,6 +63,29 @@ describe('enqueue-upload', () => {
     });
   });
 
+  it('should return an error result when staging fails', async () => {
+    const state = createTemporalFileUploadQueueState();
+    const repository = {
+      stage: vi.fn().mockRejectedValue(new Error('stage failed')),
+    } as unknown as TemporalFileRepository;
+
+    const result = await enqueueUpload({
+      repository,
+      uploader: {} as unknown as TemporalFileUploader,
+      deleter: {} as unknown as TemporalFileDeleter,
+      fileSearcher: {} as unknown as FirstsFileSearcher,
+      state,
+      temporalFile: { path: '/source/file.txt' } as unknown as TemporalFile,
+      path: '/target/file.txt',
+      processName: 'process',
+    });
+
+    expect(result).toStrictEqual({ error: expect.any(Error) });
+    expect(state.queuedPaths.has('/target/file.txt')).toBe(false);
+    expect(state.tasks).toHaveLength(0);
+    expect(drainUploadQueue).not.toHaveBeenCalled();
+  });
+
   it('should stage and queue a new upload', async () => {
     const state = createTemporalFileUploadQueueState();
     const repository = {

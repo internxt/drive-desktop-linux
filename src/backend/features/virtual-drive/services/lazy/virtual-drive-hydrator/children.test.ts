@@ -27,9 +27,10 @@ describe('children', () => {
     const removedFolder = { status: 'EXISTS', deleted: true, removed: false } as unknown as FolderDto;
     const existingFile = { status: 'EXISTS' } as unknown as FileDto;
     const trashedFile = { status: 'TRASHED' } as unknown as FileDto;
+    const deletedFile = { status: 'DELETED' } as unknown as FileDto;
 
     expect(getExistingFolders([existingFolder, removedFolder])).toStrictEqual([existingFolder]);
-    expect(getExistingFiles([existingFile, trashedFile])).toStrictEqual([existingFile]);
+    expect(getExistingFiles([existingFile, trashedFile, deletedFile])).toStrictEqual([existingFile]);
   });
 
   it('should map remote children', () => {

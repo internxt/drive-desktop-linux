@@ -2,11 +2,10 @@ import { Readable } from 'node:stream';
 import { mockDeep } from 'vitest-mock-extended';
 import { partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
 import configStore from '../../../../../apps/main/config';
-import {
-  clearMaxFileSizeRejectionModal,
-  clearUploadSizeLimitBlockedPath,
+import { clearMaxFileSizeRejectionModal} from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
+import {   clearUploadSizeLimitBlockedPath,
   isUploadSizeLimitBlockedPath,
-} from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
+} from '../../../../../backend/features/user/file-size-limit/upload-size-limit-blocked-paths';
 import * as validateSpaceModule from '../../../../../backend/features/usage/validate-space';
 import { EventBus } from '../../../../virtual-drive/shared/domain/EventBus';
 import { TemporalFile } from '../../domain/TemporalFile';

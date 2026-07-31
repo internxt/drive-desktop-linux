@@ -104,7 +104,7 @@ function isExistingFolder(folder: FolderDto) {
 }
 
 function isExistingFile(file: FileDto) {
-  return file.status === 'EXISTS';
+  return file.status === FileStatuses.EXISTS;
 }
 
 function toRemoteFolder(folder: FolderDto) {

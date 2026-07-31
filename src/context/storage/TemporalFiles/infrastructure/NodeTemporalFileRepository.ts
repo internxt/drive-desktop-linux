@@ -139,7 +139,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
       throw new Error(`Document with path ${documentPath.value} not found`);
     }
 
-    await ensureFolderExists(targetFolder);
+    ensureFolderExists(targetFolder);
 
     const targetPath = path.join(targetFolder, path.basename(currentPath));
 

@@ -16,7 +16,7 @@ type Props = {
   processName: string;
   findTemporalFileByPath: (path: string) => Promise<TemporalFile | undefined>;
   deleteTemporalFile: (path: string) => Promise<void>;
-  enqueueTemporalFile: (props: EnqueueProps) => Promise<void>;
+  enqueueTemporalFile: (props: EnqueueProps) => Promise<Result<void, Error>>;
 };
 
 // v.2.6.0
@@ -57,11 +57,11 @@ export async function release({
       return { data: undefined };
     }
 
-    try {
-      await enqueueTemporalFile({ temporalFile, path, processName });
-      logger.debug({ msg: '[Release] Temporal file queued for upload', path, processName });
-      return { data: undefined };
-    } catch (uploadError) {
+    const enqueueResult = await enqueueTemporalFile({ temporalFile, path, processName });
+
+    if (enqueueResult.error) {
+      const uploadError = enqueueResult.error;
+
       if (uploadError instanceof UploadSizeLimitError) {
         logger.warn({
           msg: '[Release] Upload size limit exceeded during upload preflight, preserving temporal file without upload',
@@ -93,6 +93,9 @@ export async function release({
       await deleteTemporalFile(path);
       return { error: new FuseIOError('Upload failed due to insufficient storage or network issues.') };
     }
+
+    logger.debug({ msg: '[Release] Temporal file queued for upload', path, processName });
+    return { data: undefined };
   } catch (err: unknown) {
     logger.error({ msg: '[Release] Unexpected error', error: err, path, processName });
     return { error: new FuseIOError('An unexpected error occurred during file release.') };

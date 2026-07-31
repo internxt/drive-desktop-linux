@@ -40,7 +40,7 @@ describe('release', () => {
 
   beforeEach(() => {
     addVirtualDriveIssueMock.mockReset();
-    queue.enqueue.mockResolvedValue(undefined);
+    queue.enqueue.mockResolvedValue({ data: undefined });
     clearUploadSizeLimitBlockedPath('/Documents/report.pdf');
   });
 
@@ -121,7 +121,7 @@ describe('release', () => {
 
     it('should preserve the temporal file and return success when queue rejects by upload size limit', async () => {
       finder.run.mockResolvedValue(createTemporalFile('/Documents/report.pdf'));
-      queue.enqueue.mockRejectedValue(new UploadSizeLimitError());
+      queue.enqueue.mockResolvedValue({ error: new UploadSizeLimitError() });
 
       const { data, error } = await release({
         path: '/Documents/report.pdf',
@@ -138,7 +138,7 @@ describe('release', () => {
 
     it('should preserve the temporal file and return EIO when upload preflight fails because drive space is insufficient', async () => {
       finder.run.mockResolvedValue(createTemporalFile('/Documents/report.pdf'));
-      queue.enqueue.mockRejectedValue(new DriveDesktopError('NOT_ENOUGH_SPACE', 'No space left'));
+      queue.enqueue.mockResolvedValue({ error: new DriveDesktopError('NOT_ENOUGH_SPACE', 'No space left') });
 
       const { data, error } = await release({
         path: '/Documents/report.pdf',
@@ -160,7 +160,7 @@ describe('release', () => {
 
     it('should delete the file and return EIO when upload fails', async () => {
       finder.run.mockResolvedValue(createTemporalFile('/Documents/report.pdf'));
-      queue.enqueue.mockRejectedValue(new Error('Network error'));
+      queue.enqueue.mockResolvedValue({ error: new Error('Network error') });
 
       const { data, error } = await release({
         path: '/Documents/report.pdf',

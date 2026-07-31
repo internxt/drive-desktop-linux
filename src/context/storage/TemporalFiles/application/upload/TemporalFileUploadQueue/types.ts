@@ -3,6 +3,7 @@ import type { TemporalFile } from '../../../domain/TemporalFile';
 import type { TemporalFileRepository } from '../../../domain/TemporalFileRepository';
 import type { TemporalFileUploader } from '../TemporalFileUploader';
 import type { FirstsFileSearcher } from '../../../../../virtual-drive/files/application/search/FirstsFileSearcher';
+import type { Result } from '../../../../../../context/shared/domain/Result';
 
 export const TemporalFileUploadQueue = Symbol('TemporalFileUploadQueue');
 
@@ -36,5 +37,5 @@ export type EnqueueProps = {
 };
 
 export type TemporalFileUploadQueue = {
-  enqueue: (props: EnqueueProps) => Promise<void>;
+  enqueue: (props: EnqueueProps) => Promise<Result<void, Error>>;
 };

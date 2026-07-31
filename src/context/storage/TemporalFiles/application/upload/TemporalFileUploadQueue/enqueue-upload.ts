@@ -1,5 +1,6 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../../../../core/electron/paths';
+import type { Result } from '../../../../../../context/shared/domain/Result';
 import type { EnqueueProps, QueueContext } from './types';
 import { drainUploadQueue } from './drain-upload-queue';
 
@@ -12,10 +13,10 @@ export async function enqueueUpload({
   deleter,
   fileSearcher,
   state,
-}: QueueContext & EnqueueProps) {
+}: QueueContext & EnqueueProps): Promise<Result<void, Error>> {
   if (state.queuedPaths.has(path)) {
     logger.debug({ msg: '[UploadQueue] Path already queued', path, processName });
-    return;
+    return { data: undefined };
   }
 
   // Reserve path immediately to avoid duplicate staging when concurrent enqueues race.
@@ -28,7 +29,7 @@ export async function enqueueUpload({
   } catch (error) {
     state.queuedPaths.delete(path);
     logger.error({ msg: '[UploadQueue] Failed to stage temporal file before enqueue', error, path, processName });
-    return Promise.reject(error);
+    return { error: error instanceof Error ? error : new Error('Unknown staging error') };
   }
 
   state.tasks.push({
@@ -38,4 +39,6 @@ export async function enqueueUpload({
   });
 
   void drainUploadQueue({ repository, uploader, deleter, fileSearcher, state });
+
+  return { data: undefined };
 }

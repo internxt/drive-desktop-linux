@@ -3,7 +3,6 @@ import { DriveDependencyContainerFactory } from '../../../../../apps/drive/depen
 import { getRootVirtualDrive } from '../../../../../apps/main/virtual-root-folder/service';
 import { startDaemon } from '../daemon.service';
 import { startFuseDaemonServer } from '../server.service';
-import { updateVirtualDriveContainer } from '../update-virtual-drive-container.service';
 import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
 import { clearHydrationState } from '../../../fuse/on-read/download-cache/hydration-state';
 import { StorageFilesRepository } from '../../../../../context/storage/StorageFiles/domain/StorageFilesRepository';

@@ -1,12 +1,7 @@
 import { MODAL_DEBOUNCE_MS } from './constants';
 import { showMaxFileSizeRejectionModal } from './show-max-file-size-rejection-modal';
 import { type UploadFileSizeValidation } from './validate-upload-file-size';
-import {
-  clearUploadSizeLimitBlockedPath,
-  isUploadSizeLimitBlockedPath,
-  markUploadSizeLimitBlockedPath,
-} from './upload-size-limit-blocked-paths';
-export { clearUploadSizeLimitBlockedPath, isUploadSizeLimitBlockedPath, markUploadSizeLimitBlockedPath };
+import { markUploadSizeLimitBlockedPath } from './upload-size-limit-blocked-paths';
 
 type MaxFileSizeRejectionModalState = {
   rejectedFilesCount: number;
