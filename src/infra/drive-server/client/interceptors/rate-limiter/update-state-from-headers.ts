@@ -1,7 +1,6 @@
 import { AxiosResponse } from 'axios';
 import { RateLimitState } from './rate-limiter.types';
-
-const MAX_REASONABLE_RESET_SECONDS = 120;
+import { MAX_REASONABLE_RESET_SECONDS } from './constants';
 
 function parseNumberHeader(value: string | null | undefined) {
   if (!value) {

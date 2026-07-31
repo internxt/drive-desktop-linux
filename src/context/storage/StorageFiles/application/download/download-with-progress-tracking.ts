@@ -3,25 +3,24 @@ import { StorageFileDownloader } from '../../application/download/StorageFileDow
 import { StorageFilesRepository } from '../../domain/StorageFilesRepository';
 import { File } from '../../../../../context/virtual-drive/files/domain/File';
 import { StorageFile } from '../../domain/StorageFile';
-
-const PROGRESS_UPDATE_INTERVAL_MS = 250;
+import { shouldEmitProgress } from '../../../../../backend/features/virtual-drive/services/operations/should-emit-progress';
 
 type CreateThrottledProgressReporterProps = {
   onUpdate: (bytesWritten: number) => void;
 };
 
 function createThrottledProgressReporter({ onUpdate }: CreateThrottledProgressReporterProps) {
-  let lastUpdateAt = 0;
+  const state = { lastUpdateAt: 0 };
 
   return function report({ bytesWritten, totalBytes }: { bytesWritten: number; totalBytes: number }) {
-    const now = Date.now();
-    const reachedEnd = bytesWritten >= totalBytes;
+    const emmitProgress = shouldEmitProgress({
+      bytesDownloaded: bytesWritten,
+      fileSize: totalBytes,
+      state,
+    });
 
-    if (!reachedEnd && now - lastUpdateAt < PROGRESS_UPDATE_INTERVAL_MS) {
-      return;
-    }
+    if (!emmitProgress) return;
 
-    lastUpdateAt = now;
     onUpdate(bytesWritten);
   };
 }

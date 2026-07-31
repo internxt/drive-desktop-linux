@@ -7,7 +7,7 @@ import { readChunkFromDisk } from './read-chunk-from-disk';
 import nodePath from 'node:path';
 import { PATHS } from '../../../../core/electron/paths';
 import { EMPTY } from './constants';
-import { getReadPrefetchBlocksAhead } from './download-cache/constants';
+import { PREFETCH_BLOCKS_AHEAD } from './download-cache/constants';
 import { readOrHydrate } from './read-or-hydrate';
 import { type HandleReadDeps, type ReadRange } from './types';
 import { isThumbnailProcess } from './thumbnail-processes';
@@ -64,7 +64,6 @@ export async function handleReadCallback({
       virtualFile,
       filePath,
       range,
-      prefetchBlocksAhead: 0,
     });
   }
 
@@ -79,7 +78,7 @@ export async function handleReadCallback({
     virtualFile,
     filePath,
     range,
-    prefetchBlocksAhead: getReadPrefetchBlocksAhead(),
+    prefetchBlocksAhead: PREFETCH_BLOCKS_AHEAD,
   });
 }
 

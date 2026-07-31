@@ -5,10 +5,7 @@ import { updateStateFromHeaders } from './update-state-from-headers';
 import { waitForDelay } from './wait-for-delay';
 import { addJitter } from './add-jitter';
 import { MAX_RETRIES, RETRY_CONFIG_KEY } from '../../drive-server.constants';
-
-function getRequestKey({ method, url }: { method?: string; url?: string }) {
-  return `${method?.toUpperCase() ?? 'GET'}:${url ?? ''}`;
-}
+import { getRequestKey } from './get-request-key';
 
 export function createResponseInterceptor(
   instance: AxiosInstance,
