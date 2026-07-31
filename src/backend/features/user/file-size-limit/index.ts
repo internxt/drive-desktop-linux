@@ -1,7 +1,4 @@
-export {
-  addMaxFileSizeRejection,
-  clearMaxFileSizeRejectionModal,
-} from './add-max-file-size-rejection';
+export { addMaxFileSizeRejection, clearMaxFileSizeRejectionModal } from './add-max-file-size-rejection';
 export {
   clearUploadSizeLimitBlockedPath,
   isUploadSizeLimitBlockedPath,

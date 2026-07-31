@@ -1,7 +1,4 @@
-import {
-  addMaxFileSizeRejection,
-  clearMaxFileSizeRejectionModal,
-} from './add-max-file-size-rejection';
+import { addMaxFileSizeRejection, clearMaxFileSizeRejectionModal } from './add-max-file-size-rejection';
 import * as modalModule from './show-max-file-size-rejection-modal';
 import {
   clearUploadSizeLimitBlockedPath,
