@@ -16,9 +16,13 @@ async function processTask({ task, uploader, deleter, fileSearcher, state }: Pro
   try {
     await uploadQueuedTask({ task, uploader, fileSearcher });
     await deleter.run(task.path);
+    state.tasks.shift();
+    state.queuedPaths.delete(task.path);
   } catch (error) {
     if (error instanceof UploadSizeLimitError) {
       await preserveRejectedUpload({ task, deleter });
+      state.tasks.shift();
+      state.queuedPaths.delete(task.path);
       return;
     }
 
@@ -27,9 +31,11 @@ async function processTask({ task, uploader, deleter, fileSearcher, state }: Pro
       error,
       path: task.path,
     });
-  } finally {
-    state.tasks.shift();
-    state.queuedPaths.delete(task.path);
+
+    const failedTask = state.tasks.shift();
+    if (failedTask) {
+      state.tasks.push(failedTask);
+    }
   }
 }
 
