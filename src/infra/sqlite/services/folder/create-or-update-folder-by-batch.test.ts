@@ -56,8 +56,13 @@ describe('create-or-update-folder-by-batch', () => {
     };
 
     transactionMock.mockImplementation(async (...args: unknown[]) => {
-      const runInTransaction = args[1] as (manager: unknown) => Promise<unknown>;
-      await runInTransaction(manager);
+      const runInTransaction = args.find(
+        (arg): arg is (manager: unknown) => Promise<unknown> => typeof arg === 'function',
+      );
+
+      if (runInTransaction) {
+        await runInTransaction(manager);
+      }
     });
 
     const result = await createOrUpdateFolderByBatch({ folders });
