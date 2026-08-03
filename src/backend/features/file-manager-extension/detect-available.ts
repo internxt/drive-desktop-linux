@@ -1,36 +1,37 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import { type SupportedFileManager } from './constants';
 
 const execAsync = promisify(exec);
 
-export type FileManagerType = 'nautilus' | 'nemo' | null;
+type FileManagerCandidate = {
+  type: SupportedFileManager;
+  desktopEntry: string;
+  hasBinary: () => Promise<boolean>;
+};
 
-export async function detectAvailableFileManager(): Promise<FileManagerType> {
+const FILE_MANAGER_CANDIDATES: FileManagerCandidate[] = [
+  { type: 'dolphin', desktopEntry: 'dolphin.desktop', hasBinary: hasDolphinBinary },
+  { type: 'nemo', desktopEntry: 'nemo.desktop', hasBinary: hasNemoBinary },
+  { type: 'nautilus', desktopEntry: 'nautilus.desktop', hasBinary: hasNautilusBinary },
+];
+
+export async function detectAvailableFileManager(): Promise<SupportedFileManager> {
   const desktopEntry = await getDefaultDirectoryDesktopEntry();
 
   if (desktopEntry) {
-    if (desktopEntry.includes('nemo.desktop')) {
-      if (await hasNemoBinary()) {
-        return 'nemo';
-      }
-    }
-
-    if (desktopEntry.includes('nautilus.desktop')) {
-      if (await hasNautilusBinary()) {
-        return 'nautilus';
+    for (const candidate of FILE_MANAGER_CANDIDATES) {
+      if (desktopEntry.includes(candidate.desktopEntry) && (await candidate.hasBinary())) {
+        return candidate.type;
       }
     }
   }
 
   // Fallback: check for available binaries
-  const hasNemo = await hasNemoBinary();
-  if (hasNemo) {
-    return 'nemo';
-  }
-
-  const hasNautilus = await hasNautilusBinary();
-  if (hasNautilus) {
-    return 'nautilus';
+  for (const candidate of FILE_MANAGER_CANDIDATES) {
+    if (await candidate.hasBinary()) {
+      return candidate.type;
+    }
   }
 
   return null;
@@ -38,10 +39,6 @@ export async function detectAvailableFileManager(): Promise<FileManagerType> {
 
 export async function isNautilusAvailable(): Promise<boolean> {
   return (await detectAvailableFileManager()) === 'nautilus';
-}
-
-export async function isNemoAvailable(): Promise<boolean> {
-  return (await detectAvailableFileManager()) === 'nemo';
 }
 
 async function getDefaultDirectoryDesktopEntry(): Promise<string> {
@@ -65,6 +62,15 @@ async function hasNautilusBinary(): Promise<boolean> {
 async function hasNemoBinary(): Promise<boolean> {
   try {
     await execAsync('command -v nemo');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function hasDolphinBinary(): Promise<boolean> {
+  try {
+    await execAsync('command -v dolphin');
     return true;
   } catch {
     return false;

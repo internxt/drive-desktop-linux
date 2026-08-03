@@ -123,6 +123,22 @@ describe('install', () => {
         expect.arrayContaining([expect.objectContaining({ msg: expect.stringContaining('nemo') })]),
       );
     });
+
+    it('should detect dolphin when available', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
+      getFileManagerTypeMock.mockResolvedValueOnce('dolphin');
+      isInstalledMock.mockResolvedValueOnce(false);
+
+      // When
+      await installFileManagerExtension();
+
+      // Then
+      call(configSetMock).toStrictEqual(['fileManagerExtensionVersion', LATEST_EXTENSION_VERSION]);
+      calls(loggerDebugMock).toMatchObject(
+        expect.arrayContaining([expect.objectContaining({ msg: expect.stringContaining('dolphin') })]),
+      );
+    });
   });
 
   describe('uninstallFileManagerExtension', () => {

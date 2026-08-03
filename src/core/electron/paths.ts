@@ -23,6 +23,17 @@ const FUSE_DAEMON_BINARY = app.isPackaged
 const RESOURCES_PATH = app.isPackaged
   ? path.join(process.resourcesPath, 'assets')
   : path.join(__dirname, '../../../assets');
+const NAUTILUS_EXTENSION_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'nautilus-python', 'extensions');
+const NEMO_EXTENSION_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'nemo-python', 'extensions');
+const DOLPHIN_KIO_SERVICEMENUS_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'kio', 'servicemenus');
+const DOLPHIN_KSERVICES5_SERVICEMENUS_PATH = path.join(
+  HOME_FOLDER_PATH,
+  '.local',
+  'share',
+  'kservices5',
+  'ServiceMenus',
+);
+const DOLPHIN_EXTENSION_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'internxt-dolphin-extension');
 
 export const PATHS = {
   VIRTUAL_DRIVE_FOLDER_NAME,
@@ -40,4 +51,9 @@ export const PATHS = {
   FUSE_DAEMON_SOCKET,
   FUSE_DAEMON_BINARY,
   RESOURCES_PATH,
+  NAUTILUS_EXTENSION_PATH,
+  NEMO_EXTENSION_PATH,
+  DOLPHIN_KIO_SERVICEMENUS_PATH,
+  DOLPHIN_KSERVICES5_SERVICEMENUS_PATH,
+  DOLPHIN_EXTENSION_PATH,
 };

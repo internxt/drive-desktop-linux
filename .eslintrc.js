@@ -13,7 +13,6 @@ module.exports = {
     },
   ],
   rules: {
-    'no-await-in-loop': 'warn',
     '@typescript-eslint/no-use-before-define': ['warn', { functions: false, classes: true, variables: true }],
     'array-callback-return': 'warn',
     'max-len': [

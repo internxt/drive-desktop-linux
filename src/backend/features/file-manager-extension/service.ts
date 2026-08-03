@@ -1,54 +1,110 @@
 import { exec } from 'node:child_process';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import { doesFileExist } from '../../../apps/shared/fs/fileExists';
-import { detectAvailableFileManager, type FileManagerType } from './detect-available';
+import { PATHS } from '../../../core/electron/paths';
+import { detectAvailableFileManager } from './detect-available';
+import {
+  type SupportedFileManager,
+  NAUTILUS_EXTENSION_FILENAME,
+  NEMO_EXTENSION_FILENAME,
+  DOLPHIN_MENU_FILENAME,
+  DOLPHIN_HELPER_FILENAME,
+} from './constants';
 
-const extensionFileName = 'internxt-virtual-drive.py';
-const homedir = os.homedir();
+type FileManagerAsset = {
+  source: string;
+  destination: string;
+  executable?: boolean;
+  template?: boolean;
+};
 
 type FileManagerConfig = {
-  type: FileManagerType;
-  destinationDir: string;
+  type: SupportedFileManager;
   reloadCommand: string;
-  extensionAssetDir: string;
+  assets: FileManagerAsset[];
 };
+
+function isIgnorableReloadStderr({
+  fileManagerType,
+  stderr,
+}: {
+  fileManagerType: SupportedFileManager;
+  stderr: string;
+}) {
+  if (fileManagerType !== 'dolphin') {
+    return false;
+  }
+
+  return stderr.includes(
+    'Application dolphin could not be found using service org.kde.dolphin and path /MainApplication.',
+  );
+}
 
 async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
   const fileManager = await detectAvailableFileManager();
 
+  if (fileManager === 'dolphin') {
+    return {
+      type: 'dolphin',
+      reloadCommand: 'kquitapp6 dolphin || kquitapp5 dolphin || true',
+      assets: [
+        {
+          source: 'dolphin/internxt-virtual-drive.desktop',
+          destination: path.join(PATHS.DOLPHIN_KIO_SERVICEMENUS_PATH, DOLPHIN_MENU_FILENAME),
+          template: true,
+          executable: true,
+        },
+        {
+          source: 'dolphin/internxt-virtual-drive.desktop',
+          destination: path.join(PATHS.DOLPHIN_KSERVICES5_SERVICEMENUS_PATH, DOLPHIN_MENU_FILENAME),
+          template: true,
+          executable: true,
+        },
+        {
+          source: `dolphin/${DOLPHIN_HELPER_FILENAME}`,
+          destination: path.join(PATHS.DOLPHIN_EXTENSION_PATH, DOLPHIN_HELPER_FILENAME),
+          executable: true,
+        },
+      ],
+    };
+  }
+
   if (fileManager === 'nemo') {
     return {
       type: 'nemo',
-      destinationDir: `${homedir}/.local/share/nemo-python/extensions/`,
       reloadCommand: 'nemo -q',
-      extensionAssetDir: 'python-nemo',
+      assets: [
+        {
+          source: `python-nemo/${NEMO_EXTENSION_FILENAME}`,
+          destination: path.join(PATHS.NEMO_EXTENSION_PATH, NEMO_EXTENSION_FILENAME),
+        },
+      ],
     };
   }
 
   if (fileManager === 'nautilus') {
     return {
       type: 'nautilus',
-      destinationDir: `${homedir}/.local/share/nautilus-python/extensions/`,
       reloadCommand: 'nautilus -q',
-      extensionAssetDir: 'python-nautilus',
+      assets: [
+        {
+          source: `python-nautilus/${NAUTILUS_EXTENSION_FILENAME}`,
+          destination: path.join(PATHS.NAUTILUS_EXTENSION_PATH, NAUTILUS_EXTENSION_FILENAME),
+        },
+      ],
     };
   }
 
   return null;
 }
 
-function getExtensionFile(assetDir: string): string {
-  if (process.env.NODE_ENV === 'development') {
-    return path.join(__dirname, `../../../../assets/${assetDir}`, extensionFileName);
-  } else {
-    return path.join(process.resourcesPath, 'assets', assetDir, extensionFileName);
-  }
+function getExtensionFile(source: string): string {
+  return path.join(PATHS.RESOURCES_PATH, source);
 }
 
-export async function getFileManagerType(): Promise<FileManagerType> {
+export async function getFileManagerType(): Promise<SupportedFileManager> {
   return await detectAvailableFileManager();
 }
 
@@ -56,33 +112,52 @@ export async function isInstalled(): Promise<boolean> {
   const config = await getFileManagerConfig();
   if (!config) return false;
 
-  const destination = path.join(config.destinationDir, extensionFileName);
-  return await doesFileExist(destination);
+  const installedStates = await Promise.all(config.assets.map((asset) => doesFileExist(asset.destination)));
+
+  return installedStates.every(Boolean);
 }
 
 export async function copyExtensionFile(): Promise<void> {
   const config = await getFileManagerConfig();
   if (!config) return;
 
-  const alreadyExists = await doesFileExist(path.join(config.destinationDir, extensionFileName));
-  if (alreadyExists) return;
+  const alreadyInstalled = await isInstalled();
+  if (alreadyInstalled) return;
 
-  const source = getExtensionFile(config.extensionAssetDir);
-  const destination = path.join(config.destinationDir, extensionFileName);
+  await Promise.all(
+    config.assets.map(async (asset) => {
+      const source = getExtensionFile(asset.source);
+      const destination = asset.destination;
 
-  await fs.mkdir(config.destinationDir, {
-    recursive: true,
-  });
+      const destinationExists = await doesFileExist(destination);
+      if (destinationExists) {
+        if (asset.executable) {
+          await fs.chmod(destination, 0o755);
+        }
+        return;
+      }
 
-  if (process.env.NODE_ENV !== 'production') {
-    await fs.link(source, destination);
-    return;
-  }
+      await fs.mkdir(path.dirname(destination), {
+        recursive: true,
+      });
 
-  await fs.cp(source, destination);
+      if (asset.template) {
+        const template = await fs.readFile(source, 'utf8');
+        await fs.writeFile(destination, template.replaceAll('{{HOME}}', PATHS.HOME_FOLDER_PATH), 'utf8');
+      } else if (process.env.NODE_ENV !== 'production') {
+        await fs.link(source, destination);
+      } else {
+        await fs.cp(source, destination);
+      }
+
+      if (asset.executable) {
+        await fs.chmod(destination, 0o755);
+      }
+    }),
+  );
 
   logger.debug({
-    msg: `[FILE_MANAGER_EXTENSION] Added ${config.type} extension file to ${destination}`,
+    msg: `[FILE_MANAGER_EXTENSION] Added ${config.type} extension assets`,
   });
 }
 
@@ -90,14 +165,19 @@ export async function deleteExtensionFile(): Promise<void> {
   const config = await getFileManagerConfig();
   if (!config) return;
 
-  const destination = path.join(config.destinationDir, extensionFileName);
-  const isThere = await doesFileExist(destination);
-  if (!isThere) return;
+  await Promise.all(
+    config.assets.map(async (asset) => {
+      const isThere = await doesFileExist(asset.destination);
+      if (!isThere) {
+        return;
+      }
 
-  await fs.rm(destination);
+      await fs.rm(asset.destination);
+    }),
+  );
 
   logger.debug({
-    msg: `[FILE_MANAGER_EXTENSION] Deleted ${config.type} extension file from ${destination}`,
+    msg: `[FILE_MANAGER_EXTENSION] Deleted ${config.type} extension assets`,
   });
 }
 
@@ -125,7 +205,7 @@ export async function reloadFileManager(): Promise<void> {
         return;
       }
 
-      if (stderr) {
+      if (stderr && !isIgnorableReloadStderr({ fileManagerType: config.type, stderr })) {
         reject(new Error(stderr));
         return;
       }
