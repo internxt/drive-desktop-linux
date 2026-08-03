@@ -36,6 +36,7 @@ export async function downloadAndCacheBlock({
   blockLength,
 }: Props): Promise<Result<void, Error>> {
   if (isAborted(state)) return { data: undefined };
+  if (blockLength <= 0 || blockStart >= virtualFile.size) return { data: undefined };
 
   try {
     const download = await downloadBlockWithRetry({

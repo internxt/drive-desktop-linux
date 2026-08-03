@@ -40,4 +40,26 @@ describe('expandToBlockBoundaries', () => {
 
     expect(result).toStrictEqual({ blockStart: BLOCK_SIZE, blockLength: partialLastBlockLength });
   });
+
+  it('returns zero block length when read starts exactly at EOF', () => {
+    const fileSize = BLOCK_SIZE * 2;
+
+    const result = expandToBlockBoundaries({
+      range: { position: fileSize, length: 1 },
+      fileSize,
+    });
+
+    expect(result).toStrictEqual({ blockStart: fileSize, blockLength: 0 });
+  });
+
+  it('returns zero block length when read starts after EOF', () => {
+    const fileSize = BLOCK_SIZE * 2;
+
+    const result = expandToBlockBoundaries({
+      range: { position: fileSize + 123, length: BLOCK_SIZE },
+      fileSize,
+    });
+
+    expect(result).toStrictEqual({ blockStart: fileSize, blockLength: 0 });
+  });
 });

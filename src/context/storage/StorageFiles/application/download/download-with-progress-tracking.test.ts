@@ -63,4 +63,38 @@ describe('downloadWithProgressTracking', () => {
       size: virtualFile.size,
     });
   });
+
+  it('throttles progress updates and still emits completion progress', async () => {
+    const storeMock = partialSpyOn(repository, 'store');
+    const nowMock = partialSpyOn(Date, 'now');
+
+    const virtualFile = FileMother.fromPartial({
+      size: 100,
+      path: 'folder/test-file.txt',
+    });
+
+    const handler = { elapsedTime: vi.fn(() => elapsedTime) };
+    const stream = Readable.from('hello');
+    const metadata = { name: virtualFile.name, type: virtualFile.type, size: virtualFile.size };
+
+    downloader.run.mockResolvedValue({ stream, metadata, handler });
+    nowMock.mockReturnValueOnce(1_000).mockReturnValueOnce(1_001).mockReturnValueOnce(1_002).mockReturnValueOnce(1_003);
+
+    storeMock.mockImplementation(async (_file, _readable, onProgress) => {
+      [10, 20, 30, 100].forEach((bytes) => onProgress(bytes));
+    });
+
+    await downloadWithProgressTracking({
+      virtualFile,
+      tracker,
+      downloader: downloader as unknown as StorageFileDownloader,
+      repository,
+    });
+
+    calls(tracker.downloadUpdate).toHaveLength(2);
+    calls(tracker.downloadUpdate).toMatchObject([
+      [metadata.name, metadata.type, { percentage: 0.1, elapsedTime }],
+      [metadata.name, metadata.type, { percentage: 1, elapsedTime }],
+    ]);
+  });
 });

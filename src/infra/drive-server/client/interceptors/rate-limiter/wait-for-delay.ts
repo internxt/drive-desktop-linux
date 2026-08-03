@@ -1,13 +1,15 @@
 import { delay } from '../../../../../shared/async/delay';
 import { DelayState } from './rate-limiter.types';
 
-export async function waitForDelay(delayState: DelayState, ms: number): Promise<void> {
-  if (delayState.pending) {
-    await delayState.pending;
+export async function waitForDelay(delayState: DelayState, key: string, ms: number): Promise<void> {
+  const currentPending = delayState.pendingByKey[key];
+  if (currentPending !== undefined) {
+    await currentPending;
     return;
   }
 
-  delayState.pending = delay(ms);
-  await delayState.pending;
-  delayState.pending = null;
+  const pending = delay(ms);
+  delayState.pendingByKey[key] = pending;
+  await pending;
+  delete delayState.pendingByKey[key];
 }

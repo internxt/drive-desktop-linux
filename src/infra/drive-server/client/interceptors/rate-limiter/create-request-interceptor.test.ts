@@ -6,7 +6,7 @@ describe('createRequestInterceptor', () => {
   const mockConfig = { url: '/test' } as InternalAxiosRequestConfig;
 
   it('should return the config immediately when there is no pending delay', async () => {
-    const state: DelayState = { pending: null };
+    const state: DelayState = { pendingByKey: {} };
     const interceptor = createRequestInterceptor(state);
 
     const result = await interceptor(mockConfig);
@@ -17,9 +17,11 @@ describe('createRequestInterceptor', () => {
   it('should wait for the pending delay before returning the config', async () => {
     let resolveDelay!: () => void;
     const state: DelayState = {
-      pending: new Promise((resolve) => {
-        resolveDelay = resolve;
-      }),
+      pendingByKey: {
+        'GET:/test': new Promise((resolve) => {
+          resolveDelay = resolve;
+        }),
+      },
     };
     const interceptor = createRequestInterceptor(state);
 
@@ -39,17 +41,19 @@ describe('createRequestInterceptor', () => {
     expect(result).toBe(mockConfig);
   });
 
-  it('should make multiple concurrent requests wait for the same delay', async () => {
+  it('should make multiple concurrent requests with the same key wait for the same delay', async () => {
     let resolveDelay!: () => void;
     const state: DelayState = {
-      pending: new Promise((resolve) => {
-        resolveDelay = resolve;
-      }),
+      pendingByKey: {
+        'GET:/a': new Promise((resolve) => {
+          resolveDelay = resolve;
+        }),
+      },
     };
     const interceptor = createRequestInterceptor(state);
 
     const configA = { url: '/a' } as InternalAxiosRequestConfig;
-    const configB = { url: '/b' } as InternalAxiosRequestConfig;
+    const configB = { url: '/a' } as InternalAxiosRequestConfig;
 
     const promiseA = interceptor(configA);
     const promiseB = interceptor(configB);
@@ -60,5 +64,22 @@ describe('createRequestInterceptor', () => {
 
     expect(resultA).toBe(configA);
     expect(resultB).toBe(configB);
+  });
+
+  it('should not wait when there is a pending delay for a different request key', async () => {
+    let resolveDelay!: () => void;
+    const state: DelayState = {
+      pendingByKey: {
+        'GET:/different': new Promise((resolve) => {
+          resolveDelay = resolve;
+        }),
+      },
+    };
+    const interceptor = createRequestInterceptor(state);
+
+    const result = await interceptor(mockConfig);
+
+    expect(result).toBe(mockConfig);
+    resolveDelay();
   });
 });

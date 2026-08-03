@@ -5,6 +5,7 @@ import { buildCryptoLib } from './build-crypto-lib';
 import { DownloadFileProps } from './types';
 import { decryptAtOffset } from './decrypt-at-offset';
 import { type Result } from '../../../context/shared/domain/Result';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 export async function downloadFileRange({
   signal,
@@ -14,6 +15,12 @@ export async function downloadFileRange({
   network,
   range,
 }: DownloadFileProps): Promise<Result<Buffer, Error>> {
+  if (range.length <= 0) return { data: Buffer.alloc(0) };
+
+  if (!isValidRange(range)) {
+    return { error: new Error('Invalid range') };
+  }
+
   let encryptedBytes: Buffer | undefined;
   let decryptedBuffer: Buffer | undefined;
   let operationError: Error | undefined;
@@ -61,17 +68,41 @@ export async function downloadFileRange({
     );
   } catch (error) {
     if (signal.aborted) return abortedDownloadResult();
+
+    logger.warn({
+      msg: '[DOWNLOAD RANGE] Download failed',
+      fileId,
+      bucketId,
+      rangeStart: range.position,
+      rangeLength: range.length,
+      error,
+    });
+
     return { error: error instanceof Error ? error : new Error('Unknown error occurred') };
   }
 
   if (signal.aborted) return abortedDownloadResult();
   if (operationError) return { error: operationError };
   if (!decryptedBuffer) return { error: new Error('Decryption did not produce a buffer') };
+
   return { data: decryptedBuffer };
 }
 
 function abortedDownloadResult(): Result<Buffer, Error> {
   return { data: Buffer.alloc(0) };
+}
+
+function isValidRange(range: DownloadFileProps['range']): boolean {
+  if (!isSafeInteger(range.position) || !isSafeInteger(range.length) || range.position < 0 || range.length <= 0) {
+    return false;
+  }
+
+  const endOffset = range.position + range.length - 1;
+  return isSafeInteger(endOffset);
+}
+
+function isSafeInteger(value: number): boolean {
+  return Number.isSafeInteger(value);
 }
 
 async function fetchEncryptedRange(
@@ -80,18 +111,41 @@ async function fetchEncryptedRange(
   length: number,
   signal: AbortSignal,
 ): Promise<Buffer> {
+  if (!isSafeInteger(position) || !isSafeInteger(length) || position < 0 || length <= 0) {
+    throw new Error('Invalid range');
+  }
+
+  const endOffset = position + length - 1;
+  if (!isSafeInteger(endOffset)) {
+    throw new Error('Invalid range');
+  }
+
   const response = await axios.get<NodeJS.ReadableStream>(url, {
     responseType: 'stream',
     signal,
     headers: {
-      range: `bytes=${position}-${position + length - 1}`,
+      range: `bytes=${position}-${endOffset}`,
     },
   });
 
   return new Promise<Buffer>((resolve, reject) => {
-    const chunks: Uint8Array[] = [];
-    response.data.on('data', (chunk: Uint8Array) => chunks.push(chunk));
-    response.data.on('end', () => resolve(Buffer.concat(chunks)));
+    let bytesRead = 0;
+    let buffer = Buffer.alloc(length);
+
+    response.data.on('data', (chunk: Uint8Array) => {
+      const source = Buffer.from(chunk);
+      const requiredLength = bytesRead + source.length;
+
+      if (requiredLength > buffer.length) {
+        const next = Buffer.alloc(Math.max(buffer.length * 2, requiredLength));
+        buffer.copy(next, 0, 0, bytesRead);
+        buffer = next;
+      }
+
+      source.copy(buffer, bytesRead);
+      bytesRead += source.length;
+    });
+    response.data.on('end', () => resolve(buffer.subarray(0, bytesRead)));
     response.data.on('error', reject);
   });
 }

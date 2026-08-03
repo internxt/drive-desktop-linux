@@ -1,0 +1,1 @@
+export const MAX_REASONABLE_RESET_SECONDS = 120;

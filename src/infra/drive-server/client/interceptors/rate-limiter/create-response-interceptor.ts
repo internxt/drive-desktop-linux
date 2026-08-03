@@ -5,6 +5,7 @@ import { updateStateFromHeaders } from './update-state-from-headers';
 import { waitForDelay } from './wait-for-delay';
 import { addJitter } from './add-jitter';
 import { MAX_RETRIES, RETRY_CONFIG_KEY } from '../../drive-server.constants';
+import { getRequestKey } from './get-request-key';
 
 export function createResponseInterceptor(
   instance: AxiosInstance,
@@ -49,7 +50,8 @@ export function createResponseInterceptor(
       maxRetries: MAX_RETRIES,
     });
 
-    await waitForDelay(delayState, waitMs);
+    const requestKey = getRequestKey(config);
+    await waitForDelay(delayState, requestKey, waitMs);
 
     config[RETRY_CONFIG_KEY] = retryCount + 1;
     return instance.request(config);

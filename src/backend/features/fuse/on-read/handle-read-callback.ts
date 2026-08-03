@@ -1,20 +1,17 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { type TemporalFile } from '../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { type File } from '../../../../context/virtual-drive/files/domain/File';
-import {
-  type FuseError,
-  FuseIOError,
-  FuseNoSuchFileOrDirectoryError,
-} from '../../../../apps/drive/fuse/callbacks/FuseErrors';
-import { downloadFileRange } from '../../../../infra/environment/download-file/download-file';
+import { type FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { type Result } from '../../../../context/shared/domain/Result';
 import { readChunkFromDisk } from './read-chunk-from-disk';
 import nodePath from 'node:path';
 import { PATHS } from '../../../../core/electron/paths';
 import { EMPTY } from './constants';
+import { PREFETCH_BLOCKS_AHEAD } from './download-cache/constants';
 import { readOrHydrate } from './read-or-hydrate';
 import { type HandleReadDeps, type ReadRange } from './types';
 import { isThumbnailProcess } from './thumbnail-processes';
+
 export type HandleReadCallbackProps = HandleReadDeps & {
   findVirtualFile: (path: string) => Promise<File | undefined>;
   findTemporalFile: (path: string) => Promise<TemporalFile | undefined>;
@@ -50,11 +47,24 @@ export async function handleReadCallback({
 
   if (isThumbnailProcess(processName)) {
     logger.debug({
-      msg: '[ReadCallback] thumbnail process, downloading exact range',
+      msg: '[ReadCallback] thumbnail process, reading through cache hydration',
       process: processName,
       file: virtualFile.nameWithExtension,
     });
-    return readExactRangeForThumbnail({ bucketId, mnemonic, network, virtualFile, range });
+
+    const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
+    return readOrHydrate({
+      bucketId,
+      mnemonic,
+      network,
+      // Thumbnail reads should not spam progress updates in UI.
+      onDownloadProgress: () => undefined,
+      // Thumbnail reads should not register files as offline available.
+      saveToRepository: async () => undefined,
+      virtualFile,
+      filePath,
+      range,
+    });
   }
 
   const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
@@ -68,6 +78,7 @@ export async function handleReadCallback({
     virtualFile,
     filePath,
     range,
+    prefetchBlocksAhead: PREFETCH_BLOCKS_AHEAD,
   });
 }
 
@@ -86,28 +97,4 @@ async function readFromTemporalFile(
 
   const chunk = await readChunkFromDisk(temporalFile.contentFilePath, length, position);
   return { data: chunk ?? EMPTY };
-}
-
-type ThumbnailRangeProps = Pick<HandleReadCallbackProps, 'bucketId' | 'mnemonic' | 'network' | 'range'> & {
-  virtualFile: File;
-};
-
-async function readExactRangeForThumbnail({
-  bucketId,
-  mnemonic,
-  network,
-  virtualFile,
-  range,
-}: ThumbnailRangeProps): Promise<Result<Buffer, FuseError>> {
-  const { signal } = new AbortController();
-  const result = await downloadFileRange({
-    fileId: virtualFile.contentsId,
-    bucketId,
-    mnemonic,
-    network,
-    range,
-    signal,
-  });
-  if (result.error) return { error: new FuseIOError(result.error.message) };
-  return { data: result.data };
 }

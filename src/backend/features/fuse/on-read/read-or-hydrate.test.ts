@@ -43,7 +43,6 @@ function createDeps(overrides: Partial<ReadOrHydrateDeps> = {}): ReadOrHydrateDe
 describe('readOrHydrate', () => {
   beforeEach(() => {
     clearHydrationState();
-    vi.clearAllMocks();
     fileExistsOnDiskMock.mockResolvedValue(true);
     allocateFileMock.mockResolvedValue(undefined);
     downloadAndCacheBlockMock.mockResolvedValue({ data: undefined });
@@ -492,5 +491,103 @@ describe('readOrHydrate', () => {
 
     expect(saveToRepository).toHaveBeenCalledOnce();
     expect(downloadFinished).toHaveBeenCalledOnce();
+  });
+
+  describe('schedulePrefetchBlocksAhead (via readOrHydrate)', () => {
+    it('prefetches next blocks when enabled for sequential reads', async () => {
+      const multiBlockFile = {
+        ...virtualFile,
+        contentsId: 'multi-block-file',
+        size: BLOCK_SIZE * 4 + 100,
+      } as unknown as File;
+      const state = getOrCreateHydrationState(multiBlockFile.contentsId, multiBlockFile.size);
+      markBlocksInRangeDownloaded(state, { position: 0, length: BLOCK_SIZE });
+      downloadAndCacheBlockMock.mockImplementation(async ({ state: innerState, blockStart, blockLength }) => {
+        markBlocksInRangeDownloaded(innerState, { position: blockStart, length: blockLength });
+        return { data: undefined };
+      });
+
+      const result = await readOrHydrate({
+        ...createDeps(),
+        virtualFile: multiBlockFile,
+        filePath: '/tmp/cache-file',
+        range: { position: 0, length: 131072 },
+        prefetchBlocksAhead: 2,
+      });
+
+      expect(result.data).toStrictEqual(Buffer.from('data'));
+      expect(downloadAndCacheBlockMock).toHaveBeenCalledTimes(2);
+      expect(downloadAndCacheBlockMock).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          blockStart: BLOCK_SIZE,
+        }),
+      );
+      expect(downloadAndCacheBlockMock).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          blockStart: BLOCK_SIZE * 2,
+        }),
+      );
+    });
+
+    it('does not prefetch when the requested block already reaches end of file', async () => {
+      const twoBlockFile = {
+        ...virtualFile,
+        contentsId: 'two-block-file',
+        size: BLOCK_SIZE * 2,
+      } as unknown as File;
+      const state = getOrCreateHydrationState(twoBlockFile.contentsId, twoBlockFile.size);
+      markBlocksInRangeDownloaded(state, { position: BLOCK_SIZE, length: BLOCK_SIZE });
+
+      const result = await readOrHydrate({
+        ...createDeps(),
+        virtualFile: twoBlockFile,
+        filePath: '/tmp/cache-file',
+        range: { position: BLOCK_SIZE, length: 4096 },
+        prefetchBlocksAhead: 3,
+      });
+
+      expect(result.data).toStrictEqual(Buffer.from('data'));
+      expect(downloadAndCacheBlockMock).not.toHaveBeenCalled();
+    });
+
+    it('prefetches only missing blocks ahead and skips already hydrated ones', async () => {
+      const fiveBlockFile = {
+        ...virtualFile,
+        contentsId: 'five-block-file',
+        size: BLOCK_SIZE * 5,
+      } as unknown as File;
+      const state = getOrCreateHydrationState(fiveBlockFile.contentsId, fiveBlockFile.size);
+      markBlocksInRangeDownloaded(state, { position: 0, length: BLOCK_SIZE });
+      markBlocksInRangeDownloaded(state, { position: BLOCK_SIZE, length: BLOCK_SIZE });
+      downloadAndCacheBlockMock.mockImplementation(async ({ state: innerState, blockStart, blockLength }) => {
+        markBlocksInRangeDownloaded(innerState, { position: blockStart, length: blockLength });
+        return { data: undefined };
+      });
+
+      const result = await readOrHydrate({
+        ...createDeps(),
+        virtualFile: fiveBlockFile,
+        filePath: '/tmp/cache-file',
+        range: { position: 0, length: 131072 },
+        prefetchBlocksAhead: 3,
+      });
+
+      expect(result.data).toStrictEqual(Buffer.from('data'));
+      expect(downloadAndCacheBlockMock).toHaveBeenCalledTimes(2);
+      expect(downloadAndCacheBlockMock).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          blockStart: BLOCK_SIZE * 2,
+        }),
+      );
+      expect(downloadAndCacheBlockMock).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          blockStart: BLOCK_SIZE * 3,
+        }),
+      );
+    });
   });
 });

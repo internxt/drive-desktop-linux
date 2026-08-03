@@ -12,6 +12,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { getCredentials } from '../../../../../apps/main/auth/get-credentials';
 import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
 import { buildNetworkClient } from '../../../../../infra/environment/download-file/build-network-client';
+import { shouldEmitProgress, type ProgressReporterState } from './should-emit-progress';
 
 export async function read(
   path: string,
@@ -21,6 +22,7 @@ export async function read(
   container: Container,
 ): Promise<Result<Buffer, FuseError>> {
   try {
+    const progressReporterState: ProgressReporterState = { lastUpdateAt: 0 };
     const { mnemonic } = getCredentials();
     const user = DependencyInjectionUserProvider.get();
     const network = buildNetworkClient({ bridgeUser: user.bridgeUser, userId: user.userId });
@@ -31,6 +33,10 @@ export async function read(
       findVirtualFile: (p) => container.get(FirstsFileSearcher).run({ path: p }),
       findTemporalFile: (p) => container.get(TemporalFileByPathFinder).run(p),
       onDownloadProgress: (name, extension, bytesDownloaded, fileSize, elapsedTime) => {
+        if (!shouldEmitProgress({ bytesDownloaded, fileSize, state: progressReporterState })) {
+          return;
+        }
+
         tracker.downloadUpdate(name, extension, {
           percentage: Math.min(bytesDownloaded / fileSize, 1),
           elapsedTime,
