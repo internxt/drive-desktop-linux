@@ -3,7 +3,7 @@ import * as fileExistsModule from '../../../apps/shared/fs/fileExists';
 import fs from 'node:fs/promises';
 import { copyExtensionFile, deleteExtensionFile, getFileManagerType, isInstalled, reloadFileManager } from './service';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
-import { homedir } from 'node:os';
+import { PATHS } from '../../../core/electron/paths';
 
 const { execMock } = vi.hoisted(() => ({
   execMock: vi.fn(),
@@ -339,7 +339,7 @@ describe('service', () => {
     it('should use fs.cp for non-template assets in production mode', async () => {
       // Given
       process.env.NODE_ENV = 'production';
-      process.resourcesPath = '/tmp/resources';
+      PATHS.RESOURCES_PATH = '/tmp/resources';
       detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
       doesFileExistMock.mockResolvedValue(false);
 
@@ -351,7 +351,7 @@ describe('service', () => {
       expect(fsMock.link).not.toHaveBeenCalled();
     });
 
-    it('should template dolphin service menu with the current home path', async () => {
+    it('should template dolphin service menu with the shared home path', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
       doesFileExistMock.mockResolvedValue(false);
@@ -365,7 +365,7 @@ describe('service', () => {
       // Then
       expect(fsMock.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('/.local/share/kio/servicemenus/internxt-virtual-drive.desktop'),
-        expect.stringContaining(`${homedir}/.local/share/internxt-dolphin-extension/internxt-dolphin-actions.sh`),
+        expect.stringContaining(`${PATHS.HOME_FOLDER_PATH}/.local/share/internxt-dolphin-extension/internxt-dolphin-actions.sh`),
         'utf8',
       );
       expect(fsMock.chmod).toHaveBeenCalledWith(

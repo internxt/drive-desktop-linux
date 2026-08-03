@@ -1,9 +1,9 @@
 import { exec } from 'node:child_process';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import { doesFileExist } from '../../../apps/shared/fs/fileExists';
+import { PATHS } from '../../../core/electron/paths';
 import { detectAvailableFileManager } from './detect-available';
 import {
   type SupportedFileManager,
@@ -12,8 +12,6 @@ import {
   DOLPHIN_MENU_FILENAME,
   DOLPHIN_HELPER_FILENAME,
 } from './constants';
-
-const homedir = os.homedir();
 
 type FileManagerAsset = {
   source: string;
@@ -54,19 +52,19 @@ async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
       assets: [
         {
           source: 'dolphin/internxt-virtual-drive.desktop',
-          destination: `${homedir}/.local/share/kio/servicemenus/${DOLPHIN_MENU_FILENAME}`,
+          destination: path.join(PATHS.DOLPHIN_KIO_SERVICEMENUS_PATH, DOLPHIN_MENU_FILENAME),
           template: true,
           executable: true,
         },
         {
           source: 'dolphin/internxt-virtual-drive.desktop',
-          destination: `${homedir}/.local/share/kservices5/ServiceMenus/${DOLPHIN_MENU_FILENAME}`,
+          destination: path.join(PATHS.DOLPHIN_KSERVICES5_SERVICEMENUS_PATH, DOLPHIN_MENU_FILENAME),
           template: true,
           executable: true,
         },
         {
           source: `dolphin/${DOLPHIN_HELPER_FILENAME}`,
-          destination: `${homedir}/.local/share/internxt-dolphin-extension/${DOLPHIN_HELPER_FILENAME}`,
+          destination: path.join(PATHS.DOLPHIN_EXTENSION_PATH, DOLPHIN_HELPER_FILENAME),
           executable: true,
         },
       ],
@@ -80,7 +78,7 @@ async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
       assets: [
         {
           source: `python-nemo/${NEMO_EXTENSION_FILENAME}`,
-          destination: `${homedir}/.local/share/nemo-python/extensions/${NEMO_EXTENSION_FILENAME}`,
+          destination: path.join(PATHS.NEMO_EXTENSION_PATH, NEMO_EXTENSION_FILENAME),
         },
       ],
     };
@@ -93,7 +91,7 @@ async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
       assets: [
         {
           source: `python-nautilus/${NAUTILUS_EXTENSION_FILENAME}`,
-          destination: `${homedir}/.local/share/nautilus-python/extensions/${NAUTILUS_EXTENSION_FILENAME}`,
+          destination: path.join(PATHS.NAUTILUS_EXTENSION_PATH, NAUTILUS_EXTENSION_FILENAME),
         },
       ],
     };
@@ -103,11 +101,7 @@ async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
 }
 
 function getExtensionFile(source: string): string {
-  if (process.env.NODE_ENV === 'development') {
-    return path.join(__dirname, `../../../../assets/${source}`);
-  } else {
-    return path.join(process.resourcesPath, 'assets', source);
-  }
+  return path.join(PATHS.RESOURCES_PATH, source);
 }
 
 export async function getFileManagerType(): Promise<SupportedFileManager> {
@@ -149,7 +143,7 @@ export async function copyExtensionFile(): Promise<void> {
 
       if (asset.template) {
         const template = await fs.readFile(source, 'utf8');
-        await fs.writeFile(destination, template.replaceAll('{{HOME}}', homedir), 'utf8');
+        await fs.writeFile(destination, template.replaceAll('{{HOME}}', PATHS.HOME_FOLDER_PATH), 'utf8');
       } else if (process.env.NODE_ENV !== 'production') {
         await fs.link(source, destination);
       } else {
