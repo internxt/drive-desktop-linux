@@ -339,7 +339,6 @@ describe('service', () => {
     it('should use fs.cp for non-template assets in production mode', async () => {
       // Given
       process.env.NODE_ENV = 'production';
-      PATHS.RESOURCES_PATH = '/tmp/resources';
       detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
       doesFileExistMock.mockResolvedValue(false);
 
@@ -365,7 +364,9 @@ describe('service', () => {
       // Then
       expect(fsMock.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('/.local/share/kio/servicemenus/internxt-virtual-drive.desktop'),
-        expect.stringContaining(`${PATHS.HOME_FOLDER_PATH}/.local/share/internxt-dolphin-extension/internxt-dolphin-actions.sh`),
+        expect.stringContaining(
+          `${PATHS.HOME_FOLDER_PATH}/.local/share/internxt-dolphin-extension/internxt-dolphin-actions.sh`,
+        ),
         'utf8',
       );
       expect(fsMock.chmod).toHaveBeenCalledWith(

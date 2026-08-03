@@ -26,7 +26,13 @@ const RESOURCES_PATH = app.isPackaged
 const NAUTILUS_EXTENSION_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'nautilus-python', 'extensions');
 const NEMO_EXTENSION_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'nemo-python', 'extensions');
 const DOLPHIN_KIO_SERVICEMENUS_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'kio', 'servicemenus');
-const DOLPHIN_KSERVICES5_SERVICEMENUS_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'kservices5', 'ServiceMenus');
+const DOLPHIN_KSERVICES5_SERVICEMENUS_PATH = path.join(
+  HOME_FOLDER_PATH,
+  '.local',
+  'share',
+  'kservices5',
+  'ServiceMenus',
+);
 const DOLPHIN_EXTENSION_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'internxt-dolphin-extension');
 
 export const PATHS = {
