@@ -11,9 +11,9 @@ type FileManagerCandidate = {
 };
 
 const FILE_MANAGER_CANDIDATES: FileManagerCandidate[] = [
-  { type: 'dolphin', desktopEntry: 'dolphin.desktop', hasBinary: hasDolphinBinary },
-  { type: 'nemo', desktopEntry: 'nemo.desktop', hasBinary: hasNemoBinary },
-  { type: 'nautilus', desktopEntry: 'nautilus.desktop', hasBinary: hasNautilusBinary },
+  { type: 'dolphin', desktopEntry: 'dolphin.desktop', hasBinary: () => hasBinary('dolphin') },
+  { type: 'nemo', desktopEntry: 'nemo.desktop', hasBinary: () => hasBinary('nemo') },
+  { type: 'nautilus', desktopEntry: 'nautilus.desktop', hasBinary: () => hasBinary('nautilus') },
 ];
 
 export async function detectAvailableFileManager(): Promise<SupportedFileManager> {
@@ -37,6 +37,10 @@ export async function detectAvailableFileManager(): Promise<SupportedFileManager
   return null;
 }
 
+export async function isFileManagerAvailable(): Promise<boolean> {
+  return (await detectAvailableFileManager()) !== null;
+}
+
 export async function isNautilusAvailable(): Promise<boolean> {
   return (await detectAvailableFileManager()) === 'nautilus';
 }
@@ -50,27 +54,9 @@ async function getDefaultDirectoryDesktopEntry(): Promise<string> {
   }
 }
 
-async function hasNautilusBinary(): Promise<boolean> {
+async function hasBinary(binaryName: string): Promise<boolean> {
   try {
-    await execAsync('command -v nautilus');
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function hasNemoBinary(): Promise<boolean> {
-  try {
-    await execAsync('command -v nemo');
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function hasDolphinBinary(): Promise<boolean> {
-  try {
-    await execAsync('command -v dolphin');
+    await execAsync(`command -v ${binaryName}`);
     return true;
   } catch {
     return false;

@@ -6,13 +6,13 @@ import configStore from '../../../apps/main/config';
 import { LATEST_EXTENSION_VERSION } from './version';
 
 function isUpToDate(): boolean {
-  const extensionInstalledAt = configStore.get('fileManagerExtensionVersion');
+  const extVersion = configStore.get('fileManagerExtensionVersion');
 
   if (process.env.NODE_ENV !== 'production') {
     return false;
   }
 
-  return extensionInstalledAt >= LATEST_EXTENSION_VERSION;
+  return extVersion >= LATEST_EXTENSION_VERSION;
 }
 
 async function install(): Promise<void> {

@@ -1,13 +1,12 @@
 import dns from 'node:dns';
 import { ipcMain } from 'electron';
-import { detectAvailableFileManager } from '../../backend/features/file-manager-extension/detect-available';
+import { isFileManagerAvailable } from '../../backend/features/file-manager-extension/detect-available';
 import { getPendingUpdateInfo } from './bootstrap-runtime-state';
 
 export function registerMainIpcHandlers() {
   ipcMain.handle('get-update-status', () => getPendingUpdateInfo());
   ipcMain.handle('get-file-manager-availability', async () => {
-    const fileManager = await detectAvailableFileManager();
-    return fileManager !== null;
+    return isFileManagerAvailable();
   });
 
   ipcMain.handle('check-internet-connection', async () => {

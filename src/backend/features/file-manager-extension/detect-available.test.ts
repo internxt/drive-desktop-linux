@@ -1,4 +1,4 @@
-import { detectAvailableFileManager, isNautilusAvailable } from './detect-available';
+import { detectAvailableFileManager, isFileManagerAvailable, isNautilusAvailable } from './detect-available';
 
 const { execAsyncMock } = vi.hoisted(() => ({
   execAsyncMock: vi.fn(),
@@ -130,6 +130,25 @@ describe('detect-available', () => {
 
       const result = await detectAvailableFileManager();
       expect(result).toBeNull();
+    });
+  });
+
+  describe('isFileManagerAvailable', () => {
+    it('should return true when a file manager is available', async () => {
+      mockExecWith({
+        desktopEntry: 'nemo.desktop',
+        hasNemo: true,
+      });
+
+      const result = await isFileManagerAvailable();
+      expect(result).toBe(true);
+    });
+
+    it('should return false when no file manager is available', async () => {
+      mockExecWith({});
+
+      const result = await isFileManagerAvailable();
+      expect(result).toBe(false);
     });
   });
 
