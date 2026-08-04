@@ -1,6 +1,6 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { auth, TokenStatus } from '@internxt/lib';
-import nodeSchedule from 'node-schedule';
+import nodeSchedule, { Job } from 'node-schedule';
 import { validateToken } from '../../../backend/features/auth/validate-token';
 import { validateTokenAndCheckExpiration } from '../../../backend/features/auth/validate-token-and-check-expiration';
 
@@ -33,26 +33,30 @@ export class TokenScheduler {
     return new Date(Date.now() + msToRenew);
   }
 
-  public schedule(refreshCallback: () => void) {
-    const tokenStatusResult = validateTokenAndCheckExpiration();
+  public schedule(refreshCallback: () => void): { isRetryable: boolean; job?: Job } {
+    const tokenStatusResult = validateTokenAndCheckExpiration({ token: this.newToken });
 
-    if (tokenStatusResult.error || tokenStatusResult.data === TokenStatus.INVALID) {
+    if (tokenStatusResult.error) {
+      logger.warn({ msg: '[TOKEN] Refresh token schedule could not be validated' });
+      return { isRetryable: true };
+    }
+
+    if (tokenStatusResult.data === TokenStatus.INVALID) {
       logger.warn({ msg: '[TOKEN] Refresh token schedule will not be set' });
-      return;
+      return { isRetryable: false };
     }
 
     if (tokenStatusResult.data === TokenStatus.EXPIRED) {
       logger.warn({ msg: '[TOKEN] TOKEN IS EXPIRED' });
       this.unauthorized();
-      return;
+      return { isRetryable: false };
     }
 
     const tokenClaims = this.getTokenClaims(this.newToken);
 
     if (!tokenClaims) {
       logger.warn({ msg: '[TOKEN] Refresh token schedule will not be set' });
-
-      return;
+      return { isRetryable: false };
     }
 
     const renewDate = this.calculateRenewDate(tokenClaims);
@@ -62,7 +66,14 @@ export class TokenScheduler {
       renewDate: renewDate.toLocaleDateString(),
     });
 
-    return nodeSchedule.scheduleJob(renewDate, refreshCallback);
+    const job = nodeSchedule.scheduleJob(renewDate, refreshCallback);
+
+    if (!job) {
+      logger.warn({ msg: '[TOKEN] Refresh token schedule could not be created' });
+      return { isRetryable: true };
+    }
+
+    return { isRetryable: false, job };
   }
 
   public cancelAll(): void {

@@ -55,14 +55,14 @@ describe('token-scheduler', () => {
 
       scheduler = new TokenScheduler(tokenExpiringInFourHours, unauthorizedCallbackMock);
 
-      const schedule = scheduler.schedule(vi.fn());
-      const nextInvocation = schedule?.nextInvocation();
+      const scheduleResult = scheduler.schedule(vi.fn());
+      const nextInvocation = scheduleResult.job?.nextInvocation();
       const afterSchedule = Date.now();
       const expectedMinTime = beforeSchedule + 2 * 60 * 60 * 1000 - 2000;
       const expectedMaxTime = afterSchedule + 2 * 60 * 60 * 1000 + 1000;
       const invocationTime = nextInvocation?.getTime() ?? 0;
 
-      expect(schedule).toBeDefined();
+      expect(scheduleResult).toMatchObject({ isRetryable: false, job: expect.any(Object) });
       expect(invocationTime).toBeGreaterThanOrEqual(expectedMinTime);
       expect(invocationTime).toBeLessThanOrEqual(expectedMaxTime);
     });
@@ -87,16 +87,16 @@ describe('token-scheduler', () => {
       const beforeSchedule = Date.now();
 
       scheduler = new TokenScheduler(tokenExpiringInThirtyMinutesWithoutIssuedAt, unauthorizedCallbackMock);
-      const schedule = scheduler.schedule(vi.fn());
+      const scheduleResult = scheduler.schedule(vi.fn());
 
       const afterSchedule = Date.now();
-      const nextInvocation = schedule?.nextInvocation();
+      const nextInvocation = scheduleResult.job?.nextInvocation();
       const invocationTime = nextInvocation?.getTime() || 0;
 
       const expectedMinTime = beforeSchedule + 5 * 60 * 1000;
       const expectedMaxTime = afterSchedule + 5 * 60 * 1000 + 1000;
 
-      expect(schedule).toBeDefined();
+      expect(scheduleResult).toMatchObject({ isRetryable: false, job: expect.any(Object) });
       expect(invocationTime).toBeGreaterThanOrEqual(expectedMinTime);
       expect(invocationTime).toBeLessThanOrEqual(expectedMaxTime);
     });
@@ -107,27 +107,31 @@ describe('token-scheduler', () => {
 
       scheduler = new TokenScheduler(expiredToken, unauthorizedCallbackMock);
 
-      const schedule = scheduler.schedule(vi.fn());
+      const scheduleResult = scheduler.schedule(vi.fn());
 
-      expect(schedule).toBeUndefined();
+      expect(scheduleResult).toMatchObject({ isRetryable: false });
+      expect(scheduleResult.job).toBeUndefined();
       calls(unauthorizedCallbackMock).toHaveLength(1);
     });
 
     it('does not schedule when token is invalid', () => {
+      validateTokenAndCheckExpirationMock.mockReturnValue({ data: TokenStatus.INVALID });
       scheduler = new TokenScheduler(invalidToken, unauthorizedCallbackMock);
 
-      const schedule = scheduler.schedule(vi.fn());
+      const scheduleResult = scheduler.schedule(vi.fn());
 
-      expect(schedule).toBeUndefined();
+      expect(scheduleResult).toMatchObject({ isRetryable: false });
+      expect(scheduleResult.job).toBeUndefined();
       calls(unauthorizedCallbackMock).toHaveLength(0);
     });
 
     it('does not schedule when token has no expiration field', () => {
       scheduler = new TokenScheduler(jwtWithoutExpiration, unauthorizedCallbackMock);
 
-      const schedule = scheduler.schedule(vi.fn());
+      const scheduleResult = scheduler.schedule(vi.fn());
 
-      expect(schedule).toBeUndefined();
+      expect(scheduleResult).toMatchObject({ isRetryable: false });
+      expect(scheduleResult.job).toBeUndefined();
       calls(unauthorizedCallbackMock).toHaveLength(0);
     });
   });
@@ -142,13 +146,17 @@ describe('token-scheduler', () => {
       const schedule1 = scheduler.schedule(refreshCallback);
       const schedule2 = scheduler.schedule(refreshCallback);
 
-      expect(schedule1).toBeDefined();
-      expect(schedule2).toBeDefined();
+      expect(schedule1).toMatchObject({ isRetryable: false, job: expect.any(Object) });
+      expect(schedule2).toMatchObject({ isRetryable: false, job: expect.any(Object) });
+
+      if (!schedule1.job || !schedule2.job) {
+        throw new Error('Expected scheduled jobs');
+      }
 
       scheduler.cancelAll();
 
-      expect(schedule1?.nextInvocation()).toBeNull();
-      expect(schedule2?.nextInvocation()).toBeNull();
+      expect(schedule1.job.nextInvocation()).toBeNull();
+      expect(schedule2.job.nextInvocation()).toBeNull();
     });
   });
 });

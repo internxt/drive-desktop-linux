@@ -12,8 +12,11 @@ export async function createTokenScheduleWithRetry() {
 
   let attempt = 0;
   while (attempt < CREATE_SCHEDULE_RETRY_LIMIT) {
-    const schedule = tokenScheduler.schedule(() => refreshToken());
-    if (schedule) break;
+    const scheduleResult = tokenScheduler.schedule(() => refreshToken());
+
+    if (scheduleResult.job || !scheduleResult.isRetryable) {
+      break;
+    }
 
     attempt++;
     logger.debug({
