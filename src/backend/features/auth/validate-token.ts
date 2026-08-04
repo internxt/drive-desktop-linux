@@ -17,7 +17,8 @@ export function validateToken({ token }: Props = {}) {
     logger.error({ tag: 'AUTH', msg: 'Token could not be validated', error });
     return { error };
   } catch (error) {
-    const validationError = error instanceof Error ? error : new Error('Error while validating token', { cause: error });
+    const validationError =
+      error instanceof Error ? error : new Error('Error while validating token', { cause: error });
     logger.error({ tag: 'AUTH', msg: 'Error while validating token', error: validationError });
     return { error: validationError };
   }
