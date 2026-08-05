@@ -3,10 +3,9 @@ import { ipcMain } from 'electron';
 import eventBus from '../event-bus';
 import { getWidget } from '../windows/widget';
 import { createTokenScheduleWithRetry } from './refresh-token/create-token-schedule-with-retry';
-import { getNewApiHeaders } from './headers';
-import { getUser } from './user-session';
+import { getNewApiHeaders, logout } from '../../../backend/features/auth';
+import { getUser } from '../../../backend/features/auth/user-session';
 import { getCredentials } from './get-credentials';
-import { logout } from './logout';
 
 let isLoggedIn = false;
 

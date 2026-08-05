@@ -1,7 +1,7 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { app } from 'electron';
 import eventBus from '../../event-bus';
-import { canHisConfigBeRestored } from '../service';
+import { canHisConfigBeRestored } from '../../../../backend/features/config/can-his-config-be-restore';
 import { updateCredentials } from '../update-credentials';
 import { setIsLoggedIn } from '../handlers';
 import { setupRootFolder } from '../../virtual-root-folder/service';
@@ -9,7 +9,6 @@ import { processDeeplink } from './proccess-deeplink';
 import { initializeCurrentUser } from './initialize-current-user';
 import configStore from '../../config';
 import { PATHS } from '../../../../core/electron/paths';
-import { waitForLogoutToFinish } from '../logout';
 
 type Props = {
   url: string;
@@ -17,8 +16,6 @@ type Props = {
 
 export async function handleDeeplink({ url }: Props) {
   try {
-    await waitForLogoutToFinish();
-
     const deeplinkParams = await processDeeplink({ url });
 
     if (!deeplinkParams) {

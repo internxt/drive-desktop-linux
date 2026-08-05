@@ -38,7 +38,7 @@ vi.mock('../../event-bus', () => ({
   },
 }));
 
-vi.mock('../service', () => ({
+vi.mock('../../../../backend/features/config/can-his-config-be-restore', () => ({
   canHisConfigBeRestored: canHisConfigBeRestoredMock,
 }));
 
@@ -87,23 +87,12 @@ describe('handle-deeplink', () => {
   });
 
   beforeEach(() => {
-    vi.clearAllMocks();
-
     waitForLogoutToFinishMock.mockResolvedValue(undefined);
     processDeeplinkMock.mockResolvedValue({ mnemonic: 'mnemonic-a', newToken: 'token-a' });
     updateCredentialsMock.mockResolvedValue(undefined);
     initializeCurrentUserMock.mockResolvedValue(undefined);
     configGetMock.mockReturnValue({ uuid: 'user-a' });
     canHisConfigBeRestoredMock.mockReturnValue(true);
-  });
-
-  it('should wait for logout before processing deeplink', async () => {
-    await handleDeeplink({ url: 'internxt://login?x=1' });
-
-    const waitOrder = waitForLogoutToFinishMock.mock.invocationCallOrder[0];
-    const processOrder = processDeeplinkMock.mock.invocationCallOrder[0];
-
-    expect(waitOrder).toBeLessThan(processOrder);
   });
 
   it('should return false when deeplink params are invalid', async () => {

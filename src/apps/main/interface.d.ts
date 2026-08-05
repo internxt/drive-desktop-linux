@@ -107,7 +107,7 @@ export interface IElectronAPI {
   };
   login(email: string): Promise<AuthLoginResponseViewModel>;
   access(credentials: LoginAccessRequest): Promise<AuthAccessResponseViewModel>;
-  getUser(): Promise<ReturnType<typeof import('./auth/service').getUser>>;
+  getUser(): Promise<ReturnType<typeof import('../../backend/features/auth/user-session').getUser>>;
   logger: {
     debug: (rawBody: TLoggerBody) => void;
     warn: (rawBody: TLoggerBody) => void;

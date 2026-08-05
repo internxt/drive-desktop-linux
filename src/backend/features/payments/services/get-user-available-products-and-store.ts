@@ -41,9 +41,8 @@ export async function getUserAvailableProductsAndStore() {
         msg: 'Found difference in user products, storing and emitting update',
       });
       configStore.set('availableUserProducts', userProducts);
+      eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', userProducts);
     }
-
-    eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', userProducts);
   } catch (error) {
     logger.error({
       tag: 'PRODUCTS',

@@ -6,7 +6,7 @@ import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { loggerMock } from '../../../../tests/vitest/mocks.helper';
 import * as windowsModule from '../../../apps/main/windows';
 import * as downloadDeviceBackupZipModule from './download-device-backup-zip';
-import * as authServiceModule from '../../../apps/main/auth/service';
+import * as authServiceModule from '../auth/user-session';
 import { downloadBackup } from './download-backup';
 
 vi.mock('node:fs/promises', () => ({

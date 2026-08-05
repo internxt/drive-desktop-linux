@@ -1,5 +1,5 @@
 import { authClient } from './auth.client';
-import { getBaseApiHeaders, getNewApiHeaders } from '../../../../apps/main/auth/headers';
+import { getBaseApiHeaders, getNewApiHeaders } from '../../../../backend/features/auth';
 import { Either, left, right } from '../../../../context/shared/domain/Either';
 import { LoginAccessRequest, LoginAccessResponse, LoginResponse, RefreshTokenResponse } from './auth.types';
 import { mapError } from '../utils/mapError';

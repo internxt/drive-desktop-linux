@@ -9,7 +9,7 @@ describe('driveServerClient instance', () => {
 
     await import('./drive-server.client.instance');
 
-    const authHeadersModule = await import('../../../apps/main/auth/headers');
+    const authHeadersModule = await import('../../../backend/features/auth/headers');
     const authHandlersModule = await import('../../../apps/main/auth/handlers');
 
     return { createClientMock, authHeadersModule, authHandlersModule };

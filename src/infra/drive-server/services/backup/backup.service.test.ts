@@ -1,6 +1,6 @@
 import { calls, partialSpyOn } from 'tests/vitest/utils.helper';
 import * as mapErrorModule from '../utils/mapError';
-import * as authServiceModule from '../../../../apps/main/auth/service';
+import * as authServiceModule from '../../../../backend/features/auth';
 
 vi.mock('axios', async (importOriginal) => {
   const actual = await importOriginal<typeof import('axios')>();

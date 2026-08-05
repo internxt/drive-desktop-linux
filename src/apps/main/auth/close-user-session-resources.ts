@@ -10,107 +10,106 @@ import { setInitialSyncState } from '../remote-sync/InitialSyncReady';
 import { remoteSyncManager, cancelPendingRemoteSync } from '../remote-sync/service';
 import { AntivirusScanService } from '../antivirus/AntivirusScanService';
 import { getAntivirusManager } from '../antivirus/antivirusManager';
-import { cleanupAntivirusIpc } from '../background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
 import { DependencyInjectionUserProvider } from '../../shared/dependency-injection/DependencyInjectionUserProvider';
-
-type CleanupStepProps = {
-  step: string;
-  task: () => Promise<void> | void;
-};
+import { tryCatch } from '../../../shared/try-catch';
 
 let closeUserSessionResourcesInFlight: Promise<void> | undefined;
-
-async function runCleanupStep({ step, task }: CleanupStepProps) {
-  try {
-    await task();
-  } catch (error) {
-    logger.error({
-      tag: 'AUTH',
-      msg: '[LOGOUT] Failed to run cleanup step',
-      step,
-      error,
-    });
-  }
-}
 
 async function executeCloseUserSessionResources() {
   logger.debug({ tag: 'AUTH', msg: '[LOGOUT] Closing user session resources' });
   const widget = getWidget();
 
-  await runCleanupStep({
-    step: 'hide-widget-and-tray',
-    task: () => {
+  await tryCatch(
+    () => {
       resetTrayStatus('IDLE');
 
       if (widget && !widget.isDestroyed()) {
         widget.hide();
       }
     },
-  });
+    (error) =>
+      logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'hide-widget-and-tray', error }),
+  );
 
-  await runCleanupStep({
-    step: 'clear-dependency-injection-user',
-    task: () => {
-      DependencyInjectionUserProvider.clearUser();
-    },
-  });
+  await Promise.all([
+    tryCatch(
+      () => DependencyInjectionUserProvider.clearUser(),
+      (error) =>
+        logger.error({
+          tag: 'AUTH',
+          msg: '[LOGOUT] Failed to run cleanup step',
+          step: 'clear-dependency-injection-user',
+          error,
+        }),
+    ),
+    tryCatch(
+      () => TokenScheduler.cancelAllJobs(),
+      (error) =>
+        logger.error({
+          tag: 'AUTH',
+          msg: '[LOGOUT] Failed to run cleanup step',
+          step: 'cancel-token-refresh-jobs',
+          error,
+        }),
+    ),
+    tryCatch(
+      async () => {
+        await AntivirusScanService.cancelScan();
+        await getAntivirusManager().shutdown();
+      },
+      (error) =>
+        logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'stop-antivirus', error }),
+    ),
+    tryCatch(
+      () => {
+        cancelPendingRemoteSync();
+        setInitialSyncState('NOT_READY');
+        remoteSyncManager.resetRemoteSync();
+      },
+      (error) =>
+        logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'stop-remote-sync', error }),
+    ),
+  ]);
 
-  await runCleanupStep({
-    step: 'cancel-token-refresh-jobs',
-    task: () => {
-      TokenScheduler.cancelAllJobs();
-    },
-  });
+  await tryCatch(
+    async () => await stopVirtualDriveOnce(),
+    (error) =>
+      logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'stop-virtual-drive', error }),
+  );
 
-  await runCleanupStep({
-    step: 'stop-remote-sync',
-    task: () => {
-      cancelPendingRemoteSync();
-      setInitialSyncState('NOT_READY');
-      remoteSyncManager.resetRemoteSync();
-    },
-  });
+  await tryCatch(
+    async () => await resetAppDataSourceOnLogout(),
+    (error) =>
+      logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'reset-data-source', error }),
+  );
 
-  await runCleanupStep({
-    step: 'stop-antivirus',
-    task: async () => {
-      cleanupAntivirusIpc();
-      await AntivirusScanService.cancelScan();
-      await getAntivirusManager().shutdown();
-    },
-  });
+  await tryCatch(
+    async () => await createAuthWindow(),
+    (error) =>
+      logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'open-auth-window', error }),
+  );
 
-  await runCleanupStep({
-    step: 'stop-virtual-drive',
-    task: async () => {
-      await stopVirtualDriveOnce();
-    },
-  });
-
-  await runCleanupStep({
-    step: 'reset-data-source',
-    task: async () => {
-      await resetAppDataSourceOnLogout();
-    },
-  });
-
-  await runCleanupStep({
-    step: 'open-auth-window',
-    task: async () => {
-      await createAuthWindow();
-    },
-  });
-
-  if (widget && !widget.isDestroyed()) {
-    widget.destroy();
-  }
-
-  await runCleanupStep({
-    step: 'uninstall-nautilus-extension',
-    task: async () => {
-      await uninstallNautilusExtension();
-    },
-  });
+  await Promise.all([
+    tryCatch(
+      () => {
+        if (widget && !widget.isDestroyed()) {
+          widget.destroy();
+        }
+      },
+      (error) =>
+        logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'destroy-widget', error }),
+    ),
+    tryCatch(
+      async () => await uninstallNautilusExtension(),
+      (error) =>
+        logger.error({
+          tag: 'AUTH',
+          msg: '[LOGOUT] Failed to run cleanup step',
+          step: 'uninstall-nautilus-extension',
+          error,
+        }),
+    ),
+  ]);
 
   logger.debug({ tag: 'AUTH', msg: '[LOGOUT] User session resources closed' });
 }

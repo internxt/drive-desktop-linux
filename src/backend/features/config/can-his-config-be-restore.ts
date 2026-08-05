@@ -1,9 +1,5 @@
-import ConfigStore, { defaults } from '../config';
-import { savedConfigFields } from '../config/save-config';
-
-export { getBaseApiHeaders, getNewApiHeaders } from './headers';
-export { getUser } from './user-session';
-export { logout } from './logout';
+import ConfigStore, { defaults } from '../../../apps/main/config';
+import { savedConfigFields } from '../../../apps/main/config/save-config';
 
 export function canHisConfigBeRestored({ uuid }: { uuid: string }) {
   const savedConfigs = ConfigStore.get('savedConfigs');

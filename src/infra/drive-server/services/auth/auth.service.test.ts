@@ -1,6 +1,6 @@
 import { AuthService } from './auth.service';
 import * as authClientModule from './auth.client';
-import * as authHeadersModule from '../../../../apps/main/auth/headers';
+import * as authHeadersModule from '../../../../backend/features/auth/headers';
 import { LoginAccessRequest, LoginAccessResponse, LoginResponse } from './auth.types';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
