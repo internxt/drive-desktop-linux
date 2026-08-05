@@ -1,15 +1,30 @@
 import { Either, left, right } from '../../../../context/shared/domain/Either';
-import { refreshToken } from './refresh-token';
 import { RefreshTokenResponse } from '../../../../infra/drive-server/services/auth/auth.types';
 import * as updateCredentialsModule from '../update-credentials';
 import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
-import * as handlers from '../handlers';
+
+const { closeUserSessionMock } = vi.hoisted(() => ({
+  closeUserSessionMock: vi.fn(),
+}));
+
+vi.mock('../handlers', () => ({
+  closeUserSession: closeUserSessionMock,
+}));
 
 describe('refreshToken', () => {
+  let refreshToken: typeof import('./refresh-token').refreshToken;
+
   const authRefreshMock = partialSpyOn(driveServerModule.auth, 'refresh');
   const updateCredentialsMock = partialSpyOn(updateCredentialsModule, 'updateCredentials');
-  const closeUserSessionMock = partialSpyOn(handlers, 'closeUserSession');
+
+  beforeAll(async () => {
+    ({ refreshToken } = await import('./refresh-token'));
+  });
+
+  beforeEach(() => {
+    closeUserSessionMock.mockClear();
+  });
 
   const refreshResult: Either<Error, RefreshTokenResponse> = right({
     token: 'abc',

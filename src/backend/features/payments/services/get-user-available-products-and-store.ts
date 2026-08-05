@@ -1,12 +1,11 @@
-import { ipcRenderer } from 'electron';
 import { logger, PaymentsModule } from '@internxt/drive-desktop-core/build/backend';
 import { appInfo } from '../../../../apps/main/app-info/app-info';
 import { getCredentials } from '../../../../apps/main/auth/get-credentials';
 import configStore from '../../../../apps/main/config';
 import { areProductsEqual } from './are-products-equal';
 import eventBus from '../../../../apps/main/event-bus';
+import { closeUserSession } from '../../../../apps/main/auth/handlers';
 
-const closeUserSession = () => ipcRenderer.emit('user-logged-out');
 export async function getUserAvailableProductsAndStore() {
   logger.debug({
     tag: 'PRODUCTS',
@@ -22,11 +21,18 @@ export async function getUserAvailableProductsAndStore() {
     token: newToken,
     unauthorizedCallback: closeUserSession,
   };
+
   const userProducts = await PaymentsModule.getUserAvailableProducts({
     paymentsClientConfig,
   });
 
-  if (!userProducts) return;
+  if (!userProducts) {
+    logger.warn({
+      tag: 'PRODUCTS',
+      msg: 'Products API returned empty payload',
+    });
+    return;
+  }
 
   const areStoredProductsEqual = areProductsEqual({ stored: storedProducts, fetched: userProducts });
   if (!areStoredProductsEqual) {

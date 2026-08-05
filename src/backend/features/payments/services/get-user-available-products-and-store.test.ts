@@ -6,9 +6,8 @@ import eventBus from '../../../../apps/main/event-bus';
 import { getUserAvailableProductsAndStore } from './get-user-available-products-and-store';
 import * as getCredentialsModule from '../../../../apps/main/auth/get-credentials';
 
-vi.mock(import('../../../../apps/shared/HttpClient/background-process-clients'));
-vi.mock(import('../../../../apps/main/auth/service'));
 vi.mock(import('../../../../apps/main/app-info/app-info'));
+vi.mock(import('../../../../apps/main/auth/handlers'));
 
 const fetchedProducts: UserAvailableProducts = {
   antivirus: true,
@@ -33,8 +32,8 @@ describe('getUserAvailableProductsAndStore', () => {
 
     await getUserAvailableProductsAndStore();
 
-    expect(configSetMock).not.toBeCalled();
-    expect(eventBusEmitMock).not.toBeCalled();
+    expect(configSetMock).not.toHaveBeenCalled();
+    expect(eventBusEmitMock).not.toHaveBeenCalled();
   });
 
   it('should not store or emit when products are equal', async () => {
@@ -43,17 +42,23 @@ describe('getUserAvailableProductsAndStore', () => {
 
     await getUserAvailableProductsAndStore();
 
-    expect(configSetMock).not.toBeCalled();
-    expect(eventBusEmitMock).not.toBeCalled();
+    expect(configSetMock).not.toHaveBeenCalled();
+    expect(eventBusEmitMock).not.toHaveBeenCalled();
   });
 
   it('should store and emit when products differ', async () => {
+    const currentUser = { uuid: 'user-1', userId: 'user-1' };
+    configGetMock.mockImplementation((key: string) => {
+      if (key === 'userData') return currentUser;
+      if (key === 'savedConfigs') return {};
+      return undefined;
+    });
     getUserAvailableProductsMock.mockResolvedValue(fetchedProducts);
     areProductsEqualMock.mockReturnValue(false);
 
     await getUserAvailableProductsAndStore();
 
-    call(configSetMock).toStrictEqual(['availableUserProducts', fetchedProducts]);
+    expect(configSetMock).toHaveBeenCalledWith('availableUserProducts', fetchedProducts);
     call(eventBusEmitMock).toStrictEqual(['USER_AVAILABLE_PRODUCTS_UPDATED', fetchedProducts]);
   });
 

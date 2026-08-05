@@ -14,9 +14,11 @@ type ProgressCallback = (progress: {
 
 describe('useAntivirus', () => {
   let progressCallbackStore: ProgressCallback | null = null;
+  let productsUpdateCallbackStore: ((products: { antivirus?: boolean } | undefined) => void) | null = null;
 
   beforeEach(() => {
     progressCallbackStore = null;
+    productsUpdateCallbackStore = null;
 
     // Setup mock implementation for onScanProgress to capture the callback
     vi.mocked(window.electron.antivirus.onScanProgress).mockImplementation((cb) => {
@@ -35,6 +37,12 @@ describe('useAntivirus', () => {
     ]);
     vi.mocked(window.electron.antivirus.removeInfectedFiles).mockResolvedValue(undefined);
     vi.mocked(window.electron.antivirus.cancelScan).mockResolvedValue(undefined);
+
+    vi.mocked(window.electron.userAvailableProducts.subscribe).mockImplementation(() => undefined);
+    vi.mocked(window.electron.userAvailableProducts.onUpdate).mockImplementation((cb) => {
+      productsUpdateCallbackStore = cb;
+      return () => undefined;
+    });
   });
 
   describe('initialization', () => {
@@ -189,6 +197,22 @@ describe('useAntivirus', () => {
 
       expect(result.current.isAntivirusEnabled).toBe(false);
       expect(result.current.isUpdatingAntivirusEnabled).toBe(false);
+    });
+  });
+
+  describe('products updates', () => {
+    it('should unlock antivirus view when antivirus is available on load', async () => {
+      vi.mocked(window.electron.antivirus.isAvailable).mockResolvedValueOnce(true);
+      vi.mocked(window.electron.antivirus.isBackgroundScanEnabled).mockResolvedValueOnce(true);
+
+      const { result } = renderHook(() => useAntivirus());
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current.isAntivirusAvailable).toBe(true);
+      expect(result.current.view).toBe('chooseItems');
     });
   });
 

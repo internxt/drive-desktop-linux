@@ -9,10 +9,10 @@ describe('driveServerClient instance', () => {
 
     await import('./drive-server.client.instance');
 
-    const authServiceModule = await import('../../../apps/main/auth/service');
+    const authHeadersModule = await import('../../../backend/features/auth/headers');
     const authHandlersModule = await import('../../../apps/main/auth/handlers');
 
-    return { createClientMock, authServiceModule, authHandlersModule };
+    return { createClientMock, authHeadersModule, authHandlersModule };
   }
 
   beforeEach(() => {
@@ -41,10 +41,10 @@ describe('driveServerClient instance', () => {
   });
 
   it('should use getNewApiHeaders as authHeadersProvider', async () => {
-    const { createClientMock, authServiceModule } = await importAndSpy();
+    const { createClientMock, authHeadersModule } = await importAndSpy();
     const clientOptions = createClientMock.mock.lastCall![0]!;
 
-    expect(clientOptions.authHeadersProvider).toBe(authServiceModule.getNewApiHeaders);
+    expect(clientOptions.authHeadersProvider).toBe(authHeadersModule.getNewApiHeaders);
   });
 
   it('should use closeUserSession as onUnauthorized', async () => {

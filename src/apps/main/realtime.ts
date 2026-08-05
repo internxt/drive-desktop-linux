@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { getUser } from './auth/service';
+import { getUser } from '../../backend/features/auth/user-session';
 import { getCredentials } from './auth/get-credentials';
 import eventBus from './event-bus';
 import { broadcastToWindows } from './windows';
