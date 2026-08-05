@@ -1,6 +1,11 @@
 import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
-import { createTransientErrorHandler } from './transient-error-handler';
-import { INITIAL_RATE_LIMIT_DELAY_MS, INITIAL_SERVER_ERROR_DELAY_MS, MAX_BACKOFF_MS } from './constants';
+import { createTransientErrorHandler, mapEnvironmentUploadError } from './transient-error-handler';
+import {
+  INITIAL_CONNECTION_TIMEOUT_DELAY_MS,
+  INITIAL_RATE_LIMIT_DELAY_MS,
+  INITIAL_SERVER_ERROR_DELAY_MS,
+  MAX_BACKOFF_MS,
+} from './constants';
 
 describe('createTransientErrorHandler', () => {
   it('should return null for non-retryable errors', () => {
@@ -79,5 +84,35 @@ describe('createTransientErrorHandler', () => {
 
     // handler2 should start fresh at attempt 1
     expect(handler2(error)).toBe(INITIAL_SERVER_ERROR_DELAY_MS);
+  });
+
+  it('should retry CONNECTION_TIMEOUT errors like rate-limited errors', () => {
+    const handler = createTransientErrorHandler({ tag: 'BACKUPS', context: 'TEST', path: '/file.txt' });
+    const error = new DriveDesktopError('CONNECTION_TIMEOUT');
+
+    expect(handler(error)).toBe(INITIAL_CONNECTION_TIMEOUT_DELAY_MS);
+    expect(handler(error)).toBe(INITIAL_CONNECTION_TIMEOUT_DELAY_MS * 2);
+  });
+});
+
+describe('mapEnvironmentUploadError', () => {
+  it('should map connect timeout message to CONNECTION_TIMEOUT so it retries explicitly', () => {
+    const error = new Error(
+      'Connect Timeout Error (attempted addresses: 141.95.161.76:443, timeout: 10000ms)',
+    );
+
+    const result = mapEnvironmentUploadError(error);
+
+    expect(result.cause).toBe('CONNECTION_TIMEOUT');
+    expect(result.message).toBe(error.message);
+  });
+
+  it('should map connect timeout code to CONNECTION_TIMEOUT so it retries explicitly', () => {
+    const error = Object.assign(new Error('socket connect timeout'), { code: 'UND_ERR_CONNECT_TIMEOUT' });
+
+    const result = mapEnvironmentUploadError(error);
+
+    expect(result.cause).toBe('CONNECTION_TIMEOUT');
+    expect(result.message).toBe(error.message);
   });
 });
