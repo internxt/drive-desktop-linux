@@ -12,17 +12,6 @@ export class TokenScheduler {
     private unauthorized: () => void,
   ) {}
 
-  private getTokenClaims(token?: string) {
-    const { data, error } = validateToken({ token });
-
-    if (error || !data.exp) return;
-
-    return {
-      exp: data.exp,
-      iat: data.iat,
-    };
-  }
-
   private calculateRenewDate({ exp, iat }: { exp: number; iat?: number | null }): Date {
     const msToRenew = auth.calculateMillisecondsUntilRefresh(exp, iat);
 
@@ -52,14 +41,14 @@ export class TokenScheduler {
       return { isRetryable: false };
     }
 
-    const tokenClaims = this.getTokenClaims(this.newToken);
+    const { data, error } = validateToken({ token: this.newToken });
 
-    if (!tokenClaims) {
+    if (error || !data.exp) {
       logger.warn({ msg: '[TOKEN] Refresh token schedule will not be set' });
       return { isRetryable: false };
     }
 
-    const renewDate = this.calculateRenewDate(tokenClaims);
+    const renewDate = this.calculateRenewDate(data);
 
     logger.debug({
       msg: '[TOKEN] Tokens will be refreshed on ',
