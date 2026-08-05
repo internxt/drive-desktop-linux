@@ -12,7 +12,11 @@ export function canHisConfigBeRestored({ uuid }: { uuid: string }) {
   }
 
   for (const key of savedConfigFields) {
-    ConfigStore.set(key, savedConfig[key] ?? defaults[key]);
+    const value = savedConfig[key] ?? defaults[key];
+
+    if (value === undefined) continue;
+
+    ConfigStore.set(key, value);
   }
 
   return true;
