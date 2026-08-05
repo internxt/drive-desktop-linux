@@ -121,7 +121,7 @@
     "@headlessui/react": "^1.4.2",
     "@iconscout/react-unicons": "^1.1.6",
     "@internxt/eslint-config-internxt": "^1.0.9",
-    "@internxt/lib": "^1.1.6",
+    "@internxt/lib": "^1.5.2",
     "@phosphor-icons/react": "2.0.9",
     "@pmmmwh/react-refresh-webpack-plugin": "0.5.17",
     "@radix-ui/react-select": "^1.2.2",

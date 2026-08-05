@@ -1,68 +1,68 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import jwtDecode, { JwtPayload } from 'jwt-decode';
-import nodeSchedule from 'node-schedule';
+import { auth, TokenStatus } from '@internxt/lib';
+import nodeSchedule, { Job } from 'node-schedule';
+import { validateToken } from '../../../backend/features/auth/validate-token';
+import { validateTokenAndCheckExpiration } from '../../../backend/features/auth/validate-token-and-check-expiration';
 
-const FIVE_SECONDS = 5 * 60;
+const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
 export class TokenScheduler {
-  private static MAX_TIME = 8640000000000000;
-
   constructor(
-    private daysBefore: number,
     private readonly newToken: string,
     private unauthorized: () => void,
   ) {}
 
-  private getExpiration(token?: string): number {
-    if (!token) return TokenScheduler.MAX_TIME;
+  private calculateRenewDate({ exp, iat }: { exp: number; iat?: number | null }): Date {
+    const msToRenew = auth.calculateMillisecondsUntilRefresh(exp, iat);
 
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-
-      return decoded.exp ? decoded.exp * 1000 : TokenScheduler.MAX_TIME;
-    } catch (err) {
-      logger.error({ msg: '[TOKEN] Token could be not decoded' });
-
-      return TokenScheduler.MAX_TIME;
-    }
-  }
-
-  private calculateRenewDate(expiration: number): Date {
-    const renewMillisBefore = this.daysBefore * 24 * 60 * 60 * 1000;
-
-    const renewDateInMillis = expiration - renewMillisBefore;
-
-    if (renewDateInMillis <= Date.now()) {
-      return new Date(Date.now() + FIVE_SECONDS);
+    if (msToRenew <= 0) {
+      return new Date(Date.now() + FIVE_MINUTES_IN_MS);
     }
 
-    return new Date(renewDateInMillis);
+    return new Date(Date.now() + msToRenew);
   }
 
-  public schedule(refreshCallback: () => void) {
-    const expiration = this.getExpiration(this.newToken);
+  public schedule(refreshCallback: () => void): { isRetryable: boolean; job?: Job } {
+    const tokenStatusResult = validateTokenAndCheckExpiration({ token: this.newToken });
 
-    if (expiration === TokenScheduler.MAX_TIME) {
+    if (tokenStatusResult.error) {
+      logger.warn({ msg: '[TOKEN] Refresh token schedule could not be validated' });
+      return { isRetryable: true };
+    }
+
+    if (tokenStatusResult.data === TokenStatus.INVALID) {
       logger.warn({ msg: '[TOKEN] Refresh token schedule will not be set' });
-
-      return;
+      return { isRetryable: false };
     }
 
-    if (expiration <= Date.now()) {
+    if (tokenStatusResult.data === TokenStatus.EXPIRED) {
       logger.warn({ msg: '[TOKEN] TOKEN IS EXPIRED' });
       this.unauthorized();
-
-      return;
+      return { isRetryable: false };
     }
 
-    const renewDate = this.calculateRenewDate(expiration);
+    const { data, error } = validateToken({ token: this.newToken });
+
+    if (error || !data.exp) {
+      logger.warn({ msg: '[TOKEN] Refresh token schedule will not be set' });
+      return { isRetryable: false };
+    }
+
+    const renewDate = this.calculateRenewDate(data);
 
     logger.debug({
       msg: '[TOKEN] Tokens will be refreshed on ',
       renewDate: renewDate.toLocaleDateString(),
     });
 
-    return nodeSchedule.scheduleJob(renewDate, refreshCallback);
+    const job = nodeSchedule.scheduleJob(renewDate, refreshCallback);
+
+    if (!job) {
+      logger.warn({ msg: '[TOKEN] Refresh token schedule could not be created' });
+      return { isRetryable: true };
+    }
+
+    return { isRetryable: false, job };
   }
 
   public cancelAll(): void {
