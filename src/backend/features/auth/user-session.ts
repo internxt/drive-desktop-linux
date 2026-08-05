@@ -1,5 +1,5 @@
-import ConfigStore from '../config';
-import { User } from '../types';
+import ConfigStore from '../../../apps/main/config';
+import { User } from '../../../apps/main/types';
 
 export function getUser(): User | null {
   const user = ConfigStore.get('userData');

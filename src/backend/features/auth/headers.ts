@@ -1,5 +1,5 @@
 import packageConfig from '../../../../package.json';
-import { getCredentials } from './get-credentials';
+import { getCredentials } from '../../../apps/main/auth/get-credentials';
 
 export function getBaseApiHeaders(): Record<string, string> {
   return {

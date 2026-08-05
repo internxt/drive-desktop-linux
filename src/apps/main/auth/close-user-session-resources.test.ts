@@ -10,7 +10,6 @@ const {
   setInitialSyncStateMock,
   cancelPendingRemoteSyncMock,
   resetRemoteSyncMock,
-  cleanupAntivirusIpcMock,
   cancelScanMock,
   getAntivirusManagerMock,
   shutdownMock,
@@ -26,7 +25,6 @@ const {
   setInitialSyncStateMock: vi.fn(),
   cancelPendingRemoteSyncMock: vi.fn(),
   resetRemoteSyncMock: vi.fn(),
-  cleanupAntivirusIpcMock: vi.fn(),
   cancelScanMock: vi.fn(),
   getAntivirusManagerMock: vi.fn(),
   shutdownMock: vi.fn(),
@@ -85,10 +83,6 @@ vi.mock('../antivirus/antivirusManager', () => ({
   getAntivirusManager: getAntivirusManagerMock,
 }));
 
-vi.mock('../background-processes/antivirus/try-setup-antivirus-ipc-and-initialize', () => ({
-  cleanupAntivirusIpc: cleanupAntivirusIpcMock,
-}));
-
 vi.mock('../../shared/dependency-injection/DependencyInjectionUserProvider', () => ({
   DependencyInjectionUserProvider: {
     clearUser: clearUserMock,
@@ -124,7 +118,6 @@ describe('closeUserSessionResources', () => {
     expect(cancelPendingRemoteSyncMock).toHaveBeenCalledTimes(1);
     expect(setInitialSyncStateMock).toHaveBeenCalledWith('NOT_READY');
     expect(resetRemoteSyncMock).toHaveBeenCalledTimes(1);
-    expect(cleanupAntivirusIpcMock).toHaveBeenCalledTimes(1);
     expect(cancelScanMock).toHaveBeenCalledTimes(1);
     expect(shutdownMock).toHaveBeenCalledTimes(1);
     expect(stopVirtualDriveOnceMock).toHaveBeenCalledTimes(1);

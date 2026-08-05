@@ -6,7 +6,7 @@ import { broadcastToWindows } from '../../../apps/main/windows';
 import { downloadDeviceBackupZip } from './download-device-backup-zip';
 import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import path from 'node:path';
-import { getUser } from '../../../apps/main/auth/service';
+import { getUser } from '../auth/user-session';
 
 function createBackupZipFilePath({ pathname }: { pathname: AbsolutePath }) {
   const date = new Date();

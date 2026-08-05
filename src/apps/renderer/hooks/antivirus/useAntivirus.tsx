@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { SelectedItemToScanProps } from '../../../main/antivirus/Antivirus';
-import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 
 export type ScanType = 'files' | 'folders';
 
@@ -38,19 +37,6 @@ export const useAntivirus = (): AntivirusContext => {
   const [isUpdatingAntivirusEnabled, setIsUpdatingAntivirusEnabled] = useState<boolean>(false);
   const [showErrorState, setShowErrorState] = useState<boolean>(false);
   const [view, setView] = useState<Views>('loading');
-
-  const updateAntivirusAvailability = (products: UserAvailableProducts | undefined) => {
-    const isAvailable = Boolean(products?.antivirus);
-    setIsAntivirusAvailable(isAvailable);
-
-    setView((previousView) => {
-      if (previousView === 'scan') {
-        return previousView;
-      }
-
-      return isAvailable ? 'chooseItems' : 'locked';
-    });
-  };
 
   const handleProgress = (progress: {
     scanId?: string;
@@ -129,21 +115,6 @@ export const useAntivirus = (): AntivirusContext => {
     };
 
     updateEligibilityStatus();
-  }, []);
-
-  useEffect(() => {
-    const { userAvailableProducts } = window.electron;
-
-    userAvailableProducts.subscribe();
-    const unsubscribe = userAvailableProducts.onUpdate((products) => {
-      updateAntivirusAvailability(products);
-    });
-
-    return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe();
-      }
-    };
   }, []);
 
   const onSetBackgroundScanEnabled = async (enabled: boolean): Promise<void> => {

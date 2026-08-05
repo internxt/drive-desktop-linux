@@ -118,7 +118,7 @@ describe('remote sync service', () => {
   it('should cancel the pending remote sync', () => {
     serviceModule.cancelPendingRemoteSync();
 
-    const debouncedFunction = debounceMock.mock.results[0]?.value as { cancel?: () => void };
+    const debouncedFunction = debounceMock.mock.results.at(-1)?.value as { cancel?: () => void };
     expect(debouncedFunction.cancel).toHaveBeenCalledTimes(1);
   });
 
