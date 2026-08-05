@@ -1,3 +1,4 @@
+// TODO: Remove this file and use directly the ConfigStore in the codebase. [PB-6705]
 import { User } from '../../main/types';
 import ConfigStore from '../../main/config';
 

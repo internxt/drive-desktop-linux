@@ -32,25 +32,21 @@ async function executeCloseUserSessionResources() {
   );
 
   await Promise.all([
-    tryCatch(
-      () => DependencyInjectionUserProvider.clearUser(),
-      (error) =>
-        logger.error({
-          tag: 'AUTH',
-          msg: '[LOGOUT] Failed to run cleanup step',
-          step: 'clear-dependency-injection-user',
-          error,
-        }),
+    tryCatch(DependencyInjectionUserProvider.clearUser, (error) =>
+      logger.error({
+        tag: 'AUTH',
+        msg: '[LOGOUT] Failed to run cleanup step',
+        step: 'clear-dependency-injection-user',
+        error,
+      }),
     ),
-    tryCatch(
-      () => TokenScheduler.cancelAllJobs(),
-      (error) =>
-        logger.error({
-          tag: 'AUTH',
-          msg: '[LOGOUT] Failed to run cleanup step',
-          step: 'cancel-token-refresh-jobs',
-          error,
-        }),
+    tryCatch(TokenScheduler.cancelAllJobs, (error) =>
+      logger.error({
+        tag: 'AUTH',
+        msg: '[LOGOUT] Failed to run cleanup step',
+        step: 'cancel-token-refresh-jobs',
+        error,
+      }),
     ),
     tryCatch(
       async () => {
@@ -71,22 +67,16 @@ async function executeCloseUserSessionResources() {
     ),
   ]);
 
-  await tryCatch(
-    async () => await stopVirtualDriveOnce(),
-    (error) =>
-      logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'stop-virtual-drive', error }),
+  await tryCatch(stopVirtualDriveOnce, (error) =>
+    logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'stop-virtual-drive', error }),
   );
 
-  await tryCatch(
-    async () => await resetAppDataSourceOnLogout(),
-    (error) =>
-      logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'reset-data-source', error }),
+  await tryCatch(resetAppDataSourceOnLogout, (error) =>
+    logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'reset-data-source', error }),
   );
 
-  await tryCatch(
-    async () => await createAuthWindow(),
-    (error) =>
-      logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'open-auth-window', error }),
+  await tryCatch(createAuthWindow, (error) =>
+    logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'open-auth-window', error }),
   );
 
   await Promise.all([
@@ -99,15 +89,13 @@ async function executeCloseUserSessionResources() {
       (error) =>
         logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'destroy-widget', error }),
     ),
-    tryCatch(
-      async () => await uninstallNautilusExtension(),
-      (error) =>
-        logger.error({
-          tag: 'AUTH',
-          msg: '[LOGOUT] Failed to run cleanup step',
-          step: 'uninstall-nautilus-extension',
-          error,
-        }),
+    tryCatch(uninstallNautilusExtension, (error) =>
+      logger.error({
+        tag: 'AUTH',
+        msg: '[LOGOUT] Failed to run cleanup step',
+        step: 'uninstall-nautilus-extension',
+        error,
+      }),
     ),
   ]);
 

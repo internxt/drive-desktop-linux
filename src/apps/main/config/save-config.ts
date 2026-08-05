@@ -15,6 +15,7 @@ export const savedConfigFields = [
   'fileManagerExtensionVersion',
   'discoveredBackup',
   'maxUploadFileSizeInBytes',
+  'availableUserProducts',
 ] as (keyof SavedConfig)[];
 
 export function saveConfig({ uuid }: { uuid: string }) {
@@ -35,6 +36,7 @@ export function saveConfig({ uuid }: { uuid: string }) {
     fileManagerExtensionVersion: ConfigStore.get('fileManagerExtensionVersion'),
     discoveredBackup: ConfigStore.get('discoveredBackup'),
     maxUploadFileSizeInBytes: ConfigStore.get('maxUploadFileSizeInBytes'),
+    availableUserProducts: ConfigStore.get('availableUserProducts'),
   };
 
   ConfigStore.set('savedConfigs', {

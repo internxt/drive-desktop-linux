@@ -1,7 +1,7 @@
 import ConfigStore, { defaults, fieldsToSave } from '../../../apps/main/config';
 import eventBus from '../../../apps/main/event-bus';
 
-const keepFields = new Set<keyof typeof defaults>(['preferedLanguage', 'lastOnboardingShown']);
+const keepFields = new Set<keyof typeof defaults>(['preferedLanguage', 'lastOnboardingShown', 'availableUserProducts']);
 
 export function resetConfig() {
   for (const field of fieldsToSave) {
