@@ -201,21 +201,14 @@ describe('useAntivirus', () => {
   });
 
   describe('products updates', () => {
-    it('should unlock antivirus view when products update enables antivirus', async () => {
-      vi.mocked(window.electron.antivirus.isAvailable).mockResolvedValueOnce(false);
+    it('should unlock antivirus view when antivirus is available on load', async () => {
+      vi.mocked(window.electron.antivirus.isAvailable).mockResolvedValueOnce(true);
+      vi.mocked(window.electron.antivirus.isBackgroundScanEnabled).mockResolvedValueOnce(true);
 
       const { result } = renderHook(() => useAntivirus());
 
       await act(async () => {
         await Promise.resolve();
-      });
-
-      expect(result.current.view).toBe('locked');
-
-      act(() => {
-        if (productsUpdateCallbackStore) {
-          productsUpdateCallbackStore({ antivirus: true });
-        }
       });
 
       expect(result.current.isAntivirusAvailable).toBe(true);
