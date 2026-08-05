@@ -1,5 +1,4 @@
 import { canHisConfigBeRestored } from './can-his-config-be-restore';
-import { partialSpyOn } from 'tests/vitest/utils.helper';
 
 const { configGetMock, configSetMock } = vi.hoisted(() => ({
   configGetMock: vi.fn(),
