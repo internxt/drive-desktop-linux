@@ -15,6 +15,7 @@ export const savedConfigFields = [
   'nautilusExtensionVersion',
   'discoveredBackup',
   'maxUploadFileSizeInBytes',
+  'availableUserProducts',
 ] as (keyof SavedConfig)[];
 
 export function saveConfig({ uuid }: { uuid: string }) {
@@ -35,6 +36,7 @@ export function saveConfig({ uuid }: { uuid: string }) {
     nautilusExtensionVersion: ConfigStore.get('nautilusExtensionVersion'),
     discoveredBackup: ConfigStore.get('discoveredBackup'),
     maxUploadFileSizeInBytes: ConfigStore.get('maxUploadFileSizeInBytes'),
+    availableUserProducts: ConfigStore.get('availableUserProducts'),
   };
 
   ConfigStore.set('savedConfigs', {

@@ -21,33 +21,26 @@ export async function getUserAvailableProductsAndStore() {
     token: newToken,
     unauthorizedCallback: closeUserSession,
   };
-  try {
-    const userProducts = await PaymentsModule.getUserAvailableProducts({
-      paymentsClientConfig,
-    });
 
-    if (!userProducts) {
-      logger.warn({
-        tag: 'PRODUCTS',
-        msg: 'Products API returned empty payload',
-      });
-      return;
-    }
+  const userProducts = await PaymentsModule.getUserAvailableProducts({
+    paymentsClientConfig,
+  });
 
-    const areStoredProductsEqual = areProductsEqual({ stored: storedProducts, fetched: userProducts });
-    if (!areStoredProductsEqual) {
-      logger.debug({
-        tag: 'PRODUCTS',
-        msg: 'Found difference in user products, storing and emitting update',
-      });
-      configStore.set('availableUserProducts', userProducts);
-      eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', userProducts);
-    }
-  } catch (error) {
-    logger.error({
+  if (!userProducts) {
+    logger.warn({
       tag: 'PRODUCTS',
-      msg: 'Failed to resolve available user products',
-      error,
+      msg: 'Products API returned empty payload',
     });
+    return;
+  }
+
+  const areStoredProductsEqual = areProductsEqual({ stored: storedProducts, fetched: userProducts });
+  if (!areStoredProductsEqual) {
+    logger.debug({
+      tag: 'PRODUCTS',
+      msg: 'Found difference in user products, storing and emitting update',
+    });
+    configStore.set('availableUserProducts', userProducts);
+    eventBus.emit('USER_AVAILABLE_PRODUCTS_UPDATED', userProducts);
   }
 }

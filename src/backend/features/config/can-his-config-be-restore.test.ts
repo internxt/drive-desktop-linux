@@ -17,7 +17,7 @@ vi.mock('../../../apps/main/config', () => ({
 }));
 
 vi.mock('../../../apps/main/config/save-config', () => ({
-  savedConfigFields: ['lastOnboardingShown', 'backupsEnabled'],
+  savedConfigFields: ['lastOnboardingShown', 'backupsEnabled', 'availableUserProducts'],
 }));
 
 describe('can-his-config-be-restore', () => {
@@ -74,5 +74,20 @@ describe('can-his-config-be-restore', () => {
     // Then
     expect(result).toBe(true);
     expect(configSetMock).toHaveBeenCalledWith('backupsEnabled', false);
+  });
+
+  it('should restore available user products from the saved user config', () => {
+    // Given
+    const savedProducts = { antivirus: true, backups: true, cleaner: false };
+    configGetMock.mockReturnValue({
+      'user-1': { availableUserProducts: savedProducts },
+    });
+
+    // When
+    const result = canHisConfigBeRestored({ uuid: 'user-1' });
+
+    // Then
+    expect(result).toBe(true);
+    expect(configSetMock).toHaveBeenCalledWith('availableUserProducts', savedProducts);
   });
 });

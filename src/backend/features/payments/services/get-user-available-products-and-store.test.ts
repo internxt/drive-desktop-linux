@@ -47,12 +47,18 @@ describe('getUserAvailableProductsAndStore', () => {
   });
 
   it('should store and emit when products differ', async () => {
+    const currentUser = { uuid: 'user-1', userId: 'user-1' };
+    configGetMock.mockImplementation((key: string) => {
+      if (key === 'userData') return currentUser;
+      if (key === 'savedConfigs') return {};
+      return undefined;
+    });
     getUserAvailableProductsMock.mockResolvedValue(fetchedProducts);
     areProductsEqualMock.mockReturnValue(false);
 
     await getUserAvailableProductsAndStore();
 
-    call(configSetMock).toStrictEqual(['availableUserProducts', fetchedProducts]);
+    expect(configSetMock).toHaveBeenCalledWith('availableUserProducts', fetchedProducts);
     call(eventBusEmitMock).toStrictEqual(['USER_AVAILABLE_PRODUCTS_UPDATED', fetchedProducts]);
   });
 

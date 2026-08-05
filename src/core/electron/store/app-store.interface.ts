@@ -20,6 +20,7 @@ export type SavedConfig = {
   nautilusExtensionVersion: number;
   discoveredBackup: number;
   maxUploadFileSizeInBytes: number;
+  availableUserProducts?: UserAvailableProducts;
 };
 
 export type AppStore = {
