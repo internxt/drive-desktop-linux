@@ -1,11 +1,13 @@
 import dns from 'node:dns';
 import { ipcMain } from 'electron';
-import { isNautilusAvailable } from '../../backend/features/nautilus-extension/is-nautilus-available';
+import { isFileManagerAvailable } from '../../backend/features/file-manager-extension/detect-available';
 import { getPendingUpdateInfo } from './bootstrap-runtime-state';
 
 export function registerMainIpcHandlers() {
   ipcMain.handle('get-update-status', () => getPendingUpdateInfo());
-  ipcMain.handle('get-nautilus-availability', () => isNautilusAvailable());
+  ipcMain.handle('get-file-manager-availability', async () => {
+    return isFileManagerAvailable();
+  });
 
   ipcMain.handle('check-internet-connection', async () => {
     return new Promise((resolve) => {

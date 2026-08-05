@@ -8,7 +8,7 @@ import { StorageFileIsAvailableOffline } from '../../../../context/storage/Stora
 import { Optional } from '../../../../shared/types/Optional';
 import { MakeFolderAvaliableOffline } from '../../../../context/storage/StorageFolders/application/offline/MakeFolderAvaliableOffline';
 import { StorageFolderDeleter } from '../../../../context/storage/StorageFolders/application/delete/StorageFolderDeleter';
-import { generateLink } from '../../../../backend/features/nautilus-extension/create-sharing-link/generate-link';
+import { generateLink } from '../../../../backend/features/file-manager-extension/create-sharing-link/generate-link';
 
 export function buildContentsController(container: Container) {
   async function isFileLocallyAvailable(path: string): Promise<Optional<boolean>> {

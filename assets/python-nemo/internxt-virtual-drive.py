@@ -1,10 +1,10 @@
 import os
 
 import gi
-gi.require_version('Nautilus', '4.0')
-gi.require_version('Gtk', '4.0')
+gi.require_version('Nemo', '3.0')
+gi.require_version('Gtk', '3.0')
 
-from gi.repository import Nautilus, GObject, Gtk, Gdk
+from gi.repository import Nemo, GObject, Gtk, Gdk
 import requests
 import base64
 import urllib.parse
@@ -33,15 +33,15 @@ status_to_emblem_map = {
 base_url = "http://localhost:4567/hydration/"
 
 
-class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.ColumnProvider,
-                      Nautilus.InfoProvider):
+class InternxtVirtualDrive(GObject.Object, Nemo.MenuProvider, Nemo.ColumnProvider,
+                      Nemo.InfoProvider):
     def _window_removed(self, application, window):
         window_id = window.get_id()
         if window_id in self.selected_files:
             del self.selected_files[window_id]
 
     def __init__(self):
-        print('InternxtVirtualDrive Extension loaded')
+        print('InternxtVirtualDrive Extension loaded (Nemo)')
         self.display = Gdk.Display.get_default()
 
         self.selected_files = {}
@@ -154,7 +154,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
               remote_files.append(file)
 
         if len(local_files) > 0:
-          clear = Nautilus.MenuItem(
+          clear = Nemo.MenuItem(
               name="InternxtVirtualDrive::CLEAR" + group,
               label=" Make Available Online Only",
           )
@@ -163,7 +163,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
           active_items.append(clear)
 
         if len(files) == 1 and len(remote_files) == 1:
-          copy_link = Nautilus.MenuItem(
+          copy_link = Nemo.MenuItem(
                 name="InternxtVirtualDrive::COPY_LINK" + group,
                 label="Copy Internxt Link",
             )
@@ -210,7 +210,7 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
       url = base_url + 'copy-link/' + base64_encoded
 
       try:
-        response = requests.post(url)
+        response = requests.post(url, timeout=10)
 
         if response.status_code != 202:
           print(response.status_code)
@@ -251,23 +251,10 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
 
 
     def get_columns(self):
-      return (Nautilus.Column(name='InternxtVirtualDrive::sync',
+      return (Nemo.Column(name='InternxtVirtualDrive::sync',
           attribute=SYNC_STATUS_ATTRIBUTE_NAME,
-          label=SYNC_STATUS_ATTRIBUTE_NAME,
-          description="Sync status"),)
+          label="Sync Status",
+          description="Sync Status"),)
 
     def update_file_info(self, file):
-      if not self._file_is_in_virtual_drive(file):
-        return
-
-      if self._file_is_virtual_drive(file):
-        return
-
-      # if file.is_directory():
-      #   return
-
       self._update_file_status(file)
-
-
-
-

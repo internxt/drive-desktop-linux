@@ -9,7 +9,7 @@ export function NautilusUnavailable() {
 
   useEffect(() => {
     window.electron
-      .getNautilusAvailability()
+      .getFileManagerAvailability()
       .then((isAvailable) => {
         setIsNautilusAvailable(isAvailable);
       })
