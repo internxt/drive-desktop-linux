@@ -97,9 +97,7 @@ describe('createTransientErrorHandler', () => {
 
 describe('mapEnvironmentUploadError', () => {
   it('should map connect timeout message to CONNECTION_TIMEOUT so it retries explicitly', () => {
-    const error = new Error(
-      'Connect Timeout Error (attempted addresses: 141.95.161.76:443, timeout: 10000ms)',
-    );
+    const error = new Error('Connect Timeout Error (attempted addresses: 141.95.161.76:443, timeout: 10000ms)');
 
     const result = mapEnvironmentUploadError(error);
 
