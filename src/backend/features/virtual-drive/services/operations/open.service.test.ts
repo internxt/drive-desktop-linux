@@ -1,23 +1,28 @@
 import { mockDeep } from 'vitest-mock-extended';
-import { Container } from 'diod';
+import { Container, type Identifier } from 'diod';
 import { open } from './open.service';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
+import { LazyVirtualDriveHydrator } from '../lazy/virtual-drive-hydrator/create-lazy-virtual-drive-hydrator-service';
 import type { File } from '../../../../../context/virtual-drive/files/domain/File';
 
 describe('open', () => {
+  const lazyVirtualDriveHydratorToken = LazyVirtualDriveHydrator as unknown as Identifier<LazyVirtualDriveHydrator>;
   let container: ReturnType<typeof mockDeep<Container>>;
   const fileSearcher = mockDeep<FirstsFileSearcher>();
   const temporalFinder = mockDeep<TemporalFileByPathFinder>();
+  const lazyHydrator = mockDeep<LazyVirtualDriveHydrator>();
 
   beforeEach(() => {
     container = mockDeep<Container>();
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
+    container.get.calledWith(lazyVirtualDriveHydratorToken).mockReturnValue(lazyHydrator);
     fileSearcher.run.mockResolvedValue(undefined);
     temporalFinder.run.mockResolvedValue(undefined);
+    lazyHydrator.ensurePathLoaded.mockResolvedValue(undefined);
   });
 
   describe('when a virtual file is found', () => {

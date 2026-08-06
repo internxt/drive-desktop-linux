@@ -65,6 +65,18 @@ export class InMemoryFolderRepository implements FolderRepository {
     this.folders.set(folder.id, folder.attributes());
   }
 
+  async deleteMatchingPartial(partial: Partial<FolderAttributes>): Promise<void> {
+    const keys = Object.keys(partial) as Array<keyof Partial<FolderAttributes>>;
+
+    for (const [id, attributes] of this.folders.entries()) {
+      const matches = keys.every((key: keyof FolderAttributes) => attributes[key] === partial[key]);
+
+      if (matches) {
+        this.folders.delete(id);
+      }
+    }
+  }
+
   async delete(id: number): Promise<void> {
     const deleted = this.folders.delete(id);
 

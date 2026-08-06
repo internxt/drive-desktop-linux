@@ -1,4 +1,3 @@
-import type { Dirent } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 import { safeReadDir } from './safe-readdir';
@@ -8,6 +7,7 @@ vi.mock('node:fs/promises', () => ({
 }));
 
 const readdirMock = vi.mocked(readdir);
+type ReadDirResult = Awaited<ReturnType<typeof readdir>>;
 
 function createFsError(code: string, message = `${code}: readdir failed`): NodeJS.ErrnoException {
   const error = new Error(message) as NodeJS.ErrnoException;
@@ -17,7 +17,7 @@ function createFsError(code: string, message = `${code}: readdir failed`): NodeJ
 
 describe('safeReadDir', () => {
   it('returns dirents when readdir succeeds', async () => {
-    const dirents = [{ name: 'file.txt' }, { name: 'folder' }] as Dirent[];
+    const dirents = [{ name: 'file.txt' }, { name: 'folder' }] as unknown as ReadDirResult;
     readdirMock.mockResolvedValue(dirents);
 
     const result = await safeReadDir('/tmp/root');

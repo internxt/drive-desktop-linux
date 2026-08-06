@@ -14,6 +14,8 @@ export abstract class FileRepository {
 
   abstract searchByArrayOfContentsId(contentsIds: Array<File['contentsId']>): Promise<Array<File>>;
 
+  abstract deleteMatchingPartial(partial: Partial<FileAttributes>): Promise<void>;
+
   abstract upsert(file: File): Promise<boolean>;
 
   abstract update(file: File): Promise<void>;

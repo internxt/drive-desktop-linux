@@ -8,7 +8,6 @@ import * as serverServiceModule from '../server.service';
 import * as hydrationApiServiceModule from '../hydration-api.service';
 import * as hydrationStateModule from '../../../fuse/on-read/download-cache/hydration-state';
 import * as virtualRootFolderModule from '../../../../../apps/main/virtual-root-folder/service';
-import * as updateVirtualDriveContainerModule from '../update-virtual-drive-container.service';
 import { startVirtualDrive, stopVirtualDriveOnce, remountVirtualDriveOnRootChange } from './virtual-drive.service';
 import { partialSpyOn, calls, call } from '../../../../../../tests/vitest/utils.helper';
 
@@ -20,13 +19,14 @@ describe('virtual-drive.service', () => {
   const startHydrationApi = partialSpyOn(hydrationApiServiceModule, 'startHydrationApi');
   const clearHydrationState = partialSpyOn(hydrationStateModule, 'clearHydrationState');
   const getRootVirtualDrive = partialSpyOn(virtualRootFolderModule, 'getRootVirtualDrive');
-  const updateVirtualDriveContainer = partialSpyOn(updateVirtualDriveContainerModule, 'updateVirtualDriveContainer');
   const buildContainer = partialSpyOn(DriveDependencyContainerFactory, 'build');
   const getUser = partialSpyOn(DependencyInjectionUserProvider, 'get');
 
   const deleteAll = vi.fn();
+  const add = vi.fn();
+  const clear = vi.fn();
   const containerMock = {
-    get: vi.fn(() => ({ deleteAll })),
+    get: vi.fn(() => ({ deleteAll, add, clear })),
   } as unknown as Container;
 
   beforeEach(() => {
@@ -36,10 +36,15 @@ describe('virtual-drive.service', () => {
     startFuseDaemonServer.mockResolvedValue(undefined);
     startHydrationApi.mockResolvedValue(undefined);
     getRootVirtualDrive.mockReturnValue('/mock/root/');
-    getUser.mockReturnValue({} as never);
-    updateVirtualDriveContainer.mockResolvedValue({});
+    getUser.mockReturnValue({
+      root_folder_id: 99,
+      rootFolderId: '123e4567-e89b-12d3-a456-426614174000',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    } as never);
     buildContainer.mockResolvedValue(containerMock);
     deleteAll.mockResolvedValue(undefined);
+    add.mockResolvedValue(undefined);
+    clear.mockResolvedValue(undefined);
   });
 
   describe('startVirtualDrive', () => {
@@ -68,6 +73,14 @@ describe('virtual-drive.service', () => {
 
       // Then
       call(startDaemon).toBe('/mock/root/');
+    });
+
+    it('seeds the root folder before daemon start', async () => {
+      // When
+      await startVirtualDrive();
+
+      // Then
+      expect(add.mock.invocationCallOrder[0]).toBeLessThan(startDaemon.mock.invocationCallOrder[0]);
     });
   });
 

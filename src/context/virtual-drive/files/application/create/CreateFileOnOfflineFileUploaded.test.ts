@@ -1,8 +1,6 @@
 import { Environment } from '@internxt/inxt-js';
-import {
-  clearMaxFileSizeRejectionModal,
-  isUploadSizeLimitBlockedPath,
-} from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
+import { clearMaxFileSizeRejectionModal } from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
+import { isUploadSizeLimitBlockedPath } from '../../../../../backend/features/user/file-size-limit/upload-size-limit-blocked-paths';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { CreateFileOnTemporalFileUploaded } from './CreateFileOnTemporalFileUploaded';
 import { FileCreatorTestClass } from '../../__test-helpers__/FileCreatorTestClass';

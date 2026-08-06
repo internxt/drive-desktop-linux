@@ -9,12 +9,15 @@ import { TemporalFileByFolderFinder } from '../../../../context/storage/Temporal
 import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFilePathsByFolderFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFilePathsByFolderFinder';
 import { TemporalFileTruncater } from '../../../../context/storage/TemporalFiles/application/truncate/TemporalFileTruncater';
+import { createTemporalFileUploadQueueService } from '../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploadQueue/create-temporal-file-upload-queue-service';
+import { TemporalFileUploadQueue } from '../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploadQueue/types';
 import { TemporalFileUploader } from '../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileWriter } from '../../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { TemporalFileRepository } from '../../../../context/storage/TemporalFiles/domain/TemporalFileRepository';
 import { TemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/domain/upload/TemporalFileUploaderFactory';
 import { NodeTemporalFileRepository } from '../../../../context/storage/TemporalFiles/infrastructure/NodeTemporalFileRepository';
 import { EnvironmentTemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/infrastructure/upload/EnvironmentTemporalFileUploaderFactory';
+import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { PATHS } from '../../../../core/electron/paths';
 
@@ -52,6 +55,17 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
   builder.registerAndUse(TemporalFileTruncater);
   builder.registerAndUse(TemporalFileByteByByteComparator);
   builder.registerAndUse(TemporalFileByFolderFinder);
+  builder
+    .register(TemporalFileUploadQueue)
+    .useFactory((container) =>
+      createTemporalFileUploadQueueService({
+        repository: container.get(TemporalFileRepository),
+        uploader: container.get(TemporalFileUploader),
+        deleter: container.get(TemporalFileDeleter),
+        fileSearcher: container.get(FirstsFileSearcher),
+      }),
+    )
+    .asSingleton();
 
   // Event handlers
   builder.registerAndUse(DeleteTemporalFileOnFileCreated).addTag('event-handler');

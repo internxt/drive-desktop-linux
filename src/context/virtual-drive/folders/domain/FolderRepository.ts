@@ -14,6 +14,8 @@ export abstract class FolderRepository {
 
   abstract add(folder: Folder): Promise<void>;
 
+  abstract deleteMatchingPartial(partial: Partial<FolderAttributes>): Promise<void>;
+
   abstract delete(id: Folder['id']): Promise<void>;
 
   abstract update(folder: Folder): Promise<void>;

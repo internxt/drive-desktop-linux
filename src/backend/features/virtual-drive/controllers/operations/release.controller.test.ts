@@ -6,6 +6,9 @@ import * as releaseServiceModule from '../../services/operations/release.service
 import { partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
+import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
+import { TemporalFileDeleter } from '../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
+import { TemporalFileUploadQueue } from '../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploadQueue/types';
 
 vi.mock(import('@internxt/drive-desktop-core/build/backend'));
 
@@ -19,6 +22,11 @@ describe('releaseController', () => {
     req = mockDeep<Request>();
     res = mockDeep<Response>();
     container = mockDeep<Container>();
+    container.get.calledWith(TemporalFileByPathFinder).mockReturnValue({ run: vi.fn() } as TemporalFileByPathFinder);
+    container.get.calledWith(TemporalFileDeleter).mockReturnValue({ run: vi.fn() } as TemporalFileDeleter);
+    container.get.calledWith(TemporalFileUploadQueue).mockReturnValue({
+      enqueue: vi.fn(),
+    } as unknown as { enqueue: (props: unknown) => Promise<void> });
   });
 
   it('should return errno 0 when release succeeds', async () => {

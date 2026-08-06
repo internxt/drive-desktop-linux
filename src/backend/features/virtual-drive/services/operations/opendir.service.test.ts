@@ -1,42 +1,37 @@
 import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { opendir } from './opendir.service';
-import { FilesByFolderPathSearcher } from '../../../../../context/virtual-drive/files/application/search/FilesByFolderPathSearcher';
-import { FoldersByParentPathLister } from '../../../../../context/virtual-drive/folders/application/FoldersByParentPathLister';
 import { TemporalFileByFolderFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
-import { FolderNotFoundError } from '../../../../../context/virtual-drive/folders/domain/errors/FolderNotFoundError';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FILE_MODE, FOLDER_MODE } from '../../constants';
 import type { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import { LazyVirtualDriveHydrator } from '../lazy/virtual-drive-hydrator/create-lazy-virtual-drive-hydrator-service';
+import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 
 describe('opendir', () => {
   let container: ReturnType<typeof mockDeep<Container>>;
-  const fileSearcher = mockDeep<FilesByFolderPathSearcher>();
-  const folderLister = mockDeep<FoldersByParentPathLister>();
+  const hydrator = mockDeep<LazyVirtualDriveHydrator>();
   const temporalFinder = mockDeep<TemporalFileByFolderFinder>();
 
   beforeEach(() => {
     container = mockDeep<Container>();
-    container.get.calledWith(FilesByFolderPathSearcher).mockReturnValue(fileSearcher);
-    container.get.calledWith(FoldersByParentPathLister).mockReturnValue(folderLister);
+    container.get.calledWith(LazyVirtualDriveHydrator).mockReturnValue(hydrator);
     container.get.calledWith(TemporalFileByFolderFinder).mockReturnValue(temporalFinder);
-    fileSearcher.run.mockResolvedValue([]);
-    folderLister.run.mockResolvedValue([]);
+    hydrator.readDirectory.mockResolvedValue({ files: [], folders: [] });
     temporalFinder.run.mockResolvedValue([]);
   });
 
   describe('when directory has files and subfolders', () => {
     it('should return entries with correct modes', async () => {
-      fileSearcher.run.mockResolvedValue(['file.txt', 'photo.jpg']);
-      folderLister.run.mockResolvedValue(['subdir']);
+      hydrator.readDirectory.mockResolvedValue({ files: ['file.txt', 'photo.jpg'], folders: ['subdir'] });
 
       const { data, error } = await opendir('/some/folder', container);
 
       expect(error).toBeUndefined();
       expect(data?.entries).toStrictEqual([
+        { name: 'subdir', mode: FOLDER_MODE },
         { name: 'file.txt', mode: FILE_MODE },
         { name: 'photo.jpg', mode: FILE_MODE },
-        { name: 'subdir', mode: FOLDER_MODE },
       ]);
     });
   });
@@ -59,20 +54,9 @@ describe('opendir', () => {
     });
   });
 
-  describe('when folder is not yet synced', () => {
-    it('should return empty entries', async () => {
-      folderLister.run.mockRejectedValue(new FolderNotFoundError('not synced'));
-
-      const { data, error } = await opendir('/unsynced/folder', container);
-
-      expect(error).toBeUndefined();
-      expect(data?.entries).toStrictEqual([]);
-    });
-  });
-
   describe('when an unexpected error is thrown', () => {
     it('should return EIO', async () => {
-      fileSearcher.run.mockRejectedValue(new Error('unexpected'));
+      hydrator.readDirectory.mockRejectedValue(new FuseError(FuseCodes.EIO, 'unexpected'));
 
       const { data, error } = await opendir('/some/folder', container);
 

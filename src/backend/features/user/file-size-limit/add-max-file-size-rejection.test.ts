@@ -1,11 +1,10 @@
+import { addMaxFileSizeRejection, clearMaxFileSizeRejectionModal } from './add-max-file-size-rejection';
+import * as modalModule from './show-max-file-size-rejection-modal';
 import {
-  addMaxFileSizeRejection,
-  clearMaxFileSizeRejectionModal,
   clearUploadSizeLimitBlockedPath,
   isUploadSizeLimitBlockedPath,
   markUploadSizeLimitBlockedPath,
-} from './add-max-file-size-rejection';
-import * as modalModule from './show-max-file-size-rejection-modal';
+} from './upload-size-limit-blocked-paths';
 
 describe('addMaxFileSizeRejection', () => {
   const showModalMock = vi.spyOn(modalModule, 'showMaxFileSizeRejectionModal');
