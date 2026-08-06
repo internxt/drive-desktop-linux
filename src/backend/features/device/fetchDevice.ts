@@ -50,7 +50,7 @@ export async function fetchDevice(props: FetchDeviceProps) {
       addUnknownDeviceIssue(new Error(msg));
     }
 
-    logger.error({ tag: 'BACKUPS', msg: '[DEVICE] Error fetching device', error: error.name });
+    logger.error({ tag: 'BACKUPS', msg: '[DEVICE] Error fetching device', error: error.message });
     return { error };
   }
 

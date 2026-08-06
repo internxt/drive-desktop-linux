@@ -11,6 +11,7 @@ export type FatalError = (typeof FatalErrors)[number];
 export const NonFatalErrors = [
   'ABORTED',
   'RATE_LIMITED',
+  'CONNECTION_TIMEOUT',
   'NOT_EXISTS',
   'BAD_RESPONSE',
   'EMPTY_FILE',
