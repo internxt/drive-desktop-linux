@@ -14,6 +14,8 @@ type XHRRequest = {
 
 let socket: Socket | undefined;
 
+const remoteNotificationsEnabled = false;
+
 export type EventPayload = {
   eventName?: string;
   id?: number;
@@ -32,6 +34,15 @@ function stopRemoteNotifications() {
 
 function cleanAndStartRemoteNotifications() {
   stopRemoteNotifications();
+
+  if (!remoteNotificationsEnabled) {
+    logger.warn({
+      msg: 'Remote notifications disabled by configuration',
+      remoteNotificationsEnabled,
+    });
+    return;
+  }
+
   const { newToken } = getCredentials();
 
   socket = io(process.env.NOTIFICATIONS_URL, {
