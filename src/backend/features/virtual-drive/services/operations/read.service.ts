@@ -10,7 +10,7 @@ import { DownloadProgressTracker } from '../../../../../context/shared/domain/Do
 import { handleReadCallback } from '../../../../features/fuse/on-read/handle-read-callback';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { getCredentials } from '../../../../../apps/main/auth/get-credentials';
-import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUser } from '../../../auth/get-user';
 import { buildNetworkClient } from '../../../../../infra/environment/download-file/build-network-client';
 import { shouldEmitProgress, type ProgressReporterState } from './should-emit-progress';
 
@@ -24,7 +24,12 @@ export async function read(
   try {
     const progressReporterState: ProgressReporterState = { lastUpdateAt: 0 };
     const { mnemonic } = getCredentials();
-    const user = DependencyInjectionUserProvider.get();
+    const { data: user, error } = getUser();
+    if (error) {
+      logger.error({ msg: '[FUSE - Read] Could not get user', error, path });
+      return { error: new FuseError(FuseCodes.EIO, `[FUSE - Read] Missing user: ${path}`) };
+    }
+
     const network = buildNetworkClient({ bridgeUser: user.bridgeUser, userId: user.userId });
     const repo = container.get(StorageFilesRepository);
     const tracker = container.get(DownloadProgressTracker);

@@ -4,7 +4,7 @@ import { getRootVirtualDrive } from '../../../../../apps/main/virtual-root-folde
 import { startDaemon } from '../daemon.service';
 import { startFuseDaemonServer } from '../server.service';
 import { updateVirtualDriveContainer } from '../update-virtual-drive-container.service';
-import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUser } from '../../../auth/get-user';
 import { clearHydrationState } from '../../../fuse/on-read/download-cache/hydration-state';
 import { StorageFilesRepository } from '../../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
 import { remountVirtualDrive } from './remount-virtual-drive';
@@ -22,7 +22,10 @@ export function getVirtualDriveContainer(): Container | undefined {
 export async function startVirtualDrive() {
   const localRoot = getRootVirtualDrive();
   container = await DriveDependencyContainerFactory.build();
-  await updateVirtualDriveContainer({ container, user: DependencyInjectionUserProvider.get() });
+  const { data: user, error } = getUser();
+  if (error) throw error;
+
+  await updateVirtualDriveContainer({ container, user });
   /**
    * Clear stale block-cache state and orphaned hydrated files before mounting.
    * Future virtual-drive reads recreate cache files and hydrate only requested blocks.

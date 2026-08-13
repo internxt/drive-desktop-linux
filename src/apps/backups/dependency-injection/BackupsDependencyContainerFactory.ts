@@ -6,7 +6,7 @@ import { registerFolderServices } from './virtual-drive/registerFolderServices';
 import { registerLocalFileServices } from './local/registerLocalFileServices';
 import { BackupService } from '../BackupService';
 import { registerRemoteTreeServices } from './virtual-drive/registerRemoteTreeServices';
-import { DependencyInjectionUserProvider } from '../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUser } from '../../../backend/features/auth/get-user';
 import { DownloaderHandlerFactory } from '../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
 import { EnvironmentFileDownloaderHandlerFactory } from '../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
 import { RemoteTreeBuilder } from '../../../context/virtual-drive/remoteTree/application/RemoteTreeBuilder';
@@ -21,7 +21,8 @@ export class BackupsDependencyContainerFactory {
     }
 
     const builder = await backgroundProcessSharedInfraBuilder();
-    const user = DependencyInjectionUserProvider.get();
+    const { data: user, error } = getUser();
+    if (error) throw error;
 
     registerFilesServices(builder);
     registerFolderServices(builder);
