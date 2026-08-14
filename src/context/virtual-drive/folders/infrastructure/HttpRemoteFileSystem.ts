@@ -60,6 +60,9 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
       return right(mapToFolderPersistedDto(data));
     }
     if (error) {
+      if (error.cause === 'NOT_FOUND') {
+        return left(new DriveDesktopError('PARENT_FOLDER_NOT_FOUND', error.message));
+      }
       if (error.cause === 'BAD_REQUEST') {
         return left(new DriveDesktopError('BAD_REQUEST'));
       }
@@ -73,7 +76,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
         return left(new DriveDesktopError('INTERNAL_SERVER_ERROR'));
       }
 
-      return left(new DriveDesktopError('UNKNOWN'));
+      return left(new DriveDesktopError('UNKNOWN', error.message));
     }
     return left(new DriveDesktopError('UNKNOWN'));
   }

@@ -3,6 +3,7 @@ import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDe
 import { extractPropertyFromStringyfiedJson } from '../../../shared/extract-property-from-json';
 import {
   INITIAL_CONNECTION_TIMEOUT_DELAY_MS,
+  INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS,
   INITIAL_RATE_LIMIT_DELAY_MS,
   INITIAL_SERVER_ERROR_DELAY_MS,
   MAX_BACKOFF_MS,
@@ -48,7 +49,7 @@ function exponentialBackoff(attempts: number, baseMs: number) {
   return Math.min(baseMs * Math.pow(2, attempts - 1), MAX_BACKOFF_MS);
 }
 
-const RETRYABLE_CAUSES = ['RATE_LIMITED', 'CONNECTION_TIMEOUT', 'INTERNAL_SERVER_ERROR'] as const;
+const RETRYABLE_CAUSES = ['RATE_LIMITED', 'CONNECTION_TIMEOUT', 'INTERNAL_SERVER_ERROR', 'PARENT_FOLDER_NOT_FOUND'] as const;
 
 type RetryableCause = (typeof RETRYABLE_CAUSES)[number];
 
@@ -67,6 +68,10 @@ function getRetryBaseDelay(error: DriveDesktopError) {
 
   if (error.cause === 'INTERNAL_SERVER_ERROR') {
     return INITIAL_SERVER_ERROR_DELAY_MS;
+  }
+
+  if (error.cause === 'PARENT_FOLDER_NOT_FOUND') {
+    return INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS;
   }
 
   return INITIAL_RATE_LIMIT_DELAY_MS;

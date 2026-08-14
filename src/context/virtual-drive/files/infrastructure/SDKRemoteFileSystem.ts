@@ -49,6 +49,9 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
           ),
         );
       }
+      if (errorCause === 'NOT_FOUND') {
+        return left(new DriveDesktopError('PARENT_FOLDER_NOT_FOUND', error.message));
+      }
       if (errorCause === 'SERVER_ERROR') {
         return left(new DriveDesktopError('INTERNAL_SERVER_ERROR', error.message));
       }

@@ -17,6 +17,7 @@ export const shortMessages: ProcessErrorMessages = {
   DUPLICATED_NODE: 'issues.short-error-messages.duplicated-node',
   ACTION_NOT_PERMITTED: 'issues.short-error-messages.action-not-permitted',
   FILE_ALREADY_EXISTS: 'issues.short-error-messages.file-already-exists',
+  PARENT_FOLDER_NOT_FOUND: 'issues.short-error-messages.unknown',
   COULD_NOT_ENCRYPT_NAME: '',
   BAD_REQUEST: 'issues.short-error-messages.no-remote-connection',
   UNKNOWN: 'issues.short-error-messages.unknown',

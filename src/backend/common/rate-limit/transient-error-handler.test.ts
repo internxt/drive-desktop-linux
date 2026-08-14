@@ -2,6 +2,7 @@ import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDe
 import { createTransientErrorHandler, mapEnvironmentUploadError } from './transient-error-handler';
 import {
   INITIAL_CONNECTION_TIMEOUT_DELAY_MS,
+  INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS,
   INITIAL_RATE_LIMIT_DELAY_MS,
   INITIAL_SERVER_ERROR_DELAY_MS,
   MAX_BACKOFF_MS,
@@ -93,6 +94,15 @@ describe('createTransientErrorHandler', () => {
     expect(handler(error)).toBe(INITIAL_CONNECTION_TIMEOUT_DELAY_MS);
     expect(handler(error)).toBe(INITIAL_CONNECTION_TIMEOUT_DELAY_MS * 2);
   });
+
+  it('should retry PARENT_FOLDER_NOT_FOUND with server base delay', () => {
+    const handler = createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'TEST', path: '/file.txt' });
+    const error = new DriveDesktopError('PARENT_FOLDER_NOT_FOUND');
+
+    expect(handler(error)).toBe(INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS);
+    expect(handler(error)).toBe(INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS * 2);
+  });
+
 });
 
 describe('mapEnvironmentUploadError', () => {
