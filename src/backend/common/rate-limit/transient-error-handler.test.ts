@@ -102,7 +102,6 @@ describe('createTransientErrorHandler', () => {
     expect(handler(error)).toBe(INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS);
     expect(handler(error)).toBe(INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS * 2);
   });
-
 });
 
 describe('mapEnvironmentUploadError', () => {

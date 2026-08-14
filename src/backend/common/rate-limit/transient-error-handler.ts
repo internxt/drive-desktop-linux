@@ -49,7 +49,12 @@ function exponentialBackoff(attempts: number, baseMs: number) {
   return Math.min(baseMs * Math.pow(2, attempts - 1), MAX_BACKOFF_MS);
 }
 
-const RETRYABLE_CAUSES = ['RATE_LIMITED', 'CONNECTION_TIMEOUT', 'INTERNAL_SERVER_ERROR', 'PARENT_FOLDER_NOT_FOUND'] as const;
+const RETRYABLE_CAUSES = [
+  'RATE_LIMITED',
+  'CONNECTION_TIMEOUT',
+  'INTERNAL_SERVER_ERROR',
+  'PARENT_FOLDER_NOT_FOUND',
+] as const;
 
 type RetryableCause = (typeof RETRYABLE_CAUSES)[number];
 
