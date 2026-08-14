@@ -122,4 +122,13 @@ describe('mapEnvironmentUploadError', () => {
     expect(result.cause).toBe('CONNECTION_TIMEOUT');
     expect(result.message).toBe(error.message);
   });
+
+  it('should map undici socket close errors to CONNECTION_TIMEOUT so upload retries explicitly', () => {
+    const error = Object.assign(new Error('other side closed'), { code: 'UND_ERR_SOCKET' });
+
+    const result = mapEnvironmentUploadError(error);
+
+    expect(result.cause).toBe('CONNECTION_TIMEOUT');
+    expect(result.message).toBe(error.message);
+  });
 });

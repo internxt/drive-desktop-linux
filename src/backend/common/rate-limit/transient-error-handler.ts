@@ -15,11 +15,15 @@ export function parseRetryAfterMs(message?: string) {
 }
 
 function isConnectionTimeoutError(err: Error & { code?: unknown }) {
-  if (err.code === 'ETIMEDOUT' || err.code === 'UND_ERR_CONNECT_TIMEOUT') {
+  if (
+    err.code === 'ETIMEDOUT' ||
+    err.code === 'UND_ERR_CONNECT_TIMEOUT' ||
+    err.code === 'UND_ERR_SOCKET'
+  ) {
     return true;
   }
 
-  return err.message.includes('Connect Timeout Error');
+  return err.message.includes('Connect Timeout Error') || err.message.includes('other side closed');
 }
 
 export function mapEnvironmentUploadError(err: Error & { code?: unknown; status?: unknown }): DriveDesktopError {
