@@ -18,6 +18,24 @@ export class InMemoryFileRepository implements FileRepository {
     this.filesByContentsId = new Map();
   }
 
+  private matchesPartial({
+    attributes,
+    partial,
+    keys,
+  }: {
+    attributes: FileAttributes;
+    partial: Partial<FileAttributes>;
+    keys: Array<keyof Partial<FileAttributes>>;
+  }) {
+    return keys.every((key: keyof FileAttributes) => {
+      if (key === 'contentsId') {
+        return attributes[key].normalize() == (partial[key] as string).normalize();
+      }
+
+      return attributes[key] == partial[key];
+    });
+  }
+
   async searchByUuid(uuid: File['uuid']): Promise<File | undefined> {
     const attributes = this.filesByUuid.get(uuid);
 
@@ -62,13 +80,7 @@ export class InMemoryFileRepository implements FileRepository {
     const keys = Object.keys(partial) as Array<keyof Partial<FileAttributes>>;
 
     const filesAttributes = this.values.filter((attributes) => {
-      return keys.every((key: keyof FileAttributes) => {
-        if (key === 'contentsId') {
-          return attributes[key].normalize() == (partial[key] as string).normalize();
-        }
-
-        return attributes[key] == partial[key];
-      });
+      return this.matchesPartial({ attributes, partial, keys });
     });
 
     if (!filesAttributes) {
@@ -102,6 +114,19 @@ export class InMemoryFileRepository implements FileRepository {
     this.filesByContentsId.set(file.contentsId, attributes);
 
     return isAlreadyStored;
+  }
+
+  async deleteMatchingPartial(partial: Partial<FileAttributes>): Promise<void> {
+    const keys = Object.keys(partial) as Array<keyof Partial<FileAttributes>>;
+
+    for (const [uuid, attributes] of this.filesByUuid.entries()) {
+      const matches = this.matchesPartial({ attributes, partial, keys });
+
+      if (matches) {
+        this.filesByUuid.delete(uuid);
+        this.filesByContentsId.delete(attributes.contentsId);
+      }
+    }
   }
 
   async update(file: File): Promise<void> {

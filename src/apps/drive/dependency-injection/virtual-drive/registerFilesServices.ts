@@ -25,7 +25,7 @@ import { Environment } from '@internxt/inxt-js';
 export async function registerFilesServices(builder: ContainerBuilder): Promise<void> {
   // Infra
 
-  builder.register(FileRepository).use(InMemoryFileRepository).asSingleton().private();
+  builder.register(FileRepository).use(InMemoryFileRepository).asSingleton();
 
   const user = DependencyInjectionUserProvider.get();
 

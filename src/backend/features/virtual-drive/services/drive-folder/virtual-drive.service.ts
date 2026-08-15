@@ -3,17 +3,41 @@ import { DriveDependencyContainerFactory } from '../../../../../apps/drive/depen
 import { getRootVirtualDrive } from '../../../../../apps/main/virtual-root-folder/service';
 import { startDaemon } from '../daemon.service';
 import { startFuseDaemonServer } from '../server.service';
-import { updateVirtualDriveContainer } from '../update-virtual-drive-container.service';
 import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
 import { clearHydrationState } from '../../../fuse/on-read/download-cache/hydration-state';
 import { StorageFilesRepository } from '../../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
+import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
+import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import { remountVirtualDrive } from './remount-virtual-drive';
 import { stopVirtualDrive } from './stop-virual-drive';
 import { startHydrationApi } from '../hydration-api.service';
+import { DirectoryStateSqliteRepository } from '../lazy/DirectoryStateSqliteRepository';
 
 let container: Container | undefined;
 let stopInFlight: Promise<void> | undefined;
 let remountInFlight: Promise<void> | undefined;
+
+async function seedRootFolder() {
+  if (!container) {
+    return;
+  }
+
+  const user = DependencyInjectionUserProvider.get();
+
+  await container.get(FolderRepository).add(
+    Folder.from({
+      id: user.root_folder_id,
+      uuid: user.rootFolderId,
+      parentId: null,
+      path: '/',
+      updatedAt: user.createdAt,
+      createdAt: user.createdAt,
+      status: 'EXISTS',
+    }),
+  );
+
+  await container.get(DirectoryStateSqliteRepository).clear();
+}
 
 export function getVirtualDriveContainer(): Container | undefined {
   return container;
@@ -22,7 +46,7 @@ export function getVirtualDriveContainer(): Container | undefined {
 export async function startVirtualDrive() {
   const localRoot = getRootVirtualDrive();
   container = await DriveDependencyContainerFactory.build();
-  await updateVirtualDriveContainer({ container, user: DependencyInjectionUserProvider.get() });
+  await seedRootFolder();
   /**
    * Clear stale block-cache state and orphaned hydrated files before mounting.
    * Future virtual-drive reads recreate cache files and hydrate only requested blocks.

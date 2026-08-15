@@ -7,10 +7,8 @@ import { Result } from '../../../../../context/shared/domain/Result';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFileWriter } from '../../../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
-import {
-  addMaxFileSizeRejection,
-  isUploadSizeLimitBlockedPath,
-} from '../../../user/file-size-limit/add-max-file-size-rejection';
+import { addMaxFileSizeRejection } from '../../../user/file-size-limit/add-max-file-size-rejection';
+import { isUploadSizeLimitBlockedPath } from '../../../user/file-size-limit/upload-size-limit-blocked-paths';
 import { calculateProjectedWriteSize } from '../../../user/file-size-limit/calculate-projected-write-size';
 import { validateUploadFileSize } from '../../../user/file-size-limit/validate-upload-file-size';
 import { ensureTemporalFileExistsForAuxiliaryPath } from './ensure-temporal-file-exists-for-auxiliary-path';

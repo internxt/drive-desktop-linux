@@ -15,6 +15,7 @@ const TEMPORAL_FOLDER = app.getPath('temp');
 const INTERNXT_DRIVE_TMP = path.join(TEMPORAL_FOLDER, 'internxt-drive-tmp');
 const REJECTED_FILES_SIZE_TOO_BIG = join(INTERNXT, 'rejected-files-size-too-big');
 const DOWNLOADED = join(INTERNXT, 'downloaded');
+const UPLOAD_QUEUE = join(INTERNXT, 'upload_queue');
 const FUSE_DAEMON_LOG = join(LOGS, 'fuse-daemon.log');
 const FUSE_DAEMON_SOCKET = join(process.env.XDG_RUNTIME_DIR ?? '/tmp', 'internxt-fuse.sock');
 const FUSE_DAEMON_BINARY = app.isPackaged
@@ -36,6 +37,7 @@ export const PATHS = {
   REJECTED_FILES_SIZE_TOO_BIG,
   ROOT_DRIVE_FOLDER,
   DOWNLOADED,
+  UPLOAD_QUEUE,
   FUSE_DAEMON_LOG,
   FUSE_DAEMON_SOCKET,
   FUSE_DAEMON_BINARY,

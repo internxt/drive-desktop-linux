@@ -9,6 +9,7 @@ export class FolderRepositoryMock implements FolderRepository {
   public readonly searchByPathPrefixMock = vi.fn();
   public readonly listByPartialMock = vi.fn();
   public readonly addMock = vi.fn();
+  public readonly deleteMatchingPartialMock = vi.fn();
   public readonly deleteMock = vi.fn();
   public readonly updateMock = vi.fn();
   public readonly searchByIdMock = vi.fn();
@@ -41,6 +42,10 @@ export class FolderRepositoryMock implements FolderRepository {
 
   add(folder: Folder): Promise<void> {
     return this.addMock(folder);
+  }
+
+  deleteMatchingPartial(partial: Partial<FolderAttributes>): Promise<void> {
+    return this.deleteMatchingPartialMock(partial);
   }
 
   delete(id: number): Promise<void> {

@@ -1,10 +1,9 @@
+export { addMaxFileSizeRejection, clearMaxFileSizeRejectionModal } from './add-max-file-size-rejection';
 export {
-  addMaxFileSizeRejection,
-  clearMaxFileSizeRejectionModal,
   clearUploadSizeLimitBlockedPath,
   isUploadSizeLimitBlockedPath,
   markUploadSizeLimitBlockedPath,
-} from './add-max-file-size-rejection';
+} from './upload-size-limit-blocked-paths';
 export { ABSOLUTE_UPLOAD_FILE_SIZE_LIMIT } from './constants';
 export { calculateProjectedWriteSize } from './calculate-projected-write-size';
 export { preserveRejectedFileSizeTooBig } from './rejected-file-size-too-big/preserve-rejected-file-size-too-big';

@@ -16,7 +16,7 @@ import {
   clearUploadSizeLimitBlockedPath,
   isUploadSizeLimitBlockedPath,
   markUploadSizeLimitBlockedPath,
-} from '../../../user/file-size-limit/add-max-file-size-rejection';
+} from '../../../user/file-size-limit/upload-size-limit-blocked-paths';
 import { write } from './write.service';
 
 describe('write', () => {

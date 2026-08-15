@@ -6,10 +6,11 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { LazyVirtualDriveHydrator } from '../lazy/virtual-drive-hydrator/create-lazy-virtual-drive-hydrator-service';
 
 export async function open(path: string, processName: string, container: Container): Promise<Result<void, FuseError>> {
   try {
-    const virtualFile = await container.get(FirstsFileSearcher).run({ path });
+    let virtualFile = await container.get(FirstsFileSearcher).run({ path });
 
     if (virtualFile) {
       return { data: undefined };
@@ -18,6 +19,13 @@ export async function open(path: string, processName: string, container: Contain
     const temporalFile = await container.get(TemporalFileByPathFinder).run(path);
 
     if (temporalFile) {
+      return { data: undefined };
+    }
+
+    await container.get(LazyVirtualDriveHydrator).ensurePathLoaded({ path });
+    virtualFile = await container.get(FirstsFileSearcher).run({ path });
+
+    if (virtualFile) {
       return { data: undefined };
     }
 

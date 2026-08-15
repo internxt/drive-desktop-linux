@@ -16,6 +16,8 @@ export abstract class TemporalFileRepository {
 
   abstract read(path: TemporalFilePath): Promise<Buffer>;
 
+  abstract stage(path: TemporalFilePath, targetFolder: string): Promise<TemporalFile>;
+
   abstract stream(path: TemporalFilePath): Promise<Readable>;
 
   abstract find(documentPath: TemporalFilePath): Promise<Optional<TemporalFile>>;
