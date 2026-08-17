@@ -34,14 +34,17 @@ export function mapEnvironmentUploadError(err: Error & { code?: unknown; status?
   if (err.message === 'Max space used') {
     return new DriveDesktopError('NOT_ENOUGH_SPACE');
   }
+
   if (typeof err.status === 'number') {
     if (err.status === 429) {
       return new DriveDesktopError('RATE_LIMITED', String(parseRetryAfterMs(err.message)));
     }
+
     if (err.status >= 500) {
       return new DriveDesktopError('INTERNAL_SERVER_ERROR');
     }
   }
+
   return new DriveDesktopError('UNKNOWN', err.message);
 }
 
@@ -53,6 +56,7 @@ const RETRYABLE_CAUSES = [
   'RATE_LIMITED',
   'CONNECTION_TIMEOUT',
   'INTERNAL_SERVER_ERROR',
+  'NETWORK_ERROR',
   'PARENT_FOLDER_NOT_FOUND',
 ] as const;
 
@@ -71,7 +75,7 @@ function getRetryBaseDelay(error: DriveDesktopError) {
     return INITIAL_CONNECTION_TIMEOUT_DELAY_MS;
   }
 
-  if (error.cause === 'INTERNAL_SERVER_ERROR') {
+  if (error.cause === 'INTERNAL_SERVER_ERROR' || error.cause === 'NETWORK_ERROR') {
     return INITIAL_SERVER_ERROR_DELAY_MS;
   }
 

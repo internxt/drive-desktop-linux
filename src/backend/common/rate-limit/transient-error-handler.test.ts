@@ -95,6 +95,14 @@ describe('createTransientErrorHandler', () => {
     expect(handler(error)).toBe(INITIAL_CONNECTION_TIMEOUT_DELAY_MS * 2);
   });
 
+  it('should retry NETWORK_ERROR errors like server errors', () => {
+    const handler = createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'TEST', path: '/file.txt' });
+    const error = new DriveDesktopError('NETWORK_ERROR');
+
+    expect(handler(error)).toBe(INITIAL_SERVER_ERROR_DELAY_MS);
+    expect(handler(error)).toBe(INITIAL_SERVER_ERROR_DELAY_MS * 2);
+  });
+
   it('should retry PARENT_FOLDER_NOT_FOUND with server base delay', () => {
     const handler = createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'TEST', path: '/file.txt' });
     const error = new DriveDesktopError('PARENT_FOLDER_NOT_FOUND');
