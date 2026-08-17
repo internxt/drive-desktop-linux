@@ -15,11 +15,7 @@ export function parseRetryAfterMs(message?: string) {
 }
 
 function isConnectionTimeoutError(err: Error & { code?: unknown }) {
-  if (
-    err.code === 'ETIMEDOUT' ||
-    err.code === 'UND_ERR_CONNECT_TIMEOUT' ||
-    err.code === 'UND_ERR_SOCKET'
-  ) {
+  if (err.code === 'ETIMEDOUT' || err.code === 'UND_ERR_CONNECT_TIMEOUT' || err.code === 'UND_ERR_SOCKET') {
     return true;
   }
 
