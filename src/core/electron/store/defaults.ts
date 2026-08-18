@@ -32,7 +32,6 @@ export const defaults: AppStore = {
   preferedLanguage: DEFAULT_LANGUAGE,
   preferedTheme: 'system',
 
-  // Linux-specific: file manager extension
   fileManagerExtensionVersion: 0,
   discoveredBackup: 0,
 

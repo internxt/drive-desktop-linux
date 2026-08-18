@@ -31,7 +31,6 @@ describe('service', () => {
   const fsMock = vi.mocked(fs);
 
   beforeEach(() => {
-    vi.clearAllMocks();
     process.env.NODE_ENV = 'development';
     detectAvailableFileManagerMock.mockResolvedValue('nautilus');
     doesFileExistMock.mockResolvedValue(false);

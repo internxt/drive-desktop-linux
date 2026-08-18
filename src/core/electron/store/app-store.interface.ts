@@ -53,7 +53,6 @@ export type AppStore = {
   preferedLanguage: Language;
   preferedTheme: ConfigTheme;
 
-  // Linux-specific: file manager extension
   fileManagerExtensionVersion: number;
   discoveredBackup: number;
 

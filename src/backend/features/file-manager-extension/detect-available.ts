@@ -45,12 +45,12 @@ export async function isNautilusAvailable(): Promise<boolean> {
   return (await detectAvailableFileManager()) === 'nautilus';
 }
 
-async function getDefaultDirectoryDesktopEntry(): Promise<string> {
+async function getDefaultDirectoryDesktopEntry(): Promise<string | null> {
   try {
     const { stdout } = await execAsync('xdg-mime query default inode/directory');
     return stdout.trim().toLowerCase();
   } catch {
-    return '';
+    return null;
   }
 }
 

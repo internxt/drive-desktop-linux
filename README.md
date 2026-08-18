@@ -22,7 +22,7 @@ Download and install the `.deb` package for full compatibility:
 sudo dpkg -i internxt_2.6.0_amd64.deb
 ```
 
-## Prerequisites for KDE based distros
+### Prerequisites for KDE-based distros
 
 ### KDE Wallet Configuration Guide
 
@@ -73,7 +73,7 @@ sudo apt update && sudo apt install kleopatra
 3. Enter your **Name** and **Email Address**.
 4. Click **Create** (or **Finish**) to complete the setup.
 
-### Step 3: Configure KDE Wallet for GPG
+#### Step 3: Configure KDE Wallet for GPG
 1. Open **System Settings** and search for **KDE Wallet**.
 2. Under **Automatic Wallet Selection**, click **Create New Wallet...**
 3. Select **Use GPG encryption for added security** and click **Next**.
