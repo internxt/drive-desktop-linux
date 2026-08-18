@@ -55,12 +55,21 @@ function copy_link() {
   local encoded
   encoded="$(encode_relative_path "$file_path")"
 
+  local encoded_url
+  encoded_url="$(python3 - "$encoded" <<'PY'
+from urllib.parse import quote
+import sys
+
+print(quote(sys.argv[1], safe=""))
+PY
+)"
+
   if [ -z "$encoded" ]; then
     exit 0
   fi
 
   local response
-  response="$(curl -sS -X POST "$BASE_URL/copy-link/$encoded" 2>/dev/null || true)"
+  response="$(curl -sS -X POST "$BASE_URL/copy-link/$encoded_url" 2>/dev/null || true)"
   if [ -z "$response" ]; then
     exit 0
   fi
