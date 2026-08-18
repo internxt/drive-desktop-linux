@@ -14,7 +14,12 @@ import sys
 file_path = os.path.realpath(sys.argv[1])
 root_folder = os.path.realpath(sys.argv[2])
 
-if not file_path.startswith(root_folder):
+try:
+    is_inside_root = os.path.commonpath((file_path, root_folder)) == root_folder
+except ValueError:
+    is_inside_root = False
+
+if not is_inside_root:
     print("")
     sys.exit(0)
 
