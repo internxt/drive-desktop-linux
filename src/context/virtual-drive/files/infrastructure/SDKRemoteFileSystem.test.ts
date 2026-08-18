@@ -37,6 +37,26 @@ describe('SDKRemoteFileSystem', () => {
     expect(result.getLeft().message).toBe('Server failed');
   });
 
+  it('maps NETWORK_ERROR to NETWORK_ERROR', async () => {
+    createFileMock.mockResolvedValue({ error: new DriveServerError('NETWORK_ERROR', 500, 'Network failed') });
+
+    const result = await sut.persist(dataToPersist);
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.getLeft().cause).toBe('NETWORK_ERROR');
+    expect(result.getLeft().message).toBe('Network failed');
+  });
+
+  it('maps NOT_FOUND to PARENT_FOLDER_NOT_FOUND', async () => {
+    createFileMock.mockResolvedValue({ error: new DriveServerError('NOT_FOUND', 404, 'Parent folder does not exist') });
+
+    const result = await sut.persist(dataToPersist);
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.getLeft().cause).toBe('PARENT_FOLDER_NOT_FOUND');
+    expect(result.getLeft().message).toBe('Parent folder does not exist');
+  });
+
   it('maps TOO_MANY_REQUESTS to RATE_LIMITED using retry_after', async () => {
     createFileMock.mockResolvedValue({
       error: new DriveServerError('TOO_MANY_REQUESTS', 429, JSON.stringify({ retry_after: 30 })),

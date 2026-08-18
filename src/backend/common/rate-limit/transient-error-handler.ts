@@ -3,6 +3,7 @@ import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDe
 import { extractPropertyFromStringyfiedJson } from '../../../shared/extract-property-from-json';
 import {
   INITIAL_CONNECTION_TIMEOUT_DELAY_MS,
+  INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS,
   INITIAL_RATE_LIMIT_DELAY_MS,
   INITIAL_SERVER_ERROR_DELAY_MS,
   MAX_BACKOFF_MS,
@@ -14,11 +15,11 @@ export function parseRetryAfterMs(message?: string) {
 }
 
 function isConnectionTimeoutError(err: Error & { code?: unknown }) {
-  if (err.code === 'ETIMEDOUT' || err.code === 'UND_ERR_CONNECT_TIMEOUT') {
+  if (err.code === 'ETIMEDOUT' || err.code === 'UND_ERR_CONNECT_TIMEOUT' || err.code === 'UND_ERR_SOCKET') {
     return true;
   }
 
-  return err.message.includes('Connect Timeout Error');
+  return err.message.includes('Connect Timeout Error') || err.message.includes('other side closed');
 }
 
 export function mapEnvironmentUploadError(err: Error & { code?: unknown; status?: unknown }): DriveDesktopError {
@@ -33,14 +34,17 @@ export function mapEnvironmentUploadError(err: Error & { code?: unknown; status?
   if (err.message === 'Max space used') {
     return new DriveDesktopError('NOT_ENOUGH_SPACE');
   }
+
   if (typeof err.status === 'number') {
     if (err.status === 429) {
       return new DriveDesktopError('RATE_LIMITED', String(parseRetryAfterMs(err.message)));
     }
+
     if (err.status >= 500) {
       return new DriveDesktopError('INTERNAL_SERVER_ERROR');
     }
   }
+
   return new DriveDesktopError('UNKNOWN', err.message);
 }
 
@@ -48,7 +52,13 @@ function exponentialBackoff(attempts: number, baseMs: number) {
   return Math.min(baseMs * Math.pow(2, attempts - 1), MAX_BACKOFF_MS);
 }
 
-const RETRYABLE_CAUSES = ['RATE_LIMITED', 'CONNECTION_TIMEOUT', 'INTERNAL_SERVER_ERROR'] as const;
+const RETRYABLE_CAUSES = [
+  'RATE_LIMITED',
+  'CONNECTION_TIMEOUT',
+  'INTERNAL_SERVER_ERROR',
+  'NETWORK_ERROR',
+  'PARENT_FOLDER_NOT_FOUND',
+] as const;
 
 type RetryableCause = (typeof RETRYABLE_CAUSES)[number];
 
@@ -65,8 +75,12 @@ function getRetryBaseDelay(error: DriveDesktopError) {
     return INITIAL_CONNECTION_TIMEOUT_DELAY_MS;
   }
 
-  if (error.cause === 'INTERNAL_SERVER_ERROR') {
+  if (error.cause === 'INTERNAL_SERVER_ERROR' || error.cause === 'NETWORK_ERROR') {
     return INITIAL_SERVER_ERROR_DELAY_MS;
+  }
+
+  if (error.cause === 'PARENT_FOLDER_NOT_FOUND') {
+    return INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS;
   }
 
   return INITIAL_RATE_LIMIT_DELAY_MS;
