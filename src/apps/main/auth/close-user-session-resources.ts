@@ -5,7 +5,7 @@ import { getWidget } from '../windows/widget';
 import { createAuthWindow } from '../windows/auth';
 import { stopVirtualDriveOnce } from '../../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
 import { resetAppDataSourceOnLogout } from '../database/data-source';
-import { uninstallNautilusExtension } from '../../../backend/features/nautilus-extension/uninstall';
+import { uninstallFileManagerExtension } from '../../../backend/features/file-manager-extension/install';
 import { setInitialSyncState } from '../remote-sync/InitialSyncReady';
 import { remoteSyncManager, cancelPendingRemoteSync } from '../remote-sync/service';
 import { AntivirusScanService } from '../antivirus/AntivirusScanService';
@@ -40,7 +40,7 @@ async function executeCloseUserSessionResources() {
         error,
       }),
     ),
-    tryCatch(TokenScheduler.cancelAllJobs, (error) =>
+    tryCatch(TokenScheduler.cancelAll, (error) =>
       logger.error({
         tag: 'AUTH',
         msg: '[LOGOUT] Failed to run cleanup step',
@@ -89,7 +89,7 @@ async function executeCloseUserSessionResources() {
       (error) =>
         logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'destroy-widget', error }),
     ),
-    tryCatch(uninstallNautilusExtension, (error) =>
+    tryCatch(uninstallFileManagerExtension, (error) =>
       logger.error({
         tag: 'AUTH',
         msg: '[LOGOUT] Failed to run cleanup step',
