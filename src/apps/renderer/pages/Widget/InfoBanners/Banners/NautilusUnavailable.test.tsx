@@ -3,21 +3,21 @@ import { NautilusUnavailable } from './NautilusUnavailable';
 
 describe('NautilusUnavailable', () => {
   beforeEach(() => {
-    vi.mocked(window.electron.getNautilusAvailability).mockResolvedValue(true);
+    vi.mocked(window.electron.getFileManagerAvailability).mockResolvedValue(true);
   });
 
   it('renders nothing when Nautilus is available', async () => {
     const { container } = render(<NautilusUnavailable />);
 
     await waitFor(() => {
-      expect(window.electron.getNautilusAvailability).toHaveBeenCalledTimes(1);
+      expect(window.electron.getFileManagerAvailability).toHaveBeenCalledTimes(1);
     });
 
     expect(container).toBeEmptyDOMElement();
   });
 
   it('renders the warning banner when Nautilus is not available', async () => {
-    vi.mocked(window.electron.getNautilusAvailability).mockResolvedValue(false);
+    vi.mocked(window.electron.getFileManagerAvailability).mockResolvedValue(false);
 
     render(<NautilusUnavailable />);
 
@@ -27,7 +27,7 @@ describe('NautilusUnavailable', () => {
   });
 
   it('dismisses the warning banner when the X button is clicked', async () => {
-    vi.mocked(window.electron.getNautilusAvailability).mockResolvedValue(false);
+    vi.mocked(window.electron.getFileManagerAvailability).mockResolvedValue(false);
 
     render(<NautilusUnavailable />);
 

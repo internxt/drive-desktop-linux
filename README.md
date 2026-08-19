@@ -4,9 +4,11 @@
 
 ## Compatibility
 
-As of right now, Internxt Drive Desktop for Linux is only compatible with Ubuntu and Debian with the File explorer **Nautilus** (The default file explorer for Gnome).
+Internxt Drive Desktop for Linux is currently tested and supported on Ubuntu and Debian with the file managers **Nautilus**, **Nemo**, and **Dolphin**.
 
-We cannot guarantee that the app will work properly on other Linux distributions or with other file explorers as our development and testing efforts are focused on ensuring the best experience for Ubuntu and Debian users.
+The application is also available through the **.deb** and **.rpm** packages for these distributions.
+
+We cannot guarantee full compatibility on other Linux distributions or with unsupported file managers, although the app may still work in some environments.
 
 ## Installation
 
@@ -19,6 +21,66 @@ Download and install the `.deb` package for full compatibility:
 ```bash
 sudo dpkg -i internxt_2.6.0_amd64.deb
 ```
+
+### Prerequisites for KDE-based distros
+
+### KDE Wallet Configuration Guide
+
+Our application requires the KDE key manager to be properly configured. Depending on your security needs, you can choose between two methods:
+
+* **Method 1 (Recommended / Easy):** Uses standard symmetric encryption with a master password. It is fast, requires no additional software, and supports **automatic unlocking when you log in**.
+* **Method 2 (Advanced / GPG):** Uses an OpenPGP key pair via Kleopatra for higher security, though it requires manual entry of your passphrase or PIN upon logging in.
+
+> **Why Kleopatra?** It is the official KDE key manager, offering native integration with KDE Wallet, fewer permission conflicts, and a user-friendly setup wizard compared to generic GPG tools.
+>
+> For reference, Electron's secure storage API is documented here: [safe-storage](https://www.electronjs.org/docs/latest/api/safe-storage).
+
+---
+
+### Method 1: Standard Setup (Easy & Recommended)
+
+This is the simplest way to set up KDE Wallet and allows seamless automatic unlocking upon system login.
+
+#### Step 1: Open KDE Wallet Settings
+1. Open **System Settings**.
+2. Navigate to **KDE Wallet** (or search for *Wallet* in the search bar).
+3. Ensure **Enable the KDE wallet subsystem** is checked.
+
+#### Step 2: Create a New Wallet
+1. Under **Automatic Wallet Selection**, click **Create New Wallet...**
+2. Enter a name for your wallet (e.g., `kdewallet`).
+3. Select **Blowfish encryption** (standard password) and click **Next**.
+4. Enter and confirm your **Master Password**.
+   > **Note:** If you set this password to match your Linux user login password, the wallet will unlock automatically when you sign in!
+5. Click **Finish**.
+
+---
+
+### Method 2: GPG Key Setup (Advanced)
+
+Use this method if you prefer asymmetric GPG encryption managed via external key managers.
+
+#### Step 1: Install Kleopatra
+Install **Kleopatra**, which will be used to generate your GPG encryption key:
+
+```bash
+sudo apt update && sudo apt install kleopatra
+```
+
+#### Step 2: Generate a GPG Key Pair
+1. Open **Kleopatra** and click **New Key Pair** (or **File > New Key Pair**).
+2. Select **Create a personal OpenPGP key pair**.
+3. Enter your **Name** and **Email Address**.
+4. Click **Create** (or **Finish**) to complete the setup.
+
+#### Step 3: Configure KDE Wallet for GPG
+1. Open **System Settings** and search for **KDE Wallet**.
+2. Under **Automatic Wallet Selection**, click **Create New Wallet...**
+3. Select **Use GPG encryption for added security** and click **Next**.
+4. Choose the GPG key you created earlier in Kleopatra and click **Finish**.
+
+---
+
 
 ### AppImage
 

@@ -33,7 +33,7 @@ const schema: Schema<AppStore> = {
   preferedLanguage: { type: 'string' },
   preferedTheme: { type: 'string' },
 
-  nautilusExtensionVersion: { type: 'number' },
+  fileManagerExtensionVersion: { type: 'number' },
   discoveredBackup: { type: 'number' },
   availableUserProducts: { type: 'object' },
   maxUploadFileSizeInBytes: { type: 'number' },

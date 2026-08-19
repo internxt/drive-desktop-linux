@@ -418,8 +418,8 @@ contextBridge.exposeInMainWorld('electron', {
   getUpdateStatus() {
     return ipcRenderer.invoke('get-update-status');
   },
-  getNautilusAvailability() {
-    return ipcRenderer.invoke('get-nautilus-availability');
+  getFileManagerAvailability() {
+    return ipcRenderer.invoke('get-file-manager-availability');
   },
   onUpdateAvailable(callback) {
     const eventName = 'update-available';
