@@ -22,27 +22,38 @@ vi.mock('electron-log', () => ({
 // Must use the build/ path since that's the compiled module actually required at runtime.
 vi.mock('@internxt/drive-desktop-core/build/backend/core/logger/setup-electron-log', () => ({}));
 
-// Mock @internxt/drive-desktop-core backend to prevent it from loading electron
-vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
-  logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-  },
-  PaymentsModule: {
-    getUserAvailableProducts: vi.fn(),
-  },
-}));
+// Keep real backend exports to avoid breaking value objects in many suites.
+vi.mock('@internxt/drive-desktop-core/build/backend', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@internxt/drive-desktop-core/build/backend')>();
 
-vi.mock('@internxt/drive-desktop-core/src/backend', () => ({
-  logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+  return {
+    ...actual,
+    logger: {
+      error: vi.fn(),
+      warn: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn(),
+    },
+    PaymentsModule: {
+      ...actual.PaymentsModule,
+      getUserAvailableProducts: vi.fn(),
+    },
+  };
+});
+
+vi.mock('@internxt/drive-desktop-core/src/backend', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@internxt/drive-desktop-core/src/backend')>();
+
+  return {
+    ...actual,
+    logger: {
+      error: vi.fn(),
+      warn: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn(),
+    },
+  };
+});
 
 // Mock electron-store
 vi.mock('electron-store', () => {
@@ -51,6 +62,7 @@ vi.mock('electron-store', () => {
       return {
         get: vi.fn(),
         set: vi.fn(),
+        delete: vi.fn(),
         clear: vi.fn(),
       };
     }),

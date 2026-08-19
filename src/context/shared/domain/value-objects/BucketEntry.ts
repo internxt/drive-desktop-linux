@@ -1,4 +1,4 @@
-import { ABSOLUTE_UPLOAD_FILE_SIZE_LIMIT } from '../../../../backend/features/user/file-size-limit';
+import { ABSOLUTE_UPLOAD_FILE_SIZE_LIMIT } from '../../../../backend/features/user/file-size-limit/constants';
 import { ValueObject } from './ValueObject';
 
 export class BucketEntry extends ValueObject<number> {
@@ -15,9 +15,5 @@ export class BucketEntry extends ValueObject<number> {
     if (value < 0) {
       throw new Error('File size cannot be negative');
     }
-
-    // if (value === 0) {
-    //   throw new Error('File size cannot be zero');
-    // }
   }
 }

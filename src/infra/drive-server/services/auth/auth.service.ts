@@ -1,5 +1,5 @@
 import { authClient } from './auth.client';
-import { getBaseApiHeaders, getNewApiHeaders } from '../../../../apps/main/auth/service';
+import { getBaseApiHeaders, getNewApiHeaders } from '../../../../backend/features/auth';
 import { Either, left, right } from '../../../../context/shared/domain/Either';
 import { LoginAccessRequest, LoginAccessResponse, LoginResponse, RefreshTokenResponse } from './auth.types';
 import { mapError } from '../utils/mapError';
@@ -114,7 +114,7 @@ export class AuthService {
         });
         return left(new Error('logout request was not successful'));
       }
-      return right(response.data);
+      return right(true);
     } catch (err) {
       const error = mapError(err);
       logger.error({

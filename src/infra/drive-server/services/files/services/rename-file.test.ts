@@ -1,5 +1,5 @@
 import { partialSpyOn } from 'tests/vitest/utils.helper';
-import * as authServiceModule from '../../../../../apps/main/auth/service';
+import * as authServiceModule from '../../../../../backend/features/auth';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
 

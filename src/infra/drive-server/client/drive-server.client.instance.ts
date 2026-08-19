@@ -1,5 +1,5 @@
 import { paths } from '../../schemas';
-import { getNewApiHeaders } from '../../../apps/main/auth/service';
+import { getNewApiHeaders } from '../../../backend/features/auth';
 import { closeUserSession } from '../../../apps/main/auth/handlers';
 import { createClient } from '../drive-server.client';
 import { ClientOptions } from '../drive-server.types';

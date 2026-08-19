@@ -1,11 +1,16 @@
-import { createTokenScheduleWithRetry } from './create-token-schedule-with-retry';
 import * as getCredentialsModule from '../get-credentials';
 import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
 import { loggerMock } from 'tests/vitest/mocks.helper';
 import { TokenScheduler } from '../../token-scheduler/TokenScheduler';
 import { Job } from 'node-schedule';
 
+vi.mock('../handlers', () => ({
+  closeUserSession: vi.fn(),
+}));
+
 describe('createTokenScheduleWithRetry', () => {
+  let createTokenScheduleWithRetry: typeof import('./create-token-schedule-with-retry').createTokenScheduleWithRetry;
+
   const obtainTokensMock = partialSpyOn(getCredentialsModule, 'getCredentials');
   const scheduleMock = partialSpyOn(TokenScheduler.prototype, 'schedule');
 
@@ -17,6 +22,10 @@ describe('createTokenScheduleWithRetry', () => {
     job: jobMock as Job,
   };
   const validTokens = { newToken: 'token-1', mnemonic: 'mnemonic-1' };
+
+  beforeAll(async () => {
+    ({ createTokenScheduleWithRetry } = await import('./create-token-schedule-with-retry'));
+  });
 
   beforeEach(() => {
     scheduleMock.mockReturnValue(scheduledResult);

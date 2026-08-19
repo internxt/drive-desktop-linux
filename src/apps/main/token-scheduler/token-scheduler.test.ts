@@ -43,7 +43,7 @@ describe('token-scheduler', () => {
   });
 
   afterEach(() => {
-    scheduler?.cancelAll();
+    TokenScheduler.cancelAll();
   });
 
   describe('schedule()', () => {
@@ -153,7 +153,7 @@ describe('token-scheduler', () => {
         throw new Error('Expected scheduled jobs');
       }
 
-      scheduler.cancelAll();
+      TokenScheduler.cancelAll();
 
       expect(schedule1.job.nextInvocation()).toBeNull();
       expect(schedule2.job.nextInvocation()).toBeNull();

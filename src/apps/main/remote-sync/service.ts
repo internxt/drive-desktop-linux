@@ -62,3 +62,7 @@ const debouncedSynchronization = debounce(async () => {
 export async function resyncRemoteSync() {
   await debouncedSynchronization();
 }
+
+export function cancelPendingRemoteSync() {
+  debouncedSynchronization.cancel();
+}

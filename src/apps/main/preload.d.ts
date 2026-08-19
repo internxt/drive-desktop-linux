@@ -57,7 +57,7 @@ declare interface Window {
 
     quit(): void;
 
-    getUser(): Promise<ReturnType<typeof import('./auth/service').getUser>>;
+    getUser(): Promise<ReturnType<typeof import('../../backend/features/auth/user-session').getUser>>;
 
     openProcessIssuesWindow(): void;
 
