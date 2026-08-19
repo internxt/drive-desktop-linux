@@ -1,95 +1,37 @@
 import { loggerMock } from 'tests/vitest/mocks.helper';
+import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
+import * as tokenSchedulerModule from '../token-scheduler/TokenScheduler';
+import * as traySetupModule from '../tray/tray-setup';
+import * as widgetModule from '../windows/widget';
+import * as authWindowModule from '../windows/auth';
+import * as virtualDriveServiceModule from '../../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
+import * as dataSourceModule from '../database/data-source';
+import * as fileManagerExtensionModule from '../../../backend/features/file-manager-extension/install';
+import * as initialSyncReadyModule from '../remote-sync/InitialSyncReady';
+import * as remoteSyncModule from '../remote-sync/service';
+import * as antivirusScanServiceModule from '../antivirus/AntivirusScanService';
+import * as antivirusManagerModule from '../antivirus/antivirusManager';
+import * as dependencyInjectionUserProviderModule from '../../shared/dependency-injection/DependencyInjectionUserProvider';
 
-const {
-  resetTrayStatusMock,
-  getWidgetMock,
-  createAuthWindowMock,
-  stopVirtualDriveOnceMock,
-  resetAppDataSourceOnLogoutMock,
-  uninstallNautilusExtensionMock,
-  setInitialSyncStateMock,
-  cancelPendingRemoteSyncMock,
-  resetRemoteSyncMock,
-  cancelScanMock,
-  getAntivirusManagerMock,
-  shutdownMock,
-  clearUserMock,
-  cancelAllJobsMock,
-} = vi.hoisted(() => ({
-  resetTrayStatusMock: vi.fn(),
-  getWidgetMock: vi.fn(),
-  createAuthWindowMock: vi.fn(),
-  stopVirtualDriveOnceMock: vi.fn(),
-  resetAppDataSourceOnLogoutMock: vi.fn(),
-  uninstallNautilusExtensionMock: vi.fn(),
-  setInitialSyncStateMock: vi.fn(),
-  cancelPendingRemoteSyncMock: vi.fn(),
-  resetRemoteSyncMock: vi.fn(),
-  cancelScanMock: vi.fn(),
-  getAntivirusManagerMock: vi.fn(),
+const { shutdownMock } = vi.hoisted(() => ({
   shutdownMock: vi.fn(),
-  clearUserMock: vi.fn(),
-  cancelAllJobsMock: vi.fn(),
 }));
 
-vi.mock('../token-scheduler/TokenScheduler', () => ({
-  TokenScheduler: {
-    cancelAllJobs: cancelAllJobsMock,
-  },
-}));
+const resetTrayStatusMock = partialSpyOn(traySetupModule, 'resetTrayStatus');
+const getWidgetMock = partialSpyOn(widgetModule, 'getWidget');
+const createAuthWindowMock = partialSpyOn(authWindowModule, 'createAuthWindow');
+const stopVirtualDriveOnceMock = partialSpyOn(virtualDriveServiceModule, 'stopVirtualDriveOnce');
+const resetAppDataSourceOnLogoutMock = partialSpyOn(dataSourceModule, 'resetAppDataSourceOnLogout');
+const uninstallFileManagerExtensionMock = partialSpyOn(fileManagerExtensionModule, 'uninstallFileManagerExtension');
+const setInitialSyncStateMock = partialSpyOn(initialSyncReadyModule, 'setInitialSyncState');
+const cancelPendingRemoteSyncMock = partialSpyOn(remoteSyncModule, 'cancelPendingRemoteSync');
+const resetRemoteSyncMock = partialSpyOn(remoteSyncModule.remoteSyncManager, 'resetRemoteSync');
+const cancelScanMock = partialSpyOn(antivirusScanServiceModule.AntivirusScanService, 'cancelScan');
+const getAntivirusManagerMock = partialSpyOn(antivirusManagerModule, 'getAntivirusManager');
+const clearUserMock = partialSpyOn(dependencyInjectionUserProviderModule.DependencyInjectionUserProvider, 'clearUser');
+const cancelAllJobsMock = partialSpyOn(tokenSchedulerModule.TokenScheduler, 'cancelAll');
 
-vi.mock('../tray/tray-setup', () => ({
-  resetTrayStatus: resetTrayStatusMock,
-}));
-
-vi.mock('../windows/widget', () => ({
-  getWidget: getWidgetMock,
-}));
-
-vi.mock('../windows/auth', () => ({
-  createAuthWindow: createAuthWindowMock,
-}));
-
-vi.mock('../../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service', () => ({
-  stopVirtualDriveOnce: stopVirtualDriveOnceMock,
-}));
-
-vi.mock('../database/data-source', () => ({
-  resetAppDataSourceOnLogout: resetAppDataSourceOnLogoutMock,
-}));
-
-vi.mock('../../../backend/features/nautilus-extension/uninstall', () => ({
-  uninstallNautilusExtension: uninstallNautilusExtensionMock,
-}));
-
-vi.mock('../remote-sync/InitialSyncReady', () => ({
-  setInitialSyncState: setInitialSyncStateMock,
-}));
-
-vi.mock('../remote-sync/service', () => ({
-  remoteSyncManager: {
-    resetRemoteSync: resetRemoteSyncMock,
-  },
-  cancelPendingRemoteSync: cancelPendingRemoteSyncMock,
-}));
-
-vi.mock('../antivirus/AntivirusScanService', () => ({
-  AntivirusScanService: {
-    cancelScan: cancelScanMock,
-  },
-}));
-
-vi.mock('../antivirus/antivirusManager', () => ({
-  getAntivirusManager: getAntivirusManagerMock,
-}));
-
-vi.mock('../../shared/dependency-injection/DependencyInjectionUserProvider', () => ({
-  DependencyInjectionUserProvider: {
-    clearUser: clearUserMock,
-  },
-}));
-
-describe('closeUserSessionResources', () => {
+describe('close-user-session-resources', () => {
   let closeUserSessionResources: typeof import('./close-user-session-resources').closeUserSessionResources;
 
   beforeAll(async () => {
@@ -97,7 +39,7 @@ describe('closeUserSessionResources', () => {
   });
 
   beforeEach(() => {
-    getAntivirusManagerMock.mockReturnValue({ shutdown: shutdownMock });
+    getAntivirusManagerMock.mockReturnValue({ shutdown: shutdownMock } as never);
   });
 
   it('runs all cleanup steps and reports completion', async () => {
@@ -111,21 +53,21 @@ describe('closeUserSessionResources', () => {
 
     await closeUserSessionResources();
 
-    expect(resetTrayStatusMock).toHaveBeenCalledWith('IDLE');
-    expect(widget.hide).toHaveBeenCalledTimes(1);
-    expect(clearUserMock).toHaveBeenCalledTimes(1);
-    expect(cancelAllJobsMock).toHaveBeenCalledTimes(1);
-    expect(cancelPendingRemoteSyncMock).toHaveBeenCalledTimes(1);
-    expect(setInitialSyncStateMock).toHaveBeenCalledWith('NOT_READY');
-    expect(resetRemoteSyncMock).toHaveBeenCalledTimes(1);
-    expect(cancelScanMock).toHaveBeenCalledTimes(1);
-    expect(shutdownMock).toHaveBeenCalledTimes(1);
-    expect(stopVirtualDriveOnceMock).toHaveBeenCalledTimes(1);
-    expect(resetAppDataSourceOnLogoutMock).toHaveBeenCalledTimes(1);
-    expect(createAuthWindowMock).toHaveBeenCalledTimes(1);
-    expect(widget.destroy).toHaveBeenCalledTimes(1);
-    expect(uninstallNautilusExtensionMock).toHaveBeenCalledTimes(1);
-    expect(loggerMock.debug).toHaveBeenCalledWith({
+    call(resetTrayStatusMock).toBe('IDLE');
+    calls(widget.hide).toHaveLength(1);
+    calls(clearUserMock).toHaveLength(1);
+    calls(cancelAllJobsMock).toHaveLength(1);
+    calls(cancelPendingRemoteSyncMock).toHaveLength(1);
+    call(setInitialSyncStateMock).toBe('NOT_READY');
+    calls(resetRemoteSyncMock).toHaveLength(1);
+    calls(cancelScanMock).toHaveLength(1);
+    calls(shutdownMock).toHaveLength(1);
+    calls(stopVirtualDriveOnceMock).toHaveLength(1);
+    calls(resetAppDataSourceOnLogoutMock).toHaveLength(1);
+    calls(createAuthWindowMock).toHaveLength(1);
+    calls(widget.destroy).toHaveLength(1);
+    calls(uninstallFileManagerExtensionMock).toHaveLength(1);
+    calls(loggerMock.debug).toContainEqual({
       tag: 'AUTH',
       msg: '[LOGOUT] User session resources closed',
     });
@@ -138,20 +80,20 @@ describe('closeUserSessionResources', () => {
     });
 
     stopVirtualDriveOnceMock.mockReturnValueOnce(stopPromise);
-    getWidgetMock.mockReturnValue(undefined);
+    getWidgetMock.mockReturnValue(undefined as never);
 
     const firstExecution = closeUserSessionResources();
     const secondExecution = closeUserSessionResources();
 
     await vi.waitFor(() => {
-      expect(stopVirtualDriveOnceMock).toHaveBeenCalledTimes(1);
+      calls(stopVirtualDriveOnceMock).toHaveLength(1);
     });
-    expect(createAuthWindowMock).not.toHaveBeenCalled();
+    calls(createAuthWindowMock).toHaveLength(0);
 
     resolveStopVirtualDrive();
     await Promise.all([firstExecution, secondExecution]);
 
-    expect(createAuthWindowMock).toHaveBeenCalledTimes(1);
-    expect(uninstallNautilusExtensionMock).toHaveBeenCalledTimes(1);
+    calls(createAuthWindowMock).toHaveLength(1);
+    calls(uninstallFileManagerExtensionMock).toHaveLength(1);
   });
 });
