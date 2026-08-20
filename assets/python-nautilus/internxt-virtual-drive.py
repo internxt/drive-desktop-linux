@@ -14,7 +14,7 @@ SYNC_STATUS_ATTRIBUTE ="SYNC_STATUS"
 SYNC_STATUS_ATTRIBUTE_NAME ="Sync Status"
 SYNC_STATUS_ONLY_ONLINE="Only online"
 
-VIRTUAL_DRIVE_ROOT_FOLDER_NAME = "Internxt%20Drive"
+VIRTUAL_DRIVE_ROOT_FOLDER_NAME = "Internxt Drive"
 
 status_to_column_status_map = {
   "on_local": "Offline Available",
@@ -73,12 +73,19 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
         return self._create_menu_items([file], "Background")
 
     def _file_is_in_virtual_drive(self, file):
-        file_uri = file.get_uri();
-        return self.root_folder in file_uri
+        file_path = self._get_file_path(file)
+        root_with_sep = self.root_folder + os.sep
+
+        return file_path == self.root_folder or file_path.startswith(root_with_sep)
 
     def _file_is_virtual_drive(self, file):
-        file_uri = file.get_uri();
-        return self.file_base_dir == file_uri
+        file_path = self._get_file_path(file)
+        return file_path == self.root_folder
+
+    def _get_file_path(self, file):
+      file_uri = file.get_uri()
+      parsed_uri = urllib.parse.urlparse(file_uri)
+      return urllib.parse.unquote(parsed_uri.path)
 
     def _setItemStatus(self, file, status):
 
@@ -138,51 +145,27 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
       file.add_string_attribute(SYNC_STATUS_ATTRIBUTE_NAME, text)
 
     def _create_menu_items(self, files, group):
-        active_items = []
+        if len(files) != 1:
+          return []
 
-        local_files = []
-        remote_files = []
+        file = files[0]
 
-        for file in files:
-          if self._file_is_in_virtual_drive(file):
-            status = self._get_availability(file)
+        if not self._file_is_in_virtual_drive(file):
+          return []
 
-            if (status == 'on_local'):
-              local_files.append(file)
-
-            if (status == 'on_remote'):
-              remote_files.append(file)
-
-        if len(local_files) > 0:
-          clear = Nautilus.MenuItem(
-              name="InternxtVirtualDrive::CLEAR" + group,
-              label=" Make Available Online Only",
+        copy_link = Nautilus.MenuItem(
+              name="InternxtVirtualDrive::COPY_LINK" + group,
+              label="Copy Internxt Link",
           )
-          clear.connect("activate", self._make_remote_only, local_files)
+        copy_link.connect("activate", self._copy_internxt_link, [file])
 
-          active_items.append(clear)
-
-        if len(files) == 1 and len(remote_files) == 1:
-          copy_link = Nautilus.MenuItem(
-                name="InternxtVirtualDrive::COPY_LINK" + group,
-                label="Copy Internxt Link",
-            )
-          copy_link.connect("activate", self._copy_internxt_link, remote_files)
-          active_items.append(copy_link)
-
-        return active_items
+        return [copy_link]
 
     def _encode_file_path(self, file):
-      file_uri = file.get_uri()
-      parsed_uri = urllib.parse.urlparse(file_uri)
-      file_path = urllib.parse.unquote(parsed_uri.path)
+      file_path = self._get_file_path(file)
+      relative_path = file_path.replace(self.root_folder, '', 1)
 
-      root_folder = urllib.parse.unquote(self.root_folder)
-      relative_path = file_path.replace(root_folder, '', 1)
-
-      parsed = urllib.parse.unquote(relative_path)
-
-      bytes_data = parsed.encode('utf-8')
+      bytes_data = relative_path.encode('utf-8')
       return base64.b64encode(bytes_data).decode('utf-8')
 
 
