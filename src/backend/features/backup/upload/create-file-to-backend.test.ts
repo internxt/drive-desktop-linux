@@ -62,6 +62,15 @@ describe('createFileToBackend', () => {
     expect(result.error?.cause).toBe('FILE_ALREADY_EXISTS');
   });
 
+  it('should return PARENT_FOLDER_NOT_FOUND error on NOT_FOUND', async () => {
+    createFileMock.mockResolvedValue({ error: new DriveServerError('NOT_FOUND', 404) });
+
+    const result = await createFileToBackend(baseParams);
+
+    expect(result.error).toBeInstanceOf(DriveDesktopError);
+    expect(result.error?.cause).toBe('PARENT_FOLDER_NOT_FOUND');
+  });
+
   it('should return UNKNOWN error on BAD_REQUEST', async () => {
     createFileMock.mockResolvedValue({ error: new DriveServerError('BAD_REQUEST', 400) });
 

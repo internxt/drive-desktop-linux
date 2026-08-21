@@ -88,7 +88,7 @@ export class BackupService {
       tracker.incrementProcessed(itemsAlreadyBacked);
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting folder backup' });
-      await this.backupFolders(foldersDiff, local, remote, tracker);
+      await this.backupFolders(foldersDiff, local, remote, signal, tracker);
       logger.debug({ tag: 'BACKUPS', msg: 'Folder backup completed' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Starting file backup' });
@@ -161,7 +161,13 @@ export class BackupService {
     }
   }
 
-  private async backupFolders(diff: FoldersDiff, local: LocalTree, remote: RemoteTree, tracker: BackupProgressTracker) {
+  private async backupFolders(
+    diff: FoldersDiff,
+    local: LocalTree,
+    remote: RemoteTree,
+    signal: AbortSignal,
+    tracker: BackupProgressTracker,
+  ) {
     logger.debug({ tag: 'BACKUPS', msg: 'Backing folders' });
 
     logger.debug({ tag: 'BACKUPS', msg: 'Folders added', count: diff.added.length });
@@ -181,6 +187,7 @@ export class BackupService {
         relative(local.root.path, localFolder.path),
         parent.id,
         parent.uuid,
+        signal,
       );
 
       remote.addFolder(parent, folder);
