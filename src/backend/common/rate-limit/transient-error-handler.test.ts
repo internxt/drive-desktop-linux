@@ -113,6 +113,28 @@ describe('createTransientErrorHandler', () => {
 });
 
 describe('mapEnvironmentUploadError', () => {
+  it('should map S3 RequestTimeout XML payload to CONNECTION_TIMEOUT with explicit S3 marker', () => {
+    const error = new Error(
+      "Failed to upload part: 400 <?xml version='1.0' encoding='UTF-8'?><Error><Code>RequestTimeout</Code><Message>Your socket connection to the server was not read from or written to within the timeout period.</Message></Error>",
+    );
+
+    const result = mapEnvironmentUploadError(error);
+
+    expect(result.cause).toBe('CONNECTION_TIMEOUT');
+    expect(result.message).toBe(`[S3_REQUEST_TIMEOUT] ${error.message}`);
+  });
+
+  it('should map S3 timeout-period message to CONNECTION_TIMEOUT with explicit S3 marker', () => {
+    const error = new Error(
+      'Failed to upload part: 400 Your socket connection to the server was not read from or written to within the timeout period.',
+    );
+
+    const result = mapEnvironmentUploadError(error);
+
+    expect(result.cause).toBe('CONNECTION_TIMEOUT');
+    expect(result.message).toBe(`[S3_REQUEST_TIMEOUT] ${error.message}`);
+  });
+
   it('should map connect timeout message to CONNECTION_TIMEOUT so it retries explicitly', () => {
     const error = new Error('Connect Timeout Error (attempted addresses: 141.95.161.76:443, timeout: 10000ms)');
 
@@ -133,6 +155,24 @@ describe('mapEnvironmentUploadError', () => {
 
   it('should map undici socket close errors to CONNECTION_TIMEOUT so upload retries explicitly', () => {
     const error = Object.assign(new Error('other side closed'), { code: 'UND_ERR_SOCKET' });
+
+    const result = mapEnvironmentUploadError(error);
+
+    expect(result.cause).toBe('CONNECTION_TIMEOUT');
+    expect(result.message).toBe(error.message);
+  });
+
+  it('should map undici headers timeout code to CONNECTION_TIMEOUT so upload retries explicitly', () => {
+    const error = Object.assign(new Error('Headers Timeout Error'), { code: 'UND_ERR_HEADERS_TIMEOUT' });
+
+    const result = mapEnvironmentUploadError(error);
+
+    expect(result.cause).toBe('CONNECTION_TIMEOUT');
+    expect(result.message).toBe(error.message);
+  });
+
+  it('should map headers timeout message to CONNECTION_TIMEOUT so upload retries explicitly', () => {
+    const error = new Error('Headers Timeout Error');
 
     const result = mapEnvironmentUploadError(error);
 
