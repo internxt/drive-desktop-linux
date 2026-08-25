@@ -6,9 +6,9 @@ import Dotenv from 'dotenv-webpack';
 import chalk from 'chalk';
 import { merge } from 'webpack-merge';
 import { spawn, execSync } from 'node:child_process';
-import baseConfig from './webpack.config.base';
-import webpackPaths from './webpack.paths';
-import checkNodeEnv from '../scripts/check-node-env';
+import baseConfig from './webpack.config.base.ts';
+import webpackPaths from './webpack.paths.ts';
+import checkNodeEnv from '../scripts/check-node-env.js';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 
 // When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
@@ -19,8 +19,9 @@ if (process.env.NODE_ENV === 'production') {
 
 const port = process.env.PORT || 1212;
 const manifest = path.resolve(webpackPaths.dllPath, 'renderer.json');
-const requiredByDLLConfig = module.parent!.filename.includes(
-  'webpack.config.renderer.dev.dll'
+const appNodeModulesPath = path.join(webpackPaths.rootPath, 'node_modules');
+const requiredByDLLConfig = process.argv.some((arg) =>
+  arg.includes('webpack.config.renderer.dev.dll')
 );
 
 /**
@@ -179,7 +180,7 @@ const configuration: webpack.Configuration = {
       isBrowser: false,
       env: process.env.NODE_ENV,
       isDevelopment: process.env.NODE_ENV !== 'production',
-      nodeModules: webpackPaths.appNodeModulesPath,
+      nodeModules: appNodeModulesPath,
     }),
   ],
 
@@ -216,7 +217,8 @@ const configuration: webpack.Configuration = {
         ],
       },
     },
-    setupMiddlewares(middlewares) {
+    // @ts-ignore webpack-dev-server runtime typing mismatch in this config context
+    setupMiddlewares(middlewares: Array<unknown>, _devServer: unknown) {
       // Only auto-start main process if DEBUG_MODE is not set
       if (process.env.DEBUG_MODE !== 'true') {
         console.log('Starting Main Process...');
