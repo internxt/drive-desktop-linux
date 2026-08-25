@@ -15,16 +15,36 @@ export function parseRetryAfterMs(message?: string) {
 }
 
 function isConnectionTimeoutError(err: Error & { code?: unknown }) {
-  if (err.code === 'ETIMEDOUT' || err.code === 'UND_ERR_CONNECT_TIMEOUT' || err.code === 'UND_ERR_SOCKET') {
+  if (
+    err.code === 'ETIMEDOUT' ||
+    err.code === 'UND_ERR_CONNECT_TIMEOUT' ||
+    err.code === 'UND_ERR_SOCKET' ||
+    err.code === 'UND_ERR_HEADERS_TIMEOUT'
+  ) {
     return true;
   }
 
-  return err.message.includes('Connect Timeout Error') || err.message.includes('other side closed');
+  return (
+    err.message.includes('Connect Timeout Error') ||
+    err.message.includes('Headers Timeout Error') ||
+    err.message.includes('other side closed')
+  );
+}
+
+function isS3RequestTimeoutError(err: Error) {
+  return (
+    err.message.includes('<Code>RequestTimeout</Code>') ||
+    err.message.includes('socket connection to the server was not read from or written to within the timeout period')
+  );
 }
 
 export function mapEnvironmentUploadError(err: Error & { code?: unknown; status?: unknown }): DriveDesktopError {
   if (err.code === 'EACCES' || err.code === 'EPERM') {
     return new DriveDesktopError('ACTION_NOT_PERMITTED', err.message);
+  }
+
+  if (isS3RequestTimeoutError(err)) {
+    return new DriveDesktopError('CONNECTION_TIMEOUT', `[S3_REQUEST_TIMEOUT] ${err.message}`);
   }
 
   if (isConnectionTimeoutError(err)) {

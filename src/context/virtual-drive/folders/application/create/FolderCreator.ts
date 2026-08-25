@@ -10,13 +10,10 @@ import { FolderStatuses } from '../../domain/FolderStatus';
 import { FolderUpdatedAt } from '../../domain/FolderUpdatedAt';
 import { FolderUuid } from '../../domain/FolderUuid';
 import { FolderInPathAlreadyExistsError } from '../../domain/errors/FolderInPathAlreadyExistsError';
-import { FolderPersistedDto, RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
+import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { ParentFolderFinder } from '../ParentFolderFinder';
 import { runTrackingCreation } from './PendingFolderCreationTracker';
-import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
-import { createTransientErrorHandler } from '../../../../../backend/common/rate-limit/transient-error-handler';
-import { Result } from '../../../../shared/domain/Result';
-import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
+import { persistFolderWithRetry } from './persist-folder-with-retry';
 
 @Service()
 export class FolderCreator {
@@ -53,7 +50,13 @@ export class FolderCreator {
     const parent = await this.parentFolderFinder.run(folderPath);
     const parentId = new FolderId(parent.id);
 
-    const { data: dto, error } = await this.persistWithRetry({ folderPath, parentUuid: parent.uuid });
+    const { data: dto, error } = await persistFolderWithRetry({
+      remoteFileSystem: this.remote,
+      folderPath,
+      parentUuid: parent.uuid,
+      tag: 'SYNC-ENGINE',
+      context: 'FOLDER CREATION RETRY',
+    });
 
     if (error) {
       logger.error({ msg: 'Error creating folder:', error });
@@ -81,23 +84,5 @@ export class FolderCreator {
 
     await this.repository.add(folder);
     this.eventBus.publish(folder.pullDomainEvents());
-  }
-
-  private persistWithRetry({
-    folderPath,
-    parentUuid,
-  }: {
-    folderPath: FolderPath;
-    parentUuid: string;
-  }): Promise<Result<FolderPersistedDto, DriveDesktopError>> {
-    return retryWithBackoff(
-      async () => {
-        const result = await this.remote.persist(folderPath.name(), parentUuid);
-        if (result.isLeft()) return { error: result.getLeft() };
-        return { data: result.getRight() };
-      },
-      createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'FOLDER CREATION RETRY', path: folderPath.value }),
-      new AbortController().signal,
-    );
   }
 }

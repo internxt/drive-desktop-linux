@@ -72,6 +72,7 @@ export async function createFileToBackend({
 
   const causeMap: Record<string, SyncError> = {
     CONFLICT: 'FILE_ALREADY_EXISTS',
+    NOT_FOUND: 'PARENT_FOLDER_NOT_FOUND',
     SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
     TOO_MANY_REQUESTS: 'RATE_LIMITED',
     FILE_TOO_BIG: 'FILE_TOO_BIG',

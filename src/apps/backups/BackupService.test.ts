@@ -79,6 +79,12 @@ describe('BackupService', () => {
     expect(result).toBeUndefined();
     expect(buildLocalTreeMock).toHaveBeenCalledWith(info.pathname);
     expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderId, info.folderUuid, true);
+    expect(simpleFolderCreator.run).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Number),
+      expect.any(String),
+      abortController.signal,
+    );
     expect(tracker.incrementProcessed).toHaveBeenCalled();
   });
 
