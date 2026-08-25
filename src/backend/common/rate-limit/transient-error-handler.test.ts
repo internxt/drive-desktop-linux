@@ -115,7 +115,7 @@ describe('createTransientErrorHandler', () => {
 describe('mapEnvironmentUploadError', () => {
   it('should map S3 RequestTimeout XML payload to CONNECTION_TIMEOUT with explicit S3 marker', () => {
     const error = new Error(
-      "Failed to upload part: 400 <?xml version='1.0' encoding='UTF-8'?><Error><Code>RequestTimeout</Code><Message>Your socket connection to the server was not read from or written to within the timeout period.</Message></Error>",
+      'Failed to upload part: 400 <?xml version="1.0" encoding="UTF-8"?><Error><Code>RequestTimeout</Code><Message>Your socket connection to the server was not read from or written to within the timeout period.</Message></Error>',
     );
 
     const result = mapEnvironmentUploadError(error);
