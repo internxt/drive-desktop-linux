@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: 🔍 Lint
@@ -13,6 +16,7 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           submodules: true
 
       - name: Use Node.js
@@ -38,6 +42,7 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           submodules: true
 
       - name: Use Node.js
@@ -63,6 +68,7 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           submodules: true
 
       - name: Use Node.js

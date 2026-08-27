@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+
 jobs:
   test-main:
     name: 🧪 Test Main Process
@@ -13,6 +16,7 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           submodules: true
 
       - name: Use Node.js
@@ -46,6 +50,7 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           submodules: true
 
       - name: Use Node.js
