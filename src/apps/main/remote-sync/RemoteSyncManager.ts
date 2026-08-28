@@ -1,11 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import {
-  RemoteSyncStatus,
-  RemoteSyncedFolder,
-  SyncConfig,
-  rewind,
-  SIX_HOURS_IN_MILLISECONDS,
-} from './helpers';
+import { RemoteSyncStatus, RemoteSyncedFolder, SyncConfig, rewind, SIX_HOURS_IN_MILLISECONDS } from './helpers';
 import { DatabaseCollectionAdapter } from '../database/adapters/base';
 import { DriveFolder } from '../database/entities/DriveFolder';
 import { DriveFile } from '../database/entities/DriveFile';
@@ -321,5 +315,4 @@ export class RemoteSyncManager {
     if (payload.deleted) return 'DELETED';
     return 'EXISTS';
   }
-
 }

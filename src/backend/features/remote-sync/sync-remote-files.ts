@@ -39,7 +39,11 @@ export async function syncRemoteFiles({
       if (result.error) {
         // HTTP 400 means invalid cursor; do not retry
         if (result.error.cause === 'BAD_REQUEST') {
-          logger.error({ tag: 'SYNC-ENGINE', msg: 'File sync aborted: invalid cursor (HTTP 400)', error: result.error });
+          logger.error({
+            tag: 'SYNC-ENGINE',
+            msg: 'File sync aborted: invalid cursor (HTTP 400)',
+            error: result.error,
+          });
           return { error: result.error };
         }
         throw new RemoteSyncNetworkError(result.error.message, undefined, result.error.statusCode);
