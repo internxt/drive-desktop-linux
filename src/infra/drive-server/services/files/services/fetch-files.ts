@@ -10,10 +10,7 @@ type FetchFilesSyncQuery = {
   cursor?: string;
 };
 
-type FetchFilesSyncResult = {
-  files: components['schemas']['FileSyncDto'][];
-  nextCursor: string | null;
-};
+type FetchFilesSyncResult = components['schemas']['GetFilesSyncResponseDto'];
 
 export async function fetchFilesSync(
   query: FetchFilesSyncQuery,
