@@ -198,6 +198,7 @@ describe('service', () => {
       detectAvailableFileManagerMock.mockResolvedValueOnce('thunar');
       execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
         expect(cmd).toBe('thunar -q');
+        expect(optionsOrCallback).toMatchObject({ timeout: 3000 });
 
         const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
         cb?.(null, '', '');
