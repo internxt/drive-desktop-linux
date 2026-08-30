@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        fileManager: [nautilus, nemo, dolphin]
+        fileManager: [nautilus, nemo, dolphin, thunar]
 
     container:
       image: ubuntu:22.04
@@ -44,6 +44,9 @@ jobs:
               ;;
             dolphin)
               DEBIAN_FRONTEND=noninteractive apt-get install -y dolphin
+              ;;
+            thunar)
+              DEBIAN_FRONTEND=noninteractive apt-get install -y thunar thunarx-python gir1.2-thunarx-3.0 python3-gi
               ;;
             *)
               echo "Unsupported file manager: ${{ matrix.fileManager }}"

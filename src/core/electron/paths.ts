@@ -25,6 +25,7 @@ const RESOURCES_PATH = app.isPackaged
   : path.join(__dirname, '../../../assets');
 const NAUTILUS_EXTENSION_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'nautilus-python', 'extensions');
 const NEMO_EXTENSION_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'nemo-python', 'extensions');
+const THUNAR_EXTENSION_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'thunarx-python', 'extensions');
 const DOLPHIN_KIO_SERVICEMENUS_PATH = path.join(HOME_FOLDER_PATH, '.local', 'share', 'kio', 'servicemenus');
 const DOLPHIN_KSERVICES5_SERVICEMENUS_PATH = path.join(
   HOME_FOLDER_PATH,
@@ -53,6 +54,7 @@ export const PATHS = {
   RESOURCES_PATH,
   NAUTILUS_EXTENSION_PATH,
   NEMO_EXTENSION_PATH,
+  THUNAR_EXTENSION_PATH,
   DOLPHIN_KIO_SERVICEMENUS_PATH,
   DOLPHIN_KSERVICES5_SERVICEMENUS_PATH,
   DOLPHIN_EXTENSION_PATH,

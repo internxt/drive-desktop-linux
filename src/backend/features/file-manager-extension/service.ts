@@ -9,6 +9,7 @@ import {
   type SupportedFileManager,
   NAUTILUS_EXTENSION_FILENAME,
   NEMO_EXTENSION_FILENAME,
+  THUNAR_EXTENSION_FILENAME,
   DOLPHIN_MENU_FILENAME,
   DOLPHIN_HELPER_FILENAME,
 } from './constants';
@@ -79,6 +80,21 @@ async function getFileManagerConfig(): Promise<FileManagerConfig | null> {
         {
           source: `python-nemo/${NEMO_EXTENSION_FILENAME}`,
           destination: path.join(PATHS.NEMO_EXTENSION_PATH, NEMO_EXTENSION_FILENAME),
+        },
+      ],
+    };
+  }
+
+  if (fileManager === 'thunar') {
+    return {
+      type: 'thunar',
+      // Thunar runs as a daemon; -q asks the running instance to quit so the
+      // next launch loads the extension.
+      reloadCommand: 'thunar -q',
+      assets: [
+        {
+          source: `python-thunar/${THUNAR_EXTENSION_FILENAME}`,
+          destination: path.join(PATHS.THUNAR_EXTENSION_PATH, THUNAR_EXTENSION_FILENAME),
         },
       ],
     };
