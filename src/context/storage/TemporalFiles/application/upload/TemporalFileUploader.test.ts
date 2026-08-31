@@ -37,6 +37,16 @@ describe('TemporalFileUploader', () => {
   });
 
   const stopWatching = vi.fn();
+  const open = vi.fn();
+  const dispose = vi.fn();
+
+  /** Stands in for the immutable per-upload copy the repository hands out. */
+  function snapshotOf(content: string) {
+    open.mockImplementation(() => Readable.from([content]));
+    dispose.mockResolvedValue(undefined);
+    return { size: Buffer.byteLength(content), open, dispose };
+  }
+
   beforeEach(() => {
     repository.watchFile.mockReturnValue(stopWatching);
     eventBus.publish.mockResolvedValue(undefined);
@@ -45,7 +55,7 @@ describe('TemporalFileUploader', () => {
     uploaderFactory.replaces.mockReturnValue(uploaderFactory);
     uploaderFactory.abort.mockReturnValue(uploaderFactory);
     uploaderFactory.build.mockReturnValue(async () => 'contents-id');
-    repository.stream.mockResolvedValue(Readable.from(['content']));
+    repository.createUploadSnapshot.mockResolvedValue(snapshotOf('content'));
     validateSpaceMock.mockResolvedValue({ data: { hasSpace: true } });
   });
 
@@ -56,8 +66,6 @@ describe('TemporalFileUploader', () => {
 
   it('retries content upload on RATE_LIMITED and succeeds', async () => {
     // Given
-    repository.stream.mockResolvedValue(new Readable({ read() {} }));
-
     uploaderFactory.build
       .mockReturnValueOnce(() => Promise.reject({ status: 429, message: JSON.stringify({ retry_after: 0.001 }) }))
       .mockReturnValueOnce(() => Promise.resolve('contents-id'));
@@ -69,15 +77,16 @@ describe('TemporalFileUploader', () => {
 
     // Then
     expect(result).toBe('contents-id');
-    calls(repository.stream).toHaveLength(2);
+    calls(repository.createUploadSnapshot).toHaveLength(1);
+    calls(open).toHaveLength(2);
     calls(uploaderFactory.build).toHaveLength(2);
     calls(eventBus.publish).toHaveLength(1);
     calls(stopWatching).toHaveLength(1);
+    calls(dispose).toHaveLength(1);
   });
 
   it('stops retrying on non-retryable upload errors', async () => {
     // Given
-    repository.stream.mockResolvedValue(new Readable({ read() {} }));
     uploaderFactory.build.mockReturnValue(() => Promise.reject(new Error('broken stream')));
 
     const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
@@ -85,10 +94,34 @@ describe('TemporalFileUploader', () => {
     // When/Then
     await expect(sut.run(temporalFile)).rejects.toThrow();
 
-    calls(repository.stream).toHaveLength(1);
+    calls(open).toHaveLength(1);
     calls(uploaderFactory.build).toHaveLength(1);
     calls(eventBus.publish).toHaveLength(0);
     call(stopWatching).toStrictEqual([]);
+    // The snapshot is released even when the upload fails.
+    call(dispose).toStrictEqual([]);
+  });
+
+  it('should not let a failed snapshot cleanup replace a successful upload', async () => {
+    dispose.mockRejectedValue(new Error('could not remove the snapshot'));
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    // The upload is already committed and the event already published by the
+    // time cleanup runs, so a cleanup failure must not report it as failed.
+    await expect(sut.run(temporalFile)).resolves.toBe('contents-id');
+    calls(eventBus.publish).toHaveLength(1);
+  });
+
+  it('should not let a failed snapshot cleanup hide the error the upload failed with', async () => {
+    uploaderFactory.build.mockReturnValue(() => Promise.reject(new Error('broken stream')));
+    dispose.mockRejectedValue(new Error('could not remove the snapshot'));
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    // Not merely "some error": the one the upload actually failed with.
+    await expect(sut.run(temporalFile)).rejects.toMatchObject({ cause: 'UNKNOWN' });
+    await expect(sut.run(temporalFile)).rejects.not.toThrow('could not remove the snapshot');
   });
 
   it('should reject oversized temporal files before opening the upload stream', async () => {
@@ -113,7 +146,7 @@ describe('TemporalFileUploader', () => {
       message: 'The size of the file to upload is greater than the available space',
     });
     expect(repository.watchFile).not.toHaveBeenCalled();
-    expect(repository.stream).not.toHaveBeenCalled();
+    expect(repository.createUploadSnapshot).not.toHaveBeenCalled();
     expect(uploaderFactory.build).not.toHaveBeenCalled();
     expect(eventBus.publish).not.toHaveBeenCalled();
   });
@@ -124,7 +157,7 @@ describe('TemporalFileUploader', () => {
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
     await expect(uploader.run(temporalFile)).resolves.toBe('contents-id');
-    expect(repository.stream).toHaveBeenCalledWith(temporalFile.path);
+    expect(repository.createUploadSnapshot).toHaveBeenCalledWith(temporalFile.path);
     expect(uploaderFactory.build).toHaveBeenCalled();
   });
 
@@ -134,7 +167,7 @@ describe('TemporalFileUploader', () => {
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
     await expect(uploader.run(temporalFile)).resolves.toBe('contents-id');
-    expect(repository.stream).toHaveBeenCalledWith(temporalFile.path);
+    expect(repository.createUploadSnapshot).toHaveBeenCalledWith(temporalFile.path);
     expect(uploaderFactory.build).toHaveBeenCalled();
     expect(eventBus.publish).toHaveBeenCalled();
   });
@@ -144,7 +177,7 @@ describe('TemporalFileUploader', () => {
 
     await expect(uploader.run(emptyTemporalFile)).resolves.toBe('');
     calls(repository.watchFile).toHaveLength(0);
-    calls(repository.stream).toHaveLength(0);
+    calls(repository.createUploadSnapshot).toHaveLength(0);
     calls(repository.read).toHaveLength(0);
     calls(uploaderFactory.read).toHaveLength(0);
     calls(eventBus.publish).toHaveLength(1);

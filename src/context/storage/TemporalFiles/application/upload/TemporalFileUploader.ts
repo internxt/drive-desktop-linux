@@ -5,6 +5,7 @@ import { canGenerateThumbnail } from '../../../../../backend/features/thumbnails
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
 import { TemporalFileUploaderFactory } from '../../domain/upload/TemporalFileUploaderFactory';
 import { TemporalFileUploadedDomainEvent } from '../../domain/upload/TemporalFileUploadedDomainEvent';
+import { TemporalFileUploadSnapshot } from '../../domain/upload/TemporalFileUploadSnapshot';
 import { EventBus } from '../../../../virtual-drive/shared/domain/EventBus';
 import { Replaces } from '../../domain/upload/Replaces';
 import { TemporalFile } from '../../domain/TemporalFile';
@@ -39,7 +40,12 @@ export class TemporalFileUploader {
         path: temporalFile.path.value,
       });
 
-      await this.publishUploadEvent(TemporalFileUploader.EMPTY_CONTENTS_ID, temporalFile, replaces);
+      await this.publishUploadEvent(
+        TemporalFileUploader.EMPTY_CONTENTS_ID,
+        temporalFile,
+        temporalFile.size.value,
+        replaces,
+      );
 
       return TemporalFileUploader.EMPTY_CONTENTS_ID;
     }
@@ -74,21 +80,49 @@ export class TemporalFileUploader {
     const controller = new AbortController();
     const stopWatching = this.repository.watchFile(temporalFile.path, () => controller.abort());
 
+    let snapshot: TemporalFileUploadSnapshot | undefined;
+
     try {
-      const contentsId = await this.uploadWithRetry(temporalFile, controller, replaces);
+      // Watching starts first so that a write landing during the copy still
+      // aborts the upload instead of being frozen into it.
+      snapshot = await this.repository.createUploadSnapshot(temporalFile.path);
+
+      const contentsId = await this.uploadWithRetry(temporalFile, snapshot, controller, replaces);
 
       logger.debug({ msg: `${temporalFile.path.value} uploaded with id ${contentsId}` });
 
-      await this.publishUploadEvent(contentsId, temporalFile, replaces);
+      await this.publishUploadEvent(contentsId, temporalFile, snapshot.size, replaces);
 
       return contentsId;
     } finally {
+      // Neither of these may replace what the upload itself produced: a failed
+      // cleanup after a committed upload would report EIO for work that was
+      // already done, and would hide the real error after a failed one.
+      await this.release(stopWatching, snapshot);
+    }
+  }
+
+  private async release(stopWatching: () => void, snapshot?: TemporalFileUploadSnapshot): Promise<void> {
+    try {
       stopWatching();
+    } catch (error) {
+      logger.warn({ msg: '[TemporalFileUploader] Could not stop watching the temporal file', error });
+    }
+
+    if (!snapshot) {
+      return;
+    }
+
+    try {
+      await snapshot.dispose();
+    } catch (error) {
+      logger.warn({ msg: '[TemporalFileUploader] Could not remove the upload snapshot', error });
     }
   }
 
   private async uploadWithRetry(
     temporalFile: TemporalFile,
+    snapshot: TemporalFileUploadSnapshot,
     controller: AbortController,
     replaces?: Replaces,
   ): Promise<ContentsId> {
@@ -99,7 +133,7 @@ export class TemporalFileUploader {
     });
 
     const { data: contentsId, error } = await retryWithBackoff(
-      () => this.executeUpload(temporalFile, controller, replaces),
+      () => this.executeUpload(temporalFile, snapshot, controller, replaces),
       errorHandler,
       controller.signal,
     );
@@ -111,18 +145,21 @@ export class TemporalFileUploader {
 
   private async executeUpload(
     temporalFile: TemporalFile,
+    snapshot: TemporalFileUploadSnapshot,
     controller: AbortController,
     replaces?: Replaces,
   ): Promise<Result<ContentsId, DriveDesktopError>> {
     try {
-      const stream = await this.repository.stream(temporalFile.path);
+      // A consumed stream cannot be reused, so each attempt opens a new one -
+      // over the same immutable snapshot, so every attempt sends the same bytes.
+      const stream = snapshot.open();
 
       const uploader = this.uploaderFactory
         .read(stream)
         .document(temporalFile)
         .replaces(replaces)
         .abort(controller)
-        .build();
+        .build(snapshot.size);
 
       const uploadedContentsId = await uploader();
       return { data: uploadedContentsId as ContentsId };
@@ -136,13 +173,16 @@ export class TemporalFileUploader {
   private async publishUploadEvent(
     contentsId: ContentsId,
     temporalFile: TemporalFile,
+    uploadedSize: number,
     replaces?: Replaces,
   ): Promise<void> {
     const fileBuffer = await this.getThumbnailBufferIfNeeded(temporalFile);
 
     const contentsUploadedEvent = new TemporalFileUploadedDomainEvent({
       aggregateId: contentsId,
-      size: temporalFile.size.value,
+      // The size the drive records has to be the number of bytes that were
+      // stored, which is the snapshot's, not the one read before the upload.
+      size: uploadedSize,
       path: temporalFile.path.value,
       replaces: replaces?.contentsId,
       fileBuffer,

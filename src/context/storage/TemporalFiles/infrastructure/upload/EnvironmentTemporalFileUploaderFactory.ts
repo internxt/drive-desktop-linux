@@ -21,15 +21,13 @@ export class EnvironmentTemporalFileUploaderFactory implements TemporalFileUploa
     private readonly progressTracker: UploadProgressTracker,
   ) {}
 
-  private registerEvents(uploader: EnvironmentTemporalFileUploader) {
+  private registerEvents(uploader: EnvironmentTemporalFileUploader, size: number) {
     if (!this._document) {
       return;
     }
 
     const name = this._replaces ? this._replaces.name : this._document.path.name();
     const extension = this._replaces ? this._replaces.extension : this._document.path.extension();
-
-    const size = this._document.size.value;
 
     uploader.on('start', () => {
       this.progressTracker.uploadStarted(name, extension, size);
@@ -79,7 +77,7 @@ export class EnvironmentTemporalFileUploaderFactory implements TemporalFileUploa
     return this;
   }
 
-  build() {
+  build(contentLength: number) {
     const document = this._document;
     const readable = this._readable;
 
@@ -94,8 +92,10 @@ export class EnvironmentTemporalFileUploaderFactory implements TemporalFileUploa
     const fn = this.environment.upload.bind(this.environment);
     const uploader = new EnvironmentTemporalFileUploader(fn, this.bucket, this._abortController?.signal);
 
-    this.registerEvents(uploader);
+    // The declared length describes the readable that is about to be sent, and
+    // never an earlier observation of the file it came from.
+    this.registerEvents(uploader, contentLength);
 
-    return () => uploader.upload(readable, document.size.value);
+    return () => uploader.upload(readable, contentLength);
   }
 }

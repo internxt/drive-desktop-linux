@@ -1,25 +1,49 @@
 import { Service } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import fs, { createReadStream, watch } from 'fs';
-import { readFile } from 'fs/promises';
+import { copyFile, readdir, readFile, rm, stat } from 'fs/promises';
 import path from 'path';
 import { Readable } from 'stream';
 import * as uuid from 'uuid';
 import { TemporalFile } from '../domain/TemporalFile';
 import { TemporalFilePath } from '../domain/TemporalFilePath';
 import { TemporalFileRepository } from '../domain/TemporalFileRepository';
+import { TemporalFileUploadSnapshot } from '../domain/upload/TemporalFileUploadSnapshot';
 import { Optional } from '../../../../shared/types/Optional';
 import { exec } from 'child_process';
 import { ensureFolderExists } from '../../../../apps/shared/fs/ensure-folder-exists';
 
 @Service()
 export class NodeTemporalFileRepository implements TemporalFileRepository {
+  /** Marks the private per-upload copies, which are never registered in the map. */
+  private static readonly SNAPSHOT_SUFFIX = '.upload-snapshot';
+
   private readonly map = new Map<string, string>();
 
   constructor(private readonly folder: string) {}
 
   init() {
     ensureFolderExists(this.folder);
+    this.removeStaleUploadSnapshots();
+  }
+
+  /**
+   * Upload snapshots are removed in the uploader's `finally`, which a killed
+   * process never reaches. Each one is a full copy of a file, so without this
+   * every crash during an upload would cost disk that nothing later reclaims.
+   */
+  private removeStaleUploadSnapshots() {
+    void readdir(this.folder)
+      .then((entries) =>
+        Promise.all(
+          entries
+            .filter((entry) => entry.endsWith(NodeTemporalFileRepository.SNAPSHOT_SUFFIX))
+            .map((entry) => rm(path.join(this.folder, entry), { force: true })),
+        ),
+      )
+      .catch((error) => {
+        logger.warn({ msg: 'Could not remove stale upload snapshots', error });
+      });
   }
 
   async exits(documentPath: TemporalFilePath): Promise<boolean> {
@@ -167,6 +191,39 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     }
 
     return createReadStream(pathToRead);
+  }
+
+  async createUploadSnapshot(documentPath: TemporalFilePath): Promise<TemporalFileUploadSnapshot> {
+    const pathToCopy = this.map.get(documentPath.value);
+
+    if (!pathToCopy) {
+      throw new Error(`Document with path ${documentPath.value} not found`);
+    }
+
+    const snapshotPath = path.join(this.folder, `${uuid.v4()}${NodeTemporalFileRepository.SNAPSHOT_SUFFIX}`);
+
+    try {
+      // COPYFILE_FICLONE asks for a reflink where the filesystem supports one
+      // (btrfs, XFS), which makes the copy near free, and falls back to a full
+      // copy everywhere else.
+      await copyFile(pathToCopy, snapshotPath, fs.constants.COPYFILE_FICLONE);
+
+      // Read from the copy, not from the mapped file: the application can still
+      // be writing to that one, and a length taken from it would not describe
+      // the bytes this upload is going to send.
+      const { size } = await stat(snapshotPath);
+
+      return {
+        size,
+        open: () => createReadStream(snapshotPath),
+        dispose: () => rm(snapshotPath, { force: true }),
+      };
+    } catch (error) {
+      // A copy that failed part way still leaves a destination behind, and the
+      // caller never receives a handle it could dispose of.
+      await rm(snapshotPath, { force: true }).catch(() => undefined);
+      throw error;
+    }
   }
 
   async find(documentPath: TemporalFilePath): Promise<Optional<TemporalFile>> {
