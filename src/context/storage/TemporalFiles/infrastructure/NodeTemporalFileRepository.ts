@@ -22,6 +22,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
 
   constructor(private readonly folder: string) {}
 
+  /** Prepares the staging folder and reclaims what a previous run could not. */
   init() {
     ensureFolderExists(this.folder);
     this.removeStaleUploadSnapshots();
@@ -193,6 +194,15 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     return createReadStream(pathToRead);
   }
 
+  /**
+   * Copies the mapped file to a private path, so one upload can read the same
+   * bytes for its length and for every attempt.
+   *
+   * @returns a handle whose `size` describes what `open()` produces, and whose
+   * `dispose()` the caller owns.
+   * @throws Error when the document has no mapping. Nothing is left on disk if
+   * creating the copy fails part way.
+   */
   async createUploadSnapshot(documentPath: TemporalFilePath): Promise<TemporalFileUploadSnapshot> {
     const pathToCopy = this.map.get(documentPath.value);
 

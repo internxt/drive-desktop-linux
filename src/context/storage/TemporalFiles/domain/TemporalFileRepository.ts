@@ -19,6 +19,10 @@ export abstract class TemporalFileRepository {
 
   abstract stream(path: TemporalFilePath): Promise<Readable>;
 
+  /**
+   * Takes a private copy of a temporal file's contents for the duration of one
+   * upload. The caller disposes of it.
+   */
   abstract createUploadSnapshot(path: TemporalFilePath): Promise<TemporalFileUploadSnapshot>;
 
   abstract find(documentPath: TemporalFilePath): Promise<Optional<TemporalFile>>;

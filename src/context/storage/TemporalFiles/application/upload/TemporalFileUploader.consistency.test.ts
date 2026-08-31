@@ -164,6 +164,24 @@ describe('TemporalFileUploader upload consistency', () => {
     });
   });
 
+  it('should reject a file that grew past the upload limit after its size was read', async () => {
+    await repository.create(documentPath);
+    await writeBackingFile('small enough');
+
+    const temporalFile = await buildTemporalFile();
+
+    // Between the two, a limit that the recorded size passes and the file on
+    // disk does not.
+    configGetMock.mockReturnValue(20);
+    await writeBackingFile('far too much content to be allowed past the limit');
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await expect(sut.run(temporalFile)).rejects.toThrow('UPLOAD_SIZE_LIMIT_EXCEEDED');
+    expect(uploaderFactory.attempts).toHaveLength(0);
+    expect(eventBus.publish).not.toHaveBeenCalled();
+  });
+
   it('should publish the number of bytes it uploaded, not the size read earlier', async () => {
     await repository.create(documentPath);
     await writeBackingFile('short');

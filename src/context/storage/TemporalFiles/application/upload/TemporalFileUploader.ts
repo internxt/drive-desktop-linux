@@ -33,6 +33,18 @@ export class TemporalFileUploader {
     private readonly eventBus: EventBus,
   ) {}
 
+  /**
+   * Uploads a temporal file's contents and publishes the event that creates or
+   * overrides the drive file.
+   *
+   * The bytes are taken from a private copy made here, so the length declared to
+   * the server and the body sent to it describe the same contents even while the
+   * application keeps writing to the file it knows about.
+   *
+   * @param replaces the existing drive file this upload overrides, if any.
+   * @returns the contents id of the stored object, or an empty one for a file of zero bytes.
+   * @throws UploadSizeLimitError, or DriveDesktopError for space, abort and upload failures.
+   */
   async run(temporalFile: TemporalFile, replaces?: Replaces): Promise<ContentsId> {
     if (temporalFile.isEmpty()) {
       logger.debug({
@@ -50,32 +62,9 @@ export class TemporalFileUploader {
       return TemporalFileUploader.EMPTY_CONTENTS_ID;
     }
 
-    const sizeValidation = validateUploadFileSize({
-      size: temporalFile.size.value,
-      maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
-    });
-
-    if (!sizeValidation.allowed) {
-      addMaxFileSizeRejection({
-        path: temporalFile.path.value,
-        fileSize: temporalFile.size.value,
-        validation: sizeValidation,
-      });
-
-      throw new UploadSizeLimitError();
-    }
-
-    const spaceValidation = await validateSpace(temporalFile.size.value);
-    if (spaceValidation.error) {
-      throw new DriveDesktopError('BAD_RESPONSE', spaceValidation.error.message);
-    }
-
-    if (spaceValidation.data.hasSpace === false) {
-      throw new DriveDesktopError(
-        'NOT_ENOUGH_SPACE',
-        'The size of the file to upload is greater than the available space',
-      );
-    }
+    // Cheap pre-check against the recorded size, so a file already known to be
+    // too big is rejected before a copy of it is made.
+    await this.validateLimits(temporalFile, temporalFile.size.value);
 
     const controller = new AbortController();
     const stopWatching = this.repository.watchFile(temporalFile.path, () => controller.abort());
@@ -86,6 +75,10 @@ export class TemporalFileUploader {
       // Watching starts first so that a write landing during the copy still
       // aborts the upload instead of being frozen into it.
       snapshot = await this.repository.createUploadSnapshot(temporalFile.path);
+
+      // The copy is what will actually be sent, and it can be larger than the
+      // size checked above, so the limits are the copy's to satisfy.
+      await this.validateLimits(temporalFile, snapshot.size);
 
       const contentsId = await this.uploadWithRetry(temporalFile, snapshot, controller, replaces);
 
@@ -102,6 +95,50 @@ export class TemporalFileUploader {
     }
   }
 
+  /**
+   * Rejects an upload that the user's plan or remaining space cannot take.
+   *
+   * @param size bytes the upload would send, which is the recorded size before a
+   * snapshot exists and the snapshot's own size once one does.
+   * @throws UploadSizeLimitError when the file exceeds the account's per-file limit.
+   * @throws DriveDesktopError NOT_ENOUGH_SPACE, or BAD_RESPONSE if the check itself failed.
+   */
+  private async validateLimits(temporalFile: TemporalFile, size: number): Promise<void> {
+    const sizeValidation = validateUploadFileSize({
+      size,
+      maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
+    });
+
+    if (!sizeValidation.allowed) {
+      addMaxFileSizeRejection({
+        path: temporalFile.path.value,
+        fileSize: size,
+        validation: sizeValidation,
+      });
+
+      throw new UploadSizeLimitError();
+    }
+
+    const spaceValidation = await validateSpace(size);
+    if (spaceValidation.error) {
+      throw new DriveDesktopError('BAD_RESPONSE', spaceValidation.error.message);
+    }
+
+    if (spaceValidation.data.hasSpace === false) {
+      throw new DriveDesktopError(
+        'NOT_ENOUGH_SPACE',
+        'The size of the file to upload is greater than the available space',
+      );
+    }
+  }
+
+  /**
+   * Closes the watcher and removes the upload's private copy.
+   *
+   * Neither failure may escape: after a committed upload it would report work
+   * that was already done as failed, and after a failed one it would hide the
+   * error the caller needs.
+   */
   private async release(stopWatching: () => void, snapshot?: TemporalFileUploadSnapshot): Promise<void> {
     try {
       stopWatching();

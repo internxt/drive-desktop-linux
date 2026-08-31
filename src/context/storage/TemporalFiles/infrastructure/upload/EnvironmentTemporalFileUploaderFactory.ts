@@ -77,6 +77,11 @@ export class EnvironmentTemporalFileUploaderFactory implements TemporalFileUploa
     return this;
   }
 
+  /**
+   * @param contentLength bytes the readable will produce, declared to the server
+   * and reported as the total in progress events.
+   * @returns a function that performs the upload and resolves the contents id.
+   */
   build(contentLength: number) {
     const document = this._document;
     const readable = this._readable;
