@@ -51,6 +51,13 @@ const RETRIED_OVERRIDE_CAUSES: ReadonlyArray<DriveDesktopError['cause']> = [
   'CONNECTION_TIMEOUT',
 ];
 
+/**
+ * Carried on the error so a reader of the logs can tell an abandoned override
+ * from a failed one. The override did not happen either way, so it still
+ * surfaces as a failure rather than inventing a success the caller would act on.
+ */
+export const SUPERSEDED_MESSAGE = 'override abandoned: a newer save for this file already completed';
+
 @Service()
 export class FileOverrider {
   constructor(
@@ -71,8 +78,18 @@ export class FileOverrider {
 
     file.changeContents(new FileContentsId(newContentsId), new FileSize(newSize));
 
+    let isRetry = false;
+
     const { error } = await retryWithBackoff(
       async () => {
+        // Only on a RETRY, and never on the first attempt, which is the
+        // pre-existing behaviour and cannot be stale by construction.
+        if (isRetry && (await this.isSupersededByANewerSave(oldContentsId, file.uuid))) {
+          return { error: new DriveDesktopError('UNKNOWN', SUPERSEDED_MESSAGE) };
+        }
+
+        isRetry = true;
+
         const result = await overrideFile({
           fileUuid: file.uuid,
           fileContentsId: file.contentsId,
@@ -94,6 +111,30 @@ export class FileOverrider {
     this.eventBus.publish(file.pullDomainEvents());
 
     return file;
+  }
+
+  /**
+   * Has a newer save of this file already landed while we were waiting to retry?
+   *
+   * `overrideFile` is a `PUT /files/{uuid}` and the API exposes no revision or
+   * `If-Match` parameter, so the server cannot reject a stale write for us. A
+   * retry that slept can therefore land after a newer save and put the file back
+   * to older contents. This is the client-side half of that guard.
+   *
+   * The repository still holds the contents id we are replacing until somebody
+   * completes an override, and `searchByUuid` rebuilds the aggregate from stored
+   * attributes rather than handing back the instance we already mutated, so a
+   * change here really is somebody else's completed save.
+   */
+  private async isSupersededByANewerSave(oldContentsId: File['contentsId'], uuid: File['uuid']): Promise<boolean> {
+    const current = await this.repository.searchByUuid(uuid);
+
+    // Gone entirely (deleted while we waited) also means this override is moot.
+    if (!current) {
+      return true;
+    }
+
+    return current.contentsId !== oldContentsId;
   }
 }
 
