@@ -47,8 +47,10 @@ export class NodeJsEventBus extends EventEmitter implements EventBus {
       const results = await Promise.allSettled(
         // Deferred rather than called straight inside `map`: a subscriber that
         // throws SYNCHRONOUSLY would escape `map` before `allSettled` ever saw
-        // it, and reject `publish` in spite of the contract above.
-        subscribers.map((subscriber) => Promise.resolve().then(() => subscriber(event))),
+        // it, and reject `publish` in spite of the contract above. `call` because
+        // `emit` invokes an ordinary listener with the emitter as its receiver,
+        // and a plain call would silently drop it.
+        subscribers.map((subscriber) => Promise.resolve().then(() => subscriber.call(this, event))),
       );
 
       results.forEach((result) => {

@@ -168,4 +168,25 @@ describe('NodeJsEventBus', () => {
     expect(seen).toStrictEqual(['called']);
     expect(bus.listenerCount(TestEvent.EVENT_NAME)).toBe(0);
   });
+
+  it('invokes an ordinary listener with the bus as its receiver, as emit does', async () => {
+    const bus = new NodeJsEventBus();
+    let receiverWasTheBus = false;
+
+    // Not an arrow function: `emit` calls an ordinary listener with the emitter
+    // as `this`, and reading the listeners and calling them plainly would drop
+    // it. Our own subscribers are bound in `addSubscribers` and so are immune,
+    // which is exactly why this needs its own test.
+    //
+    // The comparison happens inside the listener and the RESULT is asserted
+    // outside it, deliberately: `publish` swallows a subscriber's rejection by
+    // design, so an `expect` in here would fail invisibly.
+    bus.on(TestEvent.EVENT_NAME, async function (this: unknown) {
+      receiverWasTheBus = this === bus;
+    });
+
+    await bus.publish([new TestEvent('aggregate-8')]);
+
+    expect(receiverWasTheBus).toBe(true);
+  });
 });
