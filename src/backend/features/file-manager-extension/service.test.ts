@@ -193,6 +193,24 @@ describe('service', () => {
       expect(execMock).toHaveBeenCalled();
     });
 
+    it('should execute thunar -q when thunar is available', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('thunar');
+      execMock.mockImplementation((cmd, optionsOrCallback, callback) => {
+        expect(cmd).toBe('thunar -q');
+        expect(optionsOrCallback).toMatchObject({ timeout: 3000 });
+
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(null, '', '');
+      });
+
+      // When
+      await reloadFileManager();
+
+      // Then
+      expect(execMock).toHaveBeenCalled();
+    });
+
     it('should execute dolphin reload command when dolphin is available', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
