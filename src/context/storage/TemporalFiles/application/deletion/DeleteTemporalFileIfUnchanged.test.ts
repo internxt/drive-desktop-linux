@@ -20,7 +20,10 @@ describe('DeleteTemporalFileIfUnchanged', () => {
     repository = new NodeTemporalFileRepository(folder);
     repository.init();
 
-    sut = new DeleteTemporalFileIfUnchanged(new TemporalFileByPathFinder(repository), new TemporalFileDeleter(repository));
+    sut = new DeleteTemporalFileIfUnchanged(
+      new TemporalFileByPathFinder(repository),
+      new TemporalFileDeleter(repository),
+    );
   });
 
   afterEach(async () => {

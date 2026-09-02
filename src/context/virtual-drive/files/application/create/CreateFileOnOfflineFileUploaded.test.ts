@@ -116,7 +116,14 @@ describe('Create File On Offline File Uploaded', () => {
 
     overrider.mock.mockRejectedValue(new DriveDesktopError('EMPTY_FILE', 'You can not have empty files'));
 
-    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged(), notifier);
+    const sut = new CreateFileOnTemporalFileUploaded(
+      creator,
+      overrider,
+      environment,
+      bucket,
+      deleteIfUnchanged(),
+      notifier,
+    );
 
     await sut.on(uploadedEvent);
 
