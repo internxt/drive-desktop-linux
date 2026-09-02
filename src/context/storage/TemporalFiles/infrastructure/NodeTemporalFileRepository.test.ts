@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, rm, chmod } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { NodeTemporalFileRepository } from './NodeTemporalFileRepository';
@@ -189,5 +189,26 @@ describe('NodeTemporalFileRepository', () => {
     await rm(contentFilePath, { force: true });
 
     await expect(repository.delete(documentPath)).resolves.toBeUndefined();
+  });
+  it('bumps the revision even when the write itself fails', async () => {
+    // The bump must happen before the mutation, not after. A write that puts
+    // bytes on disk and then throws on close would otherwise leave a changed
+    // file wearing its old revision, and the reaper would delete bytes the
+    // upload never sent. Making the open fail stands in for that: the revision
+    // must have moved regardless of the outcome.
+    const documentPath = new TemporalFilePath('/Documents/report.pdf');
+
+    await repository.create(documentPath);
+    const before = (await repository.find(documentPath)).get().revision;
+    const contentFilePath = (await repository.find(documentPath)).get().contentFilePath as string;
+
+    await chmod(contentFilePath, 0o444);
+
+    await expect(repository.write(documentPath, Buffer.from('x'), 1, 0)).rejects.toThrow();
+
+    const after = (await repository.find(documentPath)).get().revision;
+    expect(after).not.toBe(before);
+
+    await chmod(contentFilePath, 0o644);
   });
 });
