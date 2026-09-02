@@ -57,19 +57,9 @@ describe('TemporalFileUploader', () => {
     uploaderFactory.abort.mockReturnValue(uploaderFactory);
     uploaderFactory.build.mockReturnValue(async () => 'contents-id');
     repository.createUploadSnapshot.mockResolvedValue(snapshotOf('content'));
-    validateSpaceMock.mockResolvedValue({ data: { hasSpace: true } });
-  });
-
-  afterEach(() => {
-    clearMaxFileSizeRejectionModal();
-    clearUploadSizeLimitBlockedPath('/file.txt');
-  });
-
-  it('publishes the revision of the staged copy it uploaded, read at stream time', async () => {
-    // Whatever reaps the staged copy has to know which revision reached the
-    // cloud. It must be the revision read just before the stream was opened,
-    // not one the caller found before the awaited space check, or a write in
-    // that window is uploaded while the event still describes the older bytes.
+    // mockDeep returns undefined from find(), and clearMocks does not reset
+    // implementations, so without this every test after the first one to set it
+    // would silently inherit that one's stub. Set it for all of them.
     repository.find.mockResolvedValue(
       Optional.of(
         TemporalFile.from({
@@ -81,7 +71,33 @@ describe('TemporalFileUploader', () => {
         }),
       ),
     );
+    validateSpaceMock.mockResolvedValue({ data: { hasSpace: true } });
+  });
 
+  afterEach(() => {
+    clearMaxFileSizeRejectionModal();
+    clearUploadSizeLimitBlockedPath('/file.txt');
+  });
+
+  it('does not fail the upload when the staged revision cannot be read', async () => {
+    // release() deletes the staged copy whenever an upload fails, so a fault in
+    // this bookkeeping must not be allowed to look like an upload failure.
+    repository.find.mockRejectedValue(new Error('EIO reading the staging directory'));
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await expect(
+      sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' }),
+    ).resolves.toBe('contents-id');
+
+    call(eventBus.publish).toMatchObject([{ uploadedRevision: undefined }]);
+  });
+
+  it('publishes the revision of the staged copy it uploaded, read at stream time', async () => {
+    // Whatever reaps the staged copy has to know which revision reached the
+    // cloud. It must be the revision read just before the stream was opened,
+    // not one the caller found before the awaited space check, or a write in
+    // that window is uploaded while the event still describes the older bytes.
     const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
     await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
