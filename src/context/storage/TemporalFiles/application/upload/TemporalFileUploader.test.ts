@@ -93,11 +93,91 @@ describe('TemporalFileUploader', () => {
     call(eventBus.publish).toMatchObject([{ uploadedRevision: undefined }]);
   });
 
-  it('publishes the revision of the staged copy it uploaded, read at stream time', async () => {
+  it('records the length the upload sent, not the one the caller was holding', async () => {
+    // The window is real: run() awaits validateSpace, a network round trip,
+    // before anything is opened, and the file can grow in it. The declared
+    // length and the recorded size both have to come from the descriptor the
+    // upload actually reads, or the reaper is asked to trust a pairing between
+    // a length and a revision that never described the same file at once.
+    repository.createUploadSnapshot.mockResolvedValue(snapshotOf('a'.repeat(500)));
+    repository.find.mockResolvedValue(
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/file.txt',
+          size: 500, // grew since the caller looked
+          revision: 43,
+        }),
+      ),
+    );
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
+
+    // 101 is what temporalFile still says; 500 is what the snapshot will send.
+    expect(uploaderFactory.build).toHaveBeenCalledWith(500);
+    call(eventBus.publish).toMatchObject([{ size: 500, uploadedRevision: 43 }]);
+  });
+
+  it('records the revision as of the moment the snapshot was taken, not after', async () => {
+    // Moving the read below the snapshot is the mistake the comment in the
+    // source warns about; this makes that ordering observable. Reading late
+    // would publish 99 for bytes the snapshot bounded before that write, and
+    // the reaper would then delete a staged copy holding data the cloud does
+    // not have. Reading early publishes 41, the reaper sees a difference, and
+    // the staged copy survives to be uploaded again.
+    let current = 41;
+    const staged = (revision: number) =>
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/file.txt',
+          size: 101,
+          revision,
+        }),
+      );
+    repository.find.mockImplementation(async () => staged(current));
+    repository.createUploadSnapshot.mockImplementation(async () => {
+      current = 99; // a write lands as the descriptor is taken
+      return snapshotOf('content');
+    });
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
+
+    call(eventBus.publish).toMatchObject([{ uploadedRevision: 41 }]);
+  });
+
+  it('publishes a revision for an empty staged copy too, so it can be reaped', async () => {
+    repository.find.mockResolvedValue(
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/new-zero-file.png',
+          size: 0,
+          revision: 12,
+        }),
+      ),
+    );
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(emptyTemporalFile, { contentsId: 'old-contents-id', name: 'f', extension: 'png' });
+
+    call(eventBus.publish).toMatchObject([{ uploadedRevision: 12 }]);
+  });
+
+  it('publishes the revision of the staged copy it uploaded, read before the snapshot', async () => {
     // Whatever reaps the staged copy has to know which revision reached the
-    // cloud. It must be the revision read just before the stream was opened,
-    // not one the caller found before the awaited space check, or a write in
-    // that window is uploaded while the event still describes the older bytes.
+    // cloud. It must be the revision read just before the snapshot bounded the
+    // bytes, not one the caller found before the awaited space check, or a
+    // write in that window is sent while the event still describes the older
+    // bytes.
     const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
     await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });

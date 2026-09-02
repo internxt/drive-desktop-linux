@@ -52,11 +52,16 @@ export class TemporalFileUploader {
         path: temporalFile.path.value,
       });
 
+      // An empty staged copy still has to be reapable, or every later close of
+      // the path re-enters the override with nothing to upload.
+      const emptyRevision = await this.readRevision(temporalFile);
+
       await this.publishUploadEvent(
         TemporalFileUploader.EMPTY_CONTENTS_ID,
         temporalFile,
         temporalFile.size.value,
         replaces,
+        emptyRevision,
       );
 
       return TemporalFileUploader.EMPTY_CONTENTS_ID;

@@ -1,4 +1,5 @@
 import { Service } from 'diod';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { TemporalFileByPathFinder } from '../find/TemporalFileByPathFinder';
 import { TemporalFileDeleter } from './TemporalFileDeleter';
 
@@ -30,6 +31,13 @@ export class DeleteTemporalFileIfUnchanged {
     // Not knowing what was uploaded is a reason to keep the staged copy, not to
     // delete it.
     if (uploadedRevision === undefined || temporalFile.revision === undefined) {
+      logger.debug({
+        msg: '[TemporalFiles] Keeping the staged copy: cannot tell what was uploaded',
+        path,
+        uploadedRevision,
+        currentRevision: temporalFile.revision,
+      });
+
       return;
     }
 
@@ -39,8 +47,21 @@ export class DeleteTemporalFileIfUnchanged {
     // that alters neither the length nor the quantised timestamp, which is
     // exactly what a re-encrypted database or a flipped byte looks like.
     if (temporalFile.revision !== uploadedRevision) {
+      logger.debug({
+        msg: '[TemporalFiles] Keeping the staged copy: it changed since the upload read it',
+        path,
+        uploadedRevision,
+        currentRevision: temporalFile.revision,
+      });
+
       return;
     }
+
+    logger.debug({
+      msg: '[TemporalFiles] Deleting the staged copy: it still holds what was uploaded',
+      path,
+      uploadedRevision,
+    });
 
     // A write landing between the check above and the unlink below is still
     // lost. That window cannot be closed from here: the filesystem offers no
