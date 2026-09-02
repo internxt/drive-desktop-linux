@@ -160,6 +160,7 @@ export class TemporalFile extends AggregateRoot {
       path: this._path.value,
       size: this._size.value,
       contentFilePath: this._contentFilePath,
+      revision: this._revision,
     };
   }
 }
