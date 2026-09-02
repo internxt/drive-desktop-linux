@@ -8,6 +8,8 @@ import { Readable } from 'node:stream';
 import { NodeTemporalFileRepository } from '../../../../../context/storage/TemporalFiles/infrastructure/NodeTemporalFileRepository';
 import { TemporalFileRepository } from '../../../../../context/storage/TemporalFiles/domain/TemporalFileRepository';
 import { TemporalFileUploaderFactory } from '../../../../../context/storage/TemporalFiles/domain/upload/TemporalFileUploaderFactory';
+import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import { Replaces } from '../../../../../context/storage/TemporalFiles/domain/upload/Replaces';
 import { TemporalFileCreator } from '../../../../../context/storage/TemporalFiles/application/creation/TemporalFileCreator';
 import { TemporalFileWriter } from '../../../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
@@ -63,11 +65,15 @@ describe('a release after an override uploads nothing', () => {
   let folder: string;
   let container: Awaited<ReturnType<ContainerBuilder['build']>>;
   let uploads: number;
+  let uploaded: Buffer[];
+  let replacedIds: Array<string | undefined>;
   let overrider: FileOverriderTestClass;
 
   beforeEach(async () => {
     folder = await mkdtemp(join(tmpdir(), 'internxt-release-lifecycle-'));
     uploads = 0;
+    uploaded = [];
+    replacedIds = [];
 
     const repository = new NodeTemporalFileRepository(folder);
     repository.init();
@@ -77,28 +83,44 @@ describe('a release after an override uploads nothing', () => {
 
     // Counts uploads and returns a contents id, so the only thing standing in
     // for the network is the network.
-    let pending: Readable | undefined;
+    // Each build() captures the state accumulated since the last one, so two
+    // overlapping uploads cannot share a stream or a document. The builder is
+    // otherwise faithful: it drains what it is given, as a real uploader does.
+    // Abandoning the stream instead leaves an open() in flight that raises
+    // ENOENT once the reap unlinks the staged copy, which is the double's
+    // problem and not the code's.
+    let staging: { readable?: Readable; document?: TemporalFile; replaces?: Replaces } = {};
 
     const uploaderFactory: TemporalFileUploaderFactory = {
       read(readable: Readable) {
-        pending = readable;
+        staging.readable = readable;
         return this;
       },
-      document: () => uploaderFactory,
-      replaces: () => uploaderFactory,
+      document(document: TemporalFile) {
+        staging.document = document;
+        return this;
+      },
+      replaces(replaces?: Replaces) {
+        staging.replaces = replaces;
+        return this;
+      },
       abort: () => uploaderFactory,
-      build: () => async () => {
-        // Drain it as a real uploader would. Abandoning the stream instead
-        // leaves an open() in flight that raises ENOENT once the reap unlinks
-        // the staged copy, which is the double's problem and not the code's.
-        if (pending) {
-          for await (const _chunk of pending) {
-            void _chunk;
-          }
-        }
+      build() {
+        const captured = staging;
+        staging = {};
 
-        uploads += 1;
-        return '0000000000000000000000bb';
+        return async () => {
+          if (captured.readable) {
+            for await (const chunk of captured.readable) {
+              uploaded.push(Buffer.from(chunk as Buffer));
+            }
+          }
+
+          uploads += 1;
+          replacedIds.push(captured.replaces?.contentsId);
+
+          return '0000000000000000000000bb';
+        };
       },
     } as unknown as TemporalFileUploaderFactory;
 
@@ -170,6 +192,11 @@ describe('a release after an override uploads nothing', () => {
     expect(first.error).toBeUndefined();
     expect(uploads).toBe(1);
 
+    // What was sent, not merely that something was. An upload that streamed
+    // the wrong bytes or overrode the wrong file would satisfy a bare count.
+    expect(Buffer.concat(uploaded).toString()).toBe('the contents');
+    expect(replacedIds).toEqual([EXISTING_CONTENTS_ID]);
+
     await reapSettled();
 
     const second = await release({ path: PATH, processName: 'test', container });
@@ -199,6 +226,10 @@ describe('a release after an override uploads nothing', () => {
 
     expect(uploads).toBe(2);
     expect(overrider.mock).toHaveBeenCalledTimes(2);
+
+    // The second upload carries the new bytes, so the two builds did not share
+    // a captured stream.
+    expect(Buffer.concat(uploaded).toString()).toBe('the contentsrewritten');
   });
 
   it('keeps the staged copy for the next close when the override fails', async () => {
