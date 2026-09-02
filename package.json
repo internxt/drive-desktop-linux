@@ -77,7 +77,10 @@
     },
     "deb": {
       "recommends": [
-        "python3-nautilus"
+        "python3-nautilus",
+        "thunarx-python",
+        "gir1.2-thunarx-3.0",
+        "python3-gi"
       ]
     },
     "rpm": {

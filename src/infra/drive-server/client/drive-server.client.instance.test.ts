@@ -1,5 +1,18 @@
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 
+const { getNewApiHeadersMock, closeUserSessionMock } = vi.hoisted(() => ({
+  getNewApiHeadersMock: vi.fn(),
+  closeUserSessionMock: vi.fn(),
+}));
+
+vi.mock('../../../backend/features/auth', () => ({
+  getNewApiHeaders: getNewApiHeadersMock,
+}));
+
+vi.mock('../../../apps/main/auth/handlers', () => ({
+  closeUserSession: closeUserSessionMock,
+}));
+
 describe('driveServerClient instance', () => {
   let originalEnv: string | undefined;
 
@@ -9,10 +22,7 @@ describe('driveServerClient instance', () => {
 
     await import('./drive-server.client.instance');
 
-    const authHeadersModule = await import('../../../backend/features/auth/headers');
-    const authHandlersModule = await import('../../../apps/main/auth/handlers');
-
-    return { createClientMock, authHeadersModule, authHandlersModule };
+    return { createClientMock };
   }
 
   beforeEach(() => {
@@ -41,17 +51,17 @@ describe('driveServerClient instance', () => {
   });
 
   it('should use getNewApiHeaders as authHeadersProvider', async () => {
-    const { createClientMock, authHeadersModule } = await importAndSpy();
+    const { createClientMock } = await importAndSpy();
     const clientOptions = createClientMock.mock.lastCall![0]!;
 
-    expect(clientOptions.authHeadersProvider).toBe(authHeadersModule.getNewApiHeaders);
+    expect(clientOptions.authHeadersProvider).toBe(getNewApiHeadersMock);
   });
 
   it('should use closeUserSession as onUnauthorized', async () => {
-    const { createClientMock, authHandlersModule } = await importAndSpy();
+    const { createClientMock } = await importAndSpy();
     const clientOptions = createClientMock.mock.lastCall![0]!;
 
-    expect(clientOptions.onUnauthorized).toBe(authHandlersModule.closeUserSession);
+    expect(clientOptions.onUnauthorized).toBe(closeUserSessionMock);
   });
 
   it('should use process.env.NEW_DRIVE_URL as baseUrl', async () => {
