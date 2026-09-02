@@ -134,6 +134,16 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
 
     await fsDeletion;
 
+    // Only drop the mapping if it still points at what was just unlinked. The
+    // unlink is asynchronous, so a create() for the same path can land while it
+    // is in flight and install a new staged copy; deleting the entry
+    // unconditionally would then discard the NEW copy's mapping, and the next
+    // write to that path would fail with "not found" while its bytes sat on
+    // disk unreachable.
+    if (this.map.get(documentPath.value) !== pathToDelete) {
+      return;
+    }
+
     this.map.delete(documentPath.value);
     this.revisions.delete(documentPath.value);
   }

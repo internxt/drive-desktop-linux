@@ -211,4 +211,26 @@ describe('NodeTemporalFileRepository', () => {
 
     await chmod(contentFilePath, 0o644);
   });
+
+  it('keeps a staged copy created while an earlier delete was still unlinking', async () => {
+    // The unlink is asynchronous, so a create() for the same path can land
+    // between it and the map update that follows it. Removing the entry
+    // unconditionally would discard the mapping of the NEW staged copy, and the
+    // next write to that path would fail with "not found" while its bytes sat
+    // on disk unreachable. A close followed immediately by a reopen is exactly
+    // this shape, and the override reaping made it a routine path.
+    const documentPath = new TemporalFilePath('/Documents/notes.txt');
+
+    await repository.create(documentPath);
+
+    const deleting = repository.delete(documentPath);
+    await repository.create(documentPath);
+
+    await deleting;
+
+    const staged = await repository.find(documentPath);
+    expect(staged.isPresent()).toBe(true);
+
+    await expect(repository.write(documentPath, Buffer.from('later'), 5, 0)).resolves.toBeUndefined();
+  });
 });
