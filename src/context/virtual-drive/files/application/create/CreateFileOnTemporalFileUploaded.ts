@@ -46,7 +46,7 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
       // overridden event carries the virtual file's path, which is a different
       // string on the write-to-temporary-then-rename flow, where the staged copy
       // is filed under the source path.
-      await this.deleteTemporalFileIfUnchanged.run(event.path, event.occurredOn ?? new Date());
+      await this.deleteTemporalFileIfUnchanged.run(event.path, event.uploadedModifiedTime);
     }
 
     if (event.fileBuffer) {

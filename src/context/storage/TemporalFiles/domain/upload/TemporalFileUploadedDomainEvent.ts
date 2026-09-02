@@ -9,6 +9,15 @@ export class TemporalFileUploadedDomainEvent extends DomainEvent {
   readonly fileBuffer: Buffer | undefined;
   readonly contentFilePath: string | undefined;
 
+  /**
+   * The staged copy's modification time as it was when the upload read it, not
+   * when this event was built. Anything reaping the staged copy must compare
+   * against this: a write that lands while the upload is streaming has a
+   * modification time earlier than the event, and its bytes may not be in the
+   * uploaded object.
+   */
+  readonly uploadedModifiedTime: Date | undefined;
+
   constructor({
     aggregateId,
     size,
@@ -16,6 +25,7 @@ export class TemporalFileUploadedDomainEvent extends DomainEvent {
     replaces,
     fileBuffer,
     contentFilePath,
+    uploadedModifiedTime,
   }: {
     aggregateId: string;
     size: number;
@@ -23,6 +33,7 @@ export class TemporalFileUploadedDomainEvent extends DomainEvent {
     replaces?: string;
     fileBuffer?: Buffer;
     contentFilePath?: string;
+    uploadedModifiedTime?: Date;
   }) {
     super({
       aggregateId,
@@ -34,6 +45,7 @@ export class TemporalFileUploadedDomainEvent extends DomainEvent {
     this.replaces = replaces;
     this.fileBuffer = fileBuffer;
     this.contentFilePath = contentFilePath;
+    this.uploadedModifiedTime = uploadedModifiedTime;
   }
 
   toPrimitives() {

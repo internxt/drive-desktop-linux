@@ -20,17 +20,34 @@ export class DeleteTemporalFileIfUnchanged {
     private readonly deleter: TemporalFileDeleter,
   ) {}
 
-  async run(path: string, uploadedAt: Date): Promise<void> {
+  async run(path: string, uploadedModifiedTime: Date | undefined): Promise<void> {
     const temporalFile = await this.finder.run(path);
 
     if (!temporalFile) {
       return;
     }
 
-    if (temporalFile.modifiedTime > uploadedAt) {
+    // Equality, not "newer than". A wall-clock ordering test against the moment
+    // the upload finished treats a write that landed WHILE the upload was
+    // streaming as unchanged, because its modification time is earlier; those
+    // bytes may not be in the uploaded object. It is also at the mercy of clock
+    // adjustments. Comparing against the modification time the upload actually
+    // read has neither problem, and any difference at all keeps the file.
+    //
+    // Not knowing what was uploaded is a reason to keep the staged copy, not to
+    // delete it.
+    if (uploadedModifiedTime === undefined) {
       return;
     }
 
+    if (temporalFile.modifiedTime.getTime() !== uploadedModifiedTime.getTime()) {
+      return;
+    }
+
+    // A write landing between the check above and the unlink below is still
+    // lost. That window cannot be closed from here: the filesystem offers no
+    // delete-if-unchanged, and the create path (DeleteTemporalFileOnFileCreated)
+    // does not check at all. This narrows the window rather than closing it.
     await this.deleter.run(path);
   }
 }
