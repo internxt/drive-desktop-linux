@@ -10,6 +10,7 @@ import {
 import * as validateSpaceModule from '../../../../../backend/features/usage/validate-space';
 import { EventBus } from '../../../../virtual-drive/shared/domain/EventBus';
 import { TemporalFile } from '../../domain/TemporalFile';
+import { Optional } from '../../../../../shared/types/Optional';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
 import { TemporalFileUploaderFactory } from '../../domain/upload/TemporalFileUploaderFactory';
 import { TemporalFileUploader } from './TemporalFileUploader';
@@ -64,10 +65,23 @@ describe('TemporalFileUploader', () => {
     clearUploadSizeLimitBlockedPath('/file.txt');
   });
 
-  it('publishes the modification time of the staged copy it uploaded', async () => {
+  it('publishes the revision of the staged copy it uploaded, read at stream time', async () => {
     // Whatever reaps the staged copy has to know which revision reached the
-    // cloud. Without this the reaper cannot tell an untouched staged copy from
-    // one written again mid-upload, and it stops reaping altogether.
+    // cloud. It must be the revision read just before the stream was opened,
+    // not one the caller found before the awaited space check, or a write in
+    // that window is uploaded while the event still describes the older bytes.
+    repository.find.mockResolvedValue(
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/file.txt',
+          size: 101,
+          revision: 42,
+        }),
+      ),
+    );
+
     const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
     await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
@@ -75,7 +89,7 @@ describe('TemporalFileUploader', () => {
     call(eventBus.publish).toMatchObject([
       {
         path: temporalFile.path.value,
-        uploadedModifiedTime: temporalFile.modifiedTime,
+        uploadedRevision: 42,
       },
     ]);
   });

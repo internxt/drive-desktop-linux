@@ -7,6 +7,7 @@ export type TemporalFileAttributes = {
   path: string;
   size: number;
   contentFilePath?: string;
+  revision?: number;
 };
 
 /**
@@ -37,8 +38,17 @@ export class TemporalFile extends AggregateRoot {
     private _size: TemporalFileSize,
     private readonly _modifiedTime: Date,
     private readonly _contentFilePath?: string,
+    private readonly _revision?: number,
   ) {
     super();
+  }
+
+  /**
+   * Identifies one exact state of this staged copy. See the revisions map in
+   * NodeTemporalFileRepository for why this is a counter and not a timestamp.
+   */
+  public get revision() {
+    return this._revision;
   }
 
   public get createdAt() {
@@ -96,6 +106,7 @@ export class TemporalFile extends AggregateRoot {
       new TemporalFileSize(attributes.size),
       attributes.modifiedAt,
       attributes.contentFilePath,
+      attributes.revision,
     );
   }
 

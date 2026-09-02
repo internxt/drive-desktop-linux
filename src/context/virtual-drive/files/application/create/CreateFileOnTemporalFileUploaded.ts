@@ -46,7 +46,19 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
       // overridden event carries the virtual file's path, which is a different
       // string on the write-to-temporary-then-rename flow, where the staged copy
       // is filed under the source path.
-      await this.deleteTemporalFileIfUnchanged.run(event.path, event.uploadedModifiedTime);
+      // The override has already committed at this point, so a failure to reap
+      // must not be reported as an upload failure: the catch in on() raises an
+      // UPLOAD_ERROR issue to the user, which would be untrue and alarming. A
+      // failed reap costs one leaked staged copy and some repeated uploads.
+      try {
+        await this.deleteTemporalFileIfUnchanged.run(event.path, event.uploadedRevision);
+      } catch (cleanupError) {
+        logger.error({
+          msg: '[CreateFileOnTemporalFileUploaded] Override committed but the temporal file could not be deleted',
+          error: cleanupError,
+          path: event.path,
+        });
+      }
     }
 
     if (event.fileBuffer) {

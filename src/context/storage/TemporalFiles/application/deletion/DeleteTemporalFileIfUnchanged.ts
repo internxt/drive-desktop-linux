@@ -20,34 +20,33 @@ export class DeleteTemporalFileIfUnchanged {
     private readonly deleter: TemporalFileDeleter,
   ) {}
 
-  async run(path: string, uploadedModifiedTime: Date | undefined): Promise<void> {
+  async run(path: string, uploadedRevision: number | undefined): Promise<void> {
     const temporalFile = await this.finder.run(path);
 
     if (!temporalFile) {
       return;
     }
 
-    // Equality, not "newer than". A wall-clock ordering test against the moment
-    // the upload finished treats a write that landed WHILE the upload was
-    // streaming as unchanged, because its modification time is earlier; those
-    // bytes may not be in the uploaded object. It is also at the mercy of clock
-    // adjustments. Comparing against the modification time the upload actually
-    // read has neither problem, and any difference at all keeps the file.
-    //
     // Not knowing what was uploaded is a reason to keep the staged copy, not to
     // delete it.
-    if (uploadedModifiedTime === undefined) {
+    if (uploadedRevision === undefined || temporalFile.revision === undefined) {
       return;
     }
 
-    if (temporalFile.modifiedTime.getTime() !== uploadedModifiedTime.getTime()) {
+    // Any difference at all keeps the file. The revision is a counter owned by
+    // the repository and bumped by every mutation it performs, so a change is
+    // never missed: comparing modification times would miss an in-place edit
+    // that alters neither the length nor the quantised timestamp, which is
+    // exactly what a re-encrypted database or a flipped byte looks like.
+    if (temporalFile.revision !== uploadedRevision) {
       return;
     }
 
     // A write landing between the check above and the unlink below is still
     // lost. That window cannot be closed from here: the filesystem offers no
-    // delete-if-unchanged, and the create path (DeleteTemporalFileOnFileCreated)
-    // does not check at all. This narrows the window rather than closing it.
+    // delete-if-unchanged, and there is no per-path lock shared with the
+    // writers. The create path (DeleteTemporalFileOnFileCreated) does not check
+    // at all. This narrows the window rather than closing it.
     await this.deleter.run(path);
   }
 }

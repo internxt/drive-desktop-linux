@@ -145,7 +145,7 @@ describe('Create File On Offline File Uploaded', () => {
 
     await sut.on(uploadedEvent);
 
-    expect(reaper.run).toHaveBeenCalledWith(uploadedEvent.path, uploadedEvent.uploadedModifiedTime);
+    expect(reaper.run).toHaveBeenCalledWith(uploadedEvent.path, uploadedEvent.uploadedRevision);
   });
 
   it('leaves the staged copy of a newly created file to the created-event subscriber', async () => {

@@ -1,5 +1,5 @@
 import { Environment } from '@internxt/inxt-js';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -14,6 +14,7 @@ import { CreateFileOnTemporalFileUploaded } from './CreateFileOnTemporalFileUplo
 import { FileCreatorTestClass } from '../../__test-helpers__/FileCreatorTestClass';
 import { FileOverriderTestClass } from '../../__test-helpers__/FileOverriderTestClass';
 import { FileMother } from '../../domain/__test-helpers__/FileMother';
+import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 
 const PATH = '/Private/notes/passwords.kdbx';
 
@@ -64,7 +65,7 @@ describe('reaping the staged copy after an override, end to end', () => {
         path: PATH,
         replaces: '0000000000000000000000aa',
         contentFilePath: staged.contentFilePath,
-        uploadedModifiedTime: staged.modifiedTime,
+        uploadedRevision: staged.revision,
       }),
     };
   }
@@ -87,21 +88,16 @@ describe('reaping the staged copy after an override, end to end', () => {
   });
 
   it('keeps a staged copy written while the upload was streaming', async () => {
-    // The write lands after the upload read the file but before the upload
-    // finishes, so its modification time is EARLIER than the event's own
-    // occurredOn. A guard that asks "was it modified after the upload finished"
-    // answers no and deletes bytes that may never have been uploaded.
+    // The write lands after the upload read the file. Its bytes may not be in
+    // the uploaded object, so the staged copy must survive for the next release.
     const documentPath = new TemporalFilePath(PATH);
     await repository.create(documentPath);
     const staged = (await repository.find(documentPath)).get();
-    const revisionTheUploadRead = staged.modifiedTime;
+    const revisionTheUploadRead = staged.revision;
     const contentFilePath = staged.contentFilePath as string;
 
-    await writeFile(contentFilePath, 'bytes written while the upload was streaming');
-    const revisionNow = (await repository.find(documentPath)).get().modifiedTime;
-
-    // guard the test's own premise: the write must have moved the mtime at all
-    expect(revisionNow.getTime()).not.toBe(revisionTheUploadRead.getTime());
+    await repository.write(documentPath, Buffer.from('bytes written mid-stream'), 24, 0);
+    expect((await repository.find(documentPath)).get().revision).not.toBe(revisionTheUploadRead);
 
     const event = new TemporalFileUploadedDomainEvent({
       aggregateId: '0000000000000000000000bb',
@@ -109,10 +105,8 @@ describe('reaping the staged copy after an override, end to end', () => {
       path: PATH,
       replaces: '0000000000000000000000aa',
       contentFilePath,
-      uploadedModifiedTime: revisionTheUploadRead,
+      uploadedRevision: revisionTheUploadRead,
     });
-    // the event is built after the write, so occurredOn is LATER than the write
-    expect(event.occurredOn!.getTime()).toBeGreaterThanOrEqual(revisionNow.getTime());
 
     overrider.mock.mockResolvedValue(FileMother.noThumbnable());
 
@@ -123,6 +117,28 @@ describe('reaping the staged copy after an override, end to end', () => {
     });
     expect((await repository.find(documentPath)).isPresent()).toBe(true);
     expect(existsSync(contentFilePath)).toBe(true);
+  });
+
+  it('does not report a failed reap as an upload failure to the user', async () => {
+    // The override has already committed. A cleanup failure must not surface as
+    // an UPLOAD_ERROR issue, which is what the catch in on() raises.
+    const { event } = await stageAndUpload();
+    overrider.mock.mockResolvedValue(FileMother.noThumbnable());
+    const notifier = { issues: vi.fn().mockResolvedValue(undefined), created: vi.fn() };
+
+    const subscriber = new CreateFileOnTemporalFileUploaded(
+      new FileCreatorTestClass(),
+      overrider,
+      {} as Environment,
+      'test-bucket',
+      { run: vi.fn().mockRejectedValue(new Error('EACCES on the staging file')) } as unknown as DeleteTemporalFileIfUnchanged,
+      notifier as unknown as SyncFileMessenger,
+    );
+
+    await subscriber.on(event);
+
+    expect(overrider.mock).toHaveBeenCalled();
+    expect(notifier.issues).not.toHaveBeenCalled();
   });
 
   it('keeps the staged copy when the override fails, so the next release retries', async () => {

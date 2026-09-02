@@ -17,7 +17,26 @@ import { ensureFolderExists } from '../../../../apps/shared/fs/ensure-folder-exi
 export class NodeTemporalFileRepository implements TemporalFileRepository {
   private readonly map = new Map<string, string>();
 
+  /**
+   * The revision of each staged copy: an opaque counter, not a timestamp.
+   *
+   * Every mutation of a staged copy goes through create(), write() or
+   * truncate() on this repository, so bumping it here sees all of them. It is
+   * monotonic across the whole repository and is never reset, so a revision
+   * identifies one exact state of one staged copy and can never be confused
+   * with a later one. A timestamp cannot do this: filesystem modification
+   * times are quantised, so an in-place edit that changes no bytes of length
+   * within the same quantum is indistinguishable from no edit at all.
+   */
+  private readonly revisions = new Map<string, number>();
+  private nextRevision = 1;
+
   constructor(private readonly folder: string) {}
+
+  private bumpRevision(documentPath: TemporalFilePath) {
+    this.revisions.set(documentPath.value, this.nextRevision);
+    this.nextRevision += 1;
+  }
 
   init() {
     ensureFolderExists(this.folder);
@@ -49,6 +68,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     const pathToWrite = path.join(this.folder, id);
 
     this.map.set(documentPath.value, pathToWrite);
+    this.bumpRevision(documentPath);
 
     return new Promise((resolve, reject) => {
       fs.writeFile(pathToWrite, '', (err) => {
@@ -115,6 +135,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     await fsDeletion;
 
     this.map.delete(documentPath.value);
+    this.revisions.delete(documentPath.value);
   }
 
   async matchingDirectory(directory: string): Promise<TemporalFilePath[]> {
@@ -148,6 +169,8 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     } finally {
       fs.closeSync(fd);
     }
+
+    this.bumpRevision(documentPath);
   }
 
   async truncate(documentPath: TemporalFilePath, size: number): Promise<void> {
@@ -158,6 +181,8 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     }
 
     fs.truncateSync(pathToWrite, size);
+
+    this.bumpRevision(documentPath);
   }
 
   async stream(documentPath: TemporalFilePath): Promise<Readable> {
@@ -272,6 +297,7 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
       path: documentPath.value,
       size: stat.size,
       contentFilePath: pathToSearch,
+      revision: this.revisions.get(documentPath.value),
     });
 
     return Optional.of(doc);

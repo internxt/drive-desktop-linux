@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -39,45 +39,76 @@ describe('DeleteTemporalFileIfUnchanged', () => {
     return {
       documentPath,
       contentFilePath: staged.contentFilePath as string,
-      uploadedModifiedTime: staged.modifiedTime,
+      uploadedRevision: staged.revision,
     };
   }
 
   it('deletes the staged copy when it still holds exactly what was uploaded', async () => {
-    const { documentPath, contentFilePath, uploadedModifiedTime } = await stage(PATH);
+    const { documentPath, contentFilePath, uploadedRevision } = await stage(PATH);
 
-    await sut.run(PATH, uploadedModifiedTime);
+    await sut.run(PATH, uploadedRevision);
 
     expect((await repository.find(documentPath)).isPresent()).toBe(false);
     expect(existsSync(contentFilePath)).toBe(false);
   });
 
   it('keeps a staged copy written again since the upload read it', async () => {
-    const { documentPath, contentFilePath, uploadedModifiedTime } = await stage(PATH);
+    const { documentPath, uploadedRevision } = await stage(PATH);
 
-    await writeFile(contentFilePath, 'bytes written while the override was in flight');
+    await repository.write(documentPath, Buffer.from('newer bytes'), 11, 0);
 
-    await sut.run(PATH, uploadedModifiedTime);
+    await sut.run(PATH, uploadedRevision);
 
     expect((await repository.find(documentPath)).isPresent()).toBe(true);
-    expect(existsSync(contentFilePath)).toBe(true);
   });
 
-  it('keeps a staged copy written DURING the upload, whose mtime precedes the upload finishing', async () => {
-    // The case a "modified after the upload finished" test cannot see: the write
-    // lands while the stream is being read, so its mtime is older than the moment
-    // the upload completed, yet its bytes may not be in the uploaded object.
-    const { documentPath, contentFilePath } = await stage(PATH);
+  it('keeps a staged copy edited in place with no change of length', async () => {
+    // The case a size comparison cannot see and a quantised timestamp may not
+    // see either: one byte flipped, same length, possibly the same millisecond.
+    const documentPath = new TemporalFilePath(PATH);
+    await repository.create(documentPath);
+    await repository.write(documentPath, Buffer.from('AAAA'), 4, 0);
+    const uploadedRevision = (await repository.find(documentPath)).get().revision;
+    const sizeAtUpload = (await repository.find(documentPath)).get().size.value;
 
-    await writeFile(contentFilePath, 'bytes written mid-stream');
-    const uploadFinishedAt = new Date(Date.now() + 60_000);
-    const revisionTheUploadRead = new Date(Date.now() - 60_000);
+    await repository.write(documentPath, Buffer.from('B'), 1, 2);
 
-    await sut.run(PATH, revisionTheUploadRead);
+    const after = (await repository.find(documentPath)).get();
+    expect(after.size.value).toBe(sizeAtUpload); // the length did not move
+    expect(after.revision).not.toBe(uploadedRevision); // the revision did
+
+    await sut.run(PATH, uploadedRevision);
 
     expect((await repository.find(documentPath)).isPresent()).toBe(true);
-    expect(existsSync(contentFilePath)).toBe(true);
-    expect(uploadFinishedAt.getTime()).toBeGreaterThan(revisionTheUploadRead.getTime());
+  });
+
+  it('keeps a staged copy that was truncated since the upload', async () => {
+    const { documentPath, uploadedRevision } = await stage(PATH);
+
+    await repository.truncate(documentPath, 0);
+
+    await sut.run(PATH, uploadedRevision);
+
+    expect((await repository.find(documentPath)).isPresent()).toBe(true);
+  });
+
+  it('never reuses a revision, so a fresh staged copy is not mistaken for an uploaded one', async () => {
+    // Re-creating over the same path stages a NEW file. If revisions restarted
+    // per path, the new copy would match the old upload's revision and be
+    // deleted without ever having been uploaded.
+    const documentPath = new TemporalFilePath(PATH);
+    await repository.create(documentPath);
+    const firstRevision = (await repository.find(documentPath)).get().revision;
+
+    await repository.delete(documentPath);
+    await repository.create(documentPath);
+    const secondRevision = (await repository.find(documentPath)).get().revision;
+
+    expect(secondRevision).not.toBe(firstRevision);
+
+    await sut.run(PATH, firstRevision);
+
+    expect((await repository.find(documentPath)).isPresent()).toBe(true);
   });
 
   it('keeps the staged copy when the uploaded revision is unknown', async () => {
@@ -89,14 +120,14 @@ describe('DeleteTemporalFileIfUnchanged', () => {
   });
 
   it('does nothing when no staged copy is filed under the path', async () => {
-    await expect(sut.run('/Private/notes/never-staged.kdbx', new Date())).resolves.toBeUndefined();
+    await expect(sut.run('/Private/notes/never-staged.kdbx', 1)).resolves.toBeUndefined();
   });
 
   it('leaves other staged copies alone', async () => {
-    const { documentPath: overridden, uploadedModifiedTime } = await stage(PATH);
+    const { documentPath: overridden, uploadedRevision } = await stage(PATH);
     const { documentPath: untouched } = await stage('/Private/notes/other.kdbx');
 
-    await sut.run(PATH, uploadedModifiedTime);
+    await sut.run(PATH, uploadedRevision);
 
     expect((await repository.find(overridden)).isPresent()).toBe(false);
     expect((await repository.find(untouched)).isPresent()).toBe(true);
