@@ -11,6 +11,7 @@ import { DomainEventSubscriber } from '../../../../shared/domain/DomainEventSubs
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { FileCreator } from './FileCreator';
 import { FileOverrider } from '../override/FileOverrider';
+import { DeleteTemporalFileIfUnchanged } from '../../../../storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
 import { preserveRejectedFileSizeTooBig } from '../../../../../backend/features/user/file-size-limit';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 
@@ -21,6 +22,7 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
     private readonly fileOverrider: FileOverrider,
     private readonly environment: Environment,
     private readonly bucket: string,
+    private readonly deleteTemporalFileIfUnchanged: DeleteTemporalFileIfUnchanged,
     private readonly notifier?: SyncFileMessenger,
   ) {}
 
@@ -32,6 +34,20 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
     const file = event.replaces
       ? await this.fileOverrider.run(event.replaces, event.aggregateId, event.size)
       : await this.creator.run(event.path, event.aggregateId, event.size);
+
+    if (event.replaces) {
+      // Creating a file reaps its staged copy through FileCreatedDomainEvent
+      // (see DeleteTemporalFileOnFileCreated); overriding one had nothing doing
+      // the same, so the staged copy survived and every later close of the path
+      // uploaded the whole file again with no write in between.
+      //
+      // This is the only place that knows both facts the reaping needs: that the
+      // override landed, and the path the staged copy is filed under. The
+      // overridden event carries the virtual file's path, which is a different
+      // string on the write-to-temporary-then-rename flow, where the staged copy
+      // is filed under the source path.
+      await this.deleteTemporalFileIfUnchanged.run(event.path, event.occurredOn ?? new Date());
+    }
 
     if (event.fileBuffer) {
       const generated = generateThumbnail(event.fileBuffer);

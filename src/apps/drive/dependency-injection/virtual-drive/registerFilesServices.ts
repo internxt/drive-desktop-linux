@@ -6,6 +6,7 @@ import { FilesByFolderPathSearcher } from '../../../../context/virtual-drive/fil
 import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { SingleFileMatchingSearcher } from '../../../../context/virtual-drive/files/application/search/SingleFileMatchingSearcher';
 import { CreateFileOnTemporalFileUploaded } from '../../../../context/virtual-drive/files/application/create/CreateFileOnTemporalFileUploaded';
+import { DeleteTemporalFileIfUnchanged } from '../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
 import { FileOverrider } from '../../../../context/virtual-drive/files/application/override/FileOverrider';
 import { FilesSearcherByPartialMatch } from '../../../../context/virtual-drive/files/application/search-all/FilesSearcherByPartialMatch';
 import { SyncFileMessenger } from '../../../../context/virtual-drive/files/domain/SyncFileMessenger';
@@ -69,6 +70,7 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
         c.get(FileOverrider),
         c.get(Environment),
         user.bucket,
+        c.get(DeleteTemporalFileIfUnchanged),
         c.get(SyncFileMessenger),
       );
     })
