@@ -131,7 +131,9 @@ describe('reaping the staged copy after an override, end to end', () => {
       overrider,
       {} as Environment,
       'test-bucket',
-      { run: vi.fn().mockRejectedValue(new Error('EACCES on the staging file')) } as unknown as DeleteTemporalFileIfUnchanged,
+      {
+        run: vi.fn().mockRejectedValue(new Error('EACCES on the staging file')),
+      } as unknown as DeleteTemporalFileIfUnchanged,
       notifier as unknown as SyncFileMessenger,
     );
 
