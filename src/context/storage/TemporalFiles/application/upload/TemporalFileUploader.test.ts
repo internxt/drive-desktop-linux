@@ -64,6 +64,22 @@ describe('TemporalFileUploader', () => {
     clearUploadSizeLimitBlockedPath('/file.txt');
   });
 
+  it('publishes the modification time of the staged copy it uploaded', async () => {
+    // Whatever reaps the staged copy has to know which revision reached the
+    // cloud. Without this the reaper cannot tell an untouched staged copy from
+    // one written again mid-upload, and it stops reaping altogether.
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
+
+    call(eventBus.publish).toMatchObject([
+      {
+        path: temporalFile.path.value,
+        uploadedModifiedTime: temporalFile.modifiedTime,
+      },
+    ]);
+  });
+
   it('retries content upload on RATE_LIMITED and succeeds', async () => {
     // Given
     uploaderFactory.build
