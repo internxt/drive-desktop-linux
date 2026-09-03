@@ -16,6 +16,7 @@ import { runAfterParentCreations } from '../../../folders/application/create/Pen
 import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
 import { createTransientErrorHandler } from '../../../../../backend/common/rate-limit/transient-error-handler';
 import { Result } from '../../../../shared/domain/Result';
+import { PendingModificationTimes } from '../utimens/PendingModificationTimes';
 
 @Service()
 export class FileCreator {
@@ -25,6 +26,7 @@ export class FileCreator {
     private readonly parentFolderFinder: ParentFolderFinder,
     private readonly eventBus: EventBus,
     private readonly notifier: SyncFileMessenger,
+    private readonly pendingModificationTimes: PendingModificationTimes,
   ) {}
 
   async run(path: string, contentsId: string, size: number): Promise<File> {
@@ -70,12 +72,17 @@ export class FileCreator {
     const folder = await this.parentFolderFinder.run(filePath);
     const fileFolderId = new FileFolderId(folder.id);
 
+    // utimensat may have asked for a time while this file was still staged, in
+    // which case it is carried into the CREATE call rather than applied after.
+    const requestedModificationTime = this.pendingModificationTimes.take(filePath.value);
+
     const { data: persistedFile, error } = await this.persistWithRetry({
       filePath,
       fileContentsId,
       fileSize,
       fileFolderId,
       folderUuid: folder.uuid,
+      requestedModificationTime,
     });
 
     if (error) {
@@ -103,12 +110,14 @@ export class FileCreator {
     fileSize,
     fileFolderId,
     folderUuid,
+    requestedModificationTime,
   }: {
     filePath: FilePath;
     fileContentsId: FileContentsId;
     fileSize: FileSize;
     fileFolderId: FileFolderId;
     folderUuid: string;
+    requestedModificationTime?: Date;
   }): Promise<Result<PersistedFileData, DriveDesktopError>> {
     return retryWithBackoff(
       async () => {
@@ -118,6 +127,7 @@ export class FileCreator {
           size: fileSize,
           folderId: fileFolderId,
           folderUuid,
+          modificationTime: requestedModificationTime,
         });
 
         if (either.isLeft()) {

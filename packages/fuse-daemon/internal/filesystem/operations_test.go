@@ -1,6 +1,7 @@
 package filesystem
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -492,6 +493,99 @@ func TestTruncate(t *testing.T) {
 		})
 
 		err := os.Truncate(filepath.Join(sharedMount.mountPoint, fmt.Sprintf("truncate-missing-%d.txt", time.Now().UnixNano())), 0)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		pathErr, ok := err.(*os.PathError)
+		if !ok {
+			t.Fatalf("expected *os.PathError, got %T", err)
+		}
+
+		if pathErr.Err != syscall.ENOENT {
+			t.Errorf("expected ENOENT, got %v", pathErr.Err)
+		}
+	})
+}
+
+func TestUtimens(t *testing.T) {
+	t.Run("forwards the modification time when backend returns 200", func(t *testing.T) {
+		var received string
+
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: fileAttrHandler,
+			client.OperationUtimens: func(response http.ResponseWriter, request *http.Request) {
+				var body struct {
+					Path             string `json:"path"`
+					ModificationTime string `json:"modificationTime"`
+				}
+				_ = json.NewDecoder(request.Body).Decode(&body)
+				received = body.ModificationTime
+				response.WriteHeader(http.StatusOK)
+			},
+		})
+
+		requested := time.Date(2024, 3, 4, 5, 6, 7, 0, time.UTC)
+		name := filepath.Join(sharedMount.mountPoint, fmt.Sprintf("utimens-ok-%d.txt", time.Now().UnixNano()))
+
+		if err := os.Chtimes(name, requested, requested); err != nil {
+			t.Fatalf("chtimes: %v", err)
+		}
+
+		if received != requested.Format(time.RFC3339Nano) {
+			t.Errorf("expected %q, got %q", requested.Format(time.RFC3339Nano), received)
+		}
+	})
+
+	// The backend has nowhere to store an access time. Dropping it alongside a
+	// modification time is what noatime does and callers live with it, but a call
+	// asking for NOTHING BUT an access time cannot be honoured, and answering OK
+	// would be a silent success.
+	t.Run("refuses a request that carries only an access time", func(t *testing.T) {
+		called := false
+
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: fileAttrHandler,
+			client.OperationUtimens: func(response http.ResponseWriter, request *http.Request) {
+				called = true
+				response.WriteHeader(http.StatusOK)
+			},
+		})
+
+		name := filepath.Join(sharedMount.mountPoint, fmt.Sprintf("utimens-atime-%d.txt", time.Now().UnixNano()))
+
+		// A zero mtime is UTIME_OMIT, so only the access time is being asked for.
+		err := os.Chtimes(name, time.Date(2024, 3, 4, 5, 6, 7, 0, time.UTC), time.Time{})
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		pathErr, ok := err.(*os.PathError)
+		if !ok {
+			t.Fatalf("expected *os.PathError, got %T", err)
+		}
+
+		if pathErr.Err != syscall.ENOSYS {
+			t.Errorf("expected ENOSYS, got %v", pathErr.Err)
+		}
+
+		if called {
+			t.Error("the backend was called for a request it cannot serve")
+		}
+	})
+
+	t.Run("returns ENOENT when backend returns errno 2", func(t *testing.T) {
+		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+			client.OperationGetAttr: fileAttrHandler,
+			client.OperationUtimens: func(response http.ResponseWriter, request *http.Request) {
+				respondJSON(response, client.ErrorResponse{Errno: 2})
+			},
+		})
+
+		requested := time.Date(2024, 3, 4, 5, 6, 7, 0, time.UTC)
+		name := filepath.Join(sharedMount.mountPoint, fmt.Sprintf("utimens-missing-%d.txt", time.Now().UnixNano()))
+
+		err := os.Chtimes(name, requested, requested)
 		if err == nil {
 			t.Fatal("expected error, got nil")
 		}

@@ -12,12 +12,14 @@ import { left, right } from '../../../../shared/domain/Either';
 import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mocks__/EventBusMock';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { calls } from '../../../../../../tests/vitest/utils.helper';
+import { PendingModificationTimes } from '../utimens/PendingModificationTimes';
 
 describe('File Creator', () => {
   let remoteFileSystemMock: RemoteFileSystemMock;
   let fileRepository: FileRepositoryMock;
   let eventBus: EventBusMock;
   let notifier: FileSyncNotifierMock;
+  let pendingModificationTimes: PendingModificationTimes;
 
   let SUT: FileCreator;
 
@@ -27,8 +29,16 @@ describe('File Creator', () => {
     const parentFolderFinder = FolderFinderFactory.existingFolder();
     eventBus = new EventBusMock();
     notifier = new FileSyncNotifierMock();
+    pendingModificationTimes = new PendingModificationTimes();
 
-    SUT = new FileCreator(remoteFileSystemMock, fileRepository, parentFolderFinder, eventBus, notifier);
+    SUT = new FileCreator(
+      remoteFileSystemMock,
+      fileRepository,
+      parentFolderFinder,
+      eventBus,
+      notifier,
+      pendingModificationTimes,
+    );
   });
 
   it('creates the file on the drive server', async () => {
