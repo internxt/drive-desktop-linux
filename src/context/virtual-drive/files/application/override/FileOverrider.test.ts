@@ -1,7 +1,7 @@
 import { BucketEntryIdMother } from '../../../../../context/virtual-drive/shared/domain/__test-helpers__/BucketEntryIdMother';
 import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mocks__/EventBusMock';
 import { FileRepositoryMock } from '../../__mocks__/FileRepositoryMock';
-import { FileOverrider } from './FileOverrider';
+import { FileOverrider, MAX_TRANSIENT_OVERRIDE_RETRIES, SUPERSEDED_MESSAGE } from './FileOverrider';
 import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { FileSizeMother } from '../../domain/__test-helpers__/FileSizeMother';
 import { FileNotFoundError } from '../../domain/errors/FileNotFoundError';
@@ -15,7 +15,12 @@ describe('File Overrider', () => {
   const overrideFileMock = partialSpyOn(overrideFileModule, 'overrideFile');
 
   beforeEach(() => {
+    vi.useFakeTimers();
     overrideFileMock.mockResolvedValue({ data: true });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('throws an error if no file is founded with the given fileId', async () => {
@@ -104,7 +109,7 @@ describe('File Overrider', () => {
     expect(eventBus.publishMock).not.toHaveBeenCalled();
   });
 
-  it('throws RATE_LIMITED when backend returns TOO_MANY_REQUESTS', async () => {
+  it('throws RATE_LIMITED when backend returns TOO_MANY_REQUESTS, without retrying it', async () => {
     const repository = new FileRepositoryMock();
     const eventBus = new EventBusMock();
 
@@ -115,20 +120,27 @@ describe('File Overrider', () => {
     const updatedSize = FileSizeMother.random();
 
     repository.searchByContentsIdMock.mockReturnValueOnce(file);
-    overrideFileMock.mockResolvedValueOnce({
+    overrideFileMock.mockResolvedValue({
       error: new DriveServerError('TOO_MANY_REQUESTS', 429, JSON.stringify({ retry_after: 7 })),
     });
 
-    await expect(overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value)).rejects.toMatchObject({
+    const promise = overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value);
+    const assertion = expect(promise).rejects.toMatchObject({
       cause: 'RATE_LIMITED',
       message: '7000',
     } satisfies Partial<DriveDesktopError>);
+    await vi.runAllTimersAsync();
 
+    await assertion;
+
+    // A rate limit is deliberately NOT retried here: its backoff starts at 30s,
+    // and a write that sleeps that long can wake after a newer save.
+    expect(overrideFileMock).toHaveBeenCalledTimes(1);
     expect(repository.updateMock).not.toHaveBeenCalled();
     expect(eventBus.publishMock).not.toHaveBeenCalled();
   });
 
-  it('throws INTERNAL_SERVER_ERROR when backend returns SERVER_ERROR', async () => {
+  it('throws INTERNAL_SERVER_ERROR once the retries are exhausted and the backend keeps returning SERVER_ERROR', async () => {
     const repository = new FileRepositoryMock();
     const eventBus = new EventBusMock();
 
@@ -139,14 +151,24 @@ describe('File Overrider', () => {
     const updatedSize = FileSizeMother.random();
 
     repository.searchByContentsIdMock.mockReturnValueOnce(file);
-    overrideFileMock.mockResolvedValueOnce({
+    // The store still holds the contents id being replaced, so the staleness
+    // guard must not fire. searchByUuid rebuilds from stored attributes in
+    // production, so it is NOT the aggregate run() has already mutated.
+    repository.searchByUuidMock.mockResolvedValue({ contentsId: file.contentsId });
+    overrideFileMock.mockResolvedValue({
       error: new DriveServerError('SERVER_ERROR', 500, 'server exploded'),
     });
 
-    await expect(overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value)).rejects.toMatchObject({
+    const promise = overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value);
+    // Attach the rejection handler BEFORE draining the timers: between
+    // creation and assertion the promise would otherwise reject unheard.
+    const assertion = expect(promise).rejects.toMatchObject({
       cause: 'INTERNAL_SERVER_ERROR',
       message: 'server exploded',
     } satisfies Partial<DriveDesktopError>);
+    await vi.runAllTimersAsync();
+
+    await assertion;
 
     expect(repository.updateMock).not.toHaveBeenCalled();
     expect(eventBus.publishMock).not.toHaveBeenCalled();
@@ -197,5 +219,179 @@ describe('File Overrider', () => {
         }),
       ]),
     );
+  });
+
+  it('retries a transient server error and completes the override when it clears', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    // The store still holds the contents id being replaced, so the staleness
+    // guard must not fire. searchByUuid rebuilds from stored attributes in
+    // production, so it is NOT the aggregate run() has already mutated.
+    repository.searchByUuidMock.mockResolvedValue({ contentsId: file.contentsId });
+    // One 502, then the server recovers. This is the production failure: the
+    // content is already uploaded and only the metadata write failed.
+    overrideFileMock.mockResolvedValueOnce({ error: new DriveServerError('SERVER_ERROR', 502, 'bad gateway') });
+
+    const promise = overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value);
+    await vi.runAllTimersAsync();
+
+    await expect(promise).resolves.toBe(file);
+    expect(overrideFileMock).toHaveBeenCalledTimes(2);
+    expect(repository.updateMock).toHaveBeenCalled();
+    expect(eventBus.publishMock).toHaveBeenCalled();
+  });
+
+  it('stops after the attempt ceiling instead of retrying a failing server forever', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    // The store still holds the contents id being replaced, so the staleness
+    // guard must not fire. searchByUuid rebuilds from stored attributes in
+    // production, so it is NOT the aggregate run() has already mutated.
+    repository.searchByUuidMock.mockResolvedValue({ contentsId: file.contentsId });
+    overrideFileMock.mockResolvedValue({ error: new DriveServerError('SERVER_ERROR', 502, 'bad gateway') });
+
+    const promise = overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value);
+    // Attach the rejection handler BEFORE draining the timers: between
+    // creation and assertion the promise would otherwise reject unheard.
+    const assertion = expect(promise).rejects.toMatchObject({
+      cause: 'INTERNAL_SERVER_ERROR',
+    } satisfies Partial<DriveDesktopError>);
+    await vi.runAllTimersAsync();
+
+    await assertion;
+    // The first call plus one per permitted retry, and no more.
+    expect(overrideFileMock).toHaveBeenCalledTimes(MAX_TRANSIENT_OVERRIDE_RETRIES + 1);
+  });
+
+  it('does not retry an error that is not transient', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    overrideFileMock.mockResolvedValue({ error: new DriveServerError('FILE_TOO_BIG', 402) });
+
+    const promise = overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value);
+    // Attach the rejection handler BEFORE draining the timers: between
+    // creation and assertion the promise would otherwise reject unheard.
+    const assertion = expect(promise).rejects.toMatchObject({
+      cause: 'FILE_TOO_BIG',
+    } satisfies Partial<DriveDesktopError>);
+    await vi.runAllTimersAsync();
+
+    await assertion;
+    expect(overrideFileMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets a non-transient error escape immediately even after a transient one', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    // The store still holds the contents id being replaced, so the staleness
+    // guard must not fire. searchByUuid rebuilds from stored attributes in
+    // production, so it is NOT the aggregate run() has already mutated.
+    repository.searchByUuidMock.mockResolvedValue({ contentsId: file.contentsId });
+    overrideFileMock
+      .mockResolvedValueOnce({ error: new DriveServerError('SERVER_ERROR', 502, 'bad gateway') })
+      .mockResolvedValue({ error: new DriveServerError('FILE_TOO_BIG', 402) });
+
+    const promise = overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value);
+    const assertion = expect(promise).rejects.toMatchObject({
+      cause: 'FILE_TOO_BIG',
+    } satisfies Partial<DriveDesktopError>);
+    await vi.runAllTimersAsync();
+
+    await assertion;
+
+    // One retry was spent on the 502; the FILE_TOO_BIG that followed stops the
+    // loop at once rather than consuming the rest of the budget.
+    expect(overrideFileMock).toHaveBeenCalledTimes(2);
+    expect(repository.updateMock).not.toHaveBeenCalled();
+  });
+
+  it('abandons the retry when a newer save for the same file has already landed', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    overrideFileMock.mockResolvedValue({ error: new DriveServerError('SERVER_ERROR', 502, 'bad gateway') });
+    // Between the failed attempt and the retry, another save completes and moves
+    // the stored contents id on. The PUT carries no revision, so nothing on the
+    // server would stop us putting the file back to the older contents.
+    repository.searchByUuidMock.mockResolvedValue({ contentsId: BucketEntryIdMother.primitive() });
+
+    const promise = overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value);
+    const assertion = expect(promise).rejects.toMatchObject({
+      message: SUPERSEDED_MESSAGE,
+    } satisfies Partial<DriveDesktopError>);
+    await vi.runAllTimersAsync();
+
+    await assertion;
+
+    // The first attempt happened; the retry was abandoned before the PUT.
+    expect(overrideFileMock).toHaveBeenCalledTimes(1);
+    expect(repository.updateMock).not.toHaveBeenCalled();
+    expect(eventBus.publishMock).not.toHaveBeenCalled();
+  });
+
+  it('keeps retrying when the stored contents id has not moved', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const file = FileMother.any();
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+    overrideFileMock.mockResolvedValueOnce({ error: new DriveServerError('SERVER_ERROR', 502, 'bad gateway') });
+    // Nobody else saved: the re-read still shows the contents id being replaced,
+    // so the guard must NOT fire. Without this control the test above would pass
+    // against a guard that simply abandoned every retry. This is a FRESH object
+    // rather than the aggregate run() mutates, which is what the real repository
+    // returns from searchByUuid.
+    repository.searchByUuidMock.mockResolvedValue({ contentsId: file.contentsId });
+
+    const promise = overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value);
+    await vi.runAllTimersAsync();
+
+    await expect(promise).resolves.toBe(file);
+    expect(overrideFileMock).toHaveBeenCalledTimes(2);
+    expect(repository.updateMock).toHaveBeenCalled();
   });
 });
