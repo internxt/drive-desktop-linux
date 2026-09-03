@@ -1,17 +1,40 @@
-import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { basename, join } from 'node:path';
+import { join } from 'node:path';
 import { NodeTemporalFileRepository } from './NodeTemporalFileRepository';
 
-// `stat` is the only step that can fail AFTER the copy has created its
-// destination, and nothing about a real filesystem makes it fail on demand.
-const { statOverride } = vi.hoisted(() => ({ statOverride: { fn: undefined as undefined | (() => never) } }));
+// Taking the length is the only step that can fail once the descriptor is open,
+// and nothing about a real filesystem makes fstat fail on demand. The override
+// replaces the handle's own stat so the close-on-failure path can be reached.
+const { openOverride } = vi.hoisted(() => ({
+  openOverride: { statFn: undefined as undefined | (() => never), closed: false },
+}));
 
 vi.mock('fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('fs/promises')>();
   return {
     ...actual,
-    stat: (...args: Parameters<typeof actual.stat>) => (statOverride.fn ? statOverride.fn() : actual.stat(...args)),
+    open: async (...args: Parameters<typeof actual.open>) => {
+      const handle = await actual.open(...args);
+
+      if (!openOverride.statFn) {
+        return handle;
+      }
+
+      return new Proxy(handle, {
+        get(target, property, receiver) {
+          if (property === 'stat') return openOverride.statFn;
+          if (property === 'close') {
+            return async () => {
+              openOverride.closed = true;
+              await target.close();
+            };
+          }
+
+          return Reflect.get(target, property, receiver);
+        },
+      });
+    },
   };
 });
 import { TemporalFilePath } from '../domain/TemporalFilePath';
@@ -55,7 +78,7 @@ describe('NodeTemporalFileRepository', () => {
       return Buffer.concat(chunks).toString();
     }
 
-    it('should keep size and contents frozen while the backing file keeps changing', async () => {
+    it('should bound the body to the declared length when the file grows underneath it', async () => {
       const documentPath = new TemporalFilePath('/Documents/database.kdbx');
 
       await repository.create(documentPath);
@@ -63,15 +86,17 @@ describe('NodeTemporalFileRepository', () => {
 
       const snapshot = await repository.createUploadSnapshot(documentPath);
 
-      await repository.write(documentPath, Buffer.from('rewritten and longer'), 20, 0);
+      await repository.write(documentPath, Buffer.from(' and then very much longer'), 26, 6);
 
+      // This is the bug the PR exists for: the length was declared as 6, so no
+      // attempt may send the 32 bytes that are now on disk.
       expect(snapshot.size).toBe(6);
       await expect(readAll(snapshot.open())).resolves.toBe('frozen');
 
       await snapshot.dispose();
     });
 
-    it('should give every reader of the snapshot the same bytes', async () => {
+    it('should let a retry read the same length again rather than resuming or failing', async () => {
       const documentPath = new TemporalFilePath('/Documents/database.kdbx');
 
       await repository.create(documentPath);
@@ -79,58 +104,70 @@ describe('NodeTemporalFileRepository', () => {
 
       const snapshot = await repository.createUploadSnapshot(documentPath);
 
+      // Consuming a stream must neither advance a shared position nor close the
+      // descriptor: `createReadStream` closes the handle it is given unless
+      // autoClose is off, which would make this second attempt fail with EBADF.
       const first = await readAll(snapshot.open());
-      await repository.write(documentPath, Buffer.from('third'), 5, 0);
       const second = await readAll(snapshot.open());
 
+      expect(first).toBe('first');
       expect(second).toBe(first);
 
       await snapshot.dispose();
     });
 
-    it('should leave nothing behind once disposed', async () => {
+    it('should write nothing to the staging folder', async () => {
       const documentPath = new TemporalFilePath('/Documents/database.kdbx');
 
       await repository.create(documentPath);
       const before = await readdir(folder);
 
       const snapshot = await repository.createUploadSnapshot(documentPath);
-      expect(await readdir(folder)).toHaveLength(before.length + 1);
+
+      // The point of reading through a descriptor: an upload of an 800 MB file
+      // costs no second copy of it, so nothing here is left to reclaim either.
+      expect(await readdir(folder)).toStrictEqual(before);
 
       await snapshot.dispose();
 
       expect(await readdir(folder)).toStrictEqual(before);
     });
 
-    it('should leave no half-made snapshot behind when creating one fails', async () => {
+    it('should send nothing for an empty file even after it stops being empty', async () => {
+      const documentPath = new TemporalFilePath('/Documents/empty.kdbx');
+
+      await repository.create(documentPath);
+
+      const snapshot = await repository.createUploadSnapshot(documentPath);
+      expect(snapshot.size).toBe(0);
+
+      // The file must not stay empty, or this passes for the wrong reason. An
+      // inclusive [0, 0] is ONE byte, so a zero-length declaration would send
+      // one - the same over-send the class exists to prevent, reached through
+      // the guard against createReadStream rejecting an end of -1.
+      await repository.write(documentPath, Buffer.from('no longer empty'), 15, 0);
+
+      await expect(readAll(snapshot.open())).resolves.toBe('');
+
+      await snapshot.dispose();
+    });
+
+    it('should close the descriptor when taking the length fails', async () => {
       const documentPath = new TemporalFilePath('/Documents/database.kdbx');
 
       await repository.create(documentPath);
-      const before = await readdir(folder);
 
-      statOverride.fn = () => {
-        throw new Error('stat failed after the copy had already been made');
+      openOverride.closed = false;
+      openOverride.statFn = () => {
+        throw new Error('fstat failed on an open descriptor');
       };
 
       try {
-        await expect(repository.createUploadSnapshot(documentPath)).rejects.toThrow('stat failed');
+        await expect(repository.createUploadSnapshot(documentPath)).rejects.toThrow('fstat failed');
+        expect(openOverride.closed).toBe(true);
       } finally {
-        statOverride.fn = undefined;
+        openOverride.statFn = undefined;
       }
-
-      expect(await readdir(folder)).toStrictEqual(before);
-    });
-
-    it('should remove snapshots left behind by a previous run on init', async () => {
-      const stale = join(folder, 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.upload-snapshot');
-      const mapped = join(folder, 'aaaaaaaa-bbbb-cccc-dddd-ffffffffffff');
-
-      await writeFile(stale, 'a snapshot a killed process never disposed of');
-      await writeFile(mapped, 'a mapped temporal file, which must survive');
-
-      new NodeTemporalFileRepository(folder).init();
-
-      await vi.waitFor(async () => expect(await readdir(folder)).toStrictEqual([basename(mapped)]));
     });
 
     it('should reject a document it has no mapping for', async () => {

@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import fs, { createReadStream, watch } from 'fs';
-import { copyFile, readdir, readFile, rm, stat } from 'fs/promises';
+import { FileHandle, open, readFile } from 'fs/promises';
 import path from 'path';
 import { Readable } from 'stream';
 import * as uuid from 'uuid';
@@ -15,36 +15,12 @@ import { ensureFolderExists } from '../../../../apps/shared/fs/ensure-folder-exi
 
 @Service()
 export class NodeTemporalFileRepository implements TemporalFileRepository {
-  /** Marks the private per-upload copies, which are never registered in the map. */
-  private static readonly SNAPSHOT_SUFFIX = '.upload-snapshot';
-
   private readonly map = new Map<string, string>();
 
   constructor(private readonly folder: string) {}
 
-  /** Prepares the staging folder and reclaims what a previous run could not. */
   init() {
     ensureFolderExists(this.folder);
-    this.removeStaleUploadSnapshots();
-  }
-
-  /**
-   * Upload snapshots are removed in the uploader's `finally`, which a killed
-   * process never reaches. Each one is a full copy of a file, so without this
-   * every crash during an upload would cost disk that nothing later reclaims.
-   */
-  private removeStaleUploadSnapshots() {
-    void readdir(this.folder)
-      .then((entries) =>
-        Promise.all(
-          entries
-            .filter((entry) => entry.endsWith(NodeTemporalFileRepository.SNAPSHOT_SUFFIX))
-            .map((entry) => rm(path.join(this.folder, entry), { force: true })),
-        ),
-      )
-      .catch((error) => {
-        logger.warn({ msg: 'Could not remove stale upload snapshots', error });
-      });
   }
 
   async exits(documentPath: TemporalFilePath): Promise<boolean> {
@@ -194,44 +170,74 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     return createReadStream(pathToRead);
   }
 
+  /** Read size for one positional read of the upload descriptor. */
+  private static readonly UPLOAD_CHUNK_BYTES = 64 * 1024;
+
   /**
-   * Copies the mapped file to a private path, so one upload can read the same
-   * bytes for its length and for every attempt.
+   * Yields at most `size` bytes of `handle`, by positional read.
    *
-   * @returns a handle whose `size` describes what `open()` produces, and whose
+   * Positional reads, so an attempt after the first starts at zero again rather
+   * than continuing where the last one stopped, and the running `position`
+   * bound is what guarantees no attempt sends more than was declared, however
+   * far the file has grown in the meantime.
+   */
+  private static async *readBounded(handle: FileHandle, size: number): AsyncGenerator<Buffer> {
+    const buffer = Buffer.allocUnsafe(NodeTemporalFileRepository.UPLOAD_CHUNK_BYTES);
+    let position = 0;
+
+    while (position < size) {
+      const { bytesRead } = await handle.read(buffer, 0, Math.min(buffer.length, size - position), position);
+
+      // A short read means the file was truncated under us. The upload then
+      // sends fewer bytes than it declared, which is the one-sided limit the
+      // interface documents; it is not this loop's to repair.
+      if (bytesRead === 0) {
+        return;
+      }
+
+      position += bytesRead;
+      yield Buffer.from(buffer.subarray(0, bytesRead));
+    }
+  }
+
+  /**
+   * Opens the mapped file once and bounds one upload to the length that same
+   * descriptor reports.
+   *
+   * @returns a handle whose `size` bounds what `open()` produces, and whose
    * `dispose()` the caller owns.
-   * @throws Error when the document has no mapping. Nothing is left on disk if
-   * creating the copy fails part way.
+   * @throws Error when the document has no mapping, or the open fails. Nothing
+   * is left open if taking the length fails.
    */
   async createUploadSnapshot(documentPath: TemporalFilePath): Promise<TemporalFileUploadSnapshot> {
-    const pathToCopy = this.map.get(documentPath.value);
+    const pathToOpen = this.map.get(documentPath.value);
 
-    if (!pathToCopy) {
+    if (!pathToOpen) {
       throw new Error(`Document with path ${documentPath.value} not found`);
     }
 
-    const snapshotPath = path.join(this.folder, `${uuid.v4()}${NodeTemporalFileRepository.SNAPSHOT_SUFFIX}`);
+    const handle = await open(pathToOpen, 'r');
 
     try {
-      // COPYFILE_FICLONE asks for a reflink where the filesystem supports one
-      // (btrfs, XFS), which makes the copy near free, and falls back to a full
-      // copy everywhere else.
-      await copyFile(pathToCopy, snapshotPath, fs.constants.COPYFILE_FICLONE);
-
-      // Read from the copy, not from the mapped file: the application can still
-      // be writing to that one, and a length taken from it would not describe
-      // the bytes this upload is going to send.
-      const { size } = await stat(snapshotPath);
+      // fstat on the handle rather than stat on the path, so the length and the
+      // body are two reads of one inode instead of two observations of a name.
+      const { size } = await handle.stat();
 
       return {
         size,
-        open: () => createReadStream(snapshotPath),
-        dispose: () => rm(snapshotPath, { force: true }),
+        // Generator-backed rather than handle.createReadStream, and that is
+        // load-bearing: a stream created FROM the handle closes it when it is
+        // destroyed, and `autoClose: false` does NOT prevent that - it governs
+        // only the natural-end path. EnvironmentTemporalFileUploader destroys
+        // the readable on both its error and abort paths, so a handle-backed
+        // stream would be closed by the FIRST failed attempt and every retry
+        // would then read from a dead descriptor. Retrying is the whole reason
+        // this class exists, so the stream must not own the handle.
+        open: () => Readable.from(NodeTemporalFileRepository.readBounded(handle, size)),
+        dispose: () => handle.close(),
       };
     } catch (error) {
-      // A copy that failed part way still leaves a destination behind, and the
-      // caller never receives a handle it could dispose of.
-      await rm(snapshotPath, { force: true }).catch(() => undefined);
+      await handle.close().catch(() => undefined);
       throw error;
     }
   }

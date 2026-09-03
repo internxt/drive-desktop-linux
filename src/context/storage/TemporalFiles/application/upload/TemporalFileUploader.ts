@@ -37,9 +37,9 @@ export class TemporalFileUploader {
    * Uploads a temporal file's contents and publishes the event that creates or
    * overrides the drive file.
    *
-   * The bytes are taken from a private copy made here, so the length declared to
-   * the server and the body sent to it describe the same contents even while the
-   * application keeps writing to the file it knows about.
+   * The bytes are bounded by a descriptor opened here, so the length declared to
+   * the server bounds the body sent to it even while the application keeps
+   * writing to the file it knows about.
    *
    * @param replaces the existing drive file this upload overrides, if any.
    * @returns the contents id of the stored object, or an empty one for a file of zero bytes.
@@ -63,7 +63,7 @@ export class TemporalFileUploader {
     }
 
     // Cheap pre-check against the recorded size, so a file already known to be
-    // too big is rejected before a copy of it is made.
+    // too big is rejected before anything is opened.
     await this.validateLimits(temporalFile, temporalFile.size.value);
 
     const controller = new AbortController();
@@ -72,12 +72,12 @@ export class TemporalFileUploader {
     let snapshot: TemporalFileUploadSnapshot | undefined;
 
     try {
-      // Watching starts first so that a write landing during the copy still
-      // aborts the upload instead of being frozen into it.
+      // Watching starts first so that a write landing while the length is
+      // taken still aborts the upload instead of being frozen into it.
       snapshot = await this.repository.createUploadSnapshot(temporalFile.path);
 
-      // The copy is what will actually be sent, and it can be larger than the
-      // size checked above, so the limits are the copy's to satisfy.
+      // The descriptor's length is what will actually be sent, and it can be
+      // larger than the size checked above, so the limits are its to satisfy.
       await this.validateLimits(temporalFile, snapshot.size);
 
       const contentsId = await this.uploadWithRetry(temporalFile, snapshot, controller, replaces);
@@ -133,7 +133,7 @@ export class TemporalFileUploader {
   }
 
   /**
-   * Closes the watcher and removes the upload's private copy.
+   * Closes the watcher and the upload's descriptor.
    *
    * Neither failure may escape: after a committed upload it would report work
    * that was already done as failed, and after a failed one it would hide the
@@ -153,7 +153,7 @@ export class TemporalFileUploader {
     try {
       await snapshot.dispose();
     } catch (error) {
-      logger.warn({ msg: '[TemporalFileUploader] Could not remove the upload snapshot', error });
+      logger.warn({ msg: '[TemporalFileUploader] Could not close the upload snapshot', error });
     }
   }
 
@@ -186,11 +186,11 @@ export class TemporalFileUploader {
     controller: AbortController,
     replaces?: Replaces,
   ): Promise<Result<ContentsId, DriveDesktopError>> {
-    try {
-      // A consumed stream cannot be reused, so each attempt opens a new one -
-      // over the same immutable snapshot, so every attempt sends the same bytes.
-      const stream = snapshot.open();
+    // A consumed stream cannot be reused, so each attempt opens a new one - over
+    // the same bounded descriptor, so no attempt exceeds the declared length.
+    const stream = snapshot.open();
 
+    try {
       const uploader = this.uploaderFactory
         .read(stream)
         .document(temporalFile)
@@ -204,6 +204,14 @@ export class TemporalFileUploader {
       return {
         error: mapEnvironmentUploadError(uploadError as Error & { status?: unknown }),
       };
+    } finally {
+      // A stream left undrained would keep its generator alive until the
+      // handle closed under it. The uploader destroys the stream on its own
+      // abort and error paths, so this is a no-op except when build() itself
+      // throws. It cannot close the descriptor: the stream does not own it.
+      if (!stream.destroyed) {
+        stream.destroy();
+      }
     }
   }
 

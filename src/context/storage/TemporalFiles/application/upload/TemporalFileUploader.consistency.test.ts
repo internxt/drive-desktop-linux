@@ -72,6 +72,15 @@ class RecordingUploaderFactory implements TemporalFileUploaderFactory {
 
       if (this.failNextAttempts > 0) {
         this.failNextAttempts -= 1;
+
+        // EnvironmentTemporalFileUploader destroys the readable on both its
+        // error and its abort path, so a double that does not is not modelling
+        // production. Without this a snapshot whose stream owns the descriptor
+        // passes here and fails on a real retry.
+        if (!readable.destroyed) {
+          readable.destroy();
+        }
+
         // The shape the transient error handler classifies as retryable.
         return Promise.reject({ status: 429, message: JSON.stringify({ retry_after: 0.001 }) });
       }
@@ -158,6 +167,32 @@ describe('TemporalFileUploader upload consistency', () => {
 
     expect(uploaderFactory.attempts).toHaveLength(2);
     expect(uploaderFactory.attempts[1].content).toBe(uploaderFactory.attempts[0].content);
+
+    uploaderFactory.attempts.forEach((attempt) => {
+      expect(attempt.declaredLength).toBe(attempt.bytesStreamed);
+    });
+  });
+
+  it('should hold the declared length when the file grows between two attempts', async () => {
+    await repository.create(documentPath);
+    await writeBackingFile('the bytes this upload declared');
+
+    const temporalFile = await buildTemporalFile();
+
+    // Nothing is copied aside, so the retry re-reads the same file the
+    // application is still writing to. The declared length has to survive that.
+    uploaderFactory.failNextAttempts = 1;
+    uploaderFactory.afterAttempt = async (attemptNumber) => {
+      if (attemptNumber === 1) {
+        await writeBackingFile('the bytes this upload declared, and a great many more added later');
+      }
+    };
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(temporalFile);
+
+    expect(uploaderFactory.attempts).toHaveLength(2);
 
     uploaderFactory.attempts.forEach((attempt) => {
       expect(attempt.declaredLength).toBe(attempt.bytesStreamed);
