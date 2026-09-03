@@ -172,6 +172,31 @@ describe('TemporalFileUploader', () => {
     call(eventBus.publish).toMatchObject([{ uploadedRevision: 12 }]);
   });
 
+  it('publishes a revision for an empty staged copy on the create half too', async () => {
+    // The create half reaps under the same guard as the override half, and the
+    // guard keeps anything whose revision it cannot read. Without a revision
+    // here every empty new file would be kept forever, and release treats a
+    // surviving staged copy as unsaved writes, so every later close would
+    // re-upload it.
+    repository.find.mockResolvedValue(
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/new-zero-file.png',
+          size: 0,
+          revision: 12,
+        }),
+      ),
+    );
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(emptyTemporalFile);
+
+    call(eventBus.publish).toMatchObject([{ replaces: undefined, uploadedRevision: 12 }]);
+  });
+
   it('publishes the revision of the staged copy it uploaded, read before the snapshot', async () => {
     // Whatever reaps the staged copy has to know which revision reached the
     // cloud. It must be the revision read just before the snapshot bounded the

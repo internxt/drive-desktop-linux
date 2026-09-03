@@ -2,7 +2,7 @@ import { Environment } from '@internxt/inxt-js';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, normalize } from 'node:path';
 import { NodeTemporalFileRepository } from '../../../../storage/TemporalFiles/infrastructure/NodeTemporalFileRepository';
 import { TemporalFilePath } from '../../../../storage/TemporalFiles/domain/TemporalFilePath';
 import { TemporalFileByPathFinder } from '../../../../storage/TemporalFiles/application/find/TemporalFileByPathFinder';
@@ -15,8 +15,17 @@ import { FileCreatorTestClass } from '../../__test-helpers__/FileCreatorTestClas
 import { FileOverriderTestClass } from '../../__test-helpers__/FileOverriderTestClass';
 import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
+import { uploadAndCreateThumbnail } from '../../../../../backend/features/thumbnails/upload-and-create-thumbnail';
 
 const PATH = '/Private/notes/passwords.kdbx';
+
+vi.mock('../../../../../backend/features/thumbnails/generate-thumbnail', () => ({
+  generateThumbnail: vi.fn().mockReturnValue({ data: Buffer.from('thumbnail bytes') }),
+}));
+
+vi.mock('../../../../../backend/features/thumbnails/upload-and-create-thumbnail', () => ({
+  uploadAndCreateThumbnail: vi.fn().mockResolvedValue({}),
+}));
 
 /**
  * The create half of the reaping, exercised the same way the override half is:
@@ -125,10 +134,25 @@ describe('reaping the staged copy after a create, end to end', () => {
     expect(existsSync(contentFilePath)).toBe(true);
   });
 
-  it('does not report a failed reap as an upload failure to the user', async () => {
-    // The file has already been created remotely. A cleanup failure must not
-    // surface as an issue, and must not stop on() from completing.
-    const { event } = await stageAndUpload();
+  it('carries on past a failed reap instead of abandoning the work after it', async () => {
+    // The file has already been created remotely, so a cleanup failure must be
+    // swallowed rather than thrown.
+    //
+    // Asserting only that no issue is raised would be vacuous on this half:
+    // on() gates notifier.issues behind event.replaces, which is always falsy
+    // here, so that assertion holds whether or not the inner try/catch exists.
+    // The thumbnail upload is the observable that discriminates, because an
+    // escaping throw would skip it.
+    const { event: staged } = await stageAndUpload();
+    const event = new TemporalFileUploadedDomainEvent({
+      aggregateId: staged.aggregateId,
+      size: staged.size,
+      path: staged.path,
+      contentFilePath: staged.contentFilePath,
+      uploadedRevision: staged.uploadedRevision,
+      fileBuffer: Buffer.from('image bytes'),
+    });
+
     creator.mock.mockResolvedValue(FileMother.noThumbnable());
     const notifier = { issues: vi.fn().mockResolvedValue(undefined), created: vi.fn() };
 
@@ -147,6 +171,45 @@ describe('reaping the staged copy after a create, end to end', () => {
 
     expect(creator.mock).toHaveBeenCalled();
     expect(notifier.issues).not.toHaveBeenCalled();
+    expect(vi.mocked(uploadAndCreateThumbnail)).toHaveBeenCalled();
+  });
+
+  it('reaps a staged copy filed under a path that normalisation would change', async () => {
+    // The reap moved from FileCreatedDomainEvent.path, which is
+    // path.normalize(event.path) because FilePath's base class normalises, to
+    // the raw event.path. That is only harmless if the repository canonicalises
+    // on the way in, and this pins that it does: the staged copy is filed under
+    // a redundant-separator path and reaped by the raw string.
+    const rawPath = '/Private/notes//passwords.kdbx';
+    expect(normalize(rawPath)).not.toBe(rawPath);
+
+    const documentPath = new TemporalFilePath(rawPath);
+    await repository.create(documentPath);
+    const staged = (await repository.find(documentPath)).get();
+
+    // The two keys resolve to the same entry, which is the whole reason the
+    // move from the normalised path to the raw one is not a behaviour change.
+    // Without this the test would pass under either hypothesis about where the
+    // canonicalisation happens, and would settle nothing.
+    const viaNormalised = (await repository.find(new TemporalFilePath(normalize(rawPath)))).get();
+    expect(viaNormalised.contentFilePath).toBe(staged.contentFilePath);
+    expect(viaNormalised.revision).toBe(staged.revision);
+
+    creator.mock.mockResolvedValue(FileMother.noThumbnable());
+
+    await bus.publish([
+      new TemporalFileUploadedDomainEvent({
+        aggregateId: '0000000000000000000000bb',
+        size: staged.size.value,
+        path: rawPath,
+        contentFilePath: staged.contentFilePath,
+        uploadedRevision: staged.revision,
+      }),
+    ]);
+
+    await settled(async () => {
+      expect((await repository.find(documentPath)).isPresent()).toBe(false);
+    });
   });
 
   it('keeps the staged copy when the create fails, so the next release retries', async () => {
