@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -599,6 +600,59 @@ func TestUtimens(t *testing.T) {
 			t.Errorf("expected ENOENT, got %v", pathErr.Err)
 		}
 	})
+}
+
+// Answers the question a reviewer raised and nobody had measured: some FUSE
+// operations are disabled for the whole connection the first time they answer
+// ENOSYS, and this handler answers ENOSYS for an access-time-only request while
+// the backend answers it for an uploaded file or a directory. If the kernel
+// latched on that, the first `touch` of an existing file would silently break
+// timestamp preservation for every NEW file too, which is the case this whole
+// change exists to fix.
+func TestUtimensSurvivesAnENOSYS(t *testing.T) {
+	var lastPath string
+	calls := 0
+
+	sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
+		client.OperationGetAttr: fileAttrHandler,
+		client.OperationUtimens: func(response http.ResponseWriter, request *http.Request) {
+			var body struct {
+				Path string `json:"path"`
+			}
+			_ = json.NewDecoder(request.Body).Decode(&body)
+			calls++
+			lastPath = body.Path
+			response.WriteHeader(http.StatusOK)
+		},
+	})
+
+	stamp := time.Now().UnixNano()
+	refused := filepath.Join(sharedMount.mountPoint, fmt.Sprintf("utimens-latch-refused-%d.txt", stamp))
+	accepted := filepath.Join(sharedMount.mountPoint, fmt.Sprintf("utimens-latch-accepted-%d.txt", stamp))
+
+	// A zero mtime is UTIME_OMIT, so this asks only for an access time and the
+	// handler refuses it locally with ENOSYS, without reaching the backend.
+	if err := os.Chtimes(refused, time.Now(), time.Time{}); err == nil {
+		t.Fatal("expected the access-time-only request to be refused")
+	}
+
+	if calls != 0 {
+		t.Fatalf("the refused call reached the backend %d time(s)", calls)
+	}
+
+	// The operation must still be live for an ordinary request afterwards.
+	requested := time.Date(2024, 3, 4, 5, 6, 7, 0, time.UTC)
+	if err := os.Chtimes(accepted, requested, requested); err != nil {
+		t.Fatalf("Utimens stopped working after one ENOSYS: %v", err)
+	}
+
+	if calls != 1 {
+		t.Fatalf("expected the second call to reach the backend once, got %d", calls)
+	}
+
+	if !strings.HasSuffix(lastPath, filepath.Base(accepted)) {
+		t.Errorf("expected the accepted path, got %q", lastPath)
+	}
 }
 
 func TestStatFs(t *testing.T) {

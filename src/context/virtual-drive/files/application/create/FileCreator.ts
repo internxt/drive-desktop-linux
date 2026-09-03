@@ -86,6 +86,15 @@ export class FileCreator {
     });
 
     if (error) {
+      // The time was taken before the call, so that every retry inside
+      // persistWithRetry sends the same value. If the create did not happen at
+      // all, put it back: the staged copy survives a failed upload and the next
+      // release will create the file, which should still carry the time the user
+      // asked for rather than the moment that retry happened to succeed.
+      if (requestedModificationTime) {
+        this.pendingModificationTimes.set(filePath.value, requestedModificationTime);
+      }
+
       throw error;
     }
 
