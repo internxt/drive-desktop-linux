@@ -50,6 +50,17 @@ export class EnvironmentTemporalFileUploader {
       const uploadError = error instanceof Error ? error : new Error('Upload failed');
 
       if (!contents.destroyed) {
+        // Destroying with the error makes the stream emit 'error', and a stream
+        // that emits 'error' unheard throws where no caller can catch it. The
+        // upload library attaches its pipeline, and with it a listener, only
+        // once the upload has been started, so a failure before that point had
+        // nowhere to go but process.on('uncaughtException').
+        //
+        // A terminal listener makes that delivery safe without taking the error
+        // away from anyone: 'error' is multicast, so a pipeline attached
+        // mid-transfer still receives the real failure rather than a premature
+        // close.
+        contents.once('error', () => {});
         contents.destroy(uploadError);
       }
 
