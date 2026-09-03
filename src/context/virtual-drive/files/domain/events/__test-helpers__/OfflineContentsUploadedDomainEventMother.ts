@@ -20,6 +20,7 @@ export class OfflineContentsUploadedDomainEventMother {
       size: FileSizeMother.random().value,
       path: FilePathMother.random().value,
       replaces: undefined,
+      uploadedRevision: 11,
     });
   }
 }

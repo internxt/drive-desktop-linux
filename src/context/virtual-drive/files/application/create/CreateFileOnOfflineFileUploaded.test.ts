@@ -148,10 +148,24 @@ describe('Create File On Offline File Uploaded', () => {
     expect(reaper.run).toHaveBeenCalledWith(uploadedEvent.path, uploadedEvent.uploadedRevision);
   });
 
-  it('leaves the staged copy of a newly created file to the created-event subscriber', async () => {
+  it('reaps the staged copy of a newly created file at the revision the upload read', async () => {
     const creator = new FileCreatorTestClass();
     const overrider = new FileOverriderTestClass();
     creator.mock.mockResolvedValue(FileMother.noThumbnable());
+
+    const uploadedEvent = OfflineContentsUploadedDomainEventMother.doesNotReplace();
+
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged());
+
+    await sut.on(uploadedEvent);
+
+    expect(reaper.run).toHaveBeenCalledWith(uploadedEvent.path, uploadedEvent.uploadedRevision);
+  });
+
+  it('keeps the staged copy when the create fails, so the next release retries', async () => {
+    const creator = new FileCreatorTestClass();
+    const overrider = new FileOverriderTestClass();
+    creator.mock.mockRejectedValue(new DriveDesktopError('INTERNAL_SERVER_ERROR'));
 
     const uploadedEvent = OfflineContentsUploadedDomainEventMother.doesNotReplace();
 

@@ -15,6 +15,8 @@ import { TemporalFileRepository } from '../../../context/storage/TemporalFiles/d
 import { TemporalFileCreator } from '../../../context/storage/TemporalFiles/application/creation/TemporalFileCreator';
 import { TemporalFileByPathFinder } from '../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FileOverrider } from '../../../context/virtual-drive/files/application/override/FileOverrider';
+import { FileCreator } from '../../../context/virtual-drive/files/application/create/FileCreator';
+import { TemporalFileWriter } from '../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { UploadProgressTracker } from '../../../context/shared/domain/UploadProgressTracker';
 import { DownloadProgressTracker } from '../../../context/shared/domain/DownloadProgressTracker';
 import { DownloaderHandlerFactory } from '../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
@@ -133,5 +135,55 @@ describe('the reaping subscriber is wired by the composition root', () => {
     // And the reaper it was given shares the repository the write path used,
     // which is what makes the revision comparison meaningful at all.
     expect(container.get(TemporalFileRepository)).toBe(container.get(TemporalFileRepository));
+  });
+
+  it('reaps a staged copy when a create event reaches the wired bus', async () => {
+    vi.spyOn(FileCreator.prototype, 'run').mockResolvedValue(FileMother.noThumbnable());
+
+    await container.get(TemporalFileCreator).run(PATH);
+    const staged = await container.get(TemporalFileByPathFinder).run(PATH);
+    expect(staged).toBeDefined();
+
+    await bus.publish([
+      new TemporalFileUploadedDomainEvent({
+        aggregateId: '0000000000000000000000bb',
+        size: staged?.size.value ?? 0,
+        path: PATH,
+        contentFilePath: staged?.contentFilePath,
+        uploadedRevision: staged?.revision,
+      }),
+    ]);
+
+    await vi.waitFor(async () => expect(await container.get(TemporalFileByPathFinder).run(PATH)).toBeUndefined(), {
+      timeout: 2000,
+      interval: 10,
+    });
+  });
+
+  it('keeps a staged copy written after a create upload read it', async () => {
+    // The composition root no longer wires a subscriber that deletes on
+    // FileCreatedDomainEvent, so this is the whole of the create-path reaping:
+    // if the guard were not wired, nothing would keep these bytes.
+    vi.spyOn(FileCreator.prototype, 'run').mockResolvedValue(FileMother.noThumbnable());
+
+    await container.get(TemporalFileCreator).run(PATH);
+    const staged = await container.get(TemporalFileByPathFinder).run(PATH);
+    const revisionTheUploadRead = staged?.revision;
+
+    await container.get(TemporalFileWriter).run(PATH, Buffer.from('a later write'), 13, 0);
+
+    await bus.publish([
+      new TemporalFileUploadedDomainEvent({
+        aggregateId: '0000000000000000000000bb',
+        size: staged?.size.value ?? 0,
+        path: PATH,
+        contentFilePath: staged?.contentFilePath,
+        uploadedRevision: revisionTheUploadRead,
+      }),
+    ]);
+
+    await vi.waitFor(() => expect(FileCreator.prototype.run).toHaveBeenCalled(), { timeout: 2000, interval: 10 });
+
+    expect(await container.get(TemporalFileByPathFinder).run(PATH)).toBeDefined();
   });
 });
