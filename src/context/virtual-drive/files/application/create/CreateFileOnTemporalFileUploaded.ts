@@ -49,10 +49,18 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
     // nothing re-drives the upload.
     //
     // This is the only place that knows both facts the reaping needs: that the
-    // upload landed, and the path the staged copy is filed under. The event
-    // carries the virtual file's path, which is a different string on the
-    // write-to-temporary-then-rename flow, where the staged copy is filed under
-    // the source path.
+    // upload landed, and the path the staged copy is filed under.
+    //
+    // The old subscriber had a second problem, for contrast: FileCreatedDomainEvent
+    // carries the VIRTUAL file's path, a different string on the
+    // write-to-temporary-then-rename flow where the staged copy is filed under
+    // the source path, so it could not find the entry it was trying to reap.
+    //
+    // TemporalFileUploadedDomainEvent, which is what this subscribes to, carries
+    // `temporalFile.path.value` (TemporalFileUploader.publishUploadEvent): the
+    // same key the uploader used to find the staged copy, and the same key
+    // DeleteTemporalFileIfUnchanged looks it up with. event.path here is the
+    // STAGING path, on every flow.
     //
     // The upload has already committed at this point, so a failure to reap must
     // not be reported as an upload failure: on the override half the catch in
