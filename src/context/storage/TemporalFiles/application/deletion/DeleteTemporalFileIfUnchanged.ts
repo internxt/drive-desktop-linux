@@ -66,8 +66,9 @@ export class DeleteTemporalFileIfUnchanged {
     // A write landing between the check above and the unlink below is still
     // lost. That window cannot be closed from here: the filesystem offers no
     // delete-if-unchanged, and there is no per-path lock shared with the
-    // writers. The create path (DeleteTemporalFileOnFileCreated) does not check
-    // at all. This narrows the window rather than closing it.
+    // writers. This narrows the window rather than closing it. Both reaping
+    // paths, create and override, now come through here, so neither deletes a
+    // staged copy without asking.
     await this.deleter.run(path);
   }
 }

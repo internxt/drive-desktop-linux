@@ -16,11 +16,12 @@ export type TemporalFileAttributes = {
  * When a user drops a file into the Internxt Drive folder (e.g. via Nautilus drag & drop),
  * it is stored temporarily at `/tmp/internxt-drive-tmp/{uuid}` while being written.
  * Once the file descriptor is closed (FUSE release), the temporal file is uploaded to the cloud
- * (see {@link TemporalFileUploader}) and then deleted from disk: when the upload created a new
- * file by {@link DeleteTemporalFileOnFileCreated}, and when it overrode an existing one by
- * CreateFileOnTemporalFileUploaded. If neither runs the temporal file survives, and because
- * release treats its existence as "there are unsaved writes", every later close of that path
- * uploads the whole file again.
+ * (see {@link TemporalFileUploader}) and then deleted from disk by
+ * CreateFileOnTemporalFileUploaded, whether the upload created a new file or overrode an
+ * existing one, and only if the staged copy still holds the bytes that were uploaded. If the
+ * reaping does not run the temporal file survives, and because release treats its existence as
+ * "there are unsaved writes", every later close of that path uploads the whole file again. If it
+ * runs on a staged copy that has since been written, those writes are lost.
  *
  * Auxiliary files (lock files, .tmp, vim swap, vim probe/backup files, .goutputstream-*) are ignored.
  */

@@ -35,30 +35,39 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
       ? await this.fileOverrider.run(event.replaces, event.aggregateId, event.size)
       : await this.creator.run(event.path, event.aggregateId, event.size);
 
-    if (event.replaces) {
-      // Creating a file reaps its staged copy through FileCreatedDomainEvent
-      // (see DeleteTemporalFileOnFileCreated); overriding one had nothing doing
-      // the same, so the staged copy survived and every later close of the path
-      // uploaded the whole file again with no write in between.
-      //
-      // This is the only place that knows both facts the reaping needs: that the
-      // override landed, and the path the staged copy is filed under. The
-      // overridden event carries the virtual file's path, which is a different
-      // string on the write-to-temporary-then-rename flow, where the staged copy
-      // is filed under the source path.
-      // The override has already committed at this point, so a failure to reap
-      // must not be reported as an upload failure: the catch in on() raises an
-      // UPLOAD_ERROR issue to the user, which would be untrue and alarming. A
-      // failed reap costs one leaked staged copy and some repeated uploads.
-      try {
-        await this.deleteTemporalFileIfUnchanged.run(event.path, event.uploadedRevision);
-      } catch (cleanupError) {
-        logger.error({
-          msg: '[CreateFileOnTemporalFileUploaded] Override committed but the temporal file could not be deleted',
-          error: cleanupError,
-          path: event.path,
-        });
-      }
+    // Both halves of an upload reap through here, and both reap under the
+    // revision guard.
+    //
+    // The create half used to reap from a subscriber on FileCreatedDomainEvent
+    // (DeleteTemporalFileOnFileCreated), which deleted unconditionally because
+    // that event cannot carry a staging revision: it is a virtual-drive event
+    // and the revision is a storage-layer fact. Deleting unconditionally loses
+    // data. retryWithBackoff returns a successful attempt without re-checking
+    // the abort signal, so an upload that commits the old bytes just before a
+    // write lands still reports success, and the reap then removed the staged
+    // copy holding the newer write. Those bytes never reached the cloud and
+    // nothing re-drives the upload.
+    //
+    // This is the only place that knows both facts the reaping needs: that the
+    // upload landed, and the path the staged copy is filed under. The event
+    // carries the virtual file's path, which is a different string on the
+    // write-to-temporary-then-rename flow, where the staged copy is filed under
+    // the source path.
+    //
+    // The upload has already committed at this point, so a failure to reap must
+    // not be reported as an upload failure: on the override half the catch in
+    // on() raises an UPLOAD_ERROR issue to the user, which would be untrue and
+    // alarming, and on either half an uncaught throw would skip the thumbnail
+    // below. A failed reap costs one leaked staged copy and some repeated
+    // uploads.
+    try {
+      await this.deleteTemporalFileIfUnchanged.run(event.path, event.uploadedRevision);
+    } catch (cleanupError) {
+      logger.error({
+        msg: '[CreateFileOnTemporalFileUploaded] The upload committed but the temporal file could not be deleted',
+        error: cleanupError,
+        path: event.path,
+      });
     }
 
     if (event.fileBuffer) {
