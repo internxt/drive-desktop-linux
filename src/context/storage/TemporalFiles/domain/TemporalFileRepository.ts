@@ -2,6 +2,7 @@ import { Readable } from 'stream';
 import { TemporalFile } from './TemporalFile';
 import { TemporalFilePath } from './TemporalFilePath';
 import { Optional } from '../../../../shared/types/Optional';
+import { TemporalFileUploadSnapshot } from './upload/TemporalFileUploadSnapshot';
 
 export abstract class TemporalFileRepository {
   abstract create(path: TemporalFilePath): Promise<void>;
@@ -17,6 +18,12 @@ export abstract class TemporalFileRepository {
   abstract read(path: TemporalFilePath): Promise<Buffer>;
 
   abstract stream(path: TemporalFilePath): Promise<Readable>;
+
+  /**
+   * Takes a private copy of a temporal file's contents for the duration of one
+   * upload. The caller disposes of it.
+   */
+  abstract createUploadSnapshot(path: TemporalFilePath): Promise<TemporalFileUploadSnapshot>;
 
   abstract find(documentPath: TemporalFilePath): Promise<Optional<TemporalFile>>;
 

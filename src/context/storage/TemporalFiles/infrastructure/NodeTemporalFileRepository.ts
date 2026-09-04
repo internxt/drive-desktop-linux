@@ -1,13 +1,14 @@
 import { Service } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import fs, { createReadStream, watch } from 'fs';
-import { readFile } from 'fs/promises';
+import { FileHandle, open, readFile } from 'fs/promises';
 import path from 'path';
 import { Readable } from 'stream';
 import * as uuid from 'uuid';
 import { TemporalFile } from '../domain/TemporalFile';
 import { TemporalFilePath } from '../domain/TemporalFilePath';
 import { TemporalFileRepository } from '../domain/TemporalFileRepository';
+import { TemporalFileUploadSnapshot } from '../domain/upload/TemporalFileUploadSnapshot';
 import { Optional } from '../../../../shared/types/Optional';
 import { exec } from 'child_process';
 import { ensureFolderExists } from '../../../../apps/shared/fs/ensure-folder-exists';
@@ -167,6 +168,78 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     }
 
     return createReadStream(pathToRead);
+  }
+
+  /** Read size for one positional read of the upload descriptor. */
+  private static readonly UPLOAD_CHUNK_BYTES = 64 * 1024;
+
+  /**
+   * Yields at most `size` bytes of `handle`, by positional read.
+   *
+   * Positional reads, so an attempt after the first starts at zero again rather
+   * than continuing where the last one stopped, and the running `position`
+   * bound is what guarantees no attempt sends more than was declared, however
+   * far the file has grown in the meantime.
+   */
+  private static async *readBounded(handle: FileHandle, size: number): AsyncGenerator<Buffer> {
+    const buffer = Buffer.allocUnsafe(NodeTemporalFileRepository.UPLOAD_CHUNK_BYTES);
+    let position = 0;
+
+    while (position < size) {
+      const { bytesRead } = await handle.read(buffer, 0, Math.min(buffer.length, size - position), position);
+
+      // A short read means the file was truncated under us. The upload then
+      // sends fewer bytes than it declared, which is the one-sided limit the
+      // interface documents; it is not this loop's to repair.
+      if (bytesRead === 0) {
+        return;
+      }
+
+      position += bytesRead;
+      yield Buffer.from(buffer.subarray(0, bytesRead));
+    }
+  }
+
+  /**
+   * Opens the mapped file once and bounds one upload to the length that same
+   * descriptor reports.
+   *
+   * @returns a handle whose `size` bounds what `open()` produces, and whose
+   * `dispose()` the caller owns.
+   * @throws Error when the document has no mapping, or the open fails. Nothing
+   * is left open if taking the length fails.
+   */
+  async createUploadSnapshot(documentPath: TemporalFilePath): Promise<TemporalFileUploadSnapshot> {
+    const pathToOpen = this.map.get(documentPath.value);
+
+    if (!pathToOpen) {
+      throw new Error(`Document with path ${documentPath.value} not found`);
+    }
+
+    const handle = await open(pathToOpen, 'r');
+
+    try {
+      // fstat on the handle rather than stat on the path, so the length and the
+      // body are two reads of one inode instead of two observations of a name.
+      const { size } = await handle.stat();
+
+      return {
+        size,
+        // Generator-backed rather than handle.createReadStream, and that is
+        // load-bearing: a stream created FROM the handle closes it when it is
+        // destroyed, and `autoClose: false` does NOT prevent that - it governs
+        // only the natural-end path. EnvironmentTemporalFileUploader destroys
+        // the readable on both its error and abort paths, so a handle-backed
+        // stream would be closed by the FIRST failed attempt and every retry
+        // would then read from a dead descriptor. Retrying is the whole reason
+        // this class exists, so the stream must not own the handle.
+        open: () => Readable.from(NodeTemporalFileRepository.readBounded(handle, size)),
+        dispose: () => handle.close(),
+      };
+    } catch (error) {
+      await handle.close().catch(() => undefined);
+      throw error;
+    }
   }
 
   async find(documentPath: TemporalFilePath): Promise<Optional<TemporalFile>> {
