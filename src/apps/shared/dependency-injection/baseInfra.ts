@@ -1,6 +1,6 @@
 import { INTERNXT_CLIENT, INTERNXT_VERSION } from './../../../core/utils/utils';
 import { ContainerBuilder } from 'diod';
-import { DependencyInjectionUserProvider } from './DependencyInjectionUserProvider';
+import { getUser } from '../../../backend/features/auth/get-user';
 import { Environment } from '@internxt/inxt-js';
 import { EventBus } from '../../../context/virtual-drive/shared/domain/EventBus';
 import { EventRepository } from '../../../context/virtual-drive/shared/domain/EventRepository';
@@ -14,7 +14,9 @@ import { getCredentials } from '../../main/auth/get-credentials';
 export function baseInfra(): ContainerBuilder {
   const builder = new ContainerBuilder();
 
-  const user = DependencyInjectionUserProvider.get();
+  const { data: user, error } = getUser();
+  if (error) throw error;
+
   const { mnemonic } = getCredentials();
 
   const environment = new Environment({

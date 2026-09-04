@@ -1,6 +1,6 @@
 import type { Container } from 'diod';
 import { DriveDependencyContainerFactory } from '../../../../../apps/drive/dependency-injection/DriveDependencyContainerFactory';
-import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import * as userFromConfigModule from '../../../auth/get-user';
 import * as stopVirtualDriveModule from './stop-virual-drive';
 import * as remountVirtualDriveModule from './remount-virtual-drive';
 import * as daemonServiceModule from '../daemon.service';
@@ -22,7 +22,7 @@ describe('virtual-drive.service', () => {
   const getRootVirtualDrive = partialSpyOn(virtualRootFolderModule, 'getRootVirtualDrive');
   const updateVirtualDriveContainer = partialSpyOn(updateVirtualDriveContainerModule, 'updateVirtualDriveContainer');
   const buildContainer = partialSpyOn(DriveDependencyContainerFactory, 'build');
-  const getUser = partialSpyOn(DependencyInjectionUserProvider, 'get');
+  const getUser = partialSpyOn(userFromConfigModule, 'getUser');
 
   const deleteAll = vi.fn();
   const containerMock = {
@@ -36,7 +36,7 @@ describe('virtual-drive.service', () => {
     startFuseDaemonServer.mockResolvedValue(undefined);
     startHydrationApi.mockResolvedValue(undefined);
     getRootVirtualDrive.mockReturnValue('/mock/root/');
-    getUser.mockReturnValue({} as never);
+    getUser.mockReturnValue({ data: {} as never });
     updateVirtualDriveContainer.mockResolvedValue({});
     buildContainer.mockResolvedValue(containerMock);
     deleteAll.mockResolvedValue(undefined);
