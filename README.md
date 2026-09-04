@@ -113,8 +113,24 @@ Clone the repo and install dependencies:
 ```bash
 git clone https://github.com/internxt/drive-desktop-linux.git
 cd drive-desktop-linux
-npm install
+git submodule update --init --recursive
+npm --prefix packages/core ci
+npm run build:core
+npm ci
 ```
+
+### Updating the Core Package
+
+The desktop core is tracked as the `packages/core` submodule and is installed from its generated `.tgz` file. Each time the submodule is updated, rebuild and pack it before installing root dependencies:
+
+```bash
+git submodule update --init --recursive
+npm --prefix packages/core ci
+npm run build:core
+npm ci
+```
+
+`npm run build:core` runs the core build and refreshes the root dependency lockfile. In CI, use `npm run compile && npm pack` in `packages/core` instead, because the core `build` script runs `npm update`.
 
 ### Starting Development
 

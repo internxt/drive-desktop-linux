@@ -15,6 +15,7 @@ import { TemporalFileRepository } from '../../../../context/storage/TemporalFile
 import { TemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/domain/upload/TemporalFileUploaderFactory';
 import { NodeTemporalFileRepository } from '../../../../context/storage/TemporalFiles/infrastructure/NodeTemporalFileRepository';
 import { EnvironmentTemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/infrastructure/upload/EnvironmentTemporalFileUploaderFactory';
+import { PendingModificationTimes } from '../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { PATHS } from '../../../../core/electron/paths';
 
@@ -42,6 +43,8 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
     .private();
 
   // Services
+
+  builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
 
   builder.registerAndUse(TemporalFileCreator);
   builder.registerAndUse(TemporalFileDeleter);

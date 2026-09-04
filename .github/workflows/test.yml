@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+
 jobs:
   test-main:
     name: 🧪 Test Main Process
@@ -12,6 +15,9 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          submodules: true
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -23,6 +29,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xdg-utils libatspi2.0-0 libdrm2 libgbm1 libasound2t64
+
+      - name: Build core package
+        run: cd packages/core && npm ci && npm run compile && npm pack
 
       - name: Install dependencies
         run: npm ci
@@ -40,12 +49,18 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          submodules: true
 
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
+
+      - name: Build core package
+        run: cd packages/core && npm ci && npm run compile && npm pack
 
       - name: Install dependencies
         run: npm ci
