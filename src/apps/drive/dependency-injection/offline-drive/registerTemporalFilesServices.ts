@@ -3,7 +3,7 @@ import { ContainerBuilder } from 'diod';
 import { UploadProgressTracker } from '../../../../context/shared/domain/UploadProgressTracker';
 import { TemporalFileByteByByteComparator } from '../../../../context/storage/TemporalFiles/application/comparation/TemporalFileByteByByteComparator';
 import { TemporalFileCreator } from '../../../../context/storage/TemporalFiles/application/creation/TemporalFileCreator';
-import { DeleteTemporalFileOnFileCreated } from '../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileOnFileCreated';
+import { DeleteTemporalFileIfUnchanged } from '../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
 import { TemporalFileDeleter } from '../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
 import { TemporalFileByFolderFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
 import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
@@ -45,6 +45,7 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
 
   builder.registerAndUse(TemporalFileCreator);
   builder.registerAndUse(TemporalFileDeleter);
+  builder.registerAndUse(DeleteTemporalFileIfUnchanged);
   builder.registerAndUse(TemporalFilePathsByFolderFinder);
   builder.registerAndUse(TemporalFileByPathFinder);
   builder.registerAndUse(TemporalFileUploader);
@@ -52,7 +53,4 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
   builder.registerAndUse(TemporalFileTruncater);
   builder.registerAndUse(TemporalFileByteByByteComparator);
   builder.registerAndUse(TemporalFileByFolderFinder);
-
-  // Event handlers
-  builder.registerAndUse(DeleteTemporalFileOnFileCreated).addTag('event-handler');
 }

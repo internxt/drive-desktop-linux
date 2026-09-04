@@ -10,6 +10,7 @@ import {
 import * as validateSpaceModule from '../../../../../backend/features/usage/validate-space';
 import { EventBus } from '../../../../virtual-drive/shared/domain/EventBus';
 import { TemporalFile } from '../../domain/TemporalFile';
+import { Optional } from '../../../../../shared/types/Optional';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
 import { TemporalFileUploaderFactory } from '../../domain/upload/TemporalFileUploaderFactory';
 import { TemporalFileUploader } from './TemporalFileUploader';
@@ -56,12 +57,162 @@ describe('TemporalFileUploader', () => {
     uploaderFactory.abort.mockReturnValue(uploaderFactory);
     uploaderFactory.build.mockReturnValue(async () => 'contents-id');
     repository.createUploadSnapshot.mockResolvedValue(snapshotOf('content'));
+    // mockDeep returns undefined from find(), and clearMocks does not reset
+    // implementations, so without this every test after the first one to set it
+    // would silently inherit that one's stub. Set it for all of them.
+    repository.find.mockResolvedValue(
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/file.txt',
+          size: 101,
+          revision: 42,
+        }),
+      ),
+    );
     validateSpaceMock.mockResolvedValue({ data: { hasSpace: true } });
   });
 
   afterEach(() => {
     clearMaxFileSizeRejectionModal();
     clearUploadSizeLimitBlockedPath('/file.txt');
+  });
+
+  it('does not fail the upload when the staged revision cannot be read', async () => {
+    // release() deletes the staged copy whenever an upload fails, so a fault in
+    // this bookkeeping must not be allowed to look like an upload failure.
+    repository.find.mockRejectedValue(new Error('EIO reading the staging directory'));
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await expect(
+      sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' }),
+    ).resolves.toBe('contents-id');
+
+    call(eventBus.publish).toMatchObject([{ uploadedRevision: undefined }]);
+  });
+
+  it('records the length the upload sent, not the one the caller was holding', async () => {
+    // The window is real: run() awaits validateSpace, a network round trip,
+    // before anything is opened, and the file can grow in it. The declared
+    // length and the recorded size both have to come from the descriptor the
+    // upload actually reads, or the reaper is asked to trust a pairing between
+    // a length and a revision that never described the same file at once.
+    repository.createUploadSnapshot.mockResolvedValue(snapshotOf('a'.repeat(500)));
+    repository.find.mockResolvedValue(
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/file.txt',
+          size: 500, // grew since the caller looked
+          revision: 43,
+        }),
+      ),
+    );
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
+
+    // 101 is what temporalFile still says; 500 is what the snapshot will send.
+    expect(uploaderFactory.build).toHaveBeenCalledWith(500);
+    call(eventBus.publish).toMatchObject([{ size: 500, uploadedRevision: 43 }]);
+  });
+
+  it('records the revision as of the moment the snapshot was taken, not after', async () => {
+    // Moving the read below the snapshot is the mistake the comment in the
+    // source warns about; this makes that ordering observable. Reading late
+    // would publish 99 for bytes the snapshot bounded before that write, and
+    // the reaper would then delete a staged copy holding data the cloud does
+    // not have. Reading early publishes 41, the reaper sees a difference, and
+    // the staged copy survives to be uploaded again.
+    let current = 41;
+    const staged = (revision: number) =>
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/file.txt',
+          size: 101,
+          revision,
+        }),
+      );
+    repository.find.mockImplementation(async () => staged(current));
+    repository.createUploadSnapshot.mockImplementation(async () => {
+      current = 99; // a write lands as the descriptor is taken
+      return snapshotOf('content');
+    });
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
+
+    call(eventBus.publish).toMatchObject([{ uploadedRevision: 41 }]);
+  });
+
+  it('publishes a revision for an empty staged copy too, so it can be reaped', async () => {
+    repository.find.mockResolvedValue(
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/new-zero-file.png',
+          size: 0,
+          revision: 12,
+        }),
+      ),
+    );
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(emptyTemporalFile, { contentsId: 'old-contents-id', name: 'f', extension: 'png' });
+
+    call(eventBus.publish).toMatchObject([{ uploadedRevision: 12 }]);
+  });
+
+  it('publishes a revision for an empty staged copy on the create half too', async () => {
+    // The create half reaps under the same guard as the override half, and the
+    // guard keeps anything whose revision it cannot read. Without a revision
+    // here every empty new file would be kept forever, and release treats a
+    // surviving staged copy as unsaved writes, so every later close would
+    // re-upload it.
+    repository.find.mockResolvedValue(
+      Optional.of(
+        TemporalFile.from({
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+          path: '/new-zero-file.png',
+          size: 0,
+          revision: 12,
+        }),
+      ),
+    );
+
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(emptyTemporalFile);
+
+    call(eventBus.publish).toMatchObject([{ replaces: undefined, uploadedRevision: 12 }]);
+  });
+
+  it('publishes the revision of the staged copy it uploaded, read before the snapshot', async () => {
+    // Whatever reaps the staged copy has to know which revision reached the
+    // cloud. It must be the revision read just before the snapshot bounded the
+    // bytes, not one the caller found before the awaited space check, or a
+    // write in that window is sent while the event still describes the older
+    // bytes.
+    const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
+
+    await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
+
+    call(eventBus.publish).toMatchObject([
+      {
+        path: temporalFile.path.value,
+        uploadedRevision: 42,
+      },
+    ]);
   });
 
   it('retries content upload on RATE_LIMITED and succeeds', async () => {

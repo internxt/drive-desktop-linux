@@ -52,11 +52,16 @@ export class TemporalFileUploader {
         path: temporalFile.path.value,
       });
 
+      // An empty staged copy still has to be reapable, or every later close of
+      // the path re-enters the override with nothing to upload.
+      const emptyRevision = await this.readRevision(temporalFile);
+
       await this.publishUploadEvent(
         TemporalFileUploader.EMPTY_CONTENTS_ID,
         temporalFile,
         temporalFile.size.value,
         replaces,
+        emptyRevision,
       );
 
       return TemporalFileUploader.EMPTY_CONTENTS_ID;
@@ -72,6 +77,20 @@ export class TemporalFileUploader {
     let snapshot: TemporalFileUploadSnapshot | undefined;
 
     try {
+      // Read the revision here rather than reusing the one the caller found:
+      // between that lookup and this point the file has been size-checked and
+      // space-checked, and the space check is a network round trip. A write in
+      // that window is sent by the upload below while the caller's revision
+      // still describes the older bytes.
+      //
+      // Read it BEFORE the snapshot bounds the bytes, never after. A write
+      // between this read and the snapshot makes the recorded revision older
+      // than the bytes sent, so the reaper sees a difference and KEEPS the
+      // staged copy, which costs one extra upload. Reading it afterwards would
+      // make the recorded revision newer than the bytes sent, and the reaper
+      // would delete a staged copy holding data that never reached the cloud.
+      const revision = await this.readRevision(temporalFile);
+
       // Watching starts first so that a write landing while the length is
       // taken still aborts the upload instead of being frozen into it.
       snapshot = await this.repository.createUploadSnapshot(temporalFile.path);
@@ -84,7 +103,7 @@ export class TemporalFileUploader {
 
       logger.debug({ msg: `${temporalFile.path.value} uploaded with id ${contentsId}` });
 
-      await this.publishUploadEvent(contentsId, temporalFile, snapshot.size, replaces);
+      await this.publishUploadEvent(contentsId, temporalFile, snapshot.size, replaces, revision);
 
       return contentsId;
     } finally {
@@ -215,11 +234,36 @@ export class TemporalFileUploader {
     }
   }
 
+  /**
+   * Reading the revision must never fail the upload. A throw here would be
+   * mapped to an upload error like any other, and the FUSE release operation -
+   * not this class's release() below - deletes the staged copy when an upload
+   * fails, so a fault in this bookkeeping would destroy the user's bytes. An
+   * unknown revision costs one skipped reap instead, because the reaper keeps a
+   * staged copy it cannot identify.
+   */
+  private async readRevision(temporalFile: TemporalFile): Promise<number | undefined> {
+    try {
+      const staged = await this.repository.find(temporalFile.path);
+
+      return staged?.isPresent() ? staged.get().revision : undefined;
+    } catch (error) {
+      logger.warn({
+        msg: '[TemporalFileUploader] Could not read the staged revision; the staged copy will be kept',
+        error,
+        path: temporalFile.path.value,
+      });
+
+      return undefined;
+    }
+  }
+
   private async publishUploadEvent(
     contentsId: ContentsId,
     temporalFile: TemporalFile,
     uploadedSize: number,
     replaces?: Replaces,
+    uploadedRevision?: number,
   ): Promise<void> {
     const fileBuffer = await this.getThumbnailBufferIfNeeded(temporalFile);
 
@@ -232,6 +276,7 @@ export class TemporalFileUploader {
       replaces: replaces?.contentsId,
       fileBuffer,
       contentFilePath: temporalFile.contentFilePath,
+      uploadedRevision,
     });
 
     await this.eventBus.publish([contentsUploadedEvent]);
