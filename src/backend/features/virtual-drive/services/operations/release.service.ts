@@ -10,6 +10,7 @@ import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/
 import { UploadSizeLimitError } from '../../../user/file-size-limit/upload-size-limit-error';
 import { DriveDesktopError } from '../../../../../context/shared/domain/errors/DriveDesktopError';
 import { addVirtualDriveIssue } from '../../../../../apps/main/issues/virtual-drive';
+import { acquireUploadSlot } from '../../../../../context/storage/TemporalFiles/application/upload/upload-concurrency-limiter';
 
 import {
   clearUploadSizeLimitBlockedPath,
@@ -68,7 +69,13 @@ export async function release({ path, processName, container }: Props): Promise<
         ? { contentsId: existingFile.contentsId, name: existingFile.name, extension: existingFile.type }
         : undefined;
 
-      await container.get(TemporalFileUploader).run(temporalFile, replaces);
+      const releaseUploadSlot = await acquireUploadSlot();
+      try {
+        await container.get(TemporalFileUploader).run(temporalFile, replaces);
+      } finally {
+        releaseUploadSlot();
+      }
+
       logger.debug({ msg: '[Release] Temporal file uploaded', path, processName });
       return { data: undefined };
     } catch (uploadError) {
