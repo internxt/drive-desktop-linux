@@ -39,6 +39,10 @@ function getExpectedPaths({ manager }: { manager: SupportedFileManager }) {
     return [join(home, '.local/share/nemo-python/extensions/internxt-virtual-drive.py')];
   }
 
+  if (manager === 'thunar') {
+    return [join(home, '.local/share/thunarx-python/extensions/internxt-virtual-drive.py')];
+  }
+
   return [
     join(home, '.local/share/kio/servicemenus/internxt-virtual-drive.desktop'),
     join(home, '.local/share/kservices5/ServiceMenus/internxt-virtual-drive.desktop'),

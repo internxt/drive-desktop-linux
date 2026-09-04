@@ -12,6 +12,7 @@ import { OfflineContentsUploadedDomainEventMother } from '../../domain/events/__
 import { call } from 'tests/vitest/utils.helper';
 import { preserveRejectedFileSizeTooBig } from '../../../../../backend/features/user/file-size-limit';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
+import { DeleteTemporalFileIfUnchanged } from '../../../../storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
 
 vi.mock('../../../../../backend/features/user/file-size-limit', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../../../backend/features/user/file-size-limit')>();
@@ -30,6 +31,14 @@ describe('Create File On Offline File Uploaded', () => {
   const environment = {} as Environment;
   const bucket = 'test-bucket';
 
+  let reaper: { run: ReturnType<typeof vi.fn> };
+
+  beforeEach(() => {
+    reaper = { run: vi.fn().mockResolvedValue(undefined) };
+  });
+
+  const deleteIfUnchanged = () => reaper as unknown as DeleteTemporalFileIfUnchanged;
+
   afterEach(() => {
     clearMaxFileSizeRejectionModal();
   });
@@ -42,7 +51,7 @@ describe('Create File On Offline File Uploaded', () => {
 
     const uploadedEvent = OfflineContentsUploadedDomainEventMother.doesNotReplace();
 
-    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket);
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged());
 
     await sut.on(uploadedEvent);
 
@@ -57,7 +66,7 @@ describe('Create File On Offline File Uploaded', () => {
 
     const uploadedEvent = OfflineContentsUploadedDomainEventMother.replacesContents();
 
-    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket);
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged());
 
     await sut.on(uploadedEvent);
 
@@ -72,7 +81,7 @@ describe('Create File On Offline File Uploaded', () => {
 
     const uploadedEvent = OfflineContentsUploadedDomainEventMother.replacesContents();
 
-    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket);
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged());
 
     await sut.on(uploadedEvent);
 
@@ -87,7 +96,7 @@ describe('Create File On Offline File Uploaded', () => {
     const uploadedEvent = OfflineContentsUploadedDomainEventMother.doesNotReplace();
     Object.assign(uploadedEvent, { contentFilePath: '/tmp/internxt-drive-tmp/staged-file' });
 
-    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket);
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged());
 
     await sut.on(uploadedEvent);
 
@@ -107,7 +116,14 @@ describe('Create File On Offline File Uploaded', () => {
 
     overrider.mock.mockRejectedValue(new DriveDesktopError('EMPTY_FILE', 'You can not have empty files'));
 
-    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, notifier);
+    const sut = new CreateFileOnTemporalFileUploaded(
+      creator,
+      overrider,
+      environment,
+      bucket,
+      deleteIfUnchanged(),
+      notifier,
+    );
 
     await sut.on(uploadedEvent);
 
@@ -117,5 +133,60 @@ describe('Create File On Offline File Uploaded', () => {
         cause: 'EMPTY_FILE',
       }),
     );
+  });
+  it('reaps the staged copy after an override, so a later release has nothing to upload', async () => {
+    const creator = new FileCreatorTestClass();
+    const overrider = new FileOverriderTestClass();
+    overrider.mock.mockResolvedValue(FileMother.noThumbnable());
+
+    const uploadedEvent = OfflineContentsUploadedDomainEventMother.replacesContents();
+
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged());
+
+    await sut.on(uploadedEvent);
+
+    expect(reaper.run).toHaveBeenCalledWith(uploadedEvent.path, uploadedEvent.uploadedRevision);
+  });
+
+  it('reaps the staged copy of a newly created file at the revision the upload read', async () => {
+    const creator = new FileCreatorTestClass();
+    const overrider = new FileOverriderTestClass();
+    creator.mock.mockResolvedValue(FileMother.noThumbnable());
+
+    const uploadedEvent = OfflineContentsUploadedDomainEventMother.doesNotReplace();
+
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged());
+
+    await sut.on(uploadedEvent);
+
+    expect(reaper.run).toHaveBeenCalledWith(uploadedEvent.path, uploadedEvent.uploadedRevision);
+  });
+
+  it('keeps the staged copy when the create fails, so the next release retries', async () => {
+    const creator = new FileCreatorTestClass();
+    const overrider = new FileOverriderTestClass();
+    creator.mock.mockRejectedValue(new DriveDesktopError('INTERNAL_SERVER_ERROR'));
+
+    const uploadedEvent = OfflineContentsUploadedDomainEventMother.doesNotReplace();
+
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged());
+
+    await sut.on(uploadedEvent);
+
+    expect(reaper.run).not.toHaveBeenCalled();
+  });
+
+  it('keeps the staged copy when the override fails, so the next release retries', async () => {
+    const creator = new FileCreatorTestClass();
+    const overrider = new FileOverriderTestClass();
+    overrider.mock.mockRejectedValue(new DriveDesktopError('INTERNAL_SERVER_ERROR'));
+
+    const uploadedEvent = OfflineContentsUploadedDomainEventMother.replacesContents();
+
+    const sut = new CreateFileOnTemporalFileUploaded(creator, overrider, environment, bucket, deleteIfUnchanged());
+
+    await sut.on(uploadedEvent);
+
+    expect(reaper.run).not.toHaveBeenCalled();
   });
 });

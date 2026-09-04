@@ -38,33 +38,48 @@ export class EnvironmentContentFileDownloader implements DownloaderHandler {
     this.abortController = new AbortController();
 
     try {
-      const result = Reflect.apply(this.environment.download, this.environment, [
-        this.bucket,
-        fileId,
-        {
-          progressCallback: (progress: number) => {
-            this.eventEmitter.emit('progress', progress, this.elapsedTime());
+      const stream = await new Promise<Readable>((resolve, reject) => {
+        // Called directly rather than through `Reflect.apply`: that returned
+        // `any`, so neither the options object nor the return value was checked
+        // against `DownloadStrategyFunction`.
+        const state = this.environment.download(
+          this.bucket,
+          fileId,
+          {
+            progressCallback: (progress: number) => {
+              this.eventEmitter.emit('progress', progress, this.elapsedTime());
+            },
+            // The result channel. `DownloadOptions.finishedCallback` is
+            // required, and this API returns an `ActionState` rather than a
+            // Promise, so there was never a promise to await.
+            finishedCallback: (err: Error | null, fileStream: Readable | null) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+              if (!(fileStream instanceof Readable)) {
+                reject(new Error('Download stream not available'));
+                return;
+              }
+              resolve(fileStream);
+            },
           },
-          abortSignal: this.abortController.signal,
-        },
-        {
-          label: 'Dynamic',
-          params: {
-            useProxy: false,
-            chunkSize: 4096 * 1024,
+          {
+            label: 'Dynamic',
+            params: {
+              useProxy: false,
+              chunkSize: 4096 * 1024,
+            },
           },
-        },
-      ]);
+        );
 
-      if (!(result instanceof Promise)) {
-        throw new Error('Environment download strategy must return a Promise');
-      }
-
-      const stream = await result;
-
-      if (!(stream instanceof Readable)) {
-        throw new Error('Download stream not available');
-      }
+        // Cancellation belongs to the returned `ActionState`. `abortSignal` is
+        // not a member of `DownloadOptions`, so `forceStop()` previously
+        // aborted a controller that nothing observed.
+        this.abortController?.signal.addEventListener('abort', () => {
+          this.environment.downloadCancel(state);
+        });
+      });
 
       this.eventEmitter.emit('finish', this.elapsedTime());
 

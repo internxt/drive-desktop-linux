@@ -1,11 +1,13 @@
 import { ContainerBuilder } from 'diod';
 import { FileCreator } from '../../../../context/virtual-drive/files/application/create/FileCreator';
+import { PendingModificationTimes } from '../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 import { FileTrasher } from '../../../../context/virtual-drive/files/application/trash/FileTrasher';
 import { FilePathUpdater } from '../../../../context/virtual-drive/files/application/move/FilePathUpdater';
 import { FilesByFolderPathSearcher } from '../../../../context/virtual-drive/files/application/search/FilesByFolderPathSearcher';
 import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { SingleFileMatchingSearcher } from '../../../../context/virtual-drive/files/application/search/SingleFileMatchingSearcher';
 import { CreateFileOnTemporalFileUploaded } from '../../../../context/virtual-drive/files/application/create/CreateFileOnTemporalFileUploaded';
+import { DeleteTemporalFileIfUnchanged } from '../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
 import { FileOverrider } from '../../../../context/virtual-drive/files/application/override/FileOverrider';
 import { FilesSearcherByPartialMatch } from '../../../../context/virtual-drive/files/application/search-all/FilesSearcherByPartialMatch';
 import { SyncFileMessenger } from '../../../../context/virtual-drive/files/domain/SyncFileMessenger';
@@ -50,6 +52,10 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
 
   builder.registerAndUse(FileTrasher);
 
+  // Singleton on purpose: the utimens service writes the pending time and
+  // FileCreator reads it, so they must share one instance.
+  builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
+
   builder.registerAndUse(FileCreator);
 
   builder.registerAndUse(FilesSearcherByPartialMatch);
@@ -69,6 +75,7 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
         c.get(FileOverrider),
         c.get(Environment),
         user.bucket,
+        c.get(DeleteTemporalFileIfUnchanged),
         c.get(SyncFileMessenger),
       );
     })
