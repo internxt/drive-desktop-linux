@@ -11,6 +11,7 @@ import { TemporalFileCreator } from '../../../../context/storage/TemporalFiles/a
 import { TemporalFileWriter } from '../../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { DeleteTemporalFileIfUnchanged } from '../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
+import { PendingModificationTimes } from '../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 
 let folder: string;
 
@@ -22,10 +23,8 @@ vi.mock('../../../../core/electron/paths', () => ({
   },
 }));
 
-vi.mock('../../../shared/dependency-injection/DependencyInjectionUserProvider', () => ({
-  DependencyInjectionUserProvider: {
-    get: () => ({ bucket: 'test-bucket' }),
-  },
+vi.mock('../../../../backend/features/auth/get-user', () => ({
+  getUser: () => ({ data: { bucket: 'test-bucket' } }),
 }));
 
 const PATH = '/Private/notes/passwords.kdbx';
@@ -59,6 +58,7 @@ describe('registerTemporalFilesServices wires one repository', () => {
     builder.register(Environment).useInstance({} as Environment);
     builder.register(UploadProgressTracker).useInstance({} as UploadProgressTracker);
     builder.register(EventBus).useInstance({ publish: vi.fn() } as unknown as EventBus);
+    builder.registerAndUse(PendingModificationTimes);
 
     await registerTemporalFilesServices(builder);
 
