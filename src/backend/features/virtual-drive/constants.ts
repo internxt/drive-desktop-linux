@@ -18,6 +18,7 @@ export const OPERATION_PATHS = {
   UNLINK: '/unlink',
   RMDIR: '/rmdir',
   STAT_FS: '/statfs',
+  UTIMENS: '/utimens',
 } as const;
 /**
  * property to define a regular file when requesting in the get attributes fuse request.

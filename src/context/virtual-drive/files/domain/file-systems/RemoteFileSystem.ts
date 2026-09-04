@@ -11,6 +11,8 @@ export type FileDataToPersist = {
   size: FileSize;
   folderId: FileFolderId;
   folderUuid: string;
+  // Set only when utimensat asked for a time while the file was still staged.
+  modificationTime?: Date;
 };
 
 export type PersistedFileData = {
