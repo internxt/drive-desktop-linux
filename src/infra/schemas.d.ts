@@ -1028,6 +1028,23 @@ export interface paths {
     patch: operations['FileController_moveFile'];
     trace?: never;
   };
+  '/files/sync': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get delta of files since a date */
+    get: operations['FileController_getFilesSync'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/files/recents': {
     parameters: {
       query?: never;
@@ -2305,10 +2322,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Search by name inside workspace */
-    get: operations['WorkspacesController_searchWorkspace'];
+    get?: never;
     put?: never;
-    post?: never;
+    /** Search by name inside workspace */
+    post: operations['WorkspacesController_searchWorkspace'];
     delete?: never;
     options?: never;
     head?: never;
@@ -2376,10 +2393,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Search for items from a part of the name */
-    get: operations['FuzzySearchController_fuzzySearch'];
+    get?: never;
     put?: never;
-    post?: never;
+    /** Search for items from a part of the name */
+    post: operations['FuzzySearchController_fuzzySearch'];
     delete?: never;
     options?: never;
     head?: never;
@@ -2636,6 +2653,23 @@ export interface paths {
     patch: operations['PhotosController_updatePhotoDeviceAsFolder'];
     trace?: never;
   };
+  '/photos/folders/files/delta/search': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Get delta of files inside given folders */
+    post: operations['PhotosController_getFilesInFolders'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/storage/trash/paginated': {
     parameters: {
       query?: never;
@@ -2749,6 +2783,44 @@ export interface paths {
     post?: never;
     /** Deletes a single file form user's trash */
     delete: operations['TrashController_deleteFolder'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/favorites': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Gets favorite items
+     * @description Returns the favorite files or folders of the user, depending on the `type` query param.
+     */
+    get: operations['FavoriteController_getFavorites'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/favorites/{itemType}/{itemId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Mark an item as favorite */
+    put: operations['FavoriteController_markItemAsFavorite'];
+    post?: never;
+    /** Unmark an item as favorite */
+    delete: operations['FavoriteController_unmarkItemAsFavorite'];
     options?: never;
     head?: never;
     patch?: never;
@@ -2903,23 +2975,6 @@ export interface paths {
     put?: never;
     /** Get Device Context */
     post: operations['DeviceController_getDevice'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/device/geolocation': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Get Geolocation by ip */
-    post: operations['DeviceController_getLocation'];
     delete?: never;
     options?: never;
     head?: never;
@@ -3737,6 +3792,9 @@ export interface components {
     GetUserUsageDto: {
       drive: number;
       backup: number;
+      /** @description Mail storage charged to the shared plan counter, in bytes. Falls back to the last known cached value, or 0 if none is available, when the mail service cannot be reached. */
+      mail: number;
+      /** @description Sum of drive, backup and mail usage. */
       total: number;
     };
     GetUserLimitDto: {
@@ -3839,6 +3897,7 @@ export interface components {
       status: 'EXISTS' | 'TRASHED' | 'DELETED';
       removed: boolean;
       deleted: boolean;
+      isFavorite?: boolean;
     };
     CreateBulkFoldersConflictResponseDto: {
       /** @example Folders already exist */
@@ -3850,6 +3909,22 @@ export interface components {
        *     ]
        */
       existentFolders: string[];
+    };
+    ThumbnailDto: {
+      id: number;
+      fileId: number;
+      fileUuid: string;
+      maxWidth: number;
+      maxHeight: number;
+      type: string;
+      size: number;
+      bucketId: string;
+      bucketFile: string;
+      encryptVersion: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
     };
     FileDto: {
       id: number;
@@ -3874,6 +3949,8 @@ export interface components {
       plainName: string;
       /** @enum {string} */
       status: 'EXISTS' | 'TRASHED' | 'DELETED';
+      isFavorite?: boolean;
+      thumbnails?: components['schemas']['ThumbnailDto'][];
     };
     FilesDto: {
       files: components['schemas']['FileDto'][];
@@ -3940,6 +4017,7 @@ export interface components {
       status: 'EXISTS' | 'TRASHED' | 'DELETED';
       removed: boolean;
       deleted: boolean;
+      isFavorite?: boolean;
       children: components['schemas']['FolderDto'][];
       files: components['schemas']['FileDto'][];
     };
@@ -4063,6 +4141,8 @@ export interface components {
     GetFileLimitsDto: {
       versioning: components['schemas']['VersioningLimitsDto'];
       maxUploadFileSize: number | null;
+      /** @description Whether photos access is enabled for this tier */
+      photosAccess: boolean;
     };
     FileVersionDto: {
       id: string;
@@ -4116,6 +4196,34 @@ export interface components {
        * @example New type
        */
       type: string;
+    };
+    FileSyncDto: {
+      id: number;
+      uuid: string;
+      fileId: string | null;
+      name: string;
+      type: string;
+      size: string;
+      bucket: string;
+      folderId: number;
+      folderUuid: string;
+      encryptVersion: string;
+      userId: number;
+      /** Format: date-time */
+      creationTime: string;
+      /** Format: date-time */
+      modificationTime: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+      plainName: string;
+      /** @enum {string} */
+      status: 'EXISTS' | 'TRASHED' | 'DELETED';
+    };
+    GetFilesSyncResponseDto: {
+      files: components['schemas']['FileSyncDto'][];
+      nextCursor: string | null;
     };
     MoveFileDto: {
       /**
@@ -4181,22 +4289,6 @@ export interface components {
        * @example 03-aes
        */
       encryptVersion: string;
-    };
-    ThumbnailDto: {
-      id: number;
-      fileId: number;
-      fileUuid: string;
-      maxWidth: number;
-      maxHeight: number;
-      type: string;
-      size: number;
-      bucketId: string;
-      bucketFile: string;
-      encryptVersion: string;
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
     };
     SetSharingPasswordDto: {
       /**
@@ -4376,6 +4468,7 @@ export interface components {
       status: 'EXISTS' | 'TRASHED' | 'DELETED';
       removed: boolean;
       deleted: boolean;
+      isFavorite?: boolean;
       /** @description Owner of the folder */
       user: components['schemas']['SharingOwnerInfoDto'] | null;
     };
@@ -4436,6 +4529,8 @@ export interface components {
       plainName: string;
       /** @enum {string} */
       status: 'EXISTS' | 'TRASHED' | 'DELETED';
+      isFavorite?: boolean;
+      thumbnails?: components['schemas']['ThumbnailDto'][];
       /** @description Owner of the file */
       user: components['schemas']['SharingOwnerInfoDto'] | null;
     };
@@ -4770,6 +4865,42 @@ export interface components {
        */
       phoneNumber: Record<string, never>;
     };
+    FuzzySearchQueryDto: {
+      /**
+       * @description Offset for pagination
+       * @example 0
+       */
+      offset?: number;
+      /**
+       * @description File extensions to filter by, or the reserved value "folder" to include folders (a single string is also accepted)
+       * @example [
+       *       "jpg",
+       *       "pdf",
+       *       "folder"
+       *     ]
+       */
+      type?: string[];
+      /**
+       * @description Minimum file size in bytes (folders are excluded)
+       * @example 5242880
+       */
+      minSize?: number;
+      /**
+       * @description Maximum file size in bytes (folders are excluded)
+       * @example 1073741824
+       */
+      maxSize?: number;
+      /**
+       * @description Filter items modified after this date
+       * @example 2026-01-01T00:00:00.000Z
+       */
+      modifiedAfter?: string;
+      /**
+       * @description Filter items modified before this date
+       * @example 2026-06-30T23:59:59.999Z
+       */
+      modifiedBefore?: string;
+    };
     FuzzySearchResult: {
       id: string;
       itemId: string;
@@ -4809,6 +4940,7 @@ export interface components {
       status: 'EXISTS' | 'TRASHED' | 'DELETED';
       removed: boolean;
       deleted: boolean;
+      isFavorite?: boolean;
       hasBackups: boolean;
       /** Format: date-time */
       lastBackupAt: string;
@@ -4906,6 +5038,20 @@ export interface components {
     };
     CreateDeviceAsFolderDto: {
       deviceName: string;
+    };
+    GetFilesInFoldersDto: {
+      /** @description Folder uuids to fetch children files from */
+      folderUuids: string[];
+      /** @description Filter files updated after this date. Required if cursor is not provided */
+      updatedAt?: string;
+      /** @description Cursor token to fetch the next page of results */
+      cursor?: string;
+      /** @description Page size, max 1000 */
+      limit?: number;
+    };
+    GetFilesInFoldersResponseDto: {
+      files: components['schemas']['FileDto'][];
+      nextCursor: string | null;
     };
     ItemToTrashDto: {
       /**
@@ -5079,6 +5225,36 @@ export interface components {
        * @example 123456
        */
       code?: string;
+    };
+    CliEccKeysDto: {
+      /** @example publicKeyExample */
+      publicKey?: string;
+      /** @example privateKeyExample */
+      privateKey?: string;
+      /** @example revocationKeyExample */
+      revocationKey?: string;
+    };
+    CliKeysDto: {
+      ecc?: components['schemas']['CliEccKeysDto'];
+    };
+    CliLoginAccessDto: {
+      /**
+       * @description The email of the user
+       * @example user@internxt.com
+       */
+      email: string;
+      /**
+       * @description User password
+       * @example some_hashed_pass
+       */
+      password: string;
+      /**
+       * @description TFA
+       * @example two_factor_authentication_code
+       */
+      tfa?: string;
+      /** @description keys */
+      keys?: components['schemas']['CliKeysDto'];
     };
     CreateSendLinkDto: {
       /**
@@ -6918,6 +7094,34 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['FileDto'];
+        };
+      };
+    };
+  };
+  FileController_getFilesSync: {
+    parameters: {
+      query?: {
+        /** @description File status filter */
+        status?: 'EXISTS' | 'TRASHED' | 'DELETED';
+        /** @description Filter files updated after this date. Required if cursor is not provided */
+        updatedAt?: string;
+        /** @description Cursor token to fetch the next page of results */
+        cursor?: string;
+        /** @description Page size, max 1000 */
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['GetFilesSyncResponseDto'];
         };
       };
     };
@@ -8887,9 +9091,7 @@ export interface operations {
   };
   WorkspacesController_searchWorkspace: {
     parameters: {
-      query: {
-        offset: number;
-      };
+      query?: never;
       header?: never;
       path: {
         search: string;
@@ -8897,7 +9099,11 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FuzzySearchQueryDto'];
+      };
+    };
     responses: {
       /** @description Search results */
       200: {
@@ -8973,16 +9179,18 @@ export interface operations {
   };
   FuzzySearchController_fuzzySearch: {
     parameters: {
-      query: {
-        offset: number;
-      };
+      query?: never;
       header?: never;
       path: {
         search: string;
       };
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FuzzySearchQueryDto'];
+      };
+    };
     responses: {
       /** @description Elements found */
       200: {
@@ -9446,6 +9654,29 @@ export interface operations {
       };
     };
   };
+  PhotosController_getFilesInFolders: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['GetFilesInFoldersDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['GetFilesInFoldersResponseDto'];
+        };
+      };
+    };
+  };
   TrashController_getTrashedFilesPaginated: {
     parameters: {
       query: {
@@ -9587,6 +9818,83 @@ export interface operations {
     requestBody?: never;
     responses: {
       204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FavoriteController_getFavorites: {
+    parameters: {
+      query: {
+        /** @description Items per page */
+        limit: number;
+        /** @description Offset for pagination */
+        offset: number;
+        /** @description Type of favorite items to list */
+        type: 'file' | 'folder';
+        /** @description Field to sort by */
+        sort?: 'uuid' | 'plainName' | 'updatedAt';
+        /** @description Sort order */
+        order?: 'ASC' | 'DESC';
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Favorite files or folders, depending on `type` */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': (components['schemas']['FileDto'] | components['schemas']['FolderDto'])[];
+        };
+      };
+    };
+  };
+  FavoriteController_markItemAsFavorite: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description file | folder */
+        itemType: string;
+        /** @description UUID of the item to mark as favorite */
+        itemId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Item marked as favorite */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FavoriteController_unmarkItemAsFavorite: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description file | folder */
+        itemType: string;
+        /** @description UUID of the item to unmark as favorite */
+        itemId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Item unmarked as favorite */
+      200: {
         headers: {
           [name: string]: unknown;
         };
@@ -9752,7 +10060,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['LoginAccessDto'];
+        'application/json': components['schemas']['CliLoginAccessDto'];
       };
     };
     responses: {
@@ -9830,24 +10138,6 @@ export interface operations {
     requestBody?: never;
     responses: {
       /** @description Get Device Context by user agent */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  DeviceController_getLocation: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Get geolocation by ip */
       200: {
         headers: {
           [name: string]: unknown;

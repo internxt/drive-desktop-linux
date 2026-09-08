@@ -1,71 +1,73 @@
-import { call, partialSpyOn } from 'tests/vitest/utils.helper';
-import { loggerMock } from 'tests/vitest/mocks.helper';
+import { partialSpyOn } from 'tests/vitest/utils.helper';
 
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
-import { fetchFiles } from './fetch-files';
+import { fetchFilesSync } from './fetch-files';
 
-describe('fetchFiles', () => {
+describe('fetch-files', () => {
   const driveServerGetMock = partialSpyOn(driveServerClient, 'GET');
 
   const defaultQuery = {
     limit: 50,
-    offset: 0,
-    status: 'ALL' as const,
-    updatedAt: undefined,
   };
 
-  it('should return files and hasMore=false when response has fewer items than limit', async () => {
+  it('should return files and nextCursor when response is valid', async () => {
     const filesData = [
       { id: 1, uuid: 'file-uuid-1' },
       { id: 2, uuid: 'file-uuid-2' },
     ];
-    driveServerGetMock.mockResolvedValue({ data: filesData } as object);
+    driveServerGetMock.mockResolvedValue({ data: { files: filesData, nextCursor: null } } as object);
 
-    const result = await fetchFiles(defaultQuery);
+    const result = await fetchFilesSync(defaultQuery);
 
     expect(result.data?.files).toStrictEqual(filesData);
-    expect(result.data?.hasMore).toBe(false);
+    expect(result.data?.nextCursor).toBeNull();
     expect(result.error).toBeUndefined();
   });
 
-  it('should return hasMore=true when response length equals limit', async () => {
-    const filesData = Array.from({ length: 50 }, (_, i) => ({ id: i, uuid: `file-uuid-${i}` }));
-    driveServerGetMock.mockResolvedValue({ data: filesData } as object);
+  it('should forward nextCursor when more pages are available', async () => {
+    driveServerGetMock.mockResolvedValue({
+      data: { files: [], nextCursor: 'cursor-token-123' },
+    } as object);
 
-    const result = await fetchFiles(defaultQuery);
+    const result = await fetchFilesSync(defaultQuery);
 
-    expect(result.data?.hasMore).toBe(true);
+    expect(result.data?.nextCursor).toBe('cursor-token-123');
   });
 
-  it('should pass updatedAt to the query when provided', async () => {
-    driveServerGetMock.mockResolvedValue({ data: [] } as object);
+  it('should pass status and updatedAt to the query when provided', async () => {
+    driveServerGetMock.mockResolvedValue({ data: { files: [], nextCursor: null } } as object);
 
-    const query = { ...defaultQuery, updatedAt: '2026-01-01T00:00:00.000Z' };
-    await fetchFiles(query);
+    const query = { ...defaultQuery, status: 'EXISTS' as const, updatedAt: '2026-01-01T00:00:00.000Z' };
+    await fetchFilesSync(query);
 
-    expect(driveServerGetMock).toHaveBeenCalledWith('/files', { query });
+    expect(driveServerGetMock).toHaveBeenCalledWith('/files/sync', { query });
   });
 
-  it('should log and return error when the request fails', async () => {
+  it('should pass cursor to the query when provided', async () => {
+    driveServerGetMock.mockResolvedValue({ data: { files: [], nextCursor: null } } as object);
+
+    const query = { ...defaultQuery, cursor: 'cursor-abc' };
+    await fetchFilesSync(query);
+
+    expect(driveServerGetMock).toHaveBeenCalledWith('/files/sync', { query });
+  });
+
+  it('should return error when the request fails', async () => {
     const error = new DriveServerError('NETWORK_ERROR', 500);
     driveServerGetMock.mockResolvedValue({ data: undefined, error } as object);
 
-    const result = await fetchFiles(defaultQuery);
+    const result = await fetchFilesSync(defaultQuery);
 
     expect(result.error).toBe(error);
   });
 
-  it('should return error when response is not an array', async () => {
-    driveServerGetMock.mockResolvedValue({ data: { unexpected: 'object' } } as object);
+  it('should return unknown error when data is empty', async () => {
+    driveServerGetMock.mockResolvedValue({ data: undefined, error: undefined } as object);
 
-    const result = await fetchFiles(defaultQuery);
+    const result = await fetchFilesSync(defaultQuery);
 
     expect(result.error).toBeInstanceOf(DriveServerError);
     expect(result.error?.cause).toBe('UNKNOWN');
-    call(loggerMock.error).toMatchObject({
-      msg: expect.stringContaining('Expected to receive an array of files'),
-      path: '/files',
-    });
   });
 });

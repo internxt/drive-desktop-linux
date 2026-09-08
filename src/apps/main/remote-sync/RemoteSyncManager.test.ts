@@ -29,7 +29,7 @@ import { DriveFolder } from '../database/entities/DriveFolder';
 import { createOrUpdateFileByBatch } from '../../../infra/sqlite/services/file/create-or-update-file-by-batch';
 import { createOrUpdateFolderByBatch } from '../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
 
-const mockedGet = vi.mocked(driveServerClient.GET);
+const mockedGet = vi.mocked(driveServerClient.GET as unknown as (...args: unknown[]) => Promise<unknown>);
 const mockedCreateOrUpdateFileByBatch = vi.mocked(createOrUpdateFileByBatch);
 const mockedCreateOrUpdateFolderByBatch = vi.mocked(createOrUpdateFolderByBatch);
 
@@ -138,21 +138,19 @@ describe('RemoteSyncManager', () => {
 
       mockedGet
         .mockResolvedValueOnce({
-          data: [
-            createRemoteSyncedFileFixture({
-              plainName: 'file_1',
-            }),
-            createRemoteSyncedFileFixture({
-              plainName: 'file_2',
-            }),
-          ],
+          data: {
+            files: [
+              createRemoteSyncedFileFixture({ plainName: 'file_1' }),
+              createRemoteSyncedFileFixture({ plainName: 'file_2' }),
+            ],
+            nextCursor: 'cursor-1',
+          },
         })
         .mockResolvedValueOnce({
-          data: [
-            createRemoteSyncedFileFixture({
-              plainName: 'file_3',
-            }),
-          ],
+          data: {
+            files: [createRemoteSyncedFileFixture({ plainName: 'file_3' })],
+            nextCursor: null,
+          },
         });
 
       await sut.startRemoteSync();
@@ -178,35 +176,23 @@ describe('RemoteSyncManager', () => {
       mockedGet
         .mockResolvedValueOnce({
           data: [
-            createRemoteSyncedFolderFixture({
-              plainName: 'folder_1',
-            }),
-            createRemoteSyncedFolderFixture({
-              plainName: 'folder_2',
-            }),
+            createRemoteSyncedFolderFixture({ plainName: 'folder_1' }),
+            createRemoteSyncedFolderFixture({ plainName: 'folder_2' }),
           ],
         })
         .mockResolvedValueOnce({
           data: [
-            createRemoteSyncedFolderFixture({
-              plainName: 'folder_3',
-            }),
-            createRemoteSyncedFolderFixture({
-              plainName: 'folder_4',
-            }),
+            createRemoteSyncedFolderFixture({ plainName: 'folder_3' }),
+            createRemoteSyncedFolderFixture({ plainName: 'folder_4' }),
           ],
         })
         .mockResolvedValueOnce({
-          data: [
-            createRemoteSyncedFolderFixture({
-              plainName: 'folder_5',
-            }),
-          ],
+          data: [createRemoteSyncedFolderFixture({ plainName: 'folder_5' })],
         });
 
       await sut.startRemoteSync();
 
-      expect(mockedGet).toBeCalledTimes(3);
+      expect(mockedGet).toHaveBeenCalledTimes(3);
       expect(sut.getSyncStatus()).toBe('SYNCED');
     });
 
@@ -232,13 +218,11 @@ describe('RemoteSyncManager', () => {
         plainName: 'file_2',
       });
 
-      mockedGet.mockResolvedValueOnce({ data: [file1, file2] });
-
-      mockedGet.mockResolvedValueOnce({ data: [] });
+      mockedGet.mockResolvedValueOnce({ data: { files: [file1, file2], nextCursor: null } });
 
       await sut.startRemoteSync();
 
-      expect(mockedGet).toBeCalledTimes(2);
+      expect(mockedGet).toHaveBeenCalledTimes(1);
       expect(sut.getSyncStatus()).toBe('SYNCED');
       expect(mockedCreateOrUpdateFileByBatch).toBeCalledWith({ files: [file1, file2] });
     });
@@ -250,7 +234,7 @@ describe('RemoteSyncManager', () => {
 
       await sut.startRemoteSync();
 
-      expect(mockedGet).toBeCalledTimes(6);
+      expect(mockedGet).toHaveBeenCalledTimes(6);
       expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
     });
 
@@ -259,7 +243,7 @@ describe('RemoteSyncManager', () => {
 
       await sut.startRemoteSync();
 
-      expect(mockedGet).toBeCalledTimes(6);
+      expect(mockedGet).toHaveBeenCalledTimes(6);
       expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
     });
 

@@ -64,7 +64,11 @@ type OperationQuery<T, P extends keyof T, M extends HTTPMethod> =
     parameters: { query: infer Q };
   }
     ? Q
-    : never;
+    : MethodShape<T[P], M> extends {
+          parameters: { query?: infer Q };
+        }
+      ? Exclude<Q, undefined>
+      : never;
 
 /**
  * Infers the path parameters for an endpoint, if any.
