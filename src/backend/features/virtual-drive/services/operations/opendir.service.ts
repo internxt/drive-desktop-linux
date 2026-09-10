@@ -19,6 +19,7 @@ export type OpenDirData = {
 };
 
 export async function opendir(path: string, container: Container): Promise<Result<OpenDirData, FuseError>> {
+  const startedAt = Date.now();
   try {
     const [fileNames, folderNames, temporalFiles] = await Promise.all([
       container.get(FilesByFolderPathSearcher).run(path),
@@ -31,6 +32,8 @@ export async function opendir(path: string, container: Container): Promise<Resul
       ...folderNames.map((name) => ({ name, mode: FOLDER_MODE })),
       ...temporalFiles.filter((f) => f.isAuxiliary()).map((f) => ({ name: f.name, mode: FILE_MODE })),
     ];
+
+    logger.debug({ msg: '[TIMING] OpenDir', path, entries: entries.length, elapsedMs: Date.now() - startedAt });
 
     return { data: { entries } };
   } catch (err) {
