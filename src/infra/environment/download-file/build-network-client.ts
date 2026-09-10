@@ -22,5 +22,9 @@ export function buildNetworkClient(credentials: NetworkClientCredentials): Netwo
     },
   );
 
-  return withDownloadLinksCache({ network });
+  const authorizationContext = createHash('sha256')
+    .update(`${credentials.bridgeUser}:${credentials.userId}`)
+    .digest('hex');
+
+  return withDownloadLinksCache({ network, authorizationContext });
 }

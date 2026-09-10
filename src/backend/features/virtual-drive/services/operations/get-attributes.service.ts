@@ -7,16 +7,12 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 export async function getAttributes(
   path: string,
   container: Container,
 ): Promise<Result<GetAttributesCallbackData, FuseError>> {
-  const startedAt = Date.now();
-  const result = await getAttributesUncached(path, container);
-  logger.debug({ msg: '[TIMING] GetAttributes', path, elapsedMs: Date.now() - startedAt });
-  return result;
+  return getAttributesUncached(path, container);
 }
 
 async function getAttributesUncached(

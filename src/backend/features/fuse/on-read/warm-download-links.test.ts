@@ -117,4 +117,39 @@ describe('warmDownloadLinks', () => {
 
     expect(getDownloadLinksMock).not.toHaveBeenCalled();
   });
+
+  it('should enforce concurrency globally across multiple calls', async () => {
+    let active = 0;
+    let maximumActive = 0;
+    const getDownloadLinksMock = vi.fn().mockImplementation(async () => {
+      active++;
+      maximumActive = Math.max(maximumActive, active);
+      await testSleep(20);
+      active--;
+    });
+    const files = buildImages(40);
+    const network = { getDownloadLinks: getDownloadLinksMock } as never;
+
+    warmDownloadLinks({ files, bucketId: 'bucket-id', network });
+    warmDownloadLinks({ files, bucketId: 'bucket-id', network, afterContentsId: 'image-1' });
+
+    await testSleep(140);
+
+    expect(maximumActive).toBe(5);
+  });
+
+  it('should deduplicate contents ids across overlapping calls', async () => {
+    const getDownloadLinksMock = vi.fn().mockImplementation(async () => {
+      await testSleep(20);
+    });
+    const files = buildImages(40);
+    const network = { getDownloadLinks: getDownloadLinksMock } as never;
+
+    warmDownloadLinks({ files, bucketId: 'bucket-id', network });
+    warmDownloadLinks({ files, bucketId: 'bucket-id', network });
+
+    await testSleep(120);
+
+    expect(getDownloadLinksMock).toHaveBeenCalledTimes(20);
+  });
 });

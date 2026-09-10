@@ -24,12 +24,8 @@ export async function downloadFileRange({
   let encryptedBytes: Buffer | undefined;
   let decryptedBuffer: Buffer | undefined;
   let operationError: Error | undefined;
-  let linksResolvedAt: number | undefined;
-  let fetchedAt: number | undefined;
-  const startedAt = Date.now();
 
   const downloadFileCb: DownloadFileFunction = async (downloadables) => {
-    linksResolvedAt = Date.now();
     if (range && downloadables.length > 1) {
       operationError = new Error('Multi-Part Download with Range-Requests is not implemented');
       return;
@@ -41,7 +37,6 @@ export async function downloadFileRange({
       // eslint-disable-next-line no-await-in-loop
       encryptedBytes = await fetchEncryptedRange(downloadable.url, range.position, range.length, signal);
     }
-    fetchedAt = Date.now();
   };
 
   const decryptFileCb: DecryptFileFunction = async (_, key, iv) => {
@@ -86,16 +81,6 @@ export async function downloadFileRange({
     return { error: error instanceof Error ? error : new Error('Unknown error occurred') };
   }
 
-  logger.debug({
-    msg: '[TIMING] downloadFileRange',
-    fileId,
-    rangeLength: range.length,
-    getDownloadLinksMs: linksResolvedAt ? linksResolvedAt - startedAt : undefined,
-    fetchAndTransferMs: linksResolvedAt && fetchedAt ? fetchedAt - linksResolvedAt : undefined,
-    decryptAndTotalMs: Date.now() - (fetchedAt ?? startedAt),
-    totalMs: Date.now() - startedAt,
-  });
-
   if (signal.aborted) return abortedDownloadResult();
   if (operationError) return { error: operationError };
   if (!decryptedBuffer) return { error: new Error('Decryption did not produce a buffer') };
@@ -135,7 +120,6 @@ async function fetchEncryptedRange(
     throw new Error('Invalid range');
   }
 
-  const requestedAt = Date.now();
   const response = await axios.get<NodeJS.ReadableStream>(url, {
     responseType: 'stream',
     signal,
@@ -143,8 +127,6 @@ async function fetchEncryptedRange(
       range: `bytes=${position}-${endOffset}`,
     },
   });
-  const headersAt = Date.now();
-
   return new Promise<Buffer>((resolve, reject) => {
     let bytesRead = 0;
     let buffer = Buffer.alloc(length);
@@ -162,17 +144,7 @@ async function fetchEncryptedRange(
       source.copy(buffer, bytesRead);
       bytesRead += source.length;
     });
-    response.data.on('end', () => {
-      logger.debug({
-        msg: '[TIMING] fetchEncryptedRange',
-        bytes: bytesRead,
-        // Connection setup + server think time vs actual body streaming.
-        ttfbMs: headersAt - requestedAt,
-        bodyMs: Date.now() - headersAt,
-        reusedSocket: response.request?.reusedSocket ?? null,
-      });
-      resolve(buffer.subarray(0, bytesRead));
-    });
+    response.data.on('end', () => resolve(buffer.subarray(0, bytesRead)));
     response.data.on('error', reject);
   });
 }
