@@ -25,8 +25,17 @@ function urlExpiringIn({ seconds }: { seconds: number }) {
   return `https://example.com/file?AWSAccessKeyId=abc&Expires=${Math.floor(Date.now() / 1000) + seconds}&Signature=x`;
 }
 
-function buildNetwork({ resolve }: { resolve: ReturnType<typeof vi.fn> }) {
-  return withDownloadLinksCache({ network: { getDownloadLinks: resolve } as unknown as Network.Network });
+function buildNetwork({
+  resolve,
+  authorizationContext = 'context-a',
+}: {
+  resolve: ReturnType<typeof vi.fn>;
+  authorizationContext?: string;
+}) {
+  return withDownloadLinksCache({
+    network: { getDownloadLinks: resolve } as unknown as Network.Network,
+    authorizationContext,
+  });
 }
 
 describe('with-download-links-cache', () => {
@@ -102,6 +111,32 @@ describe('with-download-links-cache', () => {
 
     expect(resolve).toHaveBeenCalledOnce();
     expect(results).toStrictEqual([links, links, links]);
+  });
+
+  it('should isolate cached and in-flight links between authorization contexts', async () => {
+    const firstLinks = buildLinks({ url: urlExpiringIn({ seconds: 3600 }) });
+    const secondLinks = buildLinks({ url: urlExpiringIn({ seconds: 3600 }) });
+    const firstResolve = vi.fn().mockResolvedValue(firstLinks);
+    const secondResolve = vi.fn().mockResolvedValue(secondLinks);
+    const firstNetwork = buildNetwork({ resolve: firstResolve, authorizationContext: 'user-a' });
+    const secondNetwork = buildNetwork({ resolve: secondResolve, authorizationContext: 'user-b' });
+    const fileId = nextFileId();
+
+    const [firstResult, secondResult] = await Promise.all([
+      firstNetwork.getDownloadLinks('bucket-id', fileId),
+      secondNetwork.getDownloadLinks('bucket-id', fileId),
+    ]);
+
+    expect(firstResult).toStrictEqual(firstLinks);
+    expect(secondResult).toStrictEqual(secondLinks);
+    expect(firstResolve).toHaveBeenCalledOnce();
+    expect(secondResolve).toHaveBeenCalledOnce();
+
+    await firstNetwork.getDownloadLinks('bucket-id', fileId);
+    await secondNetwork.getDownloadLinks('bucket-id', fileId);
+
+    expect(firstResolve).toHaveBeenCalledOnce();
+    expect(secondResolve).toHaveBeenCalledOnce();
   });
 
   it('should retry after a failed in-flight request instead of caching the failure', async () => {

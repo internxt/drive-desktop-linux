@@ -22,12 +22,28 @@ const cache = new Map<string, CacheEntry>();
 // Without this, both miss the (completed-only) cache and both hit the network.
 const inFlight = new Map<string, Promise<DownloadLinks>>();
 
-function cacheKeyFor({ bucketId, fileId }: { bucketId: string; fileId: string }) {
-  return `${bucketId}:${fileId}`;
+function cacheKeyFor({
+  authorizationContext,
+  bucketId,
+  fileId,
+}: {
+  authorizationContext: string;
+  bucketId: string;
+  fileId: string;
+}) {
+  return `${authorizationContext}:${bucketId}:${fileId}`;
 }
 
-function readEntry({ bucketId, fileId }: { bucketId: string; fileId: string }) {
-  const key = cacheKeyFor({ bucketId, fileId });
+function readEntry({
+  authorizationContext,
+  bucketId,
+  fileId,
+}: {
+  authorizationContext: string;
+  bucketId: string;
+  fileId: string;
+}) {
+  const key = cacheKeyFor({ authorizationContext, bucketId, fileId });
   const entry = cache.get(key);
   if (!entry) return undefined;
 
@@ -42,7 +58,17 @@ function readEntry({ bucketId, fileId }: { bucketId: string; fileId: string }) {
   return entry.links;
 }
 
-function writeEntry({ bucketId, fileId, links }: { bucketId: string; fileId: string; links: DownloadLinks }) {
+function writeEntry({
+  authorizationContext,
+  bucketId,
+  fileId,
+  links,
+}: {
+  authorizationContext: string;
+  bucketId: string;
+  fileId: string;
+  links: DownloadLinks;
+}) {
   const expiries = links.shards
     .map((shard) => parseSignedUrlExpiry({ url: shard.url }))
     .filter((value): value is number => value !== undefined);
@@ -52,7 +78,7 @@ function writeEntry({ bucketId, fileId, links }: { bucketId: string; fileId: str
   const expiresAt = Math.min(...expiries) - CACHE_SAFETY_MARGIN_MS;
   if (expiresAt <= Date.now()) return;
 
-  const key = cacheKeyFor({ bucketId, fileId });
+  const key = cacheKeyFor({ authorizationContext, bucketId, fileId });
   cache.delete(key);
 
   if (cache.size >= MAX_CACHE_ENTRIES) {
@@ -63,20 +89,26 @@ function writeEntry({ bucketId, fileId, links }: { bucketId: string; fileId: str
   cache.set(key, { links, expiresAt });
 }
 
-export function withDownloadLinksCache({ network }: { network: Network.Network }) {
+export function withDownloadLinksCache({
+  network,
+  authorizationContext,
+}: {
+  network: Network.Network;
+  authorizationContext: string;
+}) {
   const resolveLinks = network.getDownloadLinks.bind(network);
 
   network.getDownloadLinks = async (bucketId, fileId, token) => {
-    const cached = readEntry({ bucketId, fileId });
+    const cached = readEntry({ authorizationContext, bucketId, fileId });
     if (cached) return cached;
 
-    const key = cacheKeyFor({ bucketId, fileId });
+    const key = cacheKeyFor({ authorizationContext, bucketId, fileId });
     const pending = inFlight.get(key);
     if (pending) return await pending;
 
     const request = resolveLinks(bucketId, fileId, token)
       .then((links) => {
-        writeEntry({ bucketId, fileId, links });
+        writeEntry({ authorizationContext, bucketId, fileId, links });
         return links;
       })
       .finally(() => inFlight.delete(key));

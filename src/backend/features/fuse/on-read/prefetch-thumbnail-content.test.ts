@@ -82,6 +82,41 @@ describe('prefetch-thumbnail-content', () => {
     expect(readOrHydrateMock.mock.calls[0][0].virtualFile.contentsId).toBe('image-1');
   });
 
+  it('should enforce concurrency globally across multiple calls', async () => {
+    let active = 0;
+    let maximumActive = 0;
+    readOrHydrateMock.mockImplementation(async () => {
+      active++;
+      maximumActive = Math.max(maximumActive, active);
+      await testSleep(20);
+      active--;
+      return { data: Buffer.alloc(0) };
+    });
+
+    const files = buildImages(8);
+    prefetchThumbnailContent({ files, afterContentsId: 'image-0', ...deps() });
+    prefetchThumbnailContent({ files, afterContentsId: 'image-1', ...deps() });
+
+    await testSleep(120);
+
+    expect(maximumActive).toBe(2);
+  });
+
+  it('should deduplicate contents ids across overlapping calls', async () => {
+    readOrHydrateMock.mockImplementation(async () => {
+      await testSleep(20);
+      return { data: Buffer.alloc(0) };
+    });
+
+    const files = buildImages(8);
+    prefetchThumbnailContent({ files, afterContentsId: 'image-0', ...deps() });
+    prefetchThumbnailContent({ files, afterContentsId: 'image-0', ...deps() });
+
+    await testSleep(80);
+
+    expect(readOrHydrateMock).toHaveBeenCalledTimes(4);
+  });
+
   it('should not throw when a prefetch fails', async () => {
     readOrHydrateMock.mockRejectedValue(new Error('network error'));
 

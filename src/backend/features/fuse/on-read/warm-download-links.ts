@@ -1,11 +1,20 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { type Network } from '@internxt/sdk';
 import { canGenerateThumbnail } from '../../thumbnails/thumbnail.extensions';
-import { executeAsyncQueue } from '../../../common/async-queue/execute-async-queue';
 import { type File } from '../../../../context/virtual-drive/files/domain/File';
 
 const WARM_CONCURRENCY = 5;
 const WARM_AHEAD = 20;
+
+type WarmTask = {
+  file: File;
+  bucketId: string;
+  network: Network.Network;
+};
+
+const pendingTasks: WarmTask[] = [];
+const queuedKeys = new Set<string>();
+let activeTasks = 0;
 
 type Props = {
   files: File[];
@@ -27,18 +36,35 @@ export function warmDownloadLinks({ files, bucketId, network, afterContentsId }:
   const startIndex = afterContentsId ? candidates.findIndex((file) => file.contentsId === afterContentsId) + 1 : 0;
   const window = candidates.slice(startIndex, startIndex + WARM_AHEAD);
 
-  if (window.length === 0) return;
+  for (const file of window) {
+    const key = `${bucketId}:${file.contentsId}`;
+    if (queuedKeys.has(key)) continue;
 
-  void executeAsyncQueue(
-    window,
-    async (file) => {
-      try {
-        await network.getDownloadLinks(bucketId, file.contentsId);
-      } catch (error) {
-        logger.debug({ msg: '[WarmDownloadLinks] Failed to warm link', file: file.nameWithExtension, error });
-      }
-      return { data: undefined };
-    },
-    { concurrency: WARM_CONCURRENCY, signal: new AbortController().signal },
-  );
+    queuedKeys.add(key);
+    pendingTasks.push({ file, bucketId, network });
+  }
+
+  drainWarmQueue();
+}
+
+function drainWarmQueue() {
+  while (activeTasks < WARM_CONCURRENCY && pendingTasks.length > 0) {
+    const task = pendingTasks.shift();
+    if (!task) return;
+
+    activeTasks++;
+    void runWarmTask(task).finally(() => {
+      activeTasks--;
+      queuedKeys.delete(`${task.bucketId}:${task.file.contentsId}`);
+      drainWarmQueue();
+    });
+  }
+}
+
+async function runWarmTask({ file, bucketId, network }: WarmTask) {
+  try {
+    await network.getDownloadLinks(bucketId, file.contentsId);
+  } catch (error) {
+    logger.debug({ msg: '[WarmDownloadLinks] Failed to warm link', file: file.nameWithExtension, error });
+  }
 }

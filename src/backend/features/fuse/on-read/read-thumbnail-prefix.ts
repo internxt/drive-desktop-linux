@@ -4,10 +4,14 @@ import { FuseError, FuseIOError } from '../../../../apps/drive/fuse/callbacks/Fu
 import { type Result } from '../../../../context/shared/domain/Result';
 import { downloadFileRange } from '../../../../infra/environment/download-file/download-file';
 import { EMPTY } from './constants';
+import { readChunkFromDisk } from './read-chunk-from-disk';
+import { fileExistsOnDisk } from './download-cache/file-exists-on-disk';
+import { getExistingHydrationState, isRangeHydrated } from './download-cache/hydration-state';
 import { type HandleReadDeps, type ReadRange } from './types';
 
 type Props = {
   virtualFile: File;
+  filePath: string;
   range: ReadRange;
   bucketId: HandleReadDeps['bucketId'];
   mnemonic: HandleReadDeps['mnemonic'];
@@ -16,6 +20,7 @@ type Props = {
 
 export async function readThumbnailPrefix({
   virtualFile,
+  filePath,
   range,
   bucketId,
   mnemonic,
@@ -25,6 +30,14 @@ export async function readThumbnailPrefix({
   const length = end - range.position;
 
   if (length <= 0) return { data: EMPTY };
+
+  const state = getExistingHydrationState(virtualFile.contentsId);
+  if (state && isRangeHydrated(state, { position: range.position, length })) {
+    const cached = await fileExistsOnDisk(filePath);
+    if (cached) {
+      return { data: (await readChunkFromDisk(filePath, length, range.position)) ?? EMPTY };
+    }
+  }
 
   const download = await downloadFileRange({
     signal: new AbortController().signal,

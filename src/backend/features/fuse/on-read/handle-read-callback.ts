@@ -50,8 +50,6 @@ export async function handleReadCallback({
     return readFromTemporalFile(findTemporalFile, path, range.length, range.position);
   }
 
-  const startedAt = Date.now();
-
   if (isThumbnailProcess(processName)) {
     logger.debug({
       msg: '[ReadCallback] thumbnail process, reading through cache hydration',
@@ -64,19 +62,12 @@ export async function handleReadCallback({
 
     if (virtualFile.size > THUMBNAIL_WHOLE_FILE_LIMIT) {
       return withThumbnailReadSlot(async () => {
-        const result = await readThumbnailPrefix({ virtualFile, range, bucketId, mnemonic, network });
-        logger.debug({
-          msg: '[TIMING] Read (thumbnail prefix)',
-          file: virtualFile.nameWithExtension,
-          fileSize: virtualFile.size,
-          elapsedMs: Date.now() - startedAt,
-        });
+        const result = await readThumbnailPrefix({ virtualFile, filePath, range, bucketId, mnemonic, network });
         return result;
       });
     }
 
     return withThumbnailReadSlot(async () => {
-      const waitedMs = Date.now() - startedAt;
       const result = await readOrHydrate({
         bucketId,
         mnemonic,
@@ -89,20 +80,13 @@ export async function handleReadCallback({
         filePath,
         range,
       });
-      logger.debug({
-        msg: '[TIMING] Read (thumbnail)',
-        file: virtualFile.nameWithExtension,
-        process: processName,
-        waitedForSlotMs: waitedMs,
-        elapsedMs: Date.now() - startedAt,
-      });
       return result;
     });
   }
 
   const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
 
-  const result = await readOrHydrate({
+  return readOrHydrate({
     bucketId,
     mnemonic,
     network,
@@ -113,13 +97,6 @@ export async function handleReadCallback({
     range,
     prefetchBlocksAhead: PREFETCH_BLOCKS_AHEAD,
   });
-  logger.debug({
-    msg: '[TIMING] Read (normal)',
-    file: virtualFile.nameWithExtension,
-    process: processName,
-    elapsedMs: Date.now() - startedAt,
-  });
-  return result;
 }
 
 async function readFromTemporalFile(
