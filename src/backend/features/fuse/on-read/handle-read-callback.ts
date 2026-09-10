@@ -11,6 +11,9 @@ import { PREFETCH_BLOCKS_AHEAD } from './download-cache/constants';
 import { readOrHydrate } from './read-or-hydrate';
 import { type HandleReadDeps, type ReadRange } from './types';
 import { isThumbnailProcess } from './thumbnail-processes';
+import { withThumbnailReadSlot } from './thumbnail-read-limiter';
+import { THUMBNAIL_WHOLE_FILE_LIMIT } from './thumbnail-read-limits';
+import { readThumbnailPrefix } from './read-thumbnail-prefix';
 
 export type HandleReadCallbackProps = HandleReadDeps & {
   findVirtualFile: (path: string) => Promise<File | undefined>;
@@ -18,6 +21,7 @@ export type HandleReadCallbackProps = HandleReadDeps & {
   path: string;
   range: ReadRange;
   processName: string;
+  warmLinksAhead?: (path: string, contentsId: string) => void;
 };
 
 /**
@@ -38,12 +42,15 @@ export async function handleReadCallback({
   path,
   range,
   processName,
+  warmLinksAhead,
 }: HandleReadCallbackProps): Promise<Result<Buffer, FuseError>> {
   const virtualFile = await findVirtualFile(path);
 
   if (!virtualFile) {
     return readFromTemporalFile(findTemporalFile, path, range.length, range.position);
   }
+
+  const startedAt = Date.now();
 
   if (isThumbnailProcess(processName)) {
     logger.debug({
@@ -53,23 +60,49 @@ export async function handleReadCallback({
     });
 
     const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
-    return readOrHydrate({
-      bucketId,
-      mnemonic,
-      network,
-      // Thumbnail reads should not spam progress updates in UI.
-      onDownloadProgress: () => undefined,
-      // Thumbnail reads should not register files as offline available.
-      saveToRepository: async () => undefined,
-      virtualFile,
-      filePath,
-      range,
+    warmLinksAhead?.(path, virtualFile.contentsId);
+
+    if (virtualFile.size > THUMBNAIL_WHOLE_FILE_LIMIT) {
+      return withThumbnailReadSlot(async () => {
+        const result = await readThumbnailPrefix({ virtualFile, range, bucketId, mnemonic, network });
+        logger.debug({
+          msg: '[TIMING] Read (thumbnail prefix)',
+          file: virtualFile.nameWithExtension,
+          fileSize: virtualFile.size,
+          elapsedMs: Date.now() - startedAt,
+        });
+        return result;
+      });
+    }
+
+    return withThumbnailReadSlot(async () => {
+      const waitedMs = Date.now() - startedAt;
+      const result = await readOrHydrate({
+        bucketId,
+        mnemonic,
+        network,
+        // Thumbnail reads should not spam progress updates in UI.
+        onDownloadProgress: () => undefined,
+        // Thumbnail reads should not register files as offline available.
+        saveToRepository: async () => undefined,
+        virtualFile,
+        filePath,
+        range,
+      });
+      logger.debug({
+        msg: '[TIMING] Read (thumbnail)',
+        file: virtualFile.nameWithExtension,
+        process: processName,
+        waitedForSlotMs: waitedMs,
+        elapsedMs: Date.now() - startedAt,
+      });
+      return result;
     });
   }
 
   const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
 
-  return readOrHydrate({
+  const result = await readOrHydrate({
     bucketId,
     mnemonic,
     network,
@@ -80,6 +113,13 @@ export async function handleReadCallback({
     range,
     prefetchBlocksAhead: PREFETCH_BLOCKS_AHEAD,
   });
+  logger.debug({
+    msg: '[TIMING] Read (normal)',
+    file: virtualFile.nameWithExtension,
+    process: processName,
+    elapsedMs: Date.now() - startedAt,
+  });
+  return result;
 }
 
 async function readFromTemporalFile(
