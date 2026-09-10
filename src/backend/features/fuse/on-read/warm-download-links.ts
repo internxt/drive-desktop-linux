@@ -11,7 +11,6 @@ type Props = {
   files: File[];
   bucketId: string;
   network: Network.Network;
-  /** Warm the files that follow this one; omit to warm from the start of the folder. */
   afterContentsId?: string;
 };
 
