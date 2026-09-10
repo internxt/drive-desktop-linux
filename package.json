@@ -212,7 +212,7 @@
     "ts-prune": "^0.10.3",
     "typescript": "^5.2.2",
     "vite-plugin-svgr": "^4.5.0",
-    "vitest": "^4.1.8",
+    "vitest": "^4.1.11",
     "vitest-mock-extended": "^3.1.0",
     "webpack": "^5.107.2",
     "webpack-bundle-analyzer": "^4.5.0",
