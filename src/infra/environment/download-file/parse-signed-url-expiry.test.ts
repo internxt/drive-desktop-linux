@@ -4,7 +4,9 @@ describe('parse-signed-url-expiry', () => {
   it('should parse the Expires query param as milliseconds', () => {
     const seconds = 1788903013;
 
-    const result = parseSignedUrlExpiry({ url: `https://example.com/f?AWSAccessKeyId=abc&Expires=${seconds}&Signature=x` });
+    const result = parseSignedUrlExpiry({
+      url: `https://example.com/f?AWSAccessKeyId=abc&Expires=${seconds}&Signature=x`,
+    });
 
     expect(result).toBe(seconds * 1000);
   });
