@@ -23,6 +23,7 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { FileCreatorTestClass } from '../../../../../context/virtual-drive/files/__test-helpers__/FileCreatorTestClass';
 import { FileOverriderTestClass } from '../../../../../context/virtual-drive/files/__test-helpers__/FileOverriderTestClass';
 import { FileMother } from '../../../../../context/virtual-drive/files/domain/__test-helpers__/FileMother';
+import { PendingModificationTimes } from '../../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 import { release } from './release.service';
 
 vi.mock('../../../usage/validate-space', () => ({
@@ -131,6 +132,7 @@ describe('a release after an override uploads nothing', () => {
     builder.register(TemporalFileUploaderFactory).useInstance(uploaderFactory);
     builder.register(EventBus).useInstance(bus);
     builder.register(Environment).useInstance({} as Environment);
+    builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
     builder.registerAndUse(TemporalFileCreator);
     builder.registerAndUse(TemporalFileWriter);
     builder.registerAndUse(TemporalFileByPathFinder);

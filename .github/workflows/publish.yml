@@ -22,6 +22,11 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Build core package
+        run: cd packages/core && npm ci && npm run compile && npm pack
 
       - name: Add .env
         run: |

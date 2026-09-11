@@ -16,6 +16,7 @@ export default defineConfig({
       'src/apps/renderer/**',
       'src/apps/backups/**',
       '**/*.test.tsx',
+      'packages/core/**',
     ],
     watch: false,
     globals: true,

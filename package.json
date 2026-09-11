@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\" \"npm run build:daemon\"",
+    "build:core": "npm --prefix packages/core run build",
     "build:daemon": "make -C packages/fuse-daemon build",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
@@ -221,7 +222,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "@internxt/drive-desktop-core": "0.1.7",
+    "@internxt/drive-desktop-core": "file:packages/core/internxt-drive-desktop-core-1.0.0.tgz",
     "@internxt/inxt-js": "^3.3.1",
     "@internxt/scan": "^1.0.7",
     "@internxt/sdk": "1.17.4",
