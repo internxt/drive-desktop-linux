@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "types": [
+            "node"
+        ],
+        "noEmit": true,
+        "skipLibCheck": true,
+        "allowImportingTsExtensions": true
+    },
+    "include": [
+        "./configs/**/*.ts",
+        "./configs/**/*.d.ts",
+        "../src/types/webpack-bundle-analyzer.d.ts"
+    ],
+    "exclude": [
+        "../node_modules"
+    ]
+}
