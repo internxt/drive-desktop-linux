@@ -33,6 +33,8 @@ class InternxtVirtualDrive(GObject.GObject, Thunarx.MenuProvider):
 
     def __init__(self):
         """Resolve the virtual drive root once, at load time."""
+        super().__init__()
+
         user_home = os.path.expanduser("~")
         self.root_folder = os.path.join(user_home, VIRTUAL_DRIVE_ROOT_FOLDER_NAME)
 
