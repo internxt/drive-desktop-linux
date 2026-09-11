@@ -6,6 +6,7 @@ import { NodeTemporalFileRepository } from '../../infrastructure/NodeTemporalFil
 import { TemporalFilePath } from '../../domain/TemporalFilePath';
 import { TemporalFileByPathFinder } from '../find/TemporalFileByPathFinder';
 import { TemporalFileDeleter } from './TemporalFileDeleter';
+import { PendingModificationTimes } from '../../../../virtual-drive/files/application/utimens/PendingModificationTimes';
 import { DeleteTemporalFileIfUnchanged } from './DeleteTemporalFileIfUnchanged';
 
 const PATH = '/Private/notes/passwords.kdbx';
@@ -22,7 +23,7 @@ describe('DeleteTemporalFileIfUnchanged', () => {
 
     sut = new DeleteTemporalFileIfUnchanged(
       new TemporalFileByPathFinder(repository),
-      new TemporalFileDeleter(repository),
+      new TemporalFileDeleter(repository, new PendingModificationTimes()),
     );
   });
 

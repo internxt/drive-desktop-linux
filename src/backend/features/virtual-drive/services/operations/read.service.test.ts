@@ -9,12 +9,12 @@ import { StorageFilesRepository } from '../../../../../context/storage/StorageFi
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { DownloadProgressTracker } from '../../../../../context/shared/domain/DownloadProgressTracker';
 import * as getCredentialsModule from '../../../../../apps/main/auth/get-credentials';
-import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import * as userFromConfigModule from '../../../auth/get-user';
 import * as buildNetworkClientModule from '../../../../../infra/environment/download-file/build-network-client';
 
 const handleReadCallbackMock = partialSpyOn(handleReadCallbackModule, 'handleReadCallback');
 const getCredentialsMock = partialSpyOn(getCredentialsModule, 'getCredentials');
-const userProviderGetMock = partialSpyOn(DependencyInjectionUserProvider, 'get');
+const userProviderGetMock = partialSpyOn(userFromConfigModule, 'getUser');
 const buildNetworkClientMock = partialSpyOn(buildNetworkClientModule, 'buildNetworkClient');
 
 describe('read', () => {
@@ -33,10 +33,12 @@ describe('read', () => {
     container.get.calledWith(DownloadProgressTracker).mockReturnValue(tracker);
     getCredentialsMock.mockReturnValue({ mnemonic: 'mnemonic' } as never);
     userProviderGetMock.mockReturnValue({
-      bucket: 'bucket-id',
-      bridgeUser: 'bridge-user',
-      userId: 'user-id',
-    } as never);
+      data: {
+        bucket: 'bucket-id',
+        bridgeUser: 'bridge-user',
+        userId: 'user-id',
+      } as never,
+    });
     buildNetworkClientMock.mockReturnValue(network as never);
   });
 

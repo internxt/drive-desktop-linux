@@ -6,14 +6,20 @@ import {
   remountVirtualDriveOnRootChange,
 } from '../services/drive-folder/virtual-drive.service';
 import { updateVirtualDriveContainer } from '../services/update-virtual-drive-container.service';
-import { DependencyInjectionUserProvider } from '../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUser } from '../../auth/get-user';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { getVirtualDriveState } from '../services/daemon.service';
 
 function remoteChangesSyncedHandler() {
   const container = getVirtualDriveContainer();
   if (container) {
-    updateVirtualDriveContainer({ container, user: DependencyInjectionUserProvider.get() });
+    const { data: user, error } = getUser();
+    if (error) {
+      logger.warn({ msg: '[FUSE] Could not update container because user is missing', error });
+      return;
+    }
+
+    updateVirtualDriveContainer({ container, user });
   } else {
     logger.warn({ msg: '[FUSE] updateVirtualDriveContainer called before container was initialized' });
   }

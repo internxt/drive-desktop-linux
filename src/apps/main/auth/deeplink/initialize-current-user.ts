@@ -3,7 +3,7 @@ import { User } from '../../types';
 import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 import ConfigStore from '../../config';
 import { updateCredentials } from '../update-credentials';
-import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { updateUser } from '../../../../backend/features/auth/update-user';
 
 export async function initializeCurrentUser() {
   try {
@@ -24,7 +24,7 @@ export async function initializeCurrentUser() {
       mnemonic: currentUser.mnemonic,
     };
 
-    DependencyInjectionUserProvider.updateUser(updatedUser);
+    updateUser({ user: updatedUser });
 
     logger.debug({ tag: 'AUTH', msg: 'Current user initialized successfully' });
   } catch (error) {

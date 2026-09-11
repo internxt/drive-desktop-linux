@@ -10,7 +10,6 @@ import { setInitialSyncState } from '../remote-sync/InitialSyncReady';
 import { remoteSyncManager, cancelPendingRemoteSync } from '../remote-sync/service';
 import { AntivirusScanService } from '../antivirus/AntivirusScanService';
 import { getAntivirusManager } from '../antivirus/antivirusManager';
-import { DependencyInjectionUserProvider } from '../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { tryCatch } from '../../../shared/try-catch';
 
 let closeUserSessionResourcesInFlight: Promise<void> | undefined;
@@ -32,14 +31,6 @@ async function executeCloseUserSessionResources() {
   );
 
   await Promise.all([
-    tryCatch(DependencyInjectionUserProvider.clearUser, (error) =>
-      logger.error({
-        tag: 'AUTH',
-        msg: '[LOGOUT] Failed to run cleanup step',
-        step: 'clear-dependency-injection-user',
-        error,
-      }),
-    ),
     tryCatch(TokenScheduler.cancelAll, (error) =>
       logger.error({
         tag: 'AUTH',
