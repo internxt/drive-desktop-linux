@@ -127,7 +127,6 @@ async function fetchEncryptedRange(
       range: `bytes=${position}-${endOffset}`,
     },
   });
-
   return new Promise<Buffer>((resolve, reject) => {
     let bytesRead = 0;
     let buffer = Buffer.alloc(length);

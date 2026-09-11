@@ -13,6 +13,10 @@ import { getCredentials } from '../../../../../apps/main/auth/get-credentials';
 import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
 import { buildNetworkClient } from '../../../../../infra/environment/download-file/build-network-client';
 import { shouldEmitProgress, type ProgressReporterState } from './should-emit-progress';
+import { warmDownloadLinks } from '../../../fuse/on-read/warm-download-links';
+import { prefetchThumbnailContent } from '../../../fuse/on-read/prefetch-thumbnail-content';
+import { findFolderFiles } from '../../../fuse/on-read/find-folder-files';
+import { posix } from 'node:path';
 
 export async function read(
   path: string,
@@ -60,9 +64,38 @@ export async function read(
         position,
       },
       processName,
+      warmLinksAhead: (filePath, contentsId) => {
+        void warmFolderLinksAhead({ filePath, contentsId, bucketId: user.bucket, mnemonic, network, container });
+      },
     });
   } catch (err) {
     logger.error({ msg: '[FUSE - Read] Unexpected error', error: err, path });
     return { error: new FuseError(FuseCodes.EIO, `[FUSE - Read] IO error: ${path}`) };
+  }
+}
+
+type WarmFolderLinksAheadProps = {
+  filePath: string;
+  contentsId: string;
+  bucketId: string;
+  mnemonic: string;
+  network: ReturnType<typeof buildNetworkClient>;
+  container: Container;
+};
+
+async function warmFolderLinksAhead({
+  filePath,
+  contentsId,
+  bucketId,
+  mnemonic,
+  network,
+  container,
+}: WarmFolderLinksAheadProps) {
+  try {
+    const files = await findFolderFiles({ path: posix.dirname(filePath), container });
+    warmDownloadLinks({ files, bucketId, network, afterContentsId: contentsId });
+    prefetchThumbnailContent({ files, afterContentsId: contentsId, bucketId, mnemonic, network });
+  } catch (error) {
+    logger.debug({ msg: '[FUSE - Read] Failed to warm links ahead', path: filePath, error });
   }
 }

@@ -6,7 +6,7 @@ import { buildNetworkClient } from './build-network-client';
 vi.mock('@internxt/sdk', () => ({
   Network: {
     Network: {
-      client: vi.fn(() => ({ network: true })),
+      client: vi.fn(() => ({ getDownloadLinks: vi.fn() })),
     },
   },
 }));
@@ -25,7 +25,7 @@ describe('buildNetworkClient', () => {
       userId: 'user-id',
     });
 
-    expect(client).toStrictEqual({ network: true });
+    expect(client.getDownloadLinks).toBeInstanceOf(Function);
     expect(networkClientMock).toHaveBeenCalledWith(
       'https://bridge.test',
       {
