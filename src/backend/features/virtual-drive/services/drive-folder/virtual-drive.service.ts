@@ -21,9 +21,9 @@ export function getVirtualDriveContainer(): Container | undefined {
 
 export async function startVirtualDrive() {
   const localRoot = getRootVirtualDrive();
-  container = await DriveDependencyContainerFactory.build();
   const { data: user, error } = getUser();
   if (error) throw error;
+  container = await DriveDependencyContainerFactory.build();
 
   await updateVirtualDriveContainer({ container, user });
   /**

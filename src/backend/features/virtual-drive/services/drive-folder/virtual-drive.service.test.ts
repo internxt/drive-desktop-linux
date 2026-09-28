@@ -1,5 +1,6 @@
 import type { Container } from 'diod';
 import { DriveDependencyContainerFactory } from '../../../../../apps/drive/dependency-injection/DriveDependencyContainerFactory';
+import type { User } from '../../../../../apps/main/types';
 import * as userFromConfigModule from '../../../auth/get-user';
 import * as stopVirtualDriveModule from './stop-virual-drive';
 import * as remountVirtualDriveModule from './remount-virtual-drive';
@@ -28,6 +29,10 @@ describe('virtual-drive.service', () => {
   const containerMock = {
     get: vi.fn(() => ({ deleteAll })),
   } as unknown as Container;
+  const user: Pick<User, 'root_folder_id' | 'rootFolderId'> = {
+    root_folder_id: 1,
+    rootFolderId: 'root-folder-id',
+  };
 
   beforeEach(() => {
     stopVirtualDrive.mockResolvedValue(undefined);
@@ -36,7 +41,7 @@ describe('virtual-drive.service', () => {
     startFuseDaemonServer.mockResolvedValue(undefined);
     startHydrationApi.mockResolvedValue(undefined);
     getRootVirtualDrive.mockReturnValue('/mock/root/');
-    getUser.mockReturnValue({ data: {} as never });
+    getUser.mockReturnValue({ data: user as User });
     updateVirtualDriveContainer.mockResolvedValue({});
     buildContainer.mockResolvedValue(containerMock);
     deleteAll.mockResolvedValue(undefined);
@@ -54,6 +59,14 @@ describe('virtual-drive.service', () => {
       calls(startDaemon).toHaveLength(1);
     });
 
+    it('updates the virtual drive container with the resolved user', async () => {
+      // When
+      await startVirtualDrive();
+
+      // Then
+      call(updateVirtualDriveContainer).toStrictEqual({ container: containerMock, user });
+    });
+
     it('clears hydration state before starting daemon', async () => {
       // When
       await startVirtualDrive();
@@ -68,6 +81,23 @@ describe('virtual-drive.service', () => {
 
       // Then
       call(startDaemon).toBe('/mock/root/');
+    });
+
+    it('rejects before starting services when retrieving the user fails', async () => {
+      // Given
+      const error = new Error('Could not retrieve user');
+      getUser.mockReturnValue({ error });
+
+      // When
+      const start = startVirtualDrive();
+
+      // Then
+      await expect(start).rejects.toBe(error);
+      calls(buildContainer).toHaveLength(0);
+      calls(updateVirtualDriveContainer).toHaveLength(0);
+      calls(startFuseDaemonServer).toHaveLength(0);
+      calls(startHydrationApi).toHaveLength(0);
+      calls(startDaemon).toHaveLength(0);
     });
   });
 
