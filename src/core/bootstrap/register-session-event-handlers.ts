@@ -15,18 +15,31 @@ import { startBackupsIfAvailable } from '../../backend/features/backup/start-bac
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
 import { showMarketingNotifications } from '../../backend/features/marketing';
 
+let isVirtualDriveSqliteInitialized = false;
+
 function onWidgetIsReady() {
   registerBackupHandlers();
   startBackupsIfAvailable();
 }
 
+async function initializeAppDataSource() {
+  if (!AppDataSource.isInitialized) {
+    isVirtualDriveSqliteInitialized = false;
+    await AppDataSource.initialize();
+  }
+
+  if (isVirtualDriveSqliteInitialized) {
+    return;
+  }
+
+  await initializeVirtualDriveSqlite();
+  isVirtualDriveSqliteInitialized = true;
+  eventBus.emit('APP_DATA_SOURCE_INITIALIZED');
+}
+
 async function onUserLoggedIn() {
   try {
-    if (!AppDataSource.isInitialized) {
-      await AppDataSource.initialize();
-      await initializeVirtualDriveSqlite();
-      eventBus.emit('APP_DATA_SOURCE_INITIALIZED');
-    }
+    await initializeAppDataSource();
 
     // Keep product flags in sync even if later UI steps fail.
     await getUserAvailableProductsAndStore();
