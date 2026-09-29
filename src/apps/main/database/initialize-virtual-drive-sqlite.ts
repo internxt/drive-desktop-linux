@@ -10,11 +10,10 @@ type Props = {
 };
 
 const SQLITE_BOOTSTRAP_STATEMENTS = [
+  'PRAGMA busy_timeout=5000;',
   'PRAGMA journal_mode=WAL;',
-  'PRAGMA synchronous=NORMAL;',
   'PRAGMA temp_store=MEMORY;',
   'PRAGMA foreign_keys=ON;',
-  'PRAGMA busy_timeout=5000;',
   'PRAGMA wal_autocheckpoint=1000;',
   'PRAGMA mmap_size=268435456;',
   `CREATE TABLE IF NOT EXISTS drive_directory_state (

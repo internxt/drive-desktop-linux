@@ -89,7 +89,9 @@ import { registerSessionEventHandlers } from './register-session-event-handlers'
 
 describe('register-session-event-handlers', () => {
   const eventBusOnSpy = partialSpyOn(eventBusModule.default, 'on');
+  const eventBusEmitSpy = partialSpyOn(eventBusModule.default, 'emit');
   const appDataSourceInitializeSpy = partialSpyOn(appDataSourceModule.AppDataSource, 'initialize');
+  const appDataSourceIsInitializedSpy = vi.spyOn(appDataSourceModule.AppDataSource, 'isInitialized', 'get');
   const initializeVirtualDriveSqliteSpy = partialSpyOn(virtualDriveSqliteModule, 'initializeVirtualDriveSqlite');
   const getOrCreateWidgedSpy = partialSpyOn(widgetModule, 'getOrCreateWidged');
   const getAuthWindowSpy = partialSpyOn(authWindowModule, 'getAuthWindow');
@@ -107,6 +109,7 @@ describe('register-session-event-handlers', () => {
 
   beforeEach(() => {
     eventBusOnSpy.mockImplementation(() => ({}) as never);
+    appDataSourceIsInitializedSpy.mockReturnValue(false);
     appDataSourceInitializeSpy.mockResolvedValue({} as never);
     initializeVirtualDriveSqliteSpy.mockResolvedValue(undefined);
     getOrCreateWidgedSpy.mockResolvedValue({ show: vi.fn() } as never);
@@ -149,5 +152,21 @@ describe('register-session-event-handlers', () => {
     expect(openOnboardingWindowSpy).toHaveBeenCalledTimes(1);
     expect(trySetupAntivirusSpy).toHaveBeenCalledTimes(1);
     expect(showMarketingNotificationsSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should retry sqlite bootstrap after it fails on a previous login attempt', async () => {
+    const error = new Error('sqlite bootstrap failed');
+    initializeVirtualDriveSqliteSpy.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
+    appDataSourceIsInitializedSpy.mockReturnValueOnce(false).mockReturnValue(true);
+    registerSessionEventHandlers();
+
+    const [, loginHandler] = eventBusOnSpy.mock.calls[1];
+    await (loginHandler as (...args: unknown[]) => Promise<void> | void)();
+    await (loginHandler as (...args: unknown[]) => Promise<void> | void)();
+
+    expect(appDataSourceInitializeSpy).toHaveBeenCalledTimes(1);
+    expect(initializeVirtualDriveSqliteSpy).toHaveBeenCalledTimes(2);
+    expect(eventBusEmitSpy).toHaveBeenCalledWith('APP_DATA_SOURCE_INITIALIZED');
+    expect(eventBusEmitSpy).toHaveBeenCalledTimes(1);
   });
 });
