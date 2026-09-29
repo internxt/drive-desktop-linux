@@ -1,6 +1,7 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import eventBus from '../../apps/main/event-bus';
 import { AppDataSource } from '../../apps/main/database/data-source';
+import { initializeVirtualDriveSqlite } from '../../apps/main/database/initialize-virtual-drive-sqlite';
 import { getOrCreateWidged, setBoundsOfWidgetByPath } from '../../apps/main/windows/widget';
 import { getAuthWindow } from '../../apps/main/windows/auth';
 import configStore from '../../apps/main/config';
@@ -23,6 +24,7 @@ async function onUserLoggedIn() {
   try {
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
+      await initializeVirtualDriveSqlite();
       eventBus.emit('APP_DATA_SOURCE_INITIALIZED');
     }
 
