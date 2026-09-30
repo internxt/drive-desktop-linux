@@ -6,6 +6,7 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
 
 export async function open(path: string, processName: string, container: Container): Promise<Result<void, FuseError>> {
   try {
@@ -21,10 +22,18 @@ export async function open(path: string, processName: string, container: Contain
       return { data: undefined };
     }
 
+    await container.get(LazyVirtualDriveMetadataSynchronizationService).ensurePathMetadataSynchronized({ path });
+
+    const hydratedFile = await container.get(FirstsFileSearcher).run({ path });
+
+    if (hydratedFile) return { data: undefined };
+
     const msg = `[FUSE - Open] File not found: ${path}`;
     logger.error({ msg, processName });
     return { error: new FuseError(FuseCodes.ENOENT, msg) };
   } catch (err) {
+    if (err instanceof FuseError) return { error: err };
+
     if (TemporalFile.isTemporaryPath(path)) {
       const msg = `[FUSE - Open] Auxiliary path conflict: ${path}`;
       return { error: new FuseError(FuseCodes.EEXIST, msg) };
