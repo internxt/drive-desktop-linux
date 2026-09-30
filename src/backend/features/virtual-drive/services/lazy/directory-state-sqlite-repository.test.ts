@@ -56,6 +56,15 @@ describe('directory-state-sqlite-repository', () => {
     ]);
   });
 
+  it('should invalidate a directory state', async () => {
+    await DirectoryStateRepository.invalidate({ dataSource, ...stateProps });
+
+    call(queryMock).toStrictEqual([
+      'DELETE FROM drive_directory_state WHERE folder_id = ? AND status_scope = ?',
+      [42, 'EXISTS'],
+    ]);
+  });
+
   it('should clear all directory states', async () => {
     await DirectoryStateRepository.clear({ dataSource });
 

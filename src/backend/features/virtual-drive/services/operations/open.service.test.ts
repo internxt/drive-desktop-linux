@@ -5,19 +5,25 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
+import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
 import type { File } from '../../../../../context/virtual-drive/files/domain/File';
 
 describe('open', () => {
   let container: ReturnType<typeof mockDeep<Container>>;
   const fileSearcher = mockDeep<FirstsFileSearcher>();
   const temporalFinder = mockDeep<TemporalFileByPathFinder>();
+  const lazyMetadataSynchronizationService = mockDeep<LazyVirtualDriveMetadataSynchronizationService>();
 
   beforeEach(() => {
     container = mockDeep<Container>();
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
+    container
+      .get.calledWith(LazyVirtualDriveMetadataSynchronizationService)
+      .mockReturnValue(lazyMetadataSynchronizationService);
     fileSearcher.run.mockResolvedValue(undefined);
     temporalFinder.run.mockResolvedValue(undefined);
+    lazyMetadataSynchronizationService.ensurePathMetadataSynchronized.mockResolvedValue(undefined);
   });
 
   describe('when a virtual file is found', () => {
@@ -48,6 +54,18 @@ describe('open', () => {
 
       expect(data).toBeUndefined();
       expect(error?.code).toBe(FuseCodes.ENOENT);
+    });
+
+    it('should retry after hydrating the parent directory', async () => {
+      fileSearcher.run.mockResolvedValueOnce(undefined).mockResolvedValue({} as File);
+
+      const { data, error } = await open('/hydrated/file.txt', 'cat', container);
+
+      expect(error).toBeUndefined();
+      expect(data).toBeUndefined();
+      expect(lazyMetadataSynchronizationService.ensurePathMetadataSynchronized).toHaveBeenCalledWith({
+        path: '/hydrated/file.txt',
+      });
     });
   });
 
