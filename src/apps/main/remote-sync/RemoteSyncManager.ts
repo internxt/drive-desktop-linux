@@ -26,6 +26,7 @@ export class RemoteSyncManager {
       fetchFoldersLimitPerRequest: number;
       syncFiles: boolean;
       syncFolders: boolean;
+      retryDelayMs?: number;
     },
     private errorHandler: RemoteSyncErrorHandler,
   ) {}
@@ -67,36 +68,40 @@ export class RemoteSyncManager {
    * Throws an error if there's a sync in progress for this class instance
    */
   async startRemoteSync() {
+    if (this.status === 'SYNCING') {
+      logger.debug({ tag: 'SYNC-ENGINE', msg: 'Sync already in progress, skipping' });
+      return;
+    }
+
     const testPassed = this.smokeTest();
 
     if (!testPassed) {
       return;
     }
+
+    this.changeStatus('SYNCING');
     this.totalFilesSynced = 0;
     this.totalFoldersSynced = 0;
     this.filesSyncStatus = 'IDLE';
     this.foldersSyncStatus = 'IDLE';
 
-    await this.db.files.connect();
-    await this.db.folders.connect();
-
     logger.debug({ tag: 'SYNC-ENGINE', msg: 'Starting' });
-    this.changeStatus('SYNCING');
     try {
-      await Promise.all([
-        this.config.syncFiles
-          ? this.syncRemoteFiles({
-              retry: 1,
-              maxRetries: 3,
-            })
-          : Promise.resolve(),
-        this.config.syncFolders
-          ? this.syncRemoteFolders({
-              retry: 1,
-              maxRetries: 3,
-            })
-          : Promise.resolve(),
-      ]);
+      await this.db.files.connect();
+      await this.db.folders.connect();
+
+      if (this.config.syncFolders) {
+        await this.syncRemoteFolders({
+          retry: 1,
+          maxRetries: 3,
+        });
+      }
+      if (this.config.syncFiles) {
+        await this.syncRemoteFiles({
+          retry: 1,
+          maxRetries: 3,
+        });
+      }
     } catch (error) {
       this.changeStatus('SYNC_FAILED');
       logger.error({
