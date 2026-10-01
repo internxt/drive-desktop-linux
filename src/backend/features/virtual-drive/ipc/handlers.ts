@@ -24,7 +24,7 @@ function syncRootChangedHandler({ oldPath, newPath }: { oldPath: string; newPath
 }
 
 export function registerVirtualDriveHandlers() {
-  eventBus.on('INITIAL_SYNC_READY', startVirtualDrive);
+  eventBus.on('APP_DATA_SOURCE_INITIALIZED', startVirtualDrive);
   eventBus.on('REMOTE_CHANGES_SYNCHED', remoteChangesSyncedHandler);
   eventBus.on('SYNC_ROOT_CHANGED', syncRootChangedHandler);
   ipcMain.handle('get-virtual-drive-status', getVirtualDriveState);

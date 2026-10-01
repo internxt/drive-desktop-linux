@@ -12,6 +12,7 @@ import { DriveServerError } from '../../../../../infra/drive-server/drive-server
 import { fetchFolder } from '../../../../../infra/drive-server/services/folder/services/fetch-folder';
 import { createOrUpdateFileByBatch } from '../../../../../infra/sqlite/services/file/create-or-update-file-by-batch';
 import { createOrUpdateFolderByBatch } from '../../../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
+import { isVirtualTrashFolder } from '../drive-folder/seed-virtual-drive-root-folders';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
 import { toRemoteFile, toRemoteFolder } from './remote-synced-mappers';
 
@@ -76,7 +77,7 @@ async function removeStaleChildren({
   const childPathPrefix = `${folder.path.replace(/\/$/, '')}/`;
   const staleFolders = folderRepository
     .searchByPathPrefix(childPathPrefix)
-    .filter((staleFolder) => staleFolder.id !== folder.id)
+    .filter((staleFolder) => staleFolder.id !== folder.id && !isVirtualTrashFolder(staleFolder))
     .sort((left, right) => right.path.length - left.path.length);
 
   await Promise.all([
