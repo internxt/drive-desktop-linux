@@ -6,6 +6,8 @@ import { RemoteSyncErrorHandler } from '../../../apps/main/remote-sync/RemoteSyn
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { createOrUpdateFileByBatch } from '../../../infra/sqlite/services/file/create-or-update-file-by-batch';
 import { fetchFilesSync } from '../../../infra/drive-server/services/files/services/fetch-files';
+import { DirectoryStateRepository } from '../virtual-drive/services/lazy/directory-state-sqlite-repository';
+import { filterStaleRemoteFiles } from './filter-stale-remote-items';
 
 type Props = {
   syncConfig: SyncConfig;
@@ -70,7 +72,8 @@ export async function syncRemoteFiles({
         return { error: error instanceof Error ? error : new Error('Unknown sync error') };
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
+      const retryDelay = (process.env.NODE_ENV === 'test' ? 10 : 1000) * retryCount;
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
     }
   }
 
@@ -107,8 +110,23 @@ async function fetchAndPersistPage(
 
   if (error) return { error };
 
+  const mappedFiles = data.files.map((f) => patchFile(f as unknown as Record<string, unknown>));
+  const freshDirectoryStates = await DirectoryStateRepository.getFreshDirectoryStates();
+  const { filesToPersist, foldersToInvalidate } = filterStaleRemoteFiles({
+    files: mappedFiles,
+    freshDirectoryStates,
+  });
+
+  if (foldersToInvalidate.size > 0) {
+    await Promise.all(
+      Array.from(foldersToInvalidate).map((folderId) =>
+        DirectoryStateRepository.invalidate({ folderId, statusScope: 'EXISTS' }),
+      ),
+    );
+  }
+
   await createOrUpdateFileByBatch({
-    files: data.files.map((f) => patchFile(f as unknown as Record<string, unknown>)),
+    files: filesToPersist,
   });
 
   return { data: { nextCursor: data.nextCursor, count: data.files.length } };

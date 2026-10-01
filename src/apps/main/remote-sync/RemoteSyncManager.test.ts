@@ -295,5 +295,59 @@ describe('RemoteSyncManager', () => {
       expect(errorHandlerSpy).toHaveBeenCalled();
       expect(errorHandlerSpy.mock.calls[0][1]).toBe('folders');
     });
+
+    it('should synchronize folders before files sequentially', async () => {
+      const callOrder: string[] = [];
+      mockedGet.mockImplementation(async (endpoint: unknown) => {
+        if (endpoint === '/folders') {
+          callOrder.push('folders');
+          return { data: [] };
+        }
+        if (endpoint === '/files/sync') {
+          callOrder.push('files');
+          return { data: { files: [], nextCursor: null } };
+        }
+        return { data: [] };
+      });
+
+      await sut.startRemoteSync();
+
+      expect(callOrder).toStrictEqual(['folders', 'files']);
+      expect(sut.getSyncStatus()).toBe('SYNCED');
+    });
+
+    it('should query status EXISTS for folders during bootstrap without checkpoint', async () => {
+      inMemorySyncedFoldersCollection.getLastUpdated = () => Promise.resolve({ success: false, result: null });
+
+      mockedGet.mockImplementation(async (endpoint: unknown, config: unknown) => {
+        if (endpoint === '/folders') {
+          const query = (config as { query: { status: string } })?.query;
+          expect(query.status).toBe('EXISTS');
+          return { data: [] };
+        }
+        return { data: { files: [], nextCursor: null } };
+      });
+
+      await sut.startRemoteSync();
+    });
+
+    it('should query status ALL for folders during incremental sync with checkpoint', async () => {
+      inMemorySyncedFoldersCollection.getLastUpdated = () =>
+        Promise.resolve({
+          success: true,
+          result: { updatedAt: new Date('2026-01-01T12:00:00Z').toISOString() } as DriveFolder,
+        });
+
+      mockedGet.mockImplementation(async (endpoint: unknown, config: unknown) => {
+        if (endpoint === '/folders') {
+          const query = (config as { query: { status: string } })?.query;
+          expect(query.status).toBe('ALL');
+          return { data: [] };
+        }
+        return { data: { files: [], nextCursor: null } };
+      });
+
+      await sut.startRemoteSync();
+    });
   });
 });

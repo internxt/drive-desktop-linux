@@ -9,6 +9,8 @@ import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncError
 import { createOrUpdateFolderByBatch } from '../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
 import { fetchFolders } from '../../../infra/drive-server/services/folder/services/fetch-folders';
 import { syncRemoteFiles as syncFiles } from '../../../backend/features/remote-sync/sync-remote-files';
+import { DirectoryStateRepository } from '../../../backend/features/virtual-drive/services/lazy/directory-state-sqlite-repository';
+import { filterStaleRemoteFolders } from '../../../backend/features/remote-sync/filter-stale-remote-items';
 
 export class RemoteSyncManager {
   private foldersSyncStatus: RemoteSyncStatus = 'IDLE';
@@ -28,6 +30,7 @@ export class RemoteSyncManager {
       fetchFoldersLimitPerRequest: number;
       syncFiles: boolean;
       syncFolders: boolean;
+      retryDelayMs?: number;
     },
     private errorHandler: RemoteSyncErrorHandler,
   ) {}
@@ -69,36 +72,40 @@ export class RemoteSyncManager {
    * Throws an error if there's a sync in progress for this class instance
    */
   async startRemoteSync() {
+    if (this.status === 'SYNCING') {
+      logger.debug({ tag: 'SYNC-ENGINE', msg: 'Sync already in progress, skipping' });
+      return;
+    }
+
     const testPassed = this.smokeTest();
 
     if (!testPassed) {
       return;
     }
+
+    this.changeStatus('SYNCING');
     this.totalFilesSynced = 0;
     this.totalFoldersSynced = 0;
     this.filesSyncStatus = 'IDLE';
     this.foldersSyncStatus = 'IDLE';
 
-    await this.db.files.connect();
-    await this.db.folders.connect();
-
     logger.debug({ tag: 'SYNC-ENGINE', msg: 'Starting' });
-    this.changeStatus('SYNCING');
     try {
-      await Promise.all([
-        this.config.syncFiles
-          ? this.syncRemoteFiles({
-              retry: 1,
-              maxRetries: 3,
-            })
-          : Promise.resolve(),
-        this.config.syncFolders
-          ? this.syncRemoteFolders({
-              retry: 1,
-              maxRetries: 3,
-            })
-          : Promise.resolve(),
-      ]);
+      await this.db.files.connect();
+      await this.db.folders.connect();
+
+      if (this.config.syncFolders) {
+        await this.syncRemoteFolders({
+          retry: 1,
+          maxRetries: 3,
+        });
+      }
+      if (this.config.syncFiles) {
+        await this.syncRemoteFiles({
+          retry: 1,
+          maxRetries: 3,
+        });
+      }
     } catch (error) {
       this.changeStatus('SYNC_FAILED');
       logger.error({
@@ -229,7 +236,21 @@ export class RemoteSyncManager {
       try {
         const { hasMore: moreAvailable, result } = await this.fetchFoldersFromRemote(folderCheckPoint);
 
-        await createOrUpdateFolderByBatch({ folders: result });
+        const freshDirectoryStates = await DirectoryStateRepository.getFreshDirectoryStates();
+        const { foldersToPersist, foldersToInvalidate } = filterStaleRemoteFolders({
+          folders: result,
+          freshDirectoryStates,
+        });
+
+        if (foldersToInvalidate.size > 0) {
+          await Promise.all(
+            Array.from(foldersToInvalidate).map((folderId) =>
+              DirectoryStateRepository.invalidate({ folderId, statusScope: 'EXISTS' }),
+            ),
+          );
+        }
+
+        await createOrUpdateFolderByBatch({ folders: foldersToPersist });
         this.totalFoldersSynced += result.length;
         lastFolderSynced = result.length > 0 ? result[result.length - 1] : null;
 
@@ -261,7 +282,8 @@ export class RemoteSyncManager {
         }
 
         // Brief delay before retry to avoid hammering the server
-        await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
+        const retryDelay = (this.config.retryDelayMs ?? (process.env.NODE_ENV === 'test' ? 10 : 1000)) * retryCount;
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
       }
     }
 
@@ -282,10 +304,11 @@ export class RemoteSyncManager {
     hasMore: boolean;
     result: RemoteSyncedFolder[];
   }> {
+    const isBootstrap = updatedAtCheckpoint === undefined;
     const { data, error } = await fetchFolders({
-      limit: this.config.fetchFilesLimitPerRequest,
+      limit: this.config.fetchFoldersLimitPerRequest,
       offset: 0,
-      status: 'ALL',
+      status: isBootstrap ? 'EXISTS' : 'ALL',
       updatedAt: updatedAtCheckpoint?.toISOString(),
     });
 
