@@ -230,6 +230,25 @@ describe('synchronize-directory-metadata', () => {
       renamed.id,
       descendant.id,
     ]);
+  it('should preserve /.Trash folder when refreshing root children', async () => {
+    const rootFolder = FolderMother.root();
+    const trashFolder = FolderMother.fromPartial({
+      id: Number.MAX_SAFE_INTEGER,
+      path: '/.Trash',
+      parentId: rootFolder.id,
+    });
+    const inMemoryFolderRepository = new InMemoryFolderRepository();
+    const inMemoryFileRepository = new InMemoryFileRepository();
+    await inMemoryFolderRepository.add(rootFolder);
+    await inMemoryFolderRepository.add(trashFolder);
+
+    await synchronizeDirectoryMetadata({
+      folder: rootFolder,
+      folderRepository: inMemoryFolderRepository,
+      fileRepository: inMemoryFileRepository,
+    });
+
+    expect(await inMemoryFolderRepository.searchById(trashFolder.id)).toBeDefined();
   });
 
   it('should mark the directory as errored without mutating cached children when folder persistence fails', async () => {

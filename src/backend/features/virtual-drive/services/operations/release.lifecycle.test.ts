@@ -24,6 +24,7 @@ import { PendingModificationTimes } from '../../../../../context/virtual-drive/f
 import { FileCreatorTestClass } from '../../../../../context/virtual-drive/files/__test-helpers__/FileCreatorTestClass';
 import { FileOverriderTestClass } from '../../../../../context/virtual-drive/files/__test-helpers__/FileOverriderTestClass';
 import { FileMother } from '../../../../../context/virtual-drive/files/domain/__test-helpers__/FileMother';
+import { PendingModificationTimes } from '../../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 import { release } from './release.service';
 
 vi.mock('../../../usage/validate-space', () => ({
@@ -130,6 +131,7 @@ describe('a release after an override uploads nothing', () => {
     const builder = new ContainerBuilder();
     builder.register(TemporalFileRepository).useInstance(repository);
     builder.register(TemporalFileUploaderFactory).useInstance(uploaderFactory);
+    builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
     builder.register(EventBus).useInstance(bus);
     builder.register(Environment).useInstance({} as Environment);
     builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
