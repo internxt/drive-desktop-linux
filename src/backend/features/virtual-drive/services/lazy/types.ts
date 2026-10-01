@@ -19,6 +19,8 @@ export type DirectoryStateRepositoryProps = {
 
 export type DirectoryStateOperationProps = DirectoryStateProps & DirectoryStateRepositoryProps;
 
+export type DirectoryStateInvalidationProps = DirectoryStateOperationProps;
+
 export type DirectoryStateFreshnessProps = DirectoryStateOperationProps & {
   ttlMs?: number;
 };

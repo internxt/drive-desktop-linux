@@ -3,11 +3,9 @@ import { Result } from '../../../../../context/shared/domain/Result';
 import { FILE_MODE, FOLDER_MODE } from '../../constants';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
-import { FilesByFolderPathSearcher } from '../../../../../context/virtual-drive/files/application/search/FilesByFolderPathSearcher';
-import { FoldersByParentPathLister } from '../../../../../context/virtual-drive/folders/application/FoldersByParentPathLister';
 import { TemporalFileByFolderFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
-import { FolderNotFoundError } from '../../../../../context/virtual-drive/folders/domain/errors/FolderNotFoundError';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
 
 export type DirEntry = {
   name: string;
@@ -20,24 +18,20 @@ export type OpenDirData = {
 
 export async function opendir(path: string, container: Container): Promise<Result<OpenDirData, FuseError>> {
   try {
-    const [fileNames, folderNames, temporalFiles] = await Promise.all([
-      container.get(FilesByFolderPathSearcher).run(path),
-      container.get(FoldersByParentPathLister).run(path),
+    const [entries, temporalFiles] = await Promise.all([
+      container.get(LazyVirtualDriveMetadataSynchronizationService).readDirectory({ path }),
       container.get(TemporalFileByFolderFinder).run(path),
     ]);
 
-    const entries: DirEntry[] = [
-      ...fileNames.map((name) => ({ name, mode: FILE_MODE })),
-      ...folderNames.map((name) => ({ name, mode: FOLDER_MODE })),
+    const directoryEntries: DirEntry[] = [
+      ...entries.files.map((name) => ({ name, mode: FILE_MODE })),
+      ...entries.folders.map((name) => ({ name, mode: FOLDER_MODE })),
       ...temporalFiles.filter((f) => f.isAuxiliary()).map((f) => ({ name: f.name, mode: FILE_MODE })),
     ];
 
-    return { data: { entries } };
+    return { data: { entries: directoryEntries } };
   } catch (err) {
-    if (err instanceof FolderNotFoundError) {
-      logger.debug({ msg: '[FUSE - OpenDir] Folder not yet synced, returning empty', path });
-      return { data: { entries: [] } };
-    }
+    if (err instanceof FuseError) return { error: err };
     logger.error({ msg: '[FUSE - OpenDir] Error reading directory', error: err, path });
     return { error: new FuseError(FuseCodes.EIO, `[FUSE - OpenDir] IO error: ${path}`) };
   }
