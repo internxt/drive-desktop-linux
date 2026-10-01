@@ -16,8 +16,8 @@ describe('opendir', () => {
   beforeEach(() => {
     container = mockDeep<Container>();
     container.get.calledWith(TemporalFileByFolderFinder).mockReturnValue(temporalFinder);
-    container
-      .get.calledWith(LazyVirtualDriveMetadataSynchronizationService)
+    container.get
+      .calledWith(LazyVirtualDriveMetadataSynchronizationService)
       .mockReturnValue(lazyMetadataSynchronizationService);
     temporalFinder.run.mockResolvedValue([]);
     lazyMetadataSynchronizationService.readDirectory.mockResolvedValue({ files: [], folders: [] });
