@@ -27,8 +27,8 @@ describe('getAttributes', () => {
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
     container.get.calledWith(SingleFolderMatchingSearcher).mockReturnValue(folderSearcher);
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
-    container
-      .get.calledWith(LazyVirtualDriveMetadataSynchronizationService)
+    container.get
+      .calledWith(LazyVirtualDriveMetadataSynchronizationService)
       .mockReturnValue(lazyMetadataSynchronizationService);
     fileSearcher.run.mockResolvedValue(undefined);
     folderSearcher.run.mockResolvedValue(undefined);
