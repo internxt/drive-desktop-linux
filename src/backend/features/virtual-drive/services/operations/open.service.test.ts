@@ -18,8 +18,8 @@ describe('open', () => {
     container = mockDeep<Container>();
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
-    container
-      .get.calledWith(LazyVirtualDriveMetadataSynchronizationService)
+    container.get
+      .calledWith(LazyVirtualDriveMetadataSynchronizationService)
       .mockReturnValue(lazyMetadataSynchronizationService);
     fileSearcher.run.mockResolvedValue(undefined);
     temporalFinder.run.mockResolvedValue(undefined);
