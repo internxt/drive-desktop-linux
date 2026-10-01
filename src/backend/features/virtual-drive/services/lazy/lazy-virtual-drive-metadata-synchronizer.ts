@@ -6,6 +6,7 @@ import { Folder } from '../../../../../context/virtual-drive/folders/domain/Fold
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
 import { FolderStatuses } from '../../../../../context/virtual-drive/folders/domain/FolderStatus';
+import { isVirtualTrashFolder, isVirtualTrashPath } from '../drive-folder/seed-virtual-drive-root-folders';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
 import { synchronizeDirectoryMetadata } from './synchronize-directory-metadata';
 
@@ -34,6 +35,7 @@ async function readDirectory({
   return {
     folders: folderRepository
       .matchingPartial({ parentId: folder.id, status: FolderStatuses.EXISTS })
+      .filter((child) => !isVirtualTrashFolder(child))
       .map((child) => child.name),
     files: fileRepository
       .matchingPartial({ folderId: folder.id, status: FileStatuses.EXISTS })
@@ -43,6 +45,9 @@ async function readDirectory({
 
 async function ensurePathMetadataSynchronized({ path: requestedPath, folderRepository, fileRepository }: Props) {
   const normalizedPath = normalizePath(requestedPath);
+  if (isVirtualTrashPath(normalizedPath)) {
+    return;
+  }
   const parentPath = normalizedPath === '/' ? '/' : path.posix.dirname(normalizedPath);
   const parentFolder = await resolveFolder({ path: parentPath, folderRepository, fileRepository });
 
@@ -69,6 +74,10 @@ async function resolveFolder({ path: requestedPath, folderRepository, fileReposi
       continue;
     }
 
+    if (isVirtualTrashPath(absolutePath)) {
+      throw new FuseError(FuseCodes.ENOENT, `[FUSE - Metadata sync] Folder not found: ${absolutePath}`);
+    }
+
     await synchronizeChildrenIfStale({ folder: currentFolder, folderRepository, fileRepository });
 
     const synchronizedFolder = folderRepository.matchingPartial({ path: absolutePath })[0];
@@ -92,6 +101,10 @@ async function synchronizeChildrenIfStale({
   folderRepository: FolderRepository;
   fileRepository: FileRepository;
 }) {
+  if (isVirtualTrashFolder(folder)) {
+    return;
+  }
+
   const statusScope = 'EXISTS' as const;
 
   if (await DirectoryStateRepository.isFresh({ folderId: folder.id, statusScope })) {
