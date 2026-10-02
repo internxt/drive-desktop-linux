@@ -19,7 +19,7 @@ import { PendingModificationTimes } from '../../../../context/virtual-drive/file
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { PATHS } from '../../../../core/electron/paths';
 
-export async function registerTemporalFilesServices(builder: ContainerBuilder) {
+export function registerTemporalFilesServices(builder: ContainerBuilder) {
   // Infra
   const user = DependencyInjectionUserProvider.get();
 

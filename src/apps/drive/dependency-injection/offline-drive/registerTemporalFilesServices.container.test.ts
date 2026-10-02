@@ -60,7 +60,7 @@ describe('registerTemporalFilesServices wires one repository', () => {
     builder.register(UploadProgressTracker).useInstance({} as UploadProgressTracker);
     builder.register(EventBus).useInstance({ publish: vi.fn() } as unknown as EventBus);
 
-    await registerTemporalFilesServices(builder);
+    registerTemporalFilesServices(builder);
 
     container = builder.build();
   });
