@@ -1,5 +1,6 @@
 import { DriveDesktopError } from '../../../context/shared/domain/errors/DriveDesktopError';
 import { createTransientErrorHandler, mapEnvironmentUploadError } from './transient-error-handler';
+import { retryWithBackoff } from '../../../shared/retry-with-backoff';
 import {
   INITIAL_CONNECTION_TIMEOUT_DELAY_MS,
   INITIAL_PARENT_FOLDER_NOT_FOUND_DELAY_MS,
@@ -179,4 +180,109 @@ describe('mapEnvironmentUploadError', () => {
     expect(result.cause).toBe('CONNECTION_TIMEOUT');
     expect(result.message).toBe(error.message);
   });
+});
+
+describe('mapEnvironmentUploadError, for the shapes inxt-js actually throws', () => {
+  it('retries a 500 reported by the single-shot upload', () => {
+    const error = mapEnvironmentUploadError(new Error('Failed to upload file: 500 internal error'));
+
+    expect(error.cause).toBe('INTERNAL_SERVER_ERROR');
+  });
+
+  it('retries a 503 reported by the multipart upload', () => {
+    const error = mapEnvironmentUploadError(new Error('Failed to upload part: 503 unavailable'));
+
+    expect(error.cause).toBe('INTERNAL_SERVER_ERROR');
+  });
+
+  it('rate-limits a 429 reported the same way, at the default delay', () => {
+    const error = mapEnvironmentUploadError(new Error('Failed to upload file: 429 {"retry_after":2}'));
+
+    expect(error.cause).toBe('RATE_LIMITED');
+    expect(error.message).toBe(String(INITIAL_RATE_LIMIT_DELAY_MS));
+  });
+
+  it('leaves a 4xx that is not 429 alone, so it is not retried forever', () => {
+    const error = mapEnvironmentUploadError(new Error('Failed to upload file: 403 forbidden'));
+
+    expect(error.cause).toBe('UNKNOWN');
+  });
+
+  it('still prefers an explicit status property when the error carries one', () => {
+    const error = mapEnvironmentUploadError(Object.assign(new Error('anything'), { status: 500 }));
+
+    expect(error.cause).toBe('INTERNAL_SERVER_ERROR');
+  });
+
+  it('does not read a status out of an unrelated message that contains digits', () => {
+    const error = mapEnvironmentUploadError(new Error('Could not open /home/user/500 photos/x.jpg'));
+
+    expect(error.cause).toBe('UNKNOWN');
+  });
+
+  it('does not treat a longer number as a status', () => {
+    const error = mapEnvironmentUploadError(new Error('Failed to upload file: 5000 bytes missing'));
+
+    expect(error.cause).toBe('UNKNOWN');
+  });
+});
+
+describe('and the retry loop those classifications feed', () => {
+  const inxtServerError = new Error('Failed to upload file: 500 internal error');
+
+  it('asks the caller to wait rather than giving up, for an inxt-js 5xx', () => {
+    const handler = createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'test', path: '/x' });
+
+    expect(handler(mapEnvironmentUploadError(inxtServerError))).toBeTypeOf('number');
+  });
+
+  it('still gives up on a 403, so it is not retried forever', () => {
+    const handler = createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'test', path: '/x' });
+    const forbidden = new Error('Failed to upload file: 403 forbidden');
+
+    expect(handler(mapEnvironmentUploadError(forbidden))).toBeNull();
+  });
+
+  it('actually runs the upload again and succeeds on the retry', async () => {
+    vi.useFakeTimers();
+
+    try {
+      const handler = createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'test', path: '/x' });
+      const attempt = vi
+        .fn()
+        .mockResolvedValueOnce({ error: mapEnvironmentUploadError(inxtServerError) })
+        .mockResolvedValueOnce({ data: 'contents-id' });
+
+      const promise = retryWithBackoff(attempt, handler, new AbortController().signal);
+      await vi.advanceTimersByTimeAsync(MAX_BACKOFF_MS);
+
+      await expect(promise).resolves.toEqual({ data: 'contents-id' });
+      expect(attempt).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('stops retrying when the upload is aborted, so it cannot loop forever', async () => {
+    vi.useFakeTimers();
+
+    try {
+      const handler = createTransientErrorHandler({ tag: 'SYNC-ENGINE', context: 'test', path: '/x' });
+      const controller = new AbortController();
+      const attempt = vi.fn().mockResolvedValue({ error: mapEnvironmentUploadError(inxtServerError) });
+
+      const promise = retryWithBackoff(attempt, handler, controller.signal);
+      await vi.advanceTimersByTimeAsync(2_000);
+      controller.abort();
+      await vi.advanceTimersByTimeAsync(MAX_BACKOFF_MS);
+
+      await expect(promise).resolves.toMatchObject({ error: { cause: 'ABORTED' } });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+it('does not retry an impossible status', () => {
+  expect(mapEnvironmentUploadError(new Error('Failed to upload file: 700 nonsense')).cause).toBe('UNKNOWN');
 });

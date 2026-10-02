@@ -38,6 +38,16 @@ function isS3RequestTimeoutError(err: Error) {
   );
 }
 
+function uploadStatusOf(err: Error & { status?: unknown }): number | undefined {
+  if (typeof err.status === 'number') {
+    return err.status;
+  }
+
+  const reported = /^Failed to upload (?:file|part): ([1-5][0-9]{2})(?: |$)/.exec(err.message);
+
+  return reported ? Number(reported[1]) : undefined;
+}
+
 export function mapEnvironmentUploadError(err: Error & { code?: unknown; status?: unknown }): DriveDesktopError {
   if (err.code === 'EACCES' || err.code === 'EPERM') {
     return new DriveDesktopError('ACTION_NOT_PERMITTED', err.message);
@@ -55,12 +65,14 @@ export function mapEnvironmentUploadError(err: Error & { code?: unknown; status?
     return new DriveDesktopError('NOT_ENOUGH_SPACE');
   }
 
-  if (typeof err.status === 'number') {
-    if (err.status === 429) {
+  const status = uploadStatusOf(err);
+
+  if (typeof status === 'number') {
+    if (status === 429) {
       return new DriveDesktopError('RATE_LIMITED', String(parseRetryAfterMs(err.message)));
     }
 
-    if (err.status >= 500) {
+    if (status >= 500) {
       return new DriveDesktopError('INTERNAL_SERVER_ERROR');
     }
   }
