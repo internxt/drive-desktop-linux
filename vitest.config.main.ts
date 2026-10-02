@@ -12,6 +12,7 @@ export default defineConfig({
     ],
     exclude: [
       '**/node_modules/**',
+      'packages/core/**',
       '**/release/**',
       'src/apps/renderer/**',
       'src/apps/backups/**',
