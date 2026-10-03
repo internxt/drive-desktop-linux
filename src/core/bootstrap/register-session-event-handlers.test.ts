@@ -1,5 +1,6 @@
 import * as eventBusModule from '../../apps/main/event-bus';
 import * as appDataSourceModule from '../../apps/main/database/data-source';
+import * as virtualDriveSqliteModule from '../../apps/main/database/initialize-virtual-drive-sqlite';
 import * as widgetModule from '../../apps/main/windows/widget';
 import * as authWindowModule from '../../apps/main/windows/auth';
 import * as configStoreModule from '../../apps/main/config';
@@ -26,6 +27,10 @@ vi.mock('../../apps/main/database/data-source', () => ({
     isInitialized: false,
     initialize: vi.fn(),
   },
+}));
+
+vi.mock('../../apps/main/database/initialize-virtual-drive-sqlite', () => ({
+  initializeVirtualDriveSqlite: vi.fn(),
 }));
 
 vi.mock('../../apps/main/windows/widget', () => ({
@@ -84,7 +89,10 @@ import { registerSessionEventHandlers } from './register-session-event-handlers'
 
 describe('register-session-event-handlers', () => {
   const eventBusOnSpy = partialSpyOn(eventBusModule.default, 'on');
+  const eventBusEmitSpy = partialSpyOn(eventBusModule.default, 'emit');
   const appDataSourceInitializeSpy = partialSpyOn(appDataSourceModule.AppDataSource, 'initialize');
+  const appDataSourceIsInitializedSpy = vi.spyOn(appDataSourceModule.AppDataSource, 'isInitialized', 'get');
+  const initializeVirtualDriveSqliteSpy = partialSpyOn(virtualDriveSqliteModule, 'initializeVirtualDriveSqlite');
   const getOrCreateWidgedSpy = partialSpyOn(widgetModule, 'getOrCreateWidged');
   const getAuthWindowSpy = partialSpyOn(authWindowModule, 'getAuthWindow');
   const configStoreGetSpy = partialSpyOn(configStoreModule.default, 'get');
@@ -101,7 +109,9 @@ describe('register-session-event-handlers', () => {
 
   beforeEach(() => {
     eventBusOnSpy.mockImplementation(() => ({}) as never);
+    appDataSourceIsInitializedSpy.mockReturnValue(false);
     appDataSourceInitializeSpy.mockResolvedValue({} as never);
+    initializeVirtualDriveSqliteSpy.mockResolvedValue(undefined);
     getOrCreateWidgedSpy.mockResolvedValue({ show: vi.fn() } as never);
     getAuthWindowSpy.mockReturnValue({ hide: vi.fn(), destroy: vi.fn(), isDestroyed: () => false } as never);
     configStoreGetSpy.mockReturnValue(undefined);
@@ -132,11 +142,31 @@ describe('register-session-event-handlers', () => {
     await (loginHandler as (...args: unknown[]) => Promise<void> | void)();
 
     expect(appDataSourceInitializeSpy).toHaveBeenCalledTimes(1);
+    expect(initializeVirtualDriveSqliteSpy).toHaveBeenCalledTimes(1);
+    expect(appDataSourceInitializeSpy.mock.invocationCallOrder[0]).toBeLessThan(
+      initializeVirtualDriveSqliteSpy.mock.invocationCallOrder[0],
+    );
     expect(getUserAvailableProductsAndStoreSpy).toHaveBeenCalledTimes(1);
     expect(getThemeSpy).toHaveBeenCalledTimes(1);
     expect(resetTrayStatusSpy).toHaveBeenCalledWith('IDLE');
     expect(openOnboardingWindowSpy).toHaveBeenCalledTimes(1);
     expect(trySetupAntivirusSpy).toHaveBeenCalledTimes(1);
     expect(showMarketingNotificationsSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should retry sqlite bootstrap after it fails on a previous login attempt', async () => {
+    const error = new Error('sqlite bootstrap failed');
+    initializeVirtualDriveSqliteSpy.mockRejectedValueOnce(error).mockResolvedValueOnce(undefined);
+    appDataSourceIsInitializedSpy.mockReturnValueOnce(false).mockReturnValue(true);
+    registerSessionEventHandlers();
+
+    const [, loginHandler] = eventBusOnSpy.mock.calls[1];
+    await (loginHandler as (...args: unknown[]) => Promise<void> | void)();
+    await (loginHandler as (...args: unknown[]) => Promise<void> | void)();
+
+    expect(appDataSourceInitializeSpy).toHaveBeenCalledTimes(1);
+    expect(initializeVirtualDriveSqliteSpy).toHaveBeenCalledTimes(2);
+    expect(eventBusEmitSpy).toHaveBeenCalledWith('APP_DATA_SOURCE_INITIALIZED');
+    expect(eventBusEmitSpy).toHaveBeenCalledTimes(1);
   });
 });
