@@ -12,6 +12,13 @@ export async function getAttributes(
   path: string,
   container: Container,
 ): Promise<Result<GetAttributesCallbackData, FuseError>> {
+  return getAttributesUncached(path, container);
+}
+
+async function getAttributesUncached(
+  path: string,
+  container: Container,
+): Promise<Result<GetAttributesCallbackData, FuseError>> {
   if (path === '/' || path === '') {
     return {
       data: {

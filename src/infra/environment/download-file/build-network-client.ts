@@ -1,6 +1,7 @@
 import { Network } from '@internxt/sdk';
 import { createHash } from 'node:crypto';
 import { INTERNXT_CLIENT, INTERNXT_VERSION } from '../../../core/utils/utils';
+import { withDownloadLinksCache } from './with-download-links-cache';
 
 export type NetworkClientCredentials = {
   bridgeUser: string;
@@ -8,7 +9,7 @@ export type NetworkClientCredentials = {
 };
 
 export function buildNetworkClient(credentials: NetworkClientCredentials): Network.Network {
-  return Network.Network.client(
+  const network = Network.Network.client(
     process.env.BRIDGE_URL,
     {
       clientName: INTERNXT_CLIENT,
@@ -20,4 +21,10 @@ export function buildNetworkClient(credentials: NetworkClientCredentials): Netwo
       userId: createHash('sha256').update(credentials.userId).digest('hex'),
     },
   );
+
+  const authorizationContext = createHash('sha256')
+    .update(`${credentials.bridgeUser}:${credentials.userId}`)
+    .digest('hex');
+
+  return withDownloadLinksCache({ network, authorizationContext });
 }
