@@ -43,7 +43,7 @@ function uploadStatusOf(err: Error & { status?: unknown }): number | undefined {
     return err.status;
   }
 
-  const reported = /^Failed to upload (?:file|part): ([1-5][0-9]{2})(?: |$)/.exec(err.message);
+  const reported = /^Failed to upload (?:file|part): ([1-5]\d{2})(?: |$)/.exec(err.message);
 
   return reported ? Number(reported[1]) : undefined;
 }
