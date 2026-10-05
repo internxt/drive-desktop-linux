@@ -10,7 +10,7 @@ import { getUser } from '../../auth/get-user';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { getVirtualDriveState } from '../services/daemon.service';
 
-function remoteChangesSyncedHandler() {
+async function remoteChangesSyncedHandler() {
   const container = getVirtualDriveContainer();
   if (container) {
     const { data: user, error } = getUser();
@@ -19,7 +19,7 @@ function remoteChangesSyncedHandler() {
       return;
     }
 
-    updateVirtualDriveContainer({ container, user });
+    await updateVirtualDriveContainer({ container, user });
   } else {
     logger.warn({ msg: '[FUSE] updateVirtualDriveContainer called before container was initialized' });
   }
