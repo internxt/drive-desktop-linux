@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
 
@@ -180,6 +181,37 @@ func (fs *InternxtFilesystem) Truncate(name string, size uint64, context *fuse.C
 	}{Path: name, Size: size}
 
 	return fs.client.Post(context, client.OperationTruncate, body, nil)
+}
+
+// Utimens sets a file's access and modification times, as utimensat(2) asks.
+//
+// Only the modification time is forwarded: the backend has nowhere to store an
+// access time. Dropping the access time alongside a modification time is what a
+// filesystem mounted noatime does and callers tolerate it, but a call that asks
+// for NOTHING BUT an access time cannot be honoured at all, and answering OK to
+// it would be the silent success this codebase refuses elsewhere. That case is
+// refused instead.
+//
+// A nil mtime with a nil atime is UTIME_OMIT on both, which asks for nothing and
+// needs no backend call.
+func (fs *InternxtFilesystem) Utimens(name string, atime *time.Time, mtime *time.Time, context *fuse.Context) fuse.Status {
+	fs.logger.Debug("Received Utimens call", "path", name)
+
+	if mtime == nil {
+		if atime != nil {
+			fs.logger.Warn("not implemented", "op", "Utimens (access time only)", "path", name)
+			return fuse.ENOSYS
+		}
+
+		return fuse.OK
+	}
+
+	body := struct {
+		Path             string `json:"path"`
+		ModificationTime string `json:"modificationTime"`
+	}{Path: name, ModificationTime: mtime.UTC().Format(time.RFC3339Nano)}
+
+	return fs.client.Post(context, client.OperationUtimens, body, nil)
 }
 
 func (fs *InternxtFilesystem) GetXAttr(name string, attr string, context *fuse.Context) ([]byte, fuse.Status) {

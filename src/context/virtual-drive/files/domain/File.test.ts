@@ -15,6 +15,68 @@ describe('File', () => {
     status: FileStatuses.EXISTS,
   };
 
+  describe('modificationTime', () => {
+    // The two times are deliberately DIFFERENT in every case below. When the
+    // fixture gives them the same value, an assertion cannot tell which field
+    // was read and passes whichever one the code uses.
+    const CONTENT_TIME = '2024-03-04T05:06:07.000Z';
+    const ROW_TIME = '2025-01-01T00:00:00.000Z';
+
+    it('should keep the modification time it was built with, not the row time', () => {
+      const file = File.from({ ...fileMock, modificationTime: CONTENT_TIME, updatedAt: ROW_TIME });
+
+      expect(file.modificationTime.toISOString()).toBe(CONTENT_TIME);
+      expect(file.updatedAt.toISOString()).toBe(ROW_TIME);
+    });
+
+    it('should fall back to the row time when there is no modification time', () => {
+      const file = File.from({ ...fileMock, modificationTime: '', updatedAt: ROW_TIME });
+
+      expect(file.modificationTime.toISOString()).toBe(ROW_TIME);
+    });
+
+    it('should fall back to the row time when the modification time cannot be parsed', () => {
+      const file = File.from({ ...fileMock, modificationTime: 'not a date', updatedAt: ROW_TIME });
+
+      expect(file.modificationTime.toISOString()).toBe(ROW_TIME);
+    });
+
+    it('should emit the modification time in its attributes rather than the row time', () => {
+      const file = File.from({ ...fileMock, modificationTime: CONTENT_TIME, updatedAt: ROW_TIME });
+
+      expect(file.attributes().modificationTime).toBe(CONTENT_TIME);
+    });
+
+    it('should not write the fallback into its attributes, so unknown stays unknown', () => {
+      // The getter falls back to updatedAt for stat's benefit. Persisting that
+      // fallback would record a guess as though the server had supplied it, and
+      // a legacy record would lose "unknown" the first time it was saved.
+      const file = File.from({ ...fileMock, modificationTime: '', updatedAt: ROW_TIME });
+
+      expect(file.modificationTime.toISOString()).toBe(ROW_TIME);
+      expect(file.attributes().modificationTime).toBeUndefined();
+    });
+
+    it('should update the modification time when provided', () => {
+      const file = File.from({ ...fileMock, modificationTime: CONTENT_TIME, updatedAt: ROW_TIME });
+
+      file.update({ modificationTime: '2021-02-03T04:05:06.000Z' });
+
+      expect(file.modificationTime.toISOString()).toBe('2021-02-03T04:05:06.000Z');
+    });
+
+    it('should let a known modification time be cleared back to unknown', () => {
+      // A truthiness check here could never carry an empty value back: once a
+      // file had a time, nothing could tell it the server no longer has one.
+      const file = File.from({ ...fileMock, modificationTime: CONTENT_TIME, updatedAt: ROW_TIME });
+
+      file.update({ modificationTime: '' });
+
+      expect(file.attributes().modificationTime).toBeUndefined();
+      expect(file.modificationTime.toISOString()).toBe(ROW_TIME);
+    });
+  });
+
   describe('update', () => {
     it('should update the path when provided', () => {
       const file = File.from(fileMock);

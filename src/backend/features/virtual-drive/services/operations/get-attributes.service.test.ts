@@ -52,6 +52,22 @@ describe('getAttributes', () => {
       expect(error).toBeUndefined();
       expect(data).toMatchObject({ mode: FILE_MODE, size: 4096, nlink: 1 });
     });
+
+    it('should report the modification time as mtime, not the row update time', async () => {
+      // The two must DIFFER, or the assertion cannot tell which one was read.
+      const contentTime = new Date('2024-03-04T05:06:07.000Z');
+      const rowTime = new Date('2025-01-01T00:00:00.000Z');
+      fileSearcher.run.mockResolvedValue({
+        size: 4096,
+        createdAt: rowTime,
+        updatedAt: rowTime,
+        modificationTime: contentTime,
+      } as unknown as File);
+
+      const { data } = await getAttributes('/some/file.txt', container);
+
+      expect(data?.mtime).toEqual(contentTime);
+    });
   });
 
   describe('when a folder is found', () => {

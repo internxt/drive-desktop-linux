@@ -3,7 +3,7 @@ import { ContainerBuilder } from 'diod';
 import { UploadProgressTracker } from '../../../../context/shared/domain/UploadProgressTracker';
 import { TemporalFileByteByByteComparator } from '../../../../context/storage/TemporalFiles/application/comparation/TemporalFileByteByByteComparator';
 import { TemporalFileCreator } from '../../../../context/storage/TemporalFiles/application/creation/TemporalFileCreator';
-import { DeleteTemporalFileOnFileCreated } from '../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileOnFileCreated';
+import { DeleteTemporalFileIfUnchanged } from '../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
 import { TemporalFileDeleter } from '../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
 import { TemporalFileByFolderFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
 import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
@@ -15,10 +15,11 @@ import { TemporalFileRepository } from '../../../../context/storage/TemporalFile
 import { TemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/domain/upload/TemporalFileUploaderFactory';
 import { NodeTemporalFileRepository } from '../../../../context/storage/TemporalFiles/infrastructure/NodeTemporalFileRepository';
 import { EnvironmentTemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/infrastructure/upload/EnvironmentTemporalFileUploaderFactory';
+import { PendingModificationTimes } from '../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { PATHS } from '../../../../core/electron/paths';
 
-export async function registerTemporalFilesServices(builder: ContainerBuilder) {
+export function registerTemporalFilesServices(builder: ContainerBuilder) {
   // Infra
   const user = DependencyInjectionUserProvider.get();
 
@@ -43,8 +44,11 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
 
   // Services
 
+  builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
+
   builder.registerAndUse(TemporalFileCreator);
   builder.registerAndUse(TemporalFileDeleter);
+  builder.registerAndUse(DeleteTemporalFileIfUnchanged);
   builder.registerAndUse(TemporalFilePathsByFolderFinder);
   builder.registerAndUse(TemporalFileByPathFinder);
   builder.registerAndUse(TemporalFileUploader);
@@ -52,7 +56,4 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
   builder.registerAndUse(TemporalFileTruncater);
   builder.registerAndUse(TemporalFileByteByByteComparator);
   builder.registerAndUse(TemporalFileByFolderFinder);
-
-  // Event handlers
-  builder.registerAndUse(DeleteTemporalFileOnFileCreated).addTag('event-handler');
 }
