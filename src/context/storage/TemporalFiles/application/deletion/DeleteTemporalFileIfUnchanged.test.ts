@@ -6,7 +6,6 @@ import { NodeTemporalFileRepository } from '../../infrastructure/NodeTemporalFil
 import { TemporalFilePath } from '../../domain/TemporalFilePath';
 import { TemporalFileByPathFinder } from '../find/TemporalFileByPathFinder';
 import { TemporalFileDeleter } from './TemporalFileDeleter';
-import { PendingModificationTimes } from '../../../../virtual-drive/files/application/utimens/PendingModificationTimes';
 import { DeleteTemporalFileIfUnchanged } from './DeleteTemporalFileIfUnchanged';
 import { PendingModificationTimes } from '../../../../virtual-drive/files/application/utimens/PendingModificationTimes';
 

@@ -11,7 +11,6 @@ import { TemporalFileCreator } from '../../../../context/storage/TemporalFiles/a
 import { TemporalFileWriter } from '../../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { TemporalFileByPathFinder } from '../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { DeleteTemporalFileIfUnchanged } from '../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
-import { PendingModificationTimes } from '../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 
 let folder: string;
 
@@ -58,7 +57,6 @@ describe('registerTemporalFilesServices wires one repository', () => {
     builder.register(Environment).useInstance({} as Environment);
     builder.register(UploadProgressTracker).useInstance({} as UploadProgressTracker);
     builder.register(EventBus).useInstance({ publish: vi.fn() } as unknown as EventBus);
-    builder.registerAndUse(PendingModificationTimes);
 
     registerTemporalFilesServices(builder);
 
