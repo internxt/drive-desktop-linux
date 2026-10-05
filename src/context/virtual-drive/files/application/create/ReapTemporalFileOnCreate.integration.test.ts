@@ -16,6 +16,7 @@ import { FileOverriderTestClass } from '../../__test-helpers__/FileOverriderTest
 import { FileMother } from '../../domain/__test-helpers__/FileMother';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 import { uploadAndCreateThumbnail } from '../../../../../backend/features/thumbnails/upload-and-create-thumbnail';
+import { PendingModificationTimes } from '../utimens/PendingModificationTimes';
 
 const PATH = '/Private/notes/passwords.kdbx';
 
@@ -56,7 +57,10 @@ describe('reaping the staged copy after a create, end to end', () => {
       new FileOverriderTestClass(),
       {} as Environment,
       'test-bucket',
-      new DeleteTemporalFileIfUnchanged(new TemporalFileByPathFinder(repository), new TemporalFileDeleter(repository)),
+      new DeleteTemporalFileIfUnchanged(
+        new TemporalFileByPathFinder(repository),
+        new TemporalFileDeleter(repository, new PendingModificationTimes()),
+      ),
     );
 
     bus = new NodeJsEventBus();

@@ -1,6 +1,5 @@
 import { ContainerBuilder } from 'diod';
 import { FileCreator } from '../../../../context/virtual-drive/files/application/create/FileCreator';
-import { PendingModificationTimes } from '../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 import { FileTrasher } from '../../../../context/virtual-drive/files/application/trash/FileTrasher';
 import { FilePathUpdater } from '../../../../context/virtual-drive/files/application/move/FilePathUpdater';
 import { FilesByFolderPathSearcher } from '../../../../context/virtual-drive/files/application/search/FilesByFolderPathSearcher';
@@ -24,7 +23,7 @@ import { SingleFileMatchingFinder } from '../../../../context/virtual-drive/file
 import { FilesByPartialSearcher } from '../../../../context/virtual-drive/files/application/search/FilesByPartialSearcher';
 import { Environment } from '@internxt/inxt-js';
 
-export async function registerFilesServices(builder: ContainerBuilder): Promise<void> {
+export function registerFilesServices(builder: ContainerBuilder) {
   // Infra
 
   builder.register(FileRepository).use(InMemoryFileRepository).asSingleton().private();
@@ -52,10 +51,6 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
   builder.registerAndUse(FilePathUpdater);
 
   builder.registerAndUse(FileTrasher);
-
-  // Singleton on purpose: the utimens service writes the pending time and
-  // FileCreator reads it, so they must share one instance.
-  builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
 
   builder.registerAndUse(FileCreator);
 

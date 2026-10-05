@@ -78,8 +78,8 @@ describe('the reaping subscriber is wired by the composition root', () => {
     builder.register(SingleFolderMatchingFinder).useInstance({} as SingleFolderMatchingFinder);
     builder.registerAndUse(SubscribeDomainEventsHandlerToTheirEvents);
 
-    await registerTemporalFilesServices(builder);
-    await registerFilesServices(builder);
+    registerTemporalFilesServices(builder);
+    registerFilesServices(builder);
 
     container = builder.build();
 

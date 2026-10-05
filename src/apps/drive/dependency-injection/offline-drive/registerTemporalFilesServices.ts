@@ -16,9 +16,10 @@ import { TemporalFileUploaderFactory } from '../../../../context/storage/Tempora
 import { NodeTemporalFileRepository } from '../../../../context/storage/TemporalFiles/infrastructure/NodeTemporalFileRepository';
 import { EnvironmentTemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/infrastructure/upload/EnvironmentTemporalFileUploaderFactory';
 import { getUser } from '../../../../backend/features/auth/get-user';
+import { PendingModificationTimes } from '../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 import { PATHS } from '../../../../core/electron/paths';
 
-export async function registerTemporalFilesServices(builder: ContainerBuilder) {
+export function registerTemporalFilesServices(builder: ContainerBuilder) {
   // Infra
   const { data: user, error } = getUser();
   if (error) throw error;
@@ -43,6 +44,8 @@ export async function registerTemporalFilesServices(builder: ContainerBuilder) {
     .private();
 
   // Services
+
+  builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
 
   builder.registerAndUse(TemporalFileCreator);
   builder.registerAndUse(TemporalFileDeleter);
