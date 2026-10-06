@@ -1,39 +1,29 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { Result } from '../../../../../context/shared/domain/Result';
+import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
+import { components } from '../../../../schemas';
 
-type FetchFoldersQuery = {
+export type FetchFoldersSyncQuery = {
   limit: number;
-  offset: number;
-  status: 'ALL' | 'EXISTS' | 'TRASHED' | 'DELETED';
+  status?: 'EXISTS' | 'TRASHED' | 'DELETED';
   updatedAt?: string;
+  cursor?: string;
 };
 
-type FetchFoldersResult = {
-  folders: Record<string, unknown>[];
-  hasMore: boolean;
-};
+export type FetchFoldersSyncResult = components['schemas']['GetFoldersSyncResponseDto'];
 
-export async function fetchFolders(query: FetchFoldersQuery): Promise<Result<FetchFoldersResult, DriveServerError>> {
-  const { data, error } = await driveServerClient.GET('/folders', {
+export async function fetchFoldersSync(
+  query: FetchFoldersSyncQuery,
+): Promise<Result<FetchFoldersSyncResult, DriveServerError>> {
+  const { data, error } = await driveServerClient.GET('/folders/sync', {
     query,
   });
 
-  if (error) return { error };
+  if (error) return Result.err(error);
 
-  if (!Array.isArray(data)) {
-    logger.error({
-      msg: `Expected to receive an array of folders, but received: ${JSON.stringify(data, null, 2)}`,
-      path: '/folders',
-    });
-    return { error: new DriveServerError('UNKNOWN', undefined, 'Invalid response: expected array of folders') };
+  if (!data) {
+    return Result.err(new DriveServerError('UNKNOWN', undefined, 'Empty response from /folders/sync'));
   }
 
-  return {
-    data: {
-      folders: data,
-      hasMore: data.length === query.limit,
-    },
-  };
+  return Result.ok(data);
 }

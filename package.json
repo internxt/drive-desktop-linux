@@ -43,7 +43,7 @@
         "generate_schema:prod": "openapi-typescript https://drive-server.internxt.com/api-json -o ./src/infra/schemas.d.ts",
         "find-deadcode": "knip --max-issues=95",
         "========== Core ==========": "",
-        "build:core": "npm.cmd --prefix packages/core run build",
+        "build:core": "npm --prefix packages/core run build",
         "core:bump": "node scripts/bump-core.js"
     },
     "build": {
@@ -224,7 +224,7 @@
         "webpack-merge": "^5.8.0"
     },
     "dependencies": {
-        "@internxt/drive-desktop-core": "file:packages/core/internxt-drive-desktop-core-1.0.0.tgz",
+        "@internxt/drive-desktop-core": "file:packages/core/internxt-drive-desktop-core-1.4.2.tgz",
         "@internxt/inxt-js": "^3.3.1",
         "@internxt/scan": "^1.0.7",
         "@internxt/sdk": "1.17.4",

@@ -1,4 +1,3 @@
-vi.mock('@internxt/drive-desktop-core/build/backend');
 vi.mock('../../../infra/drive-server/client/drive-server.client.instance', () => ({
   driveServerClient: {
     GET: vi.fn(),
@@ -175,19 +174,28 @@ describe('RemoteSyncManager', () => {
 
       mockedGet
         .mockResolvedValueOnce({
-          data: [
-            createRemoteSyncedFolderFixture({ plainName: 'folder_1' }),
-            createRemoteSyncedFolderFixture({ plainName: 'folder_2' }),
-          ],
+          data: {
+            folders: [
+              createRemoteSyncedFolderFixture({ plainName: 'folder_1' }),
+              createRemoteSyncedFolderFixture({ plainName: 'folder_2' }),
+            ],
+            nextCursor: 'cursor-1',
+          },
         })
         .mockResolvedValueOnce({
-          data: [
-            createRemoteSyncedFolderFixture({ plainName: 'folder_3' }),
-            createRemoteSyncedFolderFixture({ plainName: 'folder_4' }),
-          ],
+          data: {
+            folders: [
+              createRemoteSyncedFolderFixture({ plainName: 'folder_3' }),
+              createRemoteSyncedFolderFixture({ plainName: 'folder_4' }),
+            ],
+            nextCursor: 'cursor-2',
+          },
         })
         .mockResolvedValueOnce({
-          data: [createRemoteSyncedFolderFixture({ plainName: 'folder_5' })],
+          data: {
+            folders: [createRemoteSyncedFolderFixture({ plainName: 'folder_5' })],
+            nextCursor: null,
+          },
         });
 
       await sut.startRemoteSync();
@@ -225,6 +233,37 @@ describe('RemoteSyncManager', () => {
       expect(mockedGet).toHaveBeenCalledTimes(1);
       expect(sut.getSyncStatus()).toBe('SYNCED');
       expect(mockedCreateOrUpdateFileByBatch).toBeCalledWith({ files: [file1, file2] });
+    });
+
+    it('Should save the folders in the database', async () => {
+      const sut = new RemoteSyncManager(
+        {
+          folders: inMemorySyncedFoldersCollection,
+          files: inMemorySyncedFilesCollection,
+        },
+        {
+          fetchFilesLimitPerRequest: 2,
+          fetchFoldersLimitPerRequest: 2,
+          syncFiles: false,
+          syncFolders: true,
+        },
+        errorHandler,
+      );
+      const folder1 = createRemoteSyncedFolderFixture({
+        plainName: 'folder_1',
+      });
+
+      const folder2 = createRemoteSyncedFolderFixture({
+        plainName: 'folder_2',
+      });
+
+      mockedGet.mockResolvedValueOnce({ data: { folders: [folder1, folder2], nextCursor: null } });
+
+      await sut.startRemoteSync();
+
+      expect(mockedGet).toHaveBeenCalledTimes(1);
+      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(mockedCreateOrUpdateFolderByBatch).toBeCalledWith({ folders: [folder1, folder2] });
     });
   });
 
