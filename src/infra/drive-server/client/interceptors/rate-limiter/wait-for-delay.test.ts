@@ -1,3 +1,4 @@
+import { DelayState } from './rate-limiter.types';
 import { waitForDelay } from './wait-for-delay';
 import { DelayState } from './rate-limiter.types';
 

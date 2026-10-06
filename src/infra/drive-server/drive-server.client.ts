@@ -70,6 +70,10 @@ type OperationQuery<T, P extends keyof T, M extends HTTPMethod> =
       ? Exclude<Q, undefined>
       : never;
 
+type RelaxPathParams<T> = {
+  [K in keyof T]: T[K] extends number ? number | string : T[K];
+};
+
 /**
  * Infers the path parameters for an endpoint, if any.
  */
