@@ -3,21 +3,21 @@ import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import type { SyncConfig } from '../../../apps/main/remote-sync/helpers';
 import type { RemoteSyncErrorHandler } from '../../../apps/main/remote-sync/RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
-import { fetchFilesSyncPage } from './fetch-files-sync-page';
-import { persistFilesSyncBatch } from './persist-files-sync-batch';
-import { handleSyncFileFailure } from './handle-sync-file-failure';
-import type { FileSyncDto } from './types';
+import { fetchFoldersSyncPage } from './fetch-folders-sync-page';
+import { persistFoldersSyncBatch } from './persist-folders-sync-batch';
+import { handleSyncFolderFailure } from './handle-sync-folder-failure';
+import type { FolderSyncDto } from './types';
 
 type Props = {
   syncConfig: SyncConfig;
-  fileCheckPoint: Date | undefined;
+  folderCheckPoint: Date | undefined;
   limit: number;
   errorHandler: RemoteSyncErrorHandler;
 };
 
-export async function syncRemoteFiles({
+export async function syncRemoteFolders({
   syncConfig,
-  fileCheckPoint,
+  folderCheckPoint,
   limit,
   errorHandler,
 }: Props): Promise<Result<{ totalSynced: number }>> {
@@ -26,21 +26,20 @@ export async function syncRemoteFiles({
   while (retryCount < syncConfig.maxRetries) {
     let totalSynced = 0;
 
-    const syncResult = await synchronizeRemoteItems<FileSyncDto>({
-      from: fileCheckPoint,
+    const syncResult = await synchronizeRemoteItems<FolderSyncDto>({
+      from: folderCheckPoint,
       limit,
-      fetchPage: (request) => fetchFilesSyncPage({ request }),
+      fetchPage: (request) => fetchFoldersSyncPage({ request }),
       persistItems: async ({ items }) => {
-        const persistResult = await persistFilesSyncBatch({ items });
-
-        return Result.map(persistResult, () => {
+        const result = await persistFoldersSyncBatch({ items });
+        return Result.map(result, () => {
           totalSynced += items.length;
         });
       },
     });
 
     if (!syncResult.error) {
-      logger.debug({ tag: 'SYNC-ENGINE', msg: 'Remote files sync finished' });
+      logger.debug({ tag: 'SYNC-ENGINE', msg: 'Remote folders sync finished' });
       return Result.ok({ totalSynced });
     }
 
@@ -49,13 +48,15 @@ export async function syncRemoteFiles({
     }
 
     retryCount++;
-    handleSyncFileFailure({
+    handleSyncFolderFailure({
       error: syncResult.error,
       errorHandler,
-      fileCheckPoint,
+      folderCheckPoint,
     });
 
-    if (retryCount >= syncConfig.maxRetries) return Result.err(syncResult.error);
+    if (retryCount >= syncConfig.maxRetries) {
+      return Result.err(syncResult.error);
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
   }
