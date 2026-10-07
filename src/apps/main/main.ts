@@ -7,9 +7,11 @@ import 'dotenv/config';
 import { PATHS } from '../../core/electron/paths';
 import { setupElectronLog } from '@internxt/drive-desktop-core/build/backend';
 import { setupAppLogRouting } from './logging/setup-app-log-routing';
+import { setupHttpTelemetry } from '../../infra/telemetry';
 
 setupElectronLog({ logsPath: PATHS.LOGS });
 setupAppLogRouting({ logsPath: PATHS.LOGS });
+setupHttpTelemetry();
 
 // Side-effect handlers registration.
 import './virtual-root-folder/handlers';
