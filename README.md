@@ -101,14 +101,55 @@ For the best experience with SSO authentication, we recommend using the .deb pac
 
 ### Prerequisites
 
-- [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager)
-- Node.js 24
+The following setup is for building and running the source on an Ubuntu desktop. Installing a released `.deb` does not require Node.js, Go, or the build tools.
 
-If working on the FUSE daemon (Go), see [packages/fuse-daemon/README.md](packages/fuse-daemon/README.md) for Go and linting tool prerequisites.
+#### 1. Install Ubuntu dependencies
+
+```bash
+sudo apt update
+sudo apt install git curl ca-certificates build-essential python3 pkg-config fuse3
+```
+
+`build-essential` includes `make`, which builds the FUSE daemon, and the compiler tools needed by native Node dependencies. `fuse3` supplies `fusermount3`, which the app uses to clean up mounts.
+
+For Nautilus integration, also install:
+
+```bash
+sudo apt install python3-nautilus
+```
+
+#### 2. Install Node.js and npm
+
+Install [NVM](https://github.com/nvm-sh/nvm#installing-and-updating), then open a new terminal and run:
+
+```bash
+nvm install 24
+nvm use 24
+npm install -g npm@10
+node --version
+npm --version
+```
+
+Use Node.js 24.18.0 or newer within the 24.x series. The root project requires npm 10.x, while the current core submodule requires npm 11.16.0 or newer. The installation commands below use npm 11 only for the core dependency installation.
+
+#### 3. Install Go
+
+Go **1.26.1 or newer** is required even when only working on the Electron app: `npm start` builds the daemon automatically.
+
+Follow the [Go installation instructions](packages/fuse-daemon/README.md#installing-go), then check that Go is available in your terminal:
+
+```bash
+go version
+make --version
+command -v fusermount3
+ls -l /dev/fuse
+```
+
+The virtual drive needs access to `/dev/fuse`. If it is missing on your Ubuntu host, try `sudo modprobe fuse` and check again. Containers and virtual machines must also expose the FUSE device and allow mounting; installing `fuse3` alone does not provide that access.
 
 ### Install
 
-Clone the repo and install dependencies:
+After installing the prerequisites, clone the repo and build the core package before installing the root dependencies:
 
 ```bash
 git clone https://github.com/internxt/drive-desktop-linux.git
@@ -118,6 +159,17 @@ npm --prefix packages/core ci
 npm run build:core
 npm ci
 ```
+### Core Package
+
+`build:core` compiles and packs the core into the local `.tgz` dependency referenced by the root `package.json`, then refreshes the root dependency lockfile. Use `npm ci` at the root after that step to install the versions in the lockfile.
+
+Create your local environment file:
+
+```bash
+cp .env.example .env
+```
+
+Fill in the encryption settings, API endpoints, and desktop client key with the values for your development environment before starting the app. The example file contains empty placeholders.
 
 ### Updating the Core Package
 
@@ -140,6 +192,16 @@ Start the app in the `dev` environment:
 npm start
 ```
 
+This runs `build:daemon` first, generates `dist/fuse-daemon`, and starts the development app. Electron launches the daemon and supplies its mount, socket, and log configuration automatically.
+
+To build only the daemon:
+
+```bash
+npm run build:daemon
+```
+
+For development login, complete the [deeplink setup](#login-configuration-using-deeplink) below. If Electron reports a sandbox permissions error, follow [the sandbox troubleshooting steps](#troubleshooting-sso-in-development).
+
 ## Packaging for Production
 
 To package apps for the local platform:
@@ -147,6 +209,8 @@ To package apps for the local platform:
 ```bash
 npm run package
 ```
+
+This builds the Electron app and `dist/fuse-daemon`, bundles the daemon as an application resource, and writes the AppImage, `.deb`, and `.rpm` artifacts to `build/`. The installed app does not need Go, but still needs the host FUSE device and runtime tools. The current `.deb` configuration does not explicitly declare `fuse3`, so install it on the target Ubuntu system as well.
 
 Building the `.rpm` package requires `rpmbuild`. On Ubuntu or Debian, install the `rpm` package before running the packaging command:
 
