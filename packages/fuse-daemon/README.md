@@ -6,7 +6,7 @@ The Go daemon that mounts a FUSE filesystem and forwards all operations to the E
 
 ### Installing Go
 
-The daemon requires Go 1.26+ to build from source.
+The daemon requires Go 1.26.1 or newer to build from source. For the complete Ubuntu app setup, including `make` and FUSE runtime requirements, see the [root development guide](../../README.md#development).
 ```bash
 wget https://go.dev/dl/go1.26.1.linux-amd64.tar.gz
 sudo rm -rf /usr/local/go
@@ -100,5 +100,5 @@ Logs are written to `~/.config/internxt/logs/fuse-daemon.log` alongside other In
 If the daemon is killed uncleanly and the mount is left orphaned:
 
 ```bash
-fusermount -u /home/[user]/Internxt
+fusermount3 -u /home/[user]/Internxt
 ```
