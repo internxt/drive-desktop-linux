@@ -53,6 +53,7 @@ describe('download-backup', () => {
   it('should download backup and broadcast progress when not aborted', async () => {
     downloadDeviceBackupZipMock.mockImplementation(async ({ updateProgress }) => {
       updateProgress(33);
+      return { data: true };
     });
 
     await downloadBackup({ device, pathname });
@@ -86,6 +87,7 @@ describe('download-backup', () => {
       const abortListener = ipcMainOnMock.mock.calls[0]?.[1];
       abortListener?.({} as never, device.uuid);
       updateProgress(90);
+      return { data: true };
     });
 
     await downloadBackup({ device, pathname });
@@ -98,6 +100,7 @@ describe('download-backup', () => {
       const abortListener = ipcMainOnMock.mock.calls[0]?.[1];
       abortListener?.({} as never, 'other-device-uuid');
       updateProgress(12);
+      return { data: true };
     });
 
     await downloadBackup({ device, pathname });
