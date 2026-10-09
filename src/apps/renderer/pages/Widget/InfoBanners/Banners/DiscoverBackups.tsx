@@ -26,7 +26,7 @@ export function DiscoverBackups() {
             <div className="text-neutral-500 text-sm font-semibold">
               {translate('widget.banners.discover-backups.title')}
             </div>
-            <div className="mb-4 mt-1 text-xs">{translate('widget.banners.discover-backups.body')}</div>
+            <div className="mt-1 mb-4 text-xs">{translate('widget.banners.discover-backups.body')}</div>
           </div>
           <button
             onClick={discover}

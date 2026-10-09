@@ -35,7 +35,7 @@ export default function Login() {
 
       <div className="flex flex-1 items-center justify-center px-8">
         <div className="flex w-full max-w-[300px] flex-col items-center justify-center">
-          <h1 className="text-gray-900 mb-3 text-center text-3xl font-normal leading-tight">
+          <h1 className="text-gray-900 mb-3 text-center text-3xl leading-tight font-normal">
             {translate('login.welcome') || 'Bienvenido a Internxt'}
           </h1>
 
