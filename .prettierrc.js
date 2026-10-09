@@ -4,6 +4,7 @@ module.exports = {
   bracketSpacing: true,
   endOfLine: 'lf',
   plugins: ['prettier-plugin-tailwindcss'],
+  tailwindStylesheet: './src/apps/renderer/App.css',
   printWidth: 120,
   proseWrap: 'never',
   semi: true,

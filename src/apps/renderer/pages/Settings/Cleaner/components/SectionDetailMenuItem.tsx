@@ -22,7 +22,7 @@ export function SectionDetailMenuItem({
   return (
     <div key={item.fullPath} className="relative flex h-full items-center">
       {showSeparatorOnTop && (
-        <div className="absolute left-0 right-0 top-0">
+        <div className="absolute top-0 right-0 left-0">
           <Separator size="small" />
         </div>
       )}

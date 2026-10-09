@@ -17,7 +17,7 @@ export function Accordion({ title, collapsed, elements }: AccordionProps) {
         <WarnIcon className="h-5 w-5" />
         <div className="flex grow flex-col space-y-1">
           <h1
-            className="flex flex-1 flex-col text-base font-medium leading-5 text-gray-100"
+            className="flex flex-1 flex-col text-base leading-5 font-medium text-gray-100"
             data-test="sync-issue-name">
             {title}
           </h1>

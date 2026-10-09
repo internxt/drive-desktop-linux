@@ -7,7 +7,7 @@ export default function WindowTopBar({ title, className }: { title: string; clas
         role="button"
         tabIndex={0}
         onClick={window.electron.closeWindow}
-        className="non-draggable absolute right-0 top-0 flex h-10 items-center justify-center px-3 text-gray-60 hover:bg-red hover:text-white">
+        className="non-draggable absolute top-0 right-0 flex h-10 items-center justify-center px-3 text-gray-60 hover:bg-red hover:text-white">
         <X size={20} />
       </div>
       <p

@@ -17,7 +17,7 @@ export const OnboardingCompletedSlide: React.FC<OnboardingSlideProps> = () => {
           <CheckCircle weight="fill" className="text-primary" size={20} />
         </div>
         <div className="flex flex-col">
-          <h3 className="mb-0.5 text-lg font-medium leading-[22px] text-gray-100">
+          <h3 className="mb-0.5 text-lg leading-[22px] font-medium text-gray-100">
             {translate('onboarding.slides.onboarding-completed.desktop-ready.title')}
           </h3>
           <h4

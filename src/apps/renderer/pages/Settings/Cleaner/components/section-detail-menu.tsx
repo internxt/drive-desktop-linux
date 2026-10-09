@@ -55,7 +55,7 @@ export default function SectionDetailMenu({
 
   return (
     <div
-      className={`absolute right-0 top-0 z-10 h-full border-l border-gray-10 bg-surface shadow-sm transition-transform duration-300 ease-in-out dark:bg-gray-5 ${
+      className={`absolute top-0 right-0 z-10 h-full border-l border-gray-10 bg-surface shadow-sm transition-transform duration-300 ease-in-out dark:bg-gray-5 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
       style={{ width: '75%' }}
