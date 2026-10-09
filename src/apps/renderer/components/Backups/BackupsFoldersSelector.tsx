@@ -109,7 +109,7 @@ export const BackupsFoldersSelector: React.FC<BackupsFoldersSelectorProps> = (pr
                 : 'bg-gray-10 text-gray-100'
           }`}>
           <FolderIcon className="mr-2 h-[19px] w-[22px]" />
-          <p className="select-none truncate text-lg" style={{ top: '1px' }}>
+          <p className="truncate text-lg select-none" style={{ top: '1px' }}>
             {backupFolder.itemName}
           </p>
         </div>

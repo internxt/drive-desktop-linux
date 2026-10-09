@@ -96,17 +96,17 @@ export function CleanerView({
         />
         {/* Right Panel */}
         <div className="relative flex w-[44%] flex-col items-center justify-start bg-surface pt-4 dark:bg-gray-1">
-          <div className="absolute left-0 top-1/2 h-[90%] w-px -translate-y-1/2 bg-gray-10" />
+          <div className="absolute top-1/2 left-0 h-[90%] w-px -translate-y-1/2 bg-gray-10" />
           <div className="mb-8 w-full text-center">
-            <p className="text-gray-500 dark:text-gray-400 text-lg font-normal leading-tight">
+            <p className="text-gray-500 dark:text-gray-400 text-lg leading-tight font-normal">
               {translate('settings.cleaner.sizeIndicatorView.selectCategory')}
             </p>
-            <p className="text-gray-500 dark:text-gray-400 text-lg font-normal leading-tight">
+            <p className="text-gray-500 dark:text-gray-400 text-lg leading-tight font-normal">
               {translate('settings.cleaner.sizeIndicatorView.previewContent')}
             </p>
           </div>
 
-          <div className="mb-8 mt-1">
+          <div className="mt-1 mb-8">
             <CleanupSizeChart
               className="relative h-36 w-64"
               segmentDetails={segmentDetails}

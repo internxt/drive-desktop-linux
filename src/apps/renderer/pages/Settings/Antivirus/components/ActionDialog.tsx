@@ -56,7 +56,7 @@ export const ActionDialog = ({
           <div
             style={{ width: '340px' }}
             className="my-8 inline-block transform overflow-hidden rounded-2xl bg-surface p-4 text-left align-middle shadow transition-all">
-            <Dialog.Title as="h3" className="text-neutral-700 mb-3 text-lg font-medium leading-6">
+            <Dialog.Title as="h3" className="text-neutral-700 mb-3 text-lg leading-6 font-medium">
               {title}
             </Dialog.Title>
             <div className="flex w-full flex-col gap-3">

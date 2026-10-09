@@ -58,10 +58,15 @@ export function buildContentsController(container: Container) {
     return false;
   }
 
-  const get = async (req: Request, res: Response) => {
-    const decodedBuffer = Buffer.from(req.params.path, 'base64');
+  function getPathFromParams(rawPath: string | string[] | undefined) {
+    const pathParam = Array.isArray(rawPath) ? rawPath[0] : rawPath;
+    const decodedBuffer = Buffer.from(pathParam ?? '', 'base64');
 
-    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+    return decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+  }
+
+  const get = async (req: Request, res: Response) => {
+    const path = getPathFromParams(req.params.path);
 
     const locallyAvaliable = await isLocallyAvailable(path);
 
@@ -69,9 +74,7 @@ export function buildContentsController(container: Container) {
   };
 
   const getFile = async (req: Request, res: Response) => {
-    const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+    const path = getPathFromParams(req.params.path);
 
     const fileIsAvaliable = await isFileLocallyAvailable(path);
 
@@ -81,9 +84,7 @@ export function buildContentsController(container: Container) {
   };
 
   const removeFile = async (req: Request, res: Response) => {
-    const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+    const path = getPathFromParams(req.params.path);
 
     await container.get(StorageFileDeleter).run(path);
 
@@ -92,9 +93,7 @@ export function buildContentsController(container: Container) {
 
   const downloadFile = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-      const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+      const path = getPathFromParams(req.params.path);
 
       container.get(MakeStorageFileAvaliableOffline).run(path);
 
@@ -106,9 +105,7 @@ export function buildContentsController(container: Container) {
   };
 
   const getFolder = async (req: Request, res: Response) => {
-    const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+    const path = getPathFromParams(req.params.path);
 
     const folderIsAvaliable = await isFolderLocallyAvailable(path);
 
@@ -118,9 +115,7 @@ export function buildContentsController(container: Container) {
   };
 
   const removeFolder = async (req: Request, res: Response) => {
-    const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-    const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+    const path = getPathFromParams(req.params.path);
 
     await container.get(StorageFolderDeleter).run(path);
 
@@ -129,9 +124,7 @@ export function buildContentsController(container: Container) {
 
   const downloadFolder = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-      const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+      const path = getPathFromParams(req.params.path);
 
       container.get(MakeFolderAvaliableOffline).run(path);
 
@@ -144,9 +137,7 @@ export function buildContentsController(container: Container) {
 
   async function copyLink(req: Request, res: Response, next: NextFunction) {
     try {
-      const decodedBuffer = Buffer.from(req.params.path, 'base64');
-
-      const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
+      const path = getPathFromParams(req.params.path);
 
       const { error, data: link } = await generateLink({ path });
       if (error) return res.status(500).json({ error: 'Error generating sharing link' });

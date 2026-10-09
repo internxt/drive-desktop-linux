@@ -37,7 +37,10 @@ export async function getAttributes(
         mode: FILE_MODE,
         size: file.size,
         ctime: file.createdAt,
-        mtime: file.updatedAt,
+        // The contents' modification time, not the row's. These differ once a
+        // time has been set through utimensat; before that the getter falls
+        // back to updatedAt, which is what this used to read directly.
+        mtime: file.modificationTime,
         atime: new Date(),
         uid: process.getuid?.() || 0,
         gid: process.getgid?.() || 0,

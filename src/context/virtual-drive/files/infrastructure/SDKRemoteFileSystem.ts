@@ -27,10 +27,20 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       body.fileId = dataToPersists.contentsId.value;
     }
 
+    // Sent at creation rather than through a later content-replace: the replace
+    // endpoint would mean re-declaring this file's contents to carry a
+    // timestamp, which is not what happened.
+    if (dataToPersists.modificationTime) {
+      body.modificationTime = dataToPersists.modificationTime.toISOString();
+    }
+
     const { data, error } = await createFile(body);
     if (data) {
       const result: PersistedFileData = {
-        modificationTime: data.updatedAt,
+        // The server's own value when it has one; updatedAt only as a fallback,
+        // so a file created with a requested time reports that time and not the
+        // moment the row was written.
+        modificationTime: data.modificationTime ?? data.updatedAt,
         id: data.id,
         uuid: data.uuid,
         createdAt: data.createdAt,

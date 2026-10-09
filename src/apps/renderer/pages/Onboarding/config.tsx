@@ -47,7 +47,7 @@ export const SLIDES: OnboardingSlide[] = [
       const { theme } = useTheme();
       return (
         <div className="relative h-full w-full overflow-hidden">
-          <div className="absolute left-[76px] top-[80px]">{getLinuxFileExplorerImage(theme)}</div>
+          <div className="absolute top-[80px] left-[76px]">{getLinuxFileExplorerImage(theme)}</div>
         </div>
       );
     },
@@ -89,7 +89,7 @@ export const SLIDES: OnboardingSlide[] = [
         return <DriveImage />;
       };
       return (
-        <div className="relative ml-20 mt-20">
+        <div className="relative mt-20 ml-20">
           <DriveImage />
         </div>
       );
@@ -244,7 +244,7 @@ export const SLIDES: OnboardingSlide[] = [
       const { theme } = useTheme();
       return (
         <div className="relative h-full w-full overflow-hidden">
-          <div className="absolute left-[76px] top-[80px]">
+          <div className="absolute top-[80px] left-[76px]">
             <SideImageAnimation display>{getLinuxFileExplorerImage(theme)}</SideImageAnimation>
           </div>
         </div>

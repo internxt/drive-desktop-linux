@@ -1,8 +1,9 @@
-const supportedFileManagers = ['nautilus', 'nemo', 'dolphin', null] as const;
+const supportedFileManagers = ['nautilus', 'nemo', 'dolphin', 'thunar', null] as const;
 export type SupportedFileManager = (typeof supportedFileManagers)[number];
 
 export const NAUTILUS_EXTENSION_FILENAME = 'internxt-virtual-drive.py';
 export const NEMO_EXTENSION_FILENAME = 'internxt-virtual-drive.py';
+export const THUNAR_EXTENSION_FILENAME = 'internxt-virtual-drive.py';
 export const DOLPHIN_MENU_FILENAME = 'internxt-virtual-drive.desktop';
 export const DOLPHIN_HELPER_FILENAME = 'internxt-dolphin-actions.sh';
 

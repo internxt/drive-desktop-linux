@@ -22,9 +22,16 @@ type Props = {
   hasNautilus?: boolean;
   hasNemo?: boolean;
   hasDolphin?: boolean;
+  hasThunar?: boolean;
 };
 
-function mockExecWith({ desktopEntry, hasNautilus = false, hasNemo = false, hasDolphin = false }: Props) {
+function mockExecWith({
+  desktopEntry,
+  hasNautilus = false,
+  hasNemo = false,
+  hasDolphin = false,
+  hasThunar = false,
+}: Props) {
   execAsyncMock.mockImplementation(async (command: string) => {
     if (command === 'xdg-mime query default inode/directory') {
       if (!desktopEntry) throw new Error('not found');
@@ -67,6 +74,17 @@ function mockExecWith({ desktopEntry, hasNautilus = false, hasNemo = false, hasD
       }
     }
 
+    if (command === 'command -v thunar') {
+      if (hasThunar) {
+        return {
+          stdout: '/usr/bin/thunar\n',
+          stderr: '',
+        } as ExecAsyncResult;
+      } else {
+        throw new Error('thunar not found');
+      }
+    }
+
     throw new Error(`Unexpected command: ${command}`);
   });
 }
@@ -105,6 +123,25 @@ describe('detect-available', () => {
 
       const result = await detectAvailableFileManager();
       expect(result).toBe('dolphin');
+    });
+
+    it('should detect thunar when it is the default directory manager', async () => {
+      mockExecWith({
+        desktopEntry: 'thunar.desktop',
+        hasThunar: true,
+      });
+
+      const result = await detectAvailableFileManager();
+      expect(result).toBe('thunar');
+    });
+
+    it('should fallback to thunar if only thunar binary is available', async () => {
+      mockExecWith({
+        hasThunar: true,
+      });
+
+      const result = await detectAvailableFileManager();
+      expect(result).toBe('thunar');
     });
 
     it('should fallback to nemo if only nemo binary is available', async () => {

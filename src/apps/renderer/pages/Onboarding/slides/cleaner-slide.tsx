@@ -9,12 +9,12 @@ export function CleanerSlide() {
     <div className="flex h-full w-full flex-col">
       <div className="mb-6 flex items-start gap-2">
         <h1 className="text-3xl font-semibold text-gray-100">{translate('onboarding.slides.cleaner.title')}</h1>
-        <span className="rounded bg-primary/20 px-2 py-0.5 text-xs font-bold leading-tight text-primary">
+        <span className="rounded bg-primary/20 px-2 py-0.5 text-xs leading-tight font-bold text-primary">
           {translate('onboarding.common.new')}
         </span>
       </div>
       <h3
-        className={`font-regular mb-4 whitespace-pre-line text-left text-lg leading-[22px] ${theme === 'light' ? 'text-gray-60' : 'text-[#ECECEC]'}`}>
+        className={`font-regular mb-4 text-left text-lg leading-[22px] whitespace-pre-line ${theme === 'light' ? 'text-gray-60' : 'text-[#ECECEC]'}`}>
         {translate('onboarding.slides.cleaner.description')}
       </h3>
     </div>

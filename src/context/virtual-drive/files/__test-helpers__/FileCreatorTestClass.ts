@@ -1,5 +1,5 @@
 import { FileCreator } from '../application/create/FileCreator';
-import { FileTrasher } from '../application/trash/FileTrasher';
+import { PendingModificationTimes } from '../application/utimens/PendingModificationTimes';
 import { File } from '../domain/File';
 import { FileRepository } from '../domain/FileRepository';
 import { SyncFileMessenger } from '../domain/SyncFileMessenger';
@@ -12,12 +12,12 @@ export class FileCreatorTestClass extends FileCreator {
 
   constructor() {
     super(
-      {} as RemoteFileSystem,
-      {} as FileRepository,
-      {} as ParentFolderFinder,
-      {} as FileTrasher,
-      {} as EventBus,
-      {} as SyncFileMessenger,
+      {} as unknown as RemoteFileSystem,
+      {} as unknown as FileRepository,
+      {} as unknown as ParentFolderFinder,
+      {} as unknown as EventBus,
+      {} as unknown as SyncFileMessenger,
+      {} as unknown as PendingModificationTimes,
     );
   }
 

@@ -44,7 +44,7 @@ describe('get-file-download-stream', () => {
 
   it('should throw when fetch response has no body', async () => {
     // Given
-    fetchMock.mockResolvedValue({ body: null });
+    fetchMock.mockResolvedValue({ body: undefined });
 
     // Then
     await expect(

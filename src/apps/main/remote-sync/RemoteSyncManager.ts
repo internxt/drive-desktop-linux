@@ -1,12 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import {
-  RemoteSyncStatus,
-  RemoteSyncedFolder,
-  RemoteSyncedFile,
-  SyncConfig,
-  rewind,
-  SIX_HOURS_IN_MILLISECONDS,
-} from './helpers';
+import { RemoteSyncStatus, RemoteSyncedFolder, SyncConfig, rewind, SIX_HOURS_IN_MILLISECONDS } from './helpers';
 import { DatabaseCollectionAdapter } from '../database/adapters/base';
 import { DriveFolder } from '../database/entities/DriveFolder';
 import { DriveFile } from '../database/entities/DriveFile';
@@ -14,9 +7,8 @@ import { Nullable } from '../../shared/types/Nullable';
 import { RemoteSyncError, RemoteSyncNetworkError } from './errors';
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { createOrUpdateFolderByBatch } from '../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
-import { createOrUpdateFileByBatch } from '../../../infra/sqlite/services/file/create-or-update-file-by-batch';
-import { fetchFiles } from '../../../infra/drive-server/services/files/services/fetch-files';
 import { fetchFolders } from '../../../infra/drive-server/services/folder/services/fetch-folders';
+import { syncRemoteFiles as syncFiles } from '../../../backend/features/remote-sync/sync-remote-files';
 
 export class RemoteSyncManager {
   private foldersSyncStatus: RemoteSyncStatus = 'IDLE';
@@ -192,61 +184,21 @@ export class RemoteSyncManager {
     return rewind(updatedAt, SIX_HOURS_IN_MILLISECONDS);
   }
 
-  /**
-   * Syncs all the remote files and saves them into the local db
-   * @param syncConfig Config to execute the sync with
-   * @returns
-   */
   private async syncRemoteFiles(syncConfig: SyncConfig, from?: Date) {
-    let fileCheckPoint = from ?? (await this.getFileCheckpoint());
-    let hasMore = true;
-    let retryCount = 0;
-
-    while (hasMore && retryCount < syncConfig.maxRetries) {
-      let lastFileSynced = null;
-
-      try {
-        const { hasMore: moreAvailable, result } = await this.fetchFilesFromRemote(fileCheckPoint);
-
-        await createOrUpdateFileByBatch({ files: result });
-        this.totalFilesSynced += result.length;
-        lastFileSynced = result.length > 0 ? result[result.length - 1] : null;
-
-        hasMore = moreAvailable;
-
-        if (hasMore && lastFileSynced) {
-          fileCheckPoint = new Date(lastFileSynced.updatedAt);
-        }
-
-        retryCount = 0;
-      } catch (error) {
-        retryCount++;
-
-        if (error instanceof RemoteSyncError) {
-          this.errorHandler.handleSyncError(error, 'files', lastFileSynced?.name ?? 'unknown', fileCheckPoint);
-        } else {
-          logger.error({
-            tag: 'SYNC-ENGINE',
-            msg: 'Remote files sync failed with uncontrolled error: ',
-            error,
-          });
-        }
-
-        if (retryCount >= syncConfig.maxRetries) {
-          this.filesSyncStatus = 'SYNC_FAILED';
-          this.checkRemoteSyncStatus();
-          return;
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
-      }
-    }
-
-    logger.debug({
-      tag: 'SYNC-ENGINE',
-      msg: 'Remote files sync finished',
+    const fileCheckPoint = from ?? (await this.getFileCheckpoint());
+    const result = await syncFiles({
+      syncConfig,
+      fileCheckPoint,
+      limit: this.config.fetchFilesLimitPerRequest,
+      errorHandler: this.errorHandler,
     });
-    this.filesSyncStatus = 'SYNCED';
+
+    if (result.error) {
+      this.filesSyncStatus = 'SYNC_FAILED';
+    } else {
+      this.totalFilesSynced += result.data.totalSynced;
+      this.filesSyncStatus = 'SYNCED';
+    }
     this.checkRemoteSyncStatus();
   }
 
@@ -322,32 +274,6 @@ export class RemoteSyncManager {
   }
 
   /**
-   * Fetch the files that were updated after the given date
-   *
-   * @param updatedAtCheckpoint Retrieve files that were updated after this date
-   */
-  private async fetchFilesFromRemote(updatedAtCheckpoint?: Date): Promise<{
-    hasMore: boolean;
-    result: RemoteSyncedFile[];
-  }> {
-    const { data, error } = await fetchFiles({
-      limit: this.config.fetchFilesLimitPerRequest,
-      offset: 0,
-      status: 'ALL',
-      updatedAt: updatedAtCheckpoint?.toISOString(),
-    });
-
-    if (error) {
-      throw new RemoteSyncNetworkError(error.message, undefined, error.statusCode);
-    }
-
-    return {
-      hasMore: data.hasMore,
-      result: data.files.map(this.patchDriveFileResponseItem),
-    };
-  }
-
-  /**
    * Fetch the folders that were updated after the given date
    *
    * @param updatedAtCheckpoint Retrieve folders that were updated after this date
@@ -389,13 +315,4 @@ export class RemoteSyncManager {
     if (payload.deleted) return 'DELETED';
     return 'EXISTS';
   }
-
-  private readonly patchDriveFileResponseItem = (payload: Record<string, unknown>): RemoteSyncedFile => {
-    return {
-      ...(payload as Omit<RemoteSyncedFile, 'fileId' | 'size' | 'name'>),
-      fileId: typeof payload.fileId === 'string' ? payload.fileId : '',
-      size: typeof payload.size === 'string' ? Number.parseInt(payload.size) : (payload.size as number),
-      name: typeof payload.name === 'string' ? payload.name : undefined,
-    };
-  };
 }

@@ -7,6 +7,7 @@ export type TemporalFileAttributes = {
   path: string;
   size: number;
   contentFilePath?: string;
+  revision?: number;
 };
 
 /**
@@ -15,7 +16,12 @@ export type TemporalFileAttributes = {
  * When a user drops a file into the Internxt Drive folder (e.g. via Nautilus drag & drop),
  * it is stored temporarily at `/tmp/internxt-drive-tmp/{uuid}` while being written.
  * Once the file descriptor is closed (FUSE release), the temporal file is uploaded to the cloud
- * (see {@link TemporalFileUploader}) and then deleted from disk (see {@link DeleteTemporalFileOnFileCreated}).
+ * (see {@link TemporalFileUploader}) and then deleted from disk by
+ * CreateFileOnTemporalFileUploaded, whether the upload created a new file or overrode an
+ * existing one, and only if the staged copy still holds the bytes that were uploaded. If the
+ * reaping does not run the temporal file survives, and because release treats its existence as
+ * "there are unsaved writes", every later close of that path uploads the whole file again. If it
+ * runs on a staged copy that has since been written, those writes are lost.
  *
  * Auxiliary files (lock files, .tmp, vim swap, vim probe/backup files, .goutputstream-*) are ignored.
  */
@@ -33,8 +39,17 @@ export class TemporalFile extends AggregateRoot {
     private _size: TemporalFileSize,
     private readonly _modifiedTime: Date,
     private readonly _contentFilePath?: string,
+    private readonly _revision?: number,
   ) {
     super();
+  }
+
+  /**
+   * Identifies one exact state of this staged copy. See the revisions map in
+   * NodeTemporalFileRepository for why this is a counter and not a timestamp.
+   */
+  public get revision() {
+    return this._revision;
   }
 
   public get createdAt() {
@@ -92,6 +107,7 @@ export class TemporalFile extends AggregateRoot {
       new TemporalFileSize(attributes.size),
       attributes.modifiedAt,
       attributes.contentFilePath,
+      attributes.revision,
     );
   }
 
@@ -145,6 +161,7 @@ export class TemporalFile extends AggregateRoot {
       path: this._path.value,
       size: this._size.value,
       contentFilePath: this._contentFilePath,
+      revision: this._revision,
     };
   }
 }

@@ -12,12 +12,14 @@ import { left, right } from '../../../../shared/domain/Either';
 import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mocks__/EventBusMock';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { calls } from '../../../../../../tests/vitest/utils.helper';
+import { PendingModificationTimes } from '../utimens/PendingModificationTimes';
 
 describe('File Creator', () => {
   let remoteFileSystemMock: RemoteFileSystemMock;
   let fileRepository: FileRepositoryMock;
   let eventBus: EventBusMock;
   let notifier: FileSyncNotifierMock;
+  let pendingModificationTimes: PendingModificationTimes;
 
   let SUT: FileCreator;
 
@@ -27,8 +29,16 @@ describe('File Creator', () => {
     const parentFolderFinder = FolderFinderFactory.existingFolder();
     eventBus = new EventBusMock();
     notifier = new FileSyncNotifierMock();
+    pendingModificationTimes = new PendingModificationTimes();
 
-    SUT = new FileCreator(remoteFileSystemMock, fileRepository, parentFolderFinder, eventBus, notifier);
+    SUT = new FileCreator(
+      remoteFileSystemMock,
+      fileRepository,
+      parentFolderFinder,
+      eventBus,
+      notifier,
+      pendingModificationTimes,
+    );
   });
 
   it('creates the file on the drive server', async () => {
@@ -109,5 +119,39 @@ describe('File Creator', () => {
     calls(eventBus.publishMock).toHaveLength(0);
     calls(notifier.createdMock).toHaveLength(0);
     calls(notifier.issuesMock).toHaveLength(1);
+  });
+
+  it('puts a requested modification time back when the create failed', async () => {
+    // The staged copy survives a failed upload and the next release will create
+    // the file. It should still carry the time the user asked for, not the
+    // moment the retry happened to succeed.
+    const path = new FilePath('/bird.png');
+    const contentsId = BucketEntryIdMother.random();
+    const size = FileSizeMother.random();
+    const requested = new Date('2024-03-04T05:06:07.000Z');
+
+    pendingModificationTimes.set(path.value, requested);
+    remoteFileSystemMock.persistMock.mockResolvedValueOnce(left(new DriveDesktopError('UNKNOWN')));
+
+    await expect(SUT.run(path.value, contentsId.value, size.value)).rejects.toThrow();
+
+    expect(pendingModificationTimes.take(path.value)).toEqual(requested);
+  });
+
+  it('spends a requested modification time exactly once on a create that lands', async () => {
+    const path = new FilePath('/cat.png');
+    const contentsId = BucketEntryIdMother.random();
+    const size = FileSizeMother.random();
+    const requested = new Date('2024-03-04T05:06:07.000Z');
+
+    pendingModificationTimes.set(path.value, requested);
+    remoteFileSystemMock.persistMock.mockResolvedValueOnce(right(FileMother.fromPartial({ path: path.value })));
+
+    await SUT.run(path.value, contentsId.value, size.value);
+
+    expect(remoteFileSystemMock.persistMock).toHaveBeenCalledWith(
+      expect.objectContaining({ modificationTime: requested }),
+    );
+    expect(pendingModificationTimes.take(path.value)).toBeUndefined();
   });
 });

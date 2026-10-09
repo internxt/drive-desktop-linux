@@ -1,5 +1,8 @@
 import { Service } from 'diod';
-import { parseRetryAfterMs } from '../../../../../backend/common/rate-limit/transient-error-handler';
+import {
+  createTransientErrorHandler,
+  parseRetryAfterMs,
+} from '../../../../../backend/common/rate-limit/transient-error-handler';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { EventBus } from '../../../shared/domain/EventBus';
 import { File } from '../../domain/File';
@@ -9,6 +12,51 @@ import { FileNotFoundError } from '../../domain/errors/FileNotFoundError';
 import { FileContentsId } from '../../domain/FileContentsId';
 import { overrideFile } from '../../../../../infra/drive-server/services/files/services/override-file';
 import { DriveServerError } from '../../../../../infra/drive-server/drive-server.error';
+import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
+
+/**
+ * How many times the metadata write is retried after a transient failure. The
+ * initial request is not counted, so the ceiling permits this many RETRIES and
+ * one more request than that in total.
+ *
+ * Bounded rather than unbounded. `FileCreator` and both backup upload paths leave
+ * the loop unbounded and stop it with an AbortSignal, but only the backup paths
+ * pass a signal that can actually fire; `FileCreator` passes
+ * `new AbortController().signal`, which nothing holds and nothing can trigger.
+ * This code runs from a domain event handler with no signal to offer either, so
+ * copying that shape would add a loop with no way out. The bound is a retry
+ * budget, not a claim that a failure lasting longer has stopped being transient.
+ */
+export const MAX_TRANSIENT_OVERRIDE_RETRIES = 3;
+
+/**
+ * The transient causes this path retries, deliberately a SUBSET of the shared
+ * RETRYABLE_CAUSES.
+ *
+ * `overrideFile` is a bare `PUT /files/{uuid}` with no revision, version or
+ * If-Match, so the server cannot reject a stale write. Nothing between `Release`
+ * and this handler serialises two saves of one file. A retry that sleeps and then
+ * wakes can therefore land AFTER a newer save and point the file back at older
+ * content, and the longer it sleeps the more likely that becomes.
+ *
+ * So the retry is restricted to the fast-backoff server failures, which is also
+ * the only cause with evidence behind it: all 18 observed production failures are
+ * 502s and none is a 429. RATE_LIMITED is excluded on purpose. Its backoff starts
+ * at 30 s and is capped at 480 s, which would hold a save open for minutes and
+ * widen the reordering window accordingly; a 429 therefore still fails on the
+ * first attempt, exactly as it does today.
+ */
+const RETRIED_OVERRIDE_CAUSES: ReadonlyArray<DriveDesktopError['cause']> = [
+  'INTERNAL_SERVER_ERROR',
+  'CONNECTION_TIMEOUT',
+];
+
+/**
+ * Carried on the error so a reader of the logs can tell an abandoned override
+ * from a failed one. The override did not happen either way, so it still
+ * surfaces as a failure rather than inventing a success the caller would act on.
+ */
+export const SUPERSEDED_MESSAGE = 'override abandoned: a newer save for this file already completed';
 
 @Service()
 export class FileOverrider {
@@ -30,14 +78,32 @@ export class FileOverrider {
 
     file.changeContents(new FileContentsId(newContentsId), new FileSize(newSize));
 
-    const result = await overrideFile({
-      fileUuid: file.uuid,
-      fileContentsId: file.contentsId,
-      fileSize: file.size,
-    });
+    let isRetry = false;
 
-    if (result.error) {
-      throw mapOverrideFileError(result.error);
+    const { error } = await retryWithBackoff(
+      async () => {
+        // Only on a RETRY, and never on the first attempt, which is the
+        // pre-existing behaviour and cannot be stale by construction.
+        if (isRetry && (await this.isSupersededByANewerSave(oldContentsId, file.uuid))) {
+          return { error: new DriveDesktopError('UNKNOWN', SUPERSEDED_MESSAGE) };
+        }
+
+        isRetry = true;
+
+        const result = await overrideFile({
+          fileUuid: file.uuid,
+          fileContentsId: file.contentsId,
+          fileSize: file.size,
+        });
+
+        return result.error ? { error: mapOverrideFileError(result.error) } : { data: result.data };
+      },
+      boundedTransientErrorHandler(file.path),
+      new AbortController().signal,
+    );
+
+    if (error) {
+      throw error;
     }
 
     await this.repository.update(file);
@@ -46,6 +112,68 @@ export class FileOverrider {
 
     return file;
   }
+
+  /**
+   * Has a newer save of this file already landed while we were waiting to retry?
+   *
+   * `overrideFile` is a `PUT /files/{uuid}` and the API exposes no revision or
+   * `If-Match` parameter, so the server cannot reject a stale write for us. A
+   * retry that slept can therefore land after a newer save and put the file back
+   * to older contents. This is the client-side half of that guard.
+   *
+   * The repository still holds the contents id we are replacing until somebody
+   * completes an override, and `searchByUuid` rebuilds the aggregate from stored
+   * attributes rather than handing back the instance we already mutated, so a
+   * change here really is somebody else's completed save.
+   */
+  private async isSupersededByANewerSave(oldContentsId: File['contentsId'], uuid: File['uuid']): Promise<boolean> {
+    const current = await this.repository.searchByUuid(uuid);
+
+    // Gone entirely (deleted while we waited) also means this override is moot.
+    if (!current) {
+      return true;
+    }
+
+    return current.contentsId !== oldContentsId;
+  }
+}
+
+/**
+ * Wraps the shared transient-error handler with a cause allowlist and a retry
+ * ceiling. The inner handler still owns HOW LONG to wait for the causes that get
+ * through, so the backoff policy stays in one place.
+ *
+ * A fresh closure per `run` call, so the counter is per override. Do not hoist it
+ * to a field: two concurrent overrides would then share one budget.
+ */
+function boundedTransientErrorHandler(path: string) {
+  const handleTransientError = createTransientErrorHandler({
+    tag: 'SYNC-ENGINE',
+    context: 'FILE OVERRIDE RETRY',
+    path,
+  });
+
+  let retries = 0;
+
+  return (error: DriveDesktopError): number | null => {
+    if (!RETRIED_OVERRIDE_CAUSES.includes(error.cause)) {
+      return null;
+    }
+
+    if (retries >= MAX_TRANSIENT_OVERRIDE_RETRIES) {
+      return null;
+    }
+
+    const delayMs = handleTransientError(error);
+
+    if (delayMs === null) {
+      return null;
+    }
+
+    retries += 1;
+
+    return delayMs;
+  };
 }
 
 function mapOverrideFileError(error: DriveServerError): DriveDesktopError {

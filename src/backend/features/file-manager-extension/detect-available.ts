@@ -14,6 +14,7 @@ const FILE_MANAGER_CANDIDATES: FileManagerCandidate[] = [
   { type: 'dolphin', desktopEntry: 'dolphin.desktop', hasBinary: () => hasBinary('dolphin') },
   { type: 'nemo', desktopEntry: 'nemo.desktop', hasBinary: () => hasBinary('nemo') },
   { type: 'nautilus', desktopEntry: 'nautilus.desktop', hasBinary: () => hasBinary('nautilus') },
+  { type: 'thunar', desktopEntry: 'thunar.desktop', hasBinary: () => hasBinary('thunar') },
 ];
 
 export async function detectAvailableFileManager(): Promise<SupportedFileManager> {

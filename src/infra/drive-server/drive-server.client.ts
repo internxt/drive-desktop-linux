@@ -64,7 +64,11 @@ type OperationQuery<T, P extends keyof T, M extends HTTPMethod> =
     parameters: { query: infer Q };
   }
     ? Q
-    : never;
+    : MethodShape<T[P], M> extends {
+          parameters: { query?: infer Q };
+        }
+      ? Exclude<Q, undefined>
+      : never;
 
 /**
  * Infers the path parameters for an endpoint, if any.
@@ -73,8 +77,8 @@ type OperationPath<T, P extends keyof T, M extends HTTPMethod> =
   MethodShape<T[P], M> extends {
     parameters: { path: infer PP };
   }
-    ? PP extends Record<string, string>
-      ? PP
+    ? PP extends Record<string, string | number>
+      ? { [K in keyof PP]: string | number }
       : never
     : never;
 
@@ -126,11 +130,11 @@ export function createClient<T>(opts: ClientOptions) {
       url = url.replace(
         /{([\w-]+)}/g, // matches {uuid}, {id} …
         (_, key: string) => {
-          const value = o.path![key];
+          const value = (o.path as Record<string, string | number>)[key];
           if (value === undefined) {
             throw new Error(`Missing path param “${key}” for ${path}`);
           }
-          return encodeURIComponent(value);
+          return encodeURIComponent(String(value));
         },
       );
     }

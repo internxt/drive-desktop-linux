@@ -6,13 +6,14 @@ import { FilesByFolderPathSearcher } from '../../../../context/virtual-drive/fil
 import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { SingleFileMatchingSearcher } from '../../../../context/virtual-drive/files/application/search/SingleFileMatchingSearcher';
 import { CreateFileOnTemporalFileUploaded } from '../../../../context/virtual-drive/files/application/create/CreateFileOnTemporalFileUploaded';
+import { DeleteTemporalFileIfUnchanged } from '../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
 import { FileOverrider } from '../../../../context/virtual-drive/files/application/override/FileOverrider';
 import { FilesSearcherByPartialMatch } from '../../../../context/virtual-drive/files/application/search-all/FilesSearcherByPartialMatch';
 import { SyncFileMessenger } from '../../../../context/virtual-drive/files/domain/SyncFileMessenger';
 import { RemoteFileSystem } from '../../../../context/virtual-drive/files/domain/file-systems/RemoteFileSystem';
 import { SDKRemoteFileSystem } from '../../../../context/virtual-drive/files/infrastructure/SDKRemoteFileSystem';
 import { MainProcessSyncFileMessenger } from '../../../../context/virtual-drive/files/infrastructure/SyncFileMessengers/MainProcessSyncFileMessenger';
-import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUserOrThrow } from '../../../../backend/features/auth/get-user-or-throw';
 import { FileRepository } from '../../../../context/virtual-drive/files/domain/FileRepository';
 import { InMemoryFileRepository } from '../../../../context/virtual-drive/files/infrastructure/InMemoryFileRepository';
 import { FileRepositorySynchronizer } from '../../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
@@ -22,12 +23,12 @@ import { SingleFileMatchingFinder } from '../../../../context/virtual-drive/file
 import { FilesByPartialSearcher } from '../../../../context/virtual-drive/files/application/search/FilesByPartialSearcher';
 import { Environment } from '@internxt/inxt-js';
 
-export async function registerFilesServices(builder: ContainerBuilder): Promise<void> {
+export function registerFilesServices(builder: ContainerBuilder) {
   // Infra
 
   builder.register(FileRepository).use(InMemoryFileRepository).asSingleton().private();
 
-  const user = DependencyInjectionUserProvider.get();
+  const user = getUserOrThrow();
 
   builder.register(SyncFileMessenger).use(MainProcessSyncFileMessenger);
 
@@ -69,6 +70,7 @@ export async function registerFilesServices(builder: ContainerBuilder): Promise<
         c.get(FileOverrider),
         c.get(Environment),
         user.bucket,
+        c.get(DeleteTemporalFileIfUnchanged),
         c.get(SyncFileMessenger),
       );
     })

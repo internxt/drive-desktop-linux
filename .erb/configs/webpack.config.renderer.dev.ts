@@ -52,8 +52,6 @@ const configuration: webpack.Configuration = {
   },
 
   entry: [
-    `webpack-dev-server/client?http://localhost:${port}/dist`,
-    'webpack/hot/only-dev-server',
     'core-js',
     'regenerator-runtime/runtime',
     path.join(webpackPaths.srcRendererPath, 'index.tsx'),
@@ -95,7 +93,7 @@ const configuration: webpack.Configuration = {
             loader: 'postcss-loader',
             options: {
               postcssOptions: {
-                plugins: [require('tailwindcss'), require('autoprefixer')],
+                plugins: [require('@tailwindcss/postcss'), require('autoprefixer')],
               },
             },
           },
@@ -112,7 +110,7 @@ const configuration: webpack.Configuration = {
             loader: 'postcss-loader',
             options: {
               postcssOptions: {
-                plugins: [require('tailwindcss'), require('autoprefixer')],
+                plugins: [require('@tailwindcss/postcss'), require('autoprefixer')],
               },
             },
           },

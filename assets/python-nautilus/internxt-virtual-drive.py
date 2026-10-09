@@ -162,11 +162,18 @@ class InternxtVirtualDrive(GObject.Object, Nautilus.MenuProvider, Nautilus.Colum
         return [copy_link]
 
     def _encode_file_path(self, file):
+      """Encode the drive-relative path for use as a hydration API URL segment.
+
+      Uses base64url rather than standard base64: the encoded value is a single
+      URL path segment, and standard base64 emits '/', which would split it in
+      two so that no route matches and the request 404s before reaching the
+      controller.
+      """
       file_path = self._get_file_path(file)
       relative_path = file_path.replace(self.root_folder, '', 1)
 
       bytes_data = relative_path.encode('utf-8')
-      return base64.b64encode(bytes_data).decode('utf-8')
+      return base64.urlsafe_b64encode(bytes_data).decode('utf-8')
 
 
     def _make_locally_available(self, menu, files):

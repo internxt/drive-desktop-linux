@@ -49,7 +49,7 @@ describe('reset-config', () => {
     resetConfig();
 
     // Then
-    const setCalls = configSetMock.mock.calls.map(([key]: [string]) => key);
+    const setCalls = configSetMock.mock.calls.map(([key]) => key);
     expect(setCalls).not.toContain('preferedLanguage');
     expect(setCalls).not.toContain('lastOnboardingShown');
   });

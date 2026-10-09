@@ -1,4 +1,5 @@
-import { DependencyInjectionUserProvider } from './../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUser } from '../auth/get-user';
+import { updateUser } from '../auth/update-user';
 import { createNewDevice } from './createNewDevice';
 import { BrowserWindow } from 'electron';
 import { broadcastToWindows } from '../../../apps/main/windows';
@@ -20,9 +21,11 @@ export async function createAndSetupNewDevice() {
   }
 
   const device = createNewDeviceEither.getRight();
-  const user = DependencyInjectionUserProvider.get();
-  user.backupsBucket = device.bucket;
-  DependencyInjectionUserProvider.updateUser(user);
+  const { data: userData, error: userError } = getUser();
+  if (userError) return { error: userError };
+
+  const updatedUser = { ...userData, backupsBucket: device.bucket };
+  updateUser({ user: updatedUser });
 
   const mainWindow = BrowserWindow.getAllWindows()[0];
   if (mainWindow) {

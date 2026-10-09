@@ -51,7 +51,8 @@ export class HydrationApi {
 
         res.on('finish', () => {
           const duration = stopwatch.elapsedTime();
-          const decodedBuffer = Buffer.from(req.params.path, 'base64');
+          const pathParam = Array.isArray(req.params.path) ? req.params.path[0] : req.params.path;
+          const decodedBuffer = Buffer.from(pathParam ?? '', 'base64');
 
           const path = decodedBuffer.toString('utf-8').replaceAll('%20', ' ');
 

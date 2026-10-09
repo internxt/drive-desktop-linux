@@ -14,7 +14,6 @@ const defaultProps: OnboardingSlideProps = {
   backupFolders: [],
   currentSlide: 0,
   totalSlides: 6,
-  platform: 'linux',
 };
 
 describe('BackupsSlide', () => {

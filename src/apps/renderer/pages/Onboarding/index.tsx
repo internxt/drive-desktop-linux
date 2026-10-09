@@ -67,8 +67,8 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="relative flex h-screen w-full select-none flex-row">
-      <div className="flex w-1/2 flex-col px-6 pb-6 pt-16">
+    <div className="relative flex h-screen w-full flex-row select-none">
+      <div className="flex w-1/2 flex-col px-6 pt-16 pb-6">
         <SlideContent
           onFinish={finish}
           backupFolders={backupFolders}

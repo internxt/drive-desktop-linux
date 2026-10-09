@@ -43,4 +43,15 @@ describe('TemporalFile', () => {
       expect(TemporalFile.isTemporaryPath('/Documents/test-file.txt')).toBe(false);
     });
   });
+  it('round-trips the revision through attributes(), so a copy is not silently unversioned', () => {
+    const file = TemporalFile.from({
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      modifiedAt: new Date('2026-01-01T00:00:00.000Z'),
+      path: '/Documents/report.pdf',
+      size: 10,
+      revision: 9,
+    });
+
+    expect(TemporalFile.from(file.attributes()).revision).toBe(9);
+  });
 });
