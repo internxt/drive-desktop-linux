@@ -2,6 +2,7 @@ import { AppDataSource } from '../../../../../apps/main/database/data-source';
 import { DIRECTORY_STATE_TTL_MS } from './constants';
 import type {
   DirectoryStateFreshnessProps,
+  DirectoryStateInvalidationProps,
   DirectoryStateOperationProps,
   DirectoryStateRepositoryProps,
 } from './types';
@@ -45,6 +46,13 @@ async function markError({ dataSource = AppDataSource, folderId, statusScope }: 
   );
 }
 
+async function invalidate({ dataSource = AppDataSource, folderId, statusScope }: DirectoryStateInvalidationProps) {
+  await dataSource.query('DELETE FROM drive_directory_state WHERE folder_id = ? AND status_scope = ?', [
+    folderId,
+    statusScope,
+  ]);
+}
+
 async function clear({ dataSource = AppDataSource }: DirectoryStateRepositoryProps = {}) {
   await dataSource.query('DELETE FROM drive_directory_state');
 }
@@ -53,5 +61,6 @@ export const DirectoryStateRepository = {
   isFresh,
   markLoaded,
   markError,
+  invalidate,
   clear,
 };
