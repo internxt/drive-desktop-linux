@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 
-import { StoredValues } from '../../main/config/service';
+import { AppStore } from '../../../core/electron/store/app-store.interface';
+import { StoredValues } from '../../main/config/service.types';
 
-export default function useConfig(key: StoredValues) {
-  const [value, setValue] = useState<StoredValues | undefined>(undefined);
+export default function useConfig<K extends StoredValues>(key: K) {
+  const [value, setValue] = useState<AppStore[K] | undefined>(undefined);
 
-  const retriveValue = async (key: StoredValues) => {
+  async function retrieveValue(key: K) {
     return window.electron.getConfigKey(key);
-  };
+  }
 
   useEffect(() => {
-    retriveValue(key).then(setValue);
-  }, []);
+    retrieveValue(key).then(setValue);
+  }, [key]);
 
   return value;
 }

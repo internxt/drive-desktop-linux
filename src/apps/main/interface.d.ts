@@ -170,6 +170,36 @@ export interface IElectronAPI {
   onVirtualDriveStatusChange(
     callback: (event: { status: import('../../backend/features/virtual-drive').FuseDriveStatus }) => void,
   ): () => void;
+  path: typeof import('path');
+  getGeneralIssues: () => Promise<import('../../shared/issues/AppIssue').AppIssue[]>;
+  onGeneralIssuesChanged: (func: (value: import('../../shared/issues/AppIssue').AppIssue[]) => void) => () => void;
+  getVirtualDriveIssues: () => Promise<import('../../shared/issues/VirtualDriveIssue').VirtualDriveIssue[]>;
+  onProcessIssuesChanged: (
+    func: (value: import('../../shared/issues/VirtualDriveIssue').VirtualDriveIssue[]) => void,
+  ) => () => void;
+  onSyncStopped: (
+    func: (value: import('../../context/desktop/sync/domain/SyncStoppedPayload').SyncStoppedPayload) => void,
+  ) => () => void;
+  onSyncInfoUpdate: (func: (value: import('../shared/types').DriveOperationInfo) => void) => () => void;
+  settingsWindowResized: (payload: { width: number; height: number }) => void;
+  isAutoLaunchEnabled: () => Promise<boolean>;
+  toggleAutoLaunch: () => Promise<void>;
+  stopBackupsProcess: () => void;
+  getBackupsStatus: () => Promise<
+    import('./background-processes/backups/BackupsProcessStatus/BackupsStatus').BackupsStatus
+  >;
+  onBackupsStatusChanged: (
+    func: (value: import('./background-processes/backups/BackupsProcessStatus/BackupsStatus').BackupsStatus) => void,
+  ) => () => void;
+  getBackupsEnabled: () => Promise<boolean>;
+  toggleBackupsEnabled: () => Promise<void>;
+  getLastBackupTimestamp: () => Promise<number>;
+  user: {
+    hasDiscoveredBackups: () => Promise<boolean>;
+    discoveredBackups: () => Promise<void>;
+  };
+  onBackupFailed: (callback: (error: { message: string; cause: string }) => void) => () => void;
+  deleteBackupError: (folderId: number) => Promise<void>;
 }
 
 declare global {

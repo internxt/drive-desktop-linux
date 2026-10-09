@@ -4573,32 +4573,32 @@ export interface components {
        * @description The uuid of the item to share
        * @example uuid
        */
-      itemId: Record<string, never>;
+      itemId: string;
       /**
        * @description The type of the resource to share
        * @example file | folder
        */
-      itemType: Record<string, never>;
+      itemType: string;
       /**
        * @description Encryption key
        * @example encryption_key
        */
-      encryptionKey: Record<string, never>;
+      encryptionKey: string;
       /**
        * @description Encryption algorithm
        * @example encryption_algorithm
        */
-      encryptionAlgorithm: Record<string, never>;
+      encryptionAlgorithm: string;
       /**
        * @description Encrypted code
        * @example encrypted_code
        */
-      encryptedCode: Record<string, never>;
+      encryptedCode: string;
       /**
        * @description Encrypted password
        * @example encrypted_password
        */
-      encryptedPassword: Record<string, never>;
+      encryptedPassword?: string | null;
       /**
        * @description Maintain previous sharings
        * @example false

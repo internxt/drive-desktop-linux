@@ -23,7 +23,7 @@ describe('generate-link', () => {
   const createSharingMock = partialSpyOn(createSharingModule, 'createSharing');
   const loggerDebugMock = partialSpyOn(logger, 'debug');
   const clipboardWriteTextMock = partialSpyOn(clipboard, 'writeText');
-  const notificationShowMock = partialSpyOn(Notification, 'show');
+  const notificationShowMock = partialSpyOn(Notification.prototype, 'show');
 
   const validateMnemonicMock = vi.mocked(validateMnemonic);
   const encryptMock = partialSpyOn(aes, 'encrypt');

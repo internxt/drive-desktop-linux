@@ -59,8 +59,9 @@ describe('NodeTemporalFileRepository', () => {
     await repository.create(documentPath);
     const temporalFile = await repository.find(documentPath);
     const contentFilePath = temporalFile.get().contentFilePath;
+    expect(contentFilePath).toBeDefined();
 
-    await rm(contentFilePath, { force: true });
+    await rm(contentFilePath!, { force: true });
 
     const result = await repository.find(documentPath);
 
@@ -185,8 +186,9 @@ describe('NodeTemporalFileRepository', () => {
     await repository.create(documentPath);
     const temporalFile = await repository.find(documentPath);
     const contentFilePath = temporalFile.get().contentFilePath;
+    expect(contentFilePath).toBeDefined();
 
-    await rm(contentFilePath, { force: true });
+    await rm(contentFilePath!, { force: true });
 
     await expect(repository.delete(documentPath)).resolves.toBeUndefined();
   });

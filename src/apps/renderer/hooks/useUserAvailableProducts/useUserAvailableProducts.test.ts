@@ -9,6 +9,7 @@ describe('useUserAvailableProducts', () => {
     backups: true,
     antivirus: false,
     cleaner: true,
+    mail: false,
   };
   const loggerErrorMock = vi.mocked(window.electron.logger.error);
 
@@ -61,6 +62,7 @@ describe('useUserAvailableProducts', () => {
       backups: true,
       antivirus: true,
       cleaner: false,
+      mail: false,
     };
 
     act(() => {

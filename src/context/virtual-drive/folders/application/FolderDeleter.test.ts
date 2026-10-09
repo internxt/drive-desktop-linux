@@ -4,6 +4,7 @@ import { FolderAlreadyTrashed } from '../domain/errors/FolderAlreadyTrashed';
 import { FolderLocalFileSystemMock } from '../__mocks__/FolderLocalFileSystemMock';
 import { FolderRepositoryMock } from '../__mocks__/FolderRepositoryMock';
 import { FolderMother } from '../domain/__test-helpers__/FolderMother';
+import { FileRepositoryMock } from '../../files/__mocks__/FileRepositoryMock';
 import * as addFolderToTrashModule from '../../../../infra/drive-server/services/folder/services/add-folder-to-trash';
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { DriveServerError } from 'src/infra/drive-server/drive-server.error';
@@ -12,6 +13,7 @@ describe('Folder deleter', () => {
   let repository: FolderRepositoryMock;
   let allParentFoldersStatusIsExists: AllParentFoldersStatusIsExists;
   let local: FolderLocalFileSystemMock;
+  let fileRepository: FileRepositoryMock;
   let SUT: FolderDeleter;
 
   const addFolderToTrashMock = partialSpyOn(addFolderToTrashModule, 'addFolderToTrash');
@@ -20,8 +22,9 @@ describe('Folder deleter', () => {
     repository = new FolderRepositoryMock();
     allParentFoldersStatusIsExists = new AllParentFoldersStatusIsExists(repository);
     local = new FolderLocalFileSystemMock();
+    fileRepository = new FileRepositoryMock();
 
-    SUT = new FolderDeleter(repository, local, allParentFoldersStatusIsExists);
+    SUT = new FolderDeleter(repository, local, allParentFoldersStatusIsExists, fileRepository);
   });
 
   it('trashes an existing folder', async () => {
@@ -35,7 +38,7 @@ describe('Folder deleter', () => {
     await SUT.run(folder.uuid);
 
     call(addFolderToTrashMock).toBe(folder.uuid);
-    expect(repository.deleteMock).toBeCalledWith(folder.id);
+    expect(repository.deleteMock).toHaveBeenCalledWith(folder.id);
   });
 
   it('throws an error when trashing a folder already trashed', async () => {
@@ -49,7 +52,7 @@ describe('Folder deleter', () => {
       expect(err).toBeInstanceOf(FolderAlreadyTrashed);
     });
 
-    expect(repository.deleteMock).not.toBeCalled();
+    expect(repository.deleteMock).not.toHaveBeenCalled();
   });
 
   it('does not delete the folder if a higher folder is already trashed ', async () => {
@@ -62,7 +65,7 @@ describe('Folder deleter', () => {
       expect(err).toBeDefined();
     });
 
-    expect(repository.deleteMock).not.toBeCalled();
+    expect(repository.deleteMock).not.toHaveBeenCalled();
   });
 
   it('recreates the placeholder if the deletion fails', async () => {
@@ -74,6 +77,6 @@ describe('Folder deleter', () => {
 
     await SUT.run(folder.uuid);
 
-    expect(local.createPlaceHolderMock).toBeCalledWith(folder);
+    expect(local.createPlaceHolderMock).toHaveBeenCalledWith(folder);
   });
 });

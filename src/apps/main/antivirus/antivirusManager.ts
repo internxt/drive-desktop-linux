@@ -12,7 +12,7 @@ import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backen
  */
 export class AntivirusManager {
   private static instance: AntivirusManager;
-  private lastAntivirusState: boolean | null = null;
+  private lastAntivirusState: boolean | undefined | null = null;
 
   private constructor() {
     eventBus.on('USER_AVAILABLE_PRODUCTS_UPDATED', this.handleProductsUpdate.bind(this));
@@ -179,7 +179,7 @@ export class AntivirusManager {
   /**
    * Handle product updates by starting/stopping ClamAV based on availability
    */
-  private async handleProductsUpdate(products: UserAvailableProducts): Promise<void> {
+  private async handleProductsUpdate(products: UserAvailableProducts | undefined): Promise<void> {
     try {
       // Only proceed if antivirus state has actually changed
       if (this.lastAntivirusState === products?.antivirus) {
