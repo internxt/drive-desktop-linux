@@ -3,7 +3,7 @@
  */
 
 import webpack from 'webpack';
-import webpackPaths from './webpack.paths';
+import webpackPaths from './webpack.paths.ts';
 
 // Keep JS deps bundled, but leave native modules as externals.
 // better-sqlite3 relies on runtime native loading (bindings), which breaks when bundled.
