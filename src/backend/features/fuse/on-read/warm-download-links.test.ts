@@ -118,6 +118,26 @@ describe('warmDownloadLinks', () => {
     expect(getDownloadLinksMock).not.toHaveBeenCalled();
   });
 
+  it('does nothing when the anchor file is not found among thumbnail-able files', async () => {
+    const getDownloadLinksMock = vi.fn();
+    const files = [
+      buildFile({ contentsId: 'doc-1', type: 'pdf' }),
+      buildFile({ contentsId: 'image-0', type: 'png' }),
+      buildFile({ contentsId: 'image-1', type: 'png' }),
+    ];
+
+    warmDownloadLinks({
+      files,
+      bucketId: 'bucket-id',
+      network: { getDownloadLinks: getDownloadLinksMock } as never,
+      afterContentsId: 'doc-1',
+    });
+
+    await testSleep(10);
+
+    expect(getDownloadLinksMock).not.toHaveBeenCalled();
+  });
+
   it('should enforce concurrency globally across multiple calls', async () => {
     let active = 0;
     let maximumActive = 0;

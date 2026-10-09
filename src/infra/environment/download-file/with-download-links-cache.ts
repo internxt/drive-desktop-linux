@@ -26,24 +26,28 @@ function cacheKeyFor({
   authorizationContext,
   bucketId,
   fileId,
+  token,
 }: {
   authorizationContext: string;
   bucketId: string;
   fileId: string;
+  token?: string;
 }) {
-  return `${authorizationContext}:${bucketId}:${fileId}`;
+  return `${authorizationContext}:${bucketId}:${fileId}:${token ?? ''}`;
 }
 
 function readEntry({
   authorizationContext,
   bucketId,
   fileId,
+  token,
 }: {
   authorizationContext: string;
   bucketId: string;
   fileId: string;
+  token?: string;
 }) {
-  const key = cacheKeyFor({ authorizationContext, bucketId, fileId });
+  const key = cacheKeyFor({ authorizationContext, bucketId, fileId, token });
   const entry = cache.get(key);
   if (!entry) return undefined;
 
@@ -62,23 +66,28 @@ function writeEntry({
   authorizationContext,
   bucketId,
   fileId,
+  token,
   links,
 }: {
   authorizationContext: string;
   bucketId: string;
   fileId: string;
+  token?: string;
   links: DownloadLinks;
 }) {
-  const expiries = links.shards
-    .map((shard) => parseSignedUrlExpiry({ url: shard.url }))
-    .filter((value): value is number => value !== undefined);
+  if (links.shards.length === 0) return;
 
-  if (expiries.length === 0) return;
+  const expiries: number[] = [];
+  for (const shard of links.shards) {
+    const expiry = parseSignedUrlExpiry({ url: shard.url });
+    if (expiry === undefined) return;
+    expiries.push(expiry);
+  }
 
   const expiresAt = Math.min(...expiries) - CACHE_SAFETY_MARGIN_MS;
   if (expiresAt <= Date.now()) return;
 
-  const key = cacheKeyFor({ authorizationContext, bucketId, fileId });
+  const key = cacheKeyFor({ authorizationContext, bucketId, fileId, token });
   cache.delete(key);
 
   if (cache.size >= MAX_CACHE_ENTRIES) {
@@ -99,16 +108,16 @@ export function withDownloadLinksCache({
   const resolveLinks = network.getDownloadLinks.bind(network);
 
   network.getDownloadLinks = async (bucketId, fileId, token) => {
-    const cached = readEntry({ authorizationContext, bucketId, fileId });
+    const cached = readEntry({ authorizationContext, bucketId, fileId, token });
     if (cached) return cached;
 
-    const key = cacheKeyFor({ authorizationContext, bucketId, fileId });
+    const key = cacheKeyFor({ authorizationContext, bucketId, fileId, token });
     const pending = inFlight.get(key);
     if (pending) return await pending;
 
     const request = resolveLinks(bucketId, fileId, token)
       .then((links) => {
-        writeEntry({ authorizationContext, bucketId, fileId, links });
+        writeEntry({ authorizationContext, bucketId, fileId, token, links });
         return links;
       })
       .finally(() => inFlight.delete(key));

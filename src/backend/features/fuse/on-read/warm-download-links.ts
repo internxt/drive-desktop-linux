@@ -30,10 +30,18 @@ type Props = {
  *
  * Re-warming an already cached file is a cache hit, so overlapping windows are cheap.
  */
-export function warmDownloadLinks({ files, bucketId, network, afterContentsId }: Props): void {
+export function warmDownloadLinks({ files, bucketId, network, afterContentsId }: Props) {
   const candidates = files.filter((file) => canGenerateThumbnail(file.type));
 
-  const startIndex = afterContentsId ? candidates.findIndex((file) => file.contentsId === afterContentsId) + 1 : 0;
+  let startIndex = 0;
+  if (afterContentsId) {
+    const anchorIndex = candidates.findIndex((file) => file.contentsId === afterContentsId);
+    if (anchorIndex === -1) {
+      return;
+    }
+    startIndex = anchorIndex + 1;
+  }
+
   const window = candidates.slice(startIndex, startIndex + WARM_AHEAD);
 
   for (const file of window) {

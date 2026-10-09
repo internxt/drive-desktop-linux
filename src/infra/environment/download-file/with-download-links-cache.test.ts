@@ -87,6 +87,47 @@ describe('with-download-links-cache', () => {
     expect(resolve).toHaveBeenCalledTimes(2);
   });
 
+  it('should not cache links when at least one shard has no parseable expiry', async () => {
+    const links: DownloadLinks = {
+      bucket: 'bucket-id',
+      index: 'index',
+      created: new Date(),
+      size: 20,
+      version: 2,
+      shards: [
+        { index: 0, hash: 'hash1', size: 10, url: urlExpiringIn({ seconds: 3600 }) },
+        { index: 1, hash: 'hash2', size: 10, url: 'https://example.com/file-without-expiry' },
+      ],
+    };
+    const resolve = vi.fn().mockResolvedValue(links);
+    const network = buildNetwork({ resolve });
+    const fileId = nextFileId();
+
+    await network.getDownloadLinks('bucket-id', fileId);
+    await network.getDownloadLinks('bucket-id', fileId);
+
+    expect(resolve).toHaveBeenCalledTimes(2);
+  });
+
+  it('should not cache links with no shards', async () => {
+    const links: DownloadLinks = {
+      bucket: 'bucket-id',
+      index: 'index',
+      created: new Date(),
+      size: 0,
+      version: 2,
+      shards: [],
+    };
+    const resolve = vi.fn().mockResolvedValue(links);
+    const network = buildNetwork({ resolve });
+    const fileId = nextFileId();
+
+    await network.getDownloadLinks('bucket-id', fileId);
+    await network.getDownloadLinks('bucket-id', fileId);
+
+    expect(resolve).toHaveBeenCalledTimes(2);
+  });
+
   it('should forward the token to the underlying client', async () => {
     const resolve = vi.fn().mockResolvedValue(buildLinks({ url: urlExpiringIn({ seconds: 3600 }) }));
     const network = buildNetwork({ resolve });
@@ -95,6 +136,33 @@ describe('with-download-links-cache', () => {
     await network.getDownloadLinks('bucket-id', fileId, 'a-token');
 
     expect(resolve).toHaveBeenCalledWith('bucket-id', fileId, 'a-token');
+  });
+
+  it('should isolate cached links and in-flight requests by token', async () => {
+    const tokenALinks = buildLinks({ url: urlExpiringIn({ seconds: 3600 }) });
+    const tokenBLinks = buildLinks({ url: urlExpiringIn({ seconds: 3600 }) });
+    const resolve = vi.fn().mockImplementation(async (_bucketId, _fileId, token) => {
+      return token === 'token-a' ? tokenALinks : tokenBLinks;
+    });
+    const network = buildNetwork({ resolve });
+    const fileId = nextFileId();
+
+    const [first, second] = await Promise.all([
+      network.getDownloadLinks('bucket-id', fileId, 'token-a'),
+      network.getDownloadLinks('bucket-id', fileId, 'token-b'),
+    ]);
+
+    expect(resolve).toHaveBeenCalledTimes(2);
+    expect(first).toStrictEqual(tokenALinks);
+    expect(second).toStrictEqual(tokenBLinks);
+
+    const cachedTokenA = await network.getDownloadLinks('bucket-id', fileId, 'token-a');
+    const cachedTokenB = await network.getDownloadLinks('bucket-id', fileId, 'token-b');
+    await network.getDownloadLinks('bucket-id', fileId);
+
+    expect(resolve).toHaveBeenCalledTimes(3);
+    expect(cachedTokenA).toStrictEqual(tokenALinks);
+    expect(cachedTokenB).toStrictEqual(tokenBLinks);
   });
 
   it('should hit the network once when concurrent callers ask for the same file', async () => {

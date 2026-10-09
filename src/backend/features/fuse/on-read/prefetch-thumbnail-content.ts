@@ -31,7 +31,12 @@ type Props = {
 
 export function prefetchThumbnailContent({ files, afterContentsId, bucketId, mnemonic, network }: Props) {
   const candidates = files.filter((file) => canGenerateThumbnail(file.type));
-  const startIndex = candidates.findIndex((file) => file.contentsId === afterContentsId) + 1;
+  const anchorIndex = candidates.findIndex((file) => file.contentsId === afterContentsId);
+  if (anchorIndex === -1) {
+    return;
+  }
+
+  const startIndex = anchorIndex + 1;
   const upcoming = candidates
     .slice(startIndex, startIndex + PREFETCH_AHEAD)
     .filter((file) => file.size <= THUMBNAIL_WHOLE_FILE_LIMIT);

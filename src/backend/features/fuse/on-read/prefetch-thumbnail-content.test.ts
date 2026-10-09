@@ -67,6 +67,20 @@ describe('prefetch-thumbnail-content', () => {
     expect(readOrHydrateMock).not.toHaveBeenCalled();
   });
 
+  it('should do nothing when the anchor file is not found among thumbnail-able files', async () => {
+    const files = [
+      buildFile({ contentsId: 'doc-1', type: 'pdf' }),
+      buildFile({ contentsId: 'image-0', type: 'png' }),
+      buildFile({ contentsId: 'image-1', type: 'png' }),
+    ];
+
+    prefetchThumbnailContent({ files, afterContentsId: 'doc-1', ...deps() });
+
+    await testSleep(20);
+
+    expect(readOrHydrateMock).not.toHaveBeenCalled();
+  });
+
   it('should skip files too large to be worth caching a whole block for', async () => {
     const files = [
       buildFile({ contentsId: 'image-0' }),
