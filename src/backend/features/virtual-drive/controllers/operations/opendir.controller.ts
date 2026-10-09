@@ -5,7 +5,7 @@ import { opendir } from '../../services/operations/opendir.service';
 import { ensureLeadingSlash } from '../ensure-leading-slash';
 import { findFolderFiles } from '../../../fuse/on-read/find-folder-files';
 import { warmDownloadLinks } from '../../../fuse/on-read/warm-download-links';
-import { DependencyInjectionUserProvider } from '../../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUserOrThrow } from '../../../../../backend/features/auth/get-user-or-throw';
 import { buildNetworkClient } from '../../../../../infra/environment/download-file/build-network-client';
 
 export async function openDirController(req: Request, res: Response, container: Container) {
@@ -29,7 +29,7 @@ export async function openDirController(req: Request, res: Response, container: 
 async function warmFolderDownloadLinks({ path, container }: { path: string; container: Container }) {
   try {
     const files = await findFolderFiles({ path, container });
-    const user = DependencyInjectionUserProvider.get();
+    const user = getUserOrThrow();
     const network = buildNetworkClient({ bridgeUser: user.bridgeUser, userId: user.userId });
 
     warmDownloadLinks({ files, bucketId: user.bucket, network });

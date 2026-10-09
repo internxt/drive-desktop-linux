@@ -3,6 +3,7 @@ import * as downloadFileModule from '../../../../infra/environment/download-file
 import { type File } from '../../../../context/virtual-drive/files/domain/File';
 import { FuseIOError } from '../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { partialSpyOn, call } from '../../../../../tests/vitest/utils.helper';
+import { isRangeHydrated } from './download-cache/hydration-state';
 import * as fileExistsModule from './download-cache/file-exists-on-disk';
 import * as hydrationStateModule from './download-cache/hydration-state';
 import * as readChunkModule from './read-chunk-from-disk';
