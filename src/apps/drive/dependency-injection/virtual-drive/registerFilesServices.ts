@@ -13,7 +13,7 @@ import { SyncFileMessenger } from '../../../../context/virtual-drive/files/domai
 import { RemoteFileSystem } from '../../../../context/virtual-drive/files/domain/file-systems/RemoteFileSystem';
 import { SDKRemoteFileSystem } from '../../../../context/virtual-drive/files/infrastructure/SDKRemoteFileSystem';
 import { MainProcessSyncFileMessenger } from '../../../../context/virtual-drive/files/infrastructure/SyncFileMessengers/MainProcessSyncFileMessenger';
-import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUserOrThrow } from '../../../../backend/features/auth/get-user-or-throw';
 import { FileRepository } from '../../../../context/virtual-drive/files/domain/FileRepository';
 import { InMemoryFileRepository } from '../../../../context/virtual-drive/files/infrastructure/InMemoryFileRepository';
 import { FileRepositorySynchronizer } from '../../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
@@ -28,7 +28,7 @@ export function registerFilesServices(builder: ContainerBuilder) {
 
   builder.register(FileRepository).use(InMemoryFileRepository).asSingleton().private();
 
-  const user = DependencyInjectionUserProvider.get();
+  const user = getUserOrThrow();
 
   builder.register(SyncFileMessenger).use(MainProcessSyncFileMessenger);
 

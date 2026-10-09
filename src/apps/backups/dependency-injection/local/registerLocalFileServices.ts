@@ -1,12 +1,13 @@
 import { INTERNXT_CLIENT, INTERNXT_VERSION } from './../../../../core/utils/utils';
 import { ContainerBuilder } from 'diod';
-import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUserOrThrow } from '../../../../backend/features/auth/get-user-or-throw';
 import { Environment } from '@internxt/inxt-js';
 import { getCredentials } from '../../../main/auth/get-credentials';
 
 export function registerLocalFileServices(builder: ContainerBuilder) {
   //Infra
-  const user = DependencyInjectionUserProvider.get();
+  const user = getUserOrThrow();
+
   const { mnemonic } = getCredentials();
 
   const environment = new Environment({

@@ -8,14 +8,15 @@ import { StorageFilesRepository } from '../../../../context/storage/StorageFiles
 import { DownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/domain/download/DownloaderHandlerFactory';
 import { EnvironmentFileDownloaderHandlerFactory } from '../../../../context/storage/StorageFiles/infrastructure/download/EnvironmentRemoteFileContentsManagersFactory';
 import { TypeOrmAndNodeFsStorageFilesRepository } from '../../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/TypeOrmAndNodeFsStorageFilesRepository';
-import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
+import { getUser } from '../../../../backend/features/auth/get-user';
 import { PATHS } from '../../../../core/electron/paths';
 import { AppDataSource } from '../../../main/database/data-source';
 
 export async function registerStorageFilesServices(builder: ContainerBuilder): Promise<void> {
   // Infra
 
-  const user = DependencyInjectionUserProvider.get();
+  const { data: user, error } = getUser();
+  if (error) throw error;
 
   if (!AppDataSource.isInitialized) {
     throw new Error('AppDataSource must be initialized before registerStorageFilesServices');
