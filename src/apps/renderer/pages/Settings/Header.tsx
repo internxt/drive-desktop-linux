@@ -20,7 +20,7 @@ function Item({
     <button
       onClick={onClick}
       type="button"
-      className={`relative flex w-20 cursor-pointer flex-col items-center rounded-lg px-4 py-1.5 outline-none transition-colors duration-100 ease-in-out ${
+      className={`relative flex w-20 cursor-pointer flex-col items-center rounded-lg px-4 py-1.5 transition-colors duration-100 ease-in-out outline-none ${
         isActive ? 'text-gray-100' : 'text-gray-50 hover:text-gray-60 active:text-gray-80'
       }`}>
       <Icon size={28} />

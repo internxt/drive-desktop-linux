@@ -22,10 +22,8 @@ vi.mock('../../../../core/electron/paths', () => ({
   },
 }));
 
-vi.mock('../../../shared/dependency-injection/DependencyInjectionUserProvider', () => ({
-  DependencyInjectionUserProvider: {
-    get: () => ({ bucket: 'test-bucket' }),
-  },
+vi.mock('../../../../backend/features/auth/get-user', () => ({
+  getUser: () => ({ data: { bucket: 'test-bucket' } }),
 }));
 
 const PATH = '/Private/notes/passwords.kdbx';
@@ -60,7 +58,7 @@ describe('registerTemporalFilesServices wires one repository', () => {
     builder.register(UploadProgressTracker).useInstance({} as UploadProgressTracker);
     builder.register(EventBus).useInstance({ publish: vi.fn() } as unknown as EventBus);
 
-    await registerTemporalFilesServices(builder);
+    registerTemporalFilesServices(builder);
 
     container = builder.build();
   });

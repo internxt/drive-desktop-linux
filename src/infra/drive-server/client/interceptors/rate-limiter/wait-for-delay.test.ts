@@ -1,4 +1,5 @@
 import { waitForDelay } from './wait-for-delay';
+import { DelayState } from './rate-limiter.types';
 
 describe('waitForDelay', () => {
   beforeEach(() => {
@@ -10,7 +11,7 @@ describe('waitForDelay', () => {
   });
 
   it('should clear the pending state after the delay resolves', async () => {
-    const state = { pendingByKey: {} };
+    const state: DelayState = { pendingByKey: {} };
 
     const promise = waitForDelay(state, 'GET:/test', 100);
     expect(state.pendingByKey['GET:/test']).not.toBeNull();
@@ -22,7 +23,7 @@ describe('waitForDelay', () => {
   });
 
   it('should share the same delay for concurrent callers instead of creating separate ones', async () => {
-    const state = { pendingByKey: {} };
+    const state: DelayState = { pendingByKey: {} };
 
     const first = waitForDelay(state, 'GET:/test', 1000);
     const pendingPromise = state.pendingByKey['GET:/test'];

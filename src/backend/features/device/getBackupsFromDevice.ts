@@ -6,6 +6,7 @@ import { Device } from '../backup/types/Device';
 import { FolderDto } from '../../../infra/drive-server/out/dto';
 import { mapFolderDtoToBackupInfo } from './utils/mapFolderDtoToBackupInfo';
 import { findBackupPathnameFromId } from '../backup/find-backup-pathname-from-id';
+import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 
 export async function getBackupsFromDevice(device: Device, isCurrent?: boolean): Promise<Array<BackupInfo>> {
   const { data: folder, error } = await fetchFolder(device.uuid);
@@ -27,7 +28,7 @@ export async function getBackupsFromDevice(device: Device, isCurrent?: boolean):
   } else {
     const result = folder.children.map((backup) => ({
       name: backup.plainName,
-      pathname: '',
+      pathname: createAbsolutePath(''),
       folderId: backup.id,
       folderUuid: backup.uuid,
       tmpPath: '',

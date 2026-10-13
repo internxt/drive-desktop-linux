@@ -2,12 +2,9 @@ import type { Dirent } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { DriveDesktopError } from '../../context/shared/domain/errors/DriveDesktopError';
 import { safeReadDir } from './safe-readdir';
+import { deepMocked } from '../../../tests/vitest/utils.helper';
 
-vi.mock('node:fs/promises', () => ({
-  readdir: vi.fn(),
-}));
-
-const readdirMock = vi.mocked(readdir);
+vi.mock(import('node:fs/promises'));
 
 function createFsError(code: string, message = `${code}: readdir failed`): NodeJS.ErrnoException {
   const error = new Error(message) as NodeJS.ErrnoException;
@@ -16,9 +13,14 @@ function createFsError(code: string, message = `${code}: readdir failed`): NodeJ
 }
 
 describe('safeReadDir', () => {
+  const readdirMock = deepMocked(readdir);
+
   it('returns dirents when readdir succeeds', async () => {
-    const dirents = [{ name: 'file.txt' }, { name: 'folder' }] as Dirent[];
-    readdirMock.mockResolvedValue(dirents);
+    const dirents: Partial<Dirent>[] = [
+      { name: 'file1', isFile: () => true, isDirectory: () => false },
+      { name: 'folder', isFile: () => false, isDirectory: () => true },
+    ];
+    readdirMock.mockResolvedValue(dirents as unknown as Parameters<typeof readdirMock.mockResolvedValue>[0]);
 
     const result = await safeReadDir('/tmp/root');
 

@@ -2,73 +2,25 @@
 import { ManualSystemScan, ProgressData } from './ManualSystemScan';
 import { Antivirus } from './Antivirus';
 import { ScannedItem } from '../database/entities/ScannedItem';
-import fs from 'node:fs';
 import eventBus from '../event-bus';
-import { Mock, Mocked } from 'vitest';
+import { mockDeep, MockProxy } from 'vitest-mock-extended';
+import { partialSpyOn } from '../../../../tests/vitest/utils.helper';
+import * as getFilesFromDirectoryModule from './utils/getFilesFromDirectory';
+import * as transformItemModule from './utils/transformItem';
+import * as isPermissionErrorModule from './utils/isPermissionError';
+import * as isErrorModule from '../../../shared/errors/is-error';
+import * as errorUtilsModule from './utils/errorUtils';
+import { DBScannerConnection } from './db/DBScannerConnection';
 
 vi.mock('./Antivirus');
-vi.mock('./utils/getFilesFromDirectory', () => ({
-  getFilesFromDirectory: vi.fn(({ cb }: { dir: string; cb: (file: string) => Promise<void>; signal: AbortSignal }) => {
-    cb('/path/to/file.txt');
-    return Promise.resolve();
-  }),
-  countSystemFiles: vi.fn(() => Promise.resolve(10)),
-}));
-vi.mock('./utils/transformItem', () => ({
-  transformItem: vi.fn((path) => ({
-    pathName: path,
-    name: path.split('/').pop(),
-    hash: 'mock-hash',
-    updatedAtW: Date.now(),
-    isInfected: false,
-  })),
-}));
-vi.mock('./utils/isPermissionError', () => ({
-  isPermissionError: vi.fn(() => false),
-}));
-vi.mock('../../../../shared/errors/is-error', () => ({
-  isError: vi.fn((error) => error instanceof Error),
-}));
-vi.mock('./utils/errorUtils', () => ({
-  getErrorMessage: vi.fn((error) => error?.message || String(error)),
-  shouldRethrowError: vi.fn(() => false),
-}));
+
+const mockDbConnection = mockDeep<DBScannerConnection>();
 vi.mock('./db/DBScannerConnection', () => ({
-  DBScannerConnection: function DBScannerConnection() {
-    return {
-      getConnection: vi.fn(() => ({
-        getRepository: vi.fn(() => ({
-          save: vi.fn(),
-          find: vi.fn(),
-          findOne: vi.fn(),
-        })),
-      })),
-      getItemFromDatabase: vi.fn().mockResolvedValue(null),
-      addItemToDatabase: vi.fn().mockResolvedValue(undefined),
-      updateItemToDatabase: vi.fn().mockResolvedValue(undefined),
-    };
-  },
+  DBScannerConnection: vi.fn(function () {
+    return mockDbConnection;
+  }),
 }));
-vi.mock('../database/collections/ScannedItemCollection', () => ({
-  ScannedItemCollection: function ScannedItemCollection() {
-    return {
-      findByPath: vi.fn(),
-      save: vi.fn(),
-    };
-  },
-}));
-vi.mock('../database/data-source', () => ({
-  AppDataSource: {
-    initialize: vi.fn().mockResolvedValue({
-      getRepository: vi.fn(() => ({
-        save: vi.fn(),
-        find: vi.fn(),
-        findOne: vi.fn(),
-      })),
-    }),
-    isInitialized: true,
-  },
-}));
+
 vi.mock('async', () => ({
   queue: vi.fn((worker) => ({
     push: vi.fn((item, callback) => {
@@ -82,78 +34,35 @@ vi.mock('async', () => ({
     kill: vi.fn(),
   })),
 }));
+
+vi.mock('os', () => ({
+  default: {
+    homedir: vi.fn(() => '/home/user'),
+  },
+}));
+
 vi.mock('../event-bus', () => ({
   __esModule: true,
   default: {
     emit: vi.fn(),
   },
 }));
-vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
-  logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-vi.mock('path', () => ({
-  default: {
-    join: vi.fn((...args) => args.join('/')),
-    dirname: vi.fn((p) => p.split('/').slice(0, -1).join('/')),
-    basename: vi.fn((p) => p.split('/').pop()),
-  },
-}));
-vi.mock('os', () => ({
-  default: {
-    homedir: vi.fn(() => '/home/user'),
-  },
-}));
-vi.mock('fs', () => ({
-  default: {
-    promises: {
-      readdir: vi.fn(),
-      stat: vi.fn(),
-    },
-    existsSync: vi.fn(),
-    statSync: vi.fn(),
-    readFileSync: vi.fn(() => 'LOGFILE_PATH\nDATABASE_DIRECTORY\nFRESHCLAM_LOG_PATH'),
-  },
-}));
 
 describe('ManualSystemScan', () => {
+  const getFilesFromDirectoryMock = partialSpyOn(getFilesFromDirectoryModule, 'getFilesFromDirectory');
+  const countSystemFilesMock = partialSpyOn(getFilesFromDirectoryModule, 'countSystemFiles');
+  const transformItemMock = partialSpyOn(transformItemModule, 'transformItem');
+  const isPermissionErrorMock = partialSpyOn(isPermissionErrorModule, 'isPermissionError');
+  const isErrorMock = partialSpyOn(isErrorModule, 'isError');
+  const getErrorMessageMock = partialSpyOn(errorUtilsModule, 'getErrorMessage');
+
   let manualSystemScan: ManualSystemScan;
-  let mockAntivirus: Antivirus;
+  let mockAntivirus: MockProxy<Antivirus>;
 
   beforeEach(async () => {
-    mockAntivirus = {
-      scanFile: vi.fn().mockResolvedValue({
-        file: '/path/to/file.txt',
-        isInfected: false,
-        viruses: [],
-      }),
-      scanFileWithRetry: vi.fn().mockResolvedValue({
-        file: '/path/to/file.txt',
-        isInfected: false,
-        viruses: [],
-      }),
-      stopClamAv: vi.fn().mockResolvedValue(undefined),
-      stopServer: vi.fn().mockResolvedValue(undefined),
-    } as unknown as Mocked<Antivirus>;
+    mockAntivirus = mockDeep<Antivirus>();
 
-    (Antivirus.createInstance as Mock).mockResolvedValue(mockAntivirus);
-
-    (fs.promises.readdir as Mock).mockResolvedValue(['file1.txt', 'file2.txt']);
-    (fs.promises.stat as Mock).mockImplementation((path) => {
-      return Promise.resolve({
-        isDirectory: () => path.includes('dir'),
-        isFile: () => !path.includes('dir'),
-      });
-    });
-    (fs.existsSync as Mock).mockReturnValue(true);
-    (fs.statSync as Mock).mockReturnValue({
-      isDirectory: () => false,
-      isFile: () => true,
-    });
+    vi.mocked(Antivirus.createInstance).mockResolvedValue(mockAntivirus);
 
     const mockScanResult = {
       file: '/path/to/file.txt',
@@ -163,14 +72,31 @@ describe('ManualSystemScan', () => {
 
     mockAntivirus.scanFile.mockResolvedValue(mockScanResult);
     mockAntivirus.scanFileWithRetry.mockResolvedValue(mockScanResult);
+    mockAntivirus.stopClamAv.mockResolvedValue(undefined);
+    mockAntivirus.stopServer.mockResolvedValue(undefined);
+
+    getFilesFromDirectoryMock.mockImplementation(async ({ cb }) => {
+      await cb('/path/to/file.txt');
+    });
+    countSystemFilesMock.mockResolvedValue(10);
+
+    transformItemMock.mockImplementation(async (path) => ({
+      pathName: path,
+      name: path.split('/').pop(),
+      hash: 'mock-hash',
+      updatedAtW: new Date().toISOString(),
+      isInfected: false,
+    }));
+
+    isPermissionErrorMock.mockReturnValue(false);
+    isErrorMock.mockImplementation((error) => error instanceof Error);
+    getErrorMessageMock.mockImplementation((error) => (error as Error)?.message || String(error));
 
     manualSystemScan = new ManualSystemScan();
   });
 
   describe('scanItems', { timeout: 15000 }, () => {
     it('should scan specified paths', async () => {
-      const { getFilesFromDirectory } = await import('./utils/getFilesFromDirectory');
-
       const originalResetCounters = manualSystemScan['resetCounters'];
       manualSystemScan['resetCounters'] = vi.fn().mockResolvedValue(undefined);
 
@@ -190,7 +116,7 @@ describe('ManualSystemScan', () => {
 
       expect(Antivirus.createInstance).toHaveBeenCalled();
 
-      expect(getFilesFromDirectory).toHaveBeenCalled();
+      expect(getFilesFromDirectoryMock).toHaveBeenCalled();
 
       manualSystemScan['resetCounters'] = originalResetCounters;
       manualSystemScan['waitForActiveScans'] = originalWaitForActiveScans;

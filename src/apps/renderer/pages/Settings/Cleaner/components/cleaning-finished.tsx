@@ -22,7 +22,7 @@ export default function CleaningFinished({ deletedFiles, skippedFiles, freeSpace
             ? translate('settings.cleaner.cleaningView.cleaningFinished.title')
             : translate('settings.cleaner.cleaningView.cleaningFinished.titleForSkippedFiles')}
         </h3>
-        <p className="mt-1 whitespace-pre-line text-sm text-gray-70">
+        <p className="mt-1 text-sm whitespace-pre-line text-gray-70">
           {skippedFiles === 0
             ? translate('settings.cleaner.cleaningView.cleaningFinished.noActionsRequired')
             : translate('settings.cleaner.cleaningView.cleaningFinished.actionsRequired')}

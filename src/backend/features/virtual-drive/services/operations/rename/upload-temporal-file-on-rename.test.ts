@@ -11,6 +11,7 @@ import { TemporalFileDeleter } from '../../../../../../context/storage/TemporalF
 import { uploadTemporalFileOnRename } from './upload-temporal-file-on-rename';
 import * as compareTemporalFileModule from './has-temporal-file-changed';
 import { call, calls, partialSpyOn } from '../../../../../../../tests/vitest/utils.helper';
+import { ContentsId } from '../../../../../../apps/main/database/entities/DriveFile';
 
 const fileAttrs: FileAttributes = {
   id: 1,
@@ -67,7 +68,7 @@ describe('upload-temporal-file-on-rename', () => {
   it('should upload then delete and return success when files differ', async () => {
     // Given
     compareTemporalFileMock.mockResolvedValue(true);
-    uploaderMock.run.mockResolvedValue('uploaded-file-id');
+    uploaderMock.run.mockResolvedValue('uploaded-file-id' as unknown as ContentsId);
 
     // When
     const result = await uploadTemporalFileOnRename(props);
@@ -91,7 +92,7 @@ describe('upload-temporal-file-on-rename', () => {
     compareTemporalFileMock.mockResolvedValue(true);
     uploaderMock.run.mockImplementation(async () => {
       order.push('upload');
-      return 'uploaded-file-id';
+      return 'uploaded-file-id' as unknown as ContentsId;
     });
     deleterMock.run.mockImplementation(async () => {
       order.push('delete');

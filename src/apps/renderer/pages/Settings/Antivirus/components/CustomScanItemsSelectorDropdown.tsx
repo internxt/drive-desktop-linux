@@ -28,7 +28,7 @@ export const CustomScanItemsSelectorDropdown = ({
         leaveFrom="transform scale-100 opacity-100"
         leaveTo="transform scale-95 opacity-0"
         className="relative z-10">
-        <Menu.Items className="absolute right-0 top-1 max-w-[288px] origin-top-right whitespace-nowrap rounded-md bg-surface py-1 shadow-xl ring-1 ring-gray-20 focus:outline-none dark:bg-gray-1">
+        <Menu.Items className="absolute top-1 right-0 max-w-[288px] origin-top-right rounded-md bg-surface py-1 whitespace-nowrap shadow-xl ring-1 ring-gray-20 focus:outline-none dark:bg-gray-1">
           <Menu.Item>
             {({ active }) => (
               <div>

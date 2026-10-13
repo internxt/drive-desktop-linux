@@ -26,10 +26,10 @@ export class DriveFolder {
   id!: number;
 
   @Column({ type: 'integer', nullable: true })
-  parentId?: number;
+  parentId?: number | null;
 
   @Column({ type: 'varchar', nullable: true })
-  bucket?: string;
+  bucket?: string | null;
 
   @Column({ type: 'integer', nullable: false })
   userId!: number;

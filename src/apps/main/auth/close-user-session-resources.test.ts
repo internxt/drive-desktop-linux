@@ -11,7 +11,6 @@ import * as initialSyncReadyModule from '../remote-sync/InitialSyncReady';
 import * as remoteSyncModule from '../remote-sync/service';
 import * as antivirusScanServiceModule from '../antivirus/AntivirusScanService';
 import * as antivirusManagerModule from '../antivirus/antivirusManager';
-import * as dependencyInjectionUserProviderModule from '../../shared/dependency-injection/DependencyInjectionUserProvider';
 
 const { shutdownMock } = vi.hoisted(() => ({
   shutdownMock: vi.fn(),
@@ -28,7 +27,6 @@ const cancelPendingRemoteSyncMock = partialSpyOn(remoteSyncModule, 'cancelPendin
 const resetRemoteSyncMock = partialSpyOn(remoteSyncModule.remoteSyncManager, 'resetRemoteSync');
 const cancelScanMock = partialSpyOn(antivirusScanServiceModule.AntivirusScanService, 'cancelScan');
 const getAntivirusManagerMock = partialSpyOn(antivirusManagerModule, 'getAntivirusManager');
-const clearUserMock = partialSpyOn(dependencyInjectionUserProviderModule.DependencyInjectionUserProvider, 'clearUser');
 const cancelAllJobsMock = partialSpyOn(tokenSchedulerModule.TokenScheduler, 'cancelAll');
 
 describe('close-user-session-resources', () => {
@@ -55,7 +53,6 @@ describe('close-user-session-resources', () => {
 
     call(resetTrayStatusMock).toBe('IDLE');
     calls(widget.hide).toHaveLength(1);
-    calls(clearUserMock).toHaveLength(1);
     calls(cancelAllJobsMock).toHaveLength(1);
     calls(cancelPendingRemoteSyncMock).toHaveLength(1);
     call(setInitialSyncStateMock).toBe('NOT_READY');

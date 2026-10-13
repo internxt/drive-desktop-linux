@@ -15,7 +15,7 @@ export function CleanupConfirmDialog({ isVisible, onConfirm, onCancel }: Cleanup
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black bg-opacity-30" onClick={onCancel} />
+      <div className="bg-opacity-30 absolute inset-0 bg-black" onClick={onCancel} />
 
       {/* Dialog */}
       <div className="dark:bg-gray-800 relative flex h-[200px] w-[350px] flex-col gap-5 rounded-xl bg-surface p-5 pt-3 shadow-xl">
@@ -35,7 +35,7 @@ export function CleanupConfirmDialog({ isVisible, onConfirm, onCancel }: Cleanup
 
         {/* Content */}
         <div>
-          <p className="text-md font-normal leading-5 tracking-tight text-gray-60">
+          <p className="text-md leading-5 font-normal tracking-tight text-gray-60">
             {translate('settings.cleaner.cleanupConfirmDialogView.description')}
           </p>
         </div>

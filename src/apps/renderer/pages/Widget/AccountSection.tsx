@@ -29,7 +29,7 @@ export function AccountSection() {
 
   return (
     <div className="flex flex-1 space-x-2.5 truncate" data-automation-id="headerAccountSection">
-      <div className="relative z-0 flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface text-base font-semibold uppercase text-primary before:absolute before:inset-0 before:-z-1 before:rounded-full before:bg-primary/20 dark:text-white dark:before:bg-primary/75">
+      <div className="relative z-0 flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface text-base font-semibold text-primary uppercase before:absolute before:inset-0 before:-z-1 before:rounded-full before:bg-primary/20 dark:text-white dark:before:bg-primary/75">
         {`${user?.name.charAt(0) ?? ''}${user?.lastname.charAt(0) ?? ''}`}
       </div>
 

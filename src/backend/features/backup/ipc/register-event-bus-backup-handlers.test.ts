@@ -41,12 +41,14 @@ describe('registerEventBusBackupHandlers', () => {
       antivirus: false,
       backups: true,
       cleaner: false,
+      mail: false,
     };
 
     const mockProductsWithoutBackups: UserAvailableProducts = {
       antivirus: false,
       backups: false,
       cleaner: false,
+      mail: false,
     };
 
     it('should call startBackupsIfAvailable when products have backups enabled', () => {

@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useAntivirus } from './useAntivirus';
+import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 
 type ProgressCallback = (progress: {
   scanId: string;
@@ -14,7 +15,7 @@ type ProgressCallback = (progress: {
 
 describe('useAntivirus', () => {
   let progressCallbackStore: ProgressCallback | null = null;
-  let productsUpdateCallbackStore: ((products: { antivirus?: boolean } | undefined) => void) | null = null;
+  let productsUpdateCallbackStore: ((products: UserAvailableProducts) => void) | null = null;
 
   beforeEach(() => {
     progressCallbackStore = null;

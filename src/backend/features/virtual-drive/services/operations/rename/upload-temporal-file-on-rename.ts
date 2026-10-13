@@ -6,6 +6,7 @@ import { TemporalFileDeleter } from '../../../../../../context/storage/TemporalF
 import { FuseError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../../context/shared/domain/Result';
 import { hasTemporalFileChanged } from './has-temporal-file-changed';
+import { acquireUploadSlot } from '../../../../../../context/storage/TemporalFiles/application/upload/upload-concurrency-limiter';
 
 type Props = {
   virtual: File;
@@ -27,11 +28,16 @@ export async function uploadTemporalFileOnRename({
     return { data: undefined };
   }
 
-  await container.get(TemporalFileUploader).run(document, {
-    contentsId: virtual.contentsId,
-    name: virtual.name,
-    extension: virtual.type,
-  });
+  const releaseUploadSlot = await acquireUploadSlot();
+  try {
+    await container.get(TemporalFileUploader).run(document, {
+      contentsId: virtual.contentsId,
+      name: virtual.name,
+      extension: virtual.type,
+    });
+  } finally {
+    releaseUploadSlot();
+  }
 
   await container.get(TemporalFileDeleter).run(src);
   return { data: undefined };

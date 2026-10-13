@@ -1,0 +1,146 @@
+# ==============================================================================
+# GitHub Copilot Ignore (.copilotignore)
+# Exclusiones de contexto para optimizar el consumo de tokens y evitar ruido.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Lockfiles y registros de dependencias (archivos JSON/texto masivos)
+# ------------------------------------------------------------------------------
+package-lock.json
+**/package-lock.json
+packages/fuse-daemon/go.sum
+*.lock
+*.lockb
+pnpm-lock.yaml
+yarn.lock
+
+# ------------------------------------------------------------------------------
+# 2. Dependencias y paquetes instalados
+# ------------------------------------------------------------------------------
+node_modules/
+**/node_modules/
+*.tgz
+*.tar.gz
+*.zip
+
+# ------------------------------------------------------------------------------
+# 3. Artefactos de compilación, empaquetado y distribución
+# ------------------------------------------------------------------------------
+dist/
+**/dist/
+build/
+**/build/
+release/
+**/release/
+*.AppImage
+*.deb
+*.rpm
+*.snap
+*.asar
+.erb/dll/
+
+# ------------------------------------------------------------------------------
+# 4. Binarios, librerías compiladas y ClamAV
+# ------------------------------------------------------------------------------
+clamAV/
+**/clamAV/
+*.bin
+*.dat
+*.so
+*.so.*
+*.a
+*.o
+*.dylib
+*.dll
+*.exe
+*.pdb
+*.wasm
+
+# ------------------------------------------------------------------------------
+# 5. Logs, métricas y datos de tiempo de ejecución (ej. drive.log masivo)
+# ------------------------------------------------------------------------------
+logs/
+**/logs/
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pids/
+*.pid
+*.seed
+.tmp/
+**/tmp/
+
+# ------------------------------------------------------------------------------
+# 6. Reportes de cobertura, pruebas y fixtures pesados
+# ------------------------------------------------------------------------------
+coverage/
+**/coverage/
+.nyc_output/
+*.lcov
+packages/core/test-files/
+src/test/screenshots/
+
+# ------------------------------------------------------------------------------
+# 7. Sourcemaps (extremadamente pesados en tokens)
+# ------------------------------------------------------------------------------
+*.map
+*.js.map
+*.css.map
+
+# ------------------------------------------------------------------------------
+# 8. Archivos multimedia y fuentes binarias
+# ------------------------------------------------------------------------------
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.icns
+*.tiff
+*.webp
+*.bmp
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.otf
+assets/thumbnails/
+
+# ------------------------------------------------------------------------------
+# 9. Bases de datos y cachés locales
+# ------------------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+.eslintcache
+.cache/
+
+# ------------------------------------------------------------------------------
+# 10. Variables de entorno y credenciales (seguridad y ahorro de tokens)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+/http/*.env.json
+
+# ------------------------------------------------------------------------------
+# 11. Archivos temporales de sistema y editores
+# ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.bak
+*.tmp
+
+# ------------------------------------------------------------------------------
+# 12. Documentación histórica extensa
+# ------------------------------------------------------------------------------
+CHANGELOG.md

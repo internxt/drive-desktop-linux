@@ -35,10 +35,8 @@ vi.mock('../../../core/electron/paths', () => ({
   },
 }));
 
-vi.mock('../../shared/dependency-injection/DependencyInjectionUserProvider', () => ({
-  DependencyInjectionUserProvider: {
-    get: () => ({ bucket: 'test-bucket', backupsBucket: 'test-backups-bucket' }),
-  },
+vi.mock('../../../backend/features/auth/get-user', () => ({
+  getUser: () => ({ data: { bucket: 'test-bucket', backupsBucket: 'test-backups-bucket' } }),
 }));
 
 const PATH = '/Private/notes/passwords.kdbx';
@@ -80,8 +78,8 @@ describe('the reaping subscriber is wired by the composition root', () => {
     builder.register(SingleFolderMatchingFinder).useInstance({} as SingleFolderMatchingFinder);
     builder.registerAndUse(SubscribeDomainEventsHandlerToTheirEvents);
 
-    await registerTemporalFilesServices(builder);
-    await registerFilesServices(builder);
+    registerTemporalFilesServices(builder);
+    registerFilesServices(builder);
 
     container = builder.build();
 

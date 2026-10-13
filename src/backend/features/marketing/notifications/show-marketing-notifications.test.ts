@@ -2,6 +2,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { broadcastToWindows } from '../../../../apps/main/windows';
 import { getNotifications } from '../../../../infra/drive-server/services/notifications/get-notifications';
 import { showMarketingNotifications } from './show-marketing-notifications';
+import { DriveServerError } from '../../../../infra/drive-server/drive-server.error';
 
 vi.mock('../../../../infra/drive-server/services/notifications/get-notifications', () => ({
   getNotifications: vi.fn(),
@@ -54,7 +55,7 @@ describe('showMarketingNotifications', () => {
   });
 
   it('should log when fetching marketing notifications fails', async () => {
-    const error = new Error('Request failed');
+    const error = new DriveServerError('SERVER_ERROR', 500, 'Request failed');
     getNotificationsMock.mockResolvedValue({ error });
 
     await showMarketingNotifications();
