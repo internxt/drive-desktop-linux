@@ -3,7 +3,7 @@ import { DriveDependencyContainerFactory } from '../../../../../apps/drive/depen
 import { getRootVirtualDrive } from '../../../../../apps/main/virtual-root-folder/service';
 import { startDaemon } from '../daemon.service';
 import { startFuseDaemonServer } from '../server.service';
-import { getUser } from '../../../auth/get-user';
+import { getUserOrThrow } from '../../../auth/get-user-or-throw';
 import { clearHydrationState } from '../../../fuse/on-read/download-cache/hydration-state';
 import { StorageFilesRepository } from '../../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
 import { remountVirtualDrive } from './remount-virtual-drive';
@@ -45,11 +45,12 @@ export async function startVirtualDrive() {
 
   const generation = mountGeneration;
   startInFlight = (async () => {
+    const user = getUserOrThrow();
     const localRoot = getRootVirtualDrive();
     const newContainer = await DriveDependencyContainerFactory.build();
     await DirectoryStateRepository.clear();
     await newContainer.get(LazyVirtualDriveMetadataSynchronizationService).seedRootFolders({
-      user: DependencyInjectionUserProvider.get(),
+      user,
     });
     /**
      * Clear stale block-cache state and orphaned hydrated files before mounting.

@@ -20,7 +20,6 @@ import { EventBus } from '../../../../../context/virtual-drive/shared/domain/Eve
 import { NodeJsEventBus } from '../../../../../context/virtual-drive/shared/infrastructure/NodeJsEventBus';
 import { CreateFileOnTemporalFileUploaded } from '../../../../../context/virtual-drive/files/application/create/CreateFileOnTemporalFileUploaded';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
-import { PendingModificationTimes } from '../../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
 import { FileCreatorTestClass } from '../../../../../context/virtual-drive/files/__test-helpers__/FileCreatorTestClass';
 import { FileOverriderTestClass } from '../../../../../context/virtual-drive/files/__test-helpers__/FileOverriderTestClass';
 import { FileMother } from '../../../../../context/virtual-drive/files/domain/__test-helpers__/FileMother';
@@ -131,7 +130,6 @@ describe('a release after an override uploads nothing', () => {
     const builder = new ContainerBuilder();
     builder.register(TemporalFileRepository).useInstance(repository);
     builder.register(TemporalFileUploaderFactory).useInstance(uploaderFactory);
-    builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
     builder.register(EventBus).useInstance(bus);
     builder.register(Environment).useInstance({} as Environment);
     builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();

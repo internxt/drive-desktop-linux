@@ -14,21 +14,10 @@ import { User } from '../../../../../apps/main/types';
 
 describe('seed-virtual-drive-root-folders', () => {
   const folderRepository = mockDeep<FolderRepository>();
-  const mockUser: User = {
-    id: 10,
-    name: 'Test',
-    lastname: 'User',
-    email: 'test@example.com',
-    uuid: 'user-uuid',
+  const mockUser: User = mockDeep<User>({
     root_folder_id: 100,
     rootFolderId: '11111111-2222-4333-8444-555555555555',
-    avatar: '',
-    bucket: 'bucket-id',
-    backupsBucket: 'backups-bucket',
-    bridge_user: 'bridge',
-    userId: '10',
-    mnemonic: 'secret',
-  };
+  });
 
   beforeEach(() => {
     folderRepository.add.mockResolvedValue(undefined);
@@ -36,7 +25,6 @@ describe('seed-virtual-drive-root-folders', () => {
 
   it('should seed root (/) and trash (/.Trash) folders into repository', async () => {
     const originalGetuid = process.getuid;
-    // @ts-expect-error test override
     process.getuid = undefined;
 
     try {
@@ -64,7 +52,6 @@ describe('seed-virtual-drive-root-folders', () => {
 
   it('should also seed /.Trash-${uid} when process.getuid is defined', async () => {
     const originalGetuid = process.getuid;
-    // @ts-expect-error test override
     process.getuid = () => 1000;
 
     try {
