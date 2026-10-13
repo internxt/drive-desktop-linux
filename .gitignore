@@ -57,3 +57,6 @@ enable-sso.sh
 .github/instructions/contributing.instructions.md
 .github/instructions/testing.instructions.md
 .codex
+
+# Downloaded Mail Bridge runtime
+.mail-bridge/
