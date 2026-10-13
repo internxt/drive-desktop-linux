@@ -1,3 +1,8 @@
+import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/features/mail-bridge';
+vi.mock('../../backend/features/mail-bridge', () => ({
+  setupMailBridgeIpc: vi.fn(),
+  startMailBridgeOnLogin: vi.fn().mockResolvedValue(undefined),
+}));
 import * as eventBusModule from '../../apps/main/event-bus';
 import * as appDataSourceModule from '../../apps/main/database/data-source';
 import * as widgetModule from '../../apps/main/windows/widget';
@@ -133,6 +138,8 @@ describe('register-session-event-handlers', () => {
 
     expect(appDataSourceInitializeSpy).toHaveBeenCalledTimes(1);
     expect(getUserAvailableProductsAndStoreSpy).toHaveBeenCalledTimes(1);
+    expect(setupMailBridgeIpc).toHaveBeenCalledTimes(1);
+    expect(startMailBridgeOnLogin).toHaveBeenCalledTimes(1);
     expect(getThemeSpy).toHaveBeenCalledTimes(1);
     expect(resetTrayStatusSpy).toHaveBeenCalledWith('IDLE');
     expect(openOnboardingWindowSpy).toHaveBeenCalledTimes(1);

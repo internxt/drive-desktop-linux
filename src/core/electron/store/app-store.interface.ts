@@ -21,6 +21,8 @@ export type SavedConfig = {
   discoveredBackup: number;
   maxUploadFileSizeInBytes: number;
   availableUserProducts?: UserAvailableProducts;
+  mailBridgeCredentials: string;
+  mailBridgeStartOnLogin: boolean;
 };
 
 export type AppStore = {
@@ -60,4 +62,8 @@ export type AppStore = {
   // Drive
   availableUserProducts?: UserAvailableProducts;
   maxUploadFileSizeInBytes: number;
+
+  // Mail Bridge
+  mailBridgeCredentials: string;
+  mailBridgeStartOnLogin: boolean;
 };

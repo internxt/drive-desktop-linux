@@ -13,6 +13,9 @@ import { getAntivirusManager } from '../antivirus/antivirusManager';
 import { DependencyInjectionUserProvider } from '../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { tryCatch } from '../../../shared/try-catch';
 
+import { clearMailBridgeIpc } from '../../../backend/features/mail-bridge/ipc/mail-bridge-ipc';
+import { stopMailBridge } from '../../../backend/features/mail-bridge/services/mail-bridge.service';
+
 let closeUserSessionResourcesInFlight: Promise<void> | undefined;
 
 async function executeCloseUserSessionResources() {
@@ -30,8 +33,16 @@ async function executeCloseUserSessionResources() {
     (error) =>
       logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'hide-widget-and-tray', error }),
   );
-
   await Promise.all([
+    tryCatch(
+      async () => {
+        clearMailBridgeIpc();
+        const result = await stopMailBridge();
+        if (result.error) throw result.error;
+      },
+      (error) =>
+        logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'stop-mail-bridge', error }),
+    ),
     tryCatch(DependencyInjectionUserProvider.clearUser, (error) =>
       logger.error({
         tag: 'AUTH',
