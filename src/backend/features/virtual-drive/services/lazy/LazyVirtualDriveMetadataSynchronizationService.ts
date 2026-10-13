@@ -1,6 +1,8 @@
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import { LazyVirtualDriveMetadataSynchronizer } from './lazy-virtual-drive-metadata-synchronizer';
+import { seedVirtualDriveRootFolders } from '../drive-folder/seed-virtual-drive-root-folders';
+import { User } from '../../../../../apps/main/types';
 
 type Props = {
   folderRepository: FolderRepository;
@@ -29,6 +31,13 @@ export class LazyVirtualDriveMetadataSynchronizationService {
       path,
       folderRepository: this.folderRepository,
       fileRepository: this.fileRepository,
+    });
+  }
+
+  seedRootFolders({ user }: { user: User }) {
+    return seedVirtualDriveRootFolders({
+      folderRepository: this.folderRepository,
+      user,
     });
   }
 }

@@ -47,6 +47,34 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
     expect(synchronizeDirectoryMetadataMock).not.toHaveBeenCalled();
   });
 
+  it('should exclude virtual trash folders from directory listings', async () => {
+    const childFolder = FolderMother.fromPartial({ id: 99, parentId: rootFolder.id, path: '/documents' });
+    const trashFolder = FolderMother.fromPartial({
+      id: Number.MAX_SAFE_INTEGER,
+      path: '/.Trash',
+      parentId: rootFolder.id,
+    });
+    const trashUidFolder = FolderMother.fromPartial({
+      id: Number.MAX_SAFE_INTEGER - 1,
+      path: '/.Trash-1000',
+      parentId: rootFolder.id,
+    });
+
+    folderRepository.matchingPartial.mockImplementation((partial) => {
+      if (partial.path === '/') return [rootFolder];
+      if (partial.parentId === rootFolder.id) return [childFolder, trashFolder, trashUidFolder];
+      return [];
+    });
+
+    const entries = await LazyVirtualDriveMetadataSynchronizer.readDirectory({
+      path: '/',
+      folderRepository,
+      fileRepository,
+    });
+
+    expect(entries.folders).toStrictEqual([childFolder.name]);
+  });
+
   it('should synchronize a stale directory before returning its children', async () => {
     isFreshMock.mockResolvedValue(false);
 
@@ -73,5 +101,37 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
       folderRepository,
       fileRepository,
     });
+  });
+
+  it('should not trigger remote synchronization when reading /.Trash', async () => {
+    const trashFolder = FolderMother.fromPartial({
+      id: Number.MAX_SAFE_INTEGER,
+      path: '/.Trash',
+      parentId: rootFolder.id,
+    });
+    folderRepository.matchingPartial.mockImplementation((partial) => {
+      if (partial.path === '/') return [rootFolder];
+      if (partial.path === '/.Trash') return [trashFolder];
+      return [];
+    });
+
+    const entries = await LazyVirtualDriveMetadataSynchronizer.readDirectory({
+      path: '/.Trash',
+      folderRepository,
+      fileRepository,
+    });
+
+    expect(entries).toStrictEqual({ folders: [], files: [] });
+    expect(synchronizeDirectoryMetadataMock).not.toHaveBeenCalled();
+  });
+
+  it('should skip remote synchronization for paths starting with /.Trash', async () => {
+    await LazyVirtualDriveMetadataSynchronizer.ensurePathMetadataSynchronized({
+      path: '/.Trash/deleted.txt',
+      folderRepository,
+      fileRepository,
+    });
+
+    expect(synchronizeDirectoryMetadataMock).not.toHaveBeenCalled();
   });
 });
