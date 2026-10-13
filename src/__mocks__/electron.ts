@@ -13,6 +13,7 @@ const app = {
 };
 
 const ipcMain = {
+  removeHandler: vi.fn(),
   on: vi.fn(),
   handle: vi.fn(),
 };
