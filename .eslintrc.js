@@ -3,6 +3,19 @@ module.exports = {
   ignorePatterns: ['src/infra/schemas.d.ts', 'assets/assets.d.ts'],
   overrides: [
     {
+      files: ['.eslintrc.js', 'scripts/*.cjs'],
+      env: {
+        node: true,
+      },
+      parserOptions: {
+        sourceType: 'script',
+      },
+      rules: {
+        '@typescript-eslint/no-var-requires': 'off',
+        'no-console': 'off',
+      },
+    },
+    {
       files: ['*.ts', '*.tsx'],
       parserOptions: {
         project: ['./tsconfig.json'],
