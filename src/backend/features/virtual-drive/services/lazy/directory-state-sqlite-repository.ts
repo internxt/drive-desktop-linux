@@ -6,6 +6,7 @@ import type {
   DirectoryStateInvalidationProps,
   DirectoryStateOperationProps,
   DirectoryStateRepositoryProps,
+  SqliteQueryExecutor,
 } from './types';
 
 async function getState({ dataSource = AppDataSource, folderId, statusScope }: DirectoryStateOperationProps) {
