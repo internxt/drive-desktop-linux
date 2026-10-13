@@ -130,7 +130,6 @@ describe('a release after an override uploads nothing', () => {
     const builder = new ContainerBuilder();
     builder.register(TemporalFileRepository).useInstance(repository);
     builder.register(TemporalFileUploaderFactory).useInstance(uploaderFactory);
-    builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
     builder.register(EventBus).useInstance(bus);
     builder.register(Environment).useInstance({} as Environment);
     builder.register(PendingModificationTimes).use(PendingModificationTimes).asSingleton();
