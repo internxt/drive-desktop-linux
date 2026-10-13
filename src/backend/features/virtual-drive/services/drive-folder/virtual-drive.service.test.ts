@@ -1,4 +1,5 @@
 import type { Container } from 'diod';
+import { mockDeep } from 'vitest-mock-extended';
 import { DriveDependencyContainerFactory } from '../../../../../apps/drive/dependency-injection/DriveDependencyContainerFactory';
 import type { User } from '../../../../../apps/main/types';
 import * as getUserModule from '../../../auth/get-user';
@@ -42,10 +43,10 @@ describe('virtual-drive.service', () => {
       return { deleteAll, seedRootFolders };
     }),
   } as unknown as Container;
-  const user: Pick<User, 'root_folder_id' | 'rootFolderId'> = {
+  const user: User = mockDeep<User>({
     root_folder_id: 1,
     rootFolderId: 'root-folder-id',
-  };
+  });
 
   beforeEach(() => {
     resetVirtualDriveServiceState();
@@ -55,7 +56,7 @@ describe('virtual-drive.service', () => {
     startFuseDaemonServer.mockResolvedValue(undefined);
     startHydrationApi.mockResolvedValue(undefined);
     getRootVirtualDrive.mockReturnValue('/mock/root/');
-    getUser.mockReturnValue({ root_folder_id: 1, rootFolderId: 'root-uuid' } as never);
+    getUser.mockReturnValue({ data: user });
     buildContainer.mockResolvedValue(containerMock);
     deleteAll.mockResolvedValue(undefined);
     seedRootFolders.mockResolvedValue(undefined);
@@ -81,6 +82,14 @@ describe('virtual-drive.service', () => {
       await startVirtualDrive();
 
       calls(buildContainer).toHaveLength(1);
+    });
+
+    it('seeds root folders with the resolved user', async () => {
+      // When
+      await startVirtualDrive();
+
+      // Then
+      call(seedRootFolders).toStrictEqual({ user });
     });
 
     it('clears hydration state before starting daemon', async () => {

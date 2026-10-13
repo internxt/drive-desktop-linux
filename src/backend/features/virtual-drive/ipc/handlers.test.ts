@@ -1,12 +1,14 @@
 import { ipcMain } from 'electron';
+import { mockDeep } from 'vitest-mock-extended';
 import eventBus from '../../../../apps/main/event-bus';
 import * as virtualDriveServiceModule from '../services/drive-folder/virtual-drive.service';
 import * as updateVirtualDriveContainerModule from '../services/update-virtual-drive-container.service';
 import * as daemonServiceModule from '../services/daemon.service';
-import { DependencyInjectionUserProvider } from '../../../../apps/shared/dependency-injection/DependencyInjectionUserProvider';
+import * as getUserModule from '../../../../backend/features/auth/get-user';
 import { registerVirtualDriveHandlers } from './handlers';
 import { partialSpyOn, calls } from '../../../../../tests/vitest/utils.helper';
 import type { Container } from 'diod';
+import type { User } from '../../../../apps/main/types';
 
 describe('virtual-drive handlers', () => {
   const startVirtualDriveSpy = partialSpyOn(virtualDriveServiceModule, 'startVirtualDrive');
@@ -14,8 +16,12 @@ describe('virtual-drive handlers', () => {
   const getVirtualDriveContainerSpy = partialSpyOn(virtualDriveServiceModule, 'getVirtualDriveContainer');
   const updateVirtualDriveContainerSpy = partialSpyOn(updateVirtualDriveContainerModule, 'updateVirtualDriveContainer');
   const getVirtualDriveStateSpy = partialSpyOn(daemonServiceModule, 'getVirtualDriveState');
-  const getUserSpy = partialSpyOn(DependencyInjectionUserProvider, 'get');
+  const getUserSpy = partialSpyOn(getUserModule, 'getUser');
   const ipcHandleSpy = vi.spyOn(ipcMain, 'handle').mockImplementation(() => undefined as never);
+  const user: User = mockDeep<User>({
+    root_folder_id: 1,
+    rootFolderId: 'root-uuid',
+  });
 
   beforeEach(() => {
     eventBus.removeAllListeners();
@@ -24,7 +30,7 @@ describe('virtual-drive handlers', () => {
     getVirtualDriveContainerSpy.mockReturnValue(undefined);
     updateVirtualDriveContainerSpy.mockResolvedValue({ data: true });
     getVirtualDriveStateSpy.mockResolvedValue({ status: 'MOUNTED' } as never);
-    getUserSpy.mockReturnValue({ root_folder_id: 1, rootFolderId: 'root-uuid' } as never);
+    getUserSpy.mockReturnValue({ data: user });
     ipcHandleSpy.mockClear();
   });
 
@@ -61,7 +67,7 @@ describe('virtual-drive handlers', () => {
     calls(updateVirtualDriveContainerSpy).toHaveLength(1);
     expect(updateVirtualDriveContainerSpy).toHaveBeenCalledWith({
       container: mockContainer,
-      user: { root_folder_id: 1, rootFolderId: 'root-uuid' },
+      user,
     });
   });
 
