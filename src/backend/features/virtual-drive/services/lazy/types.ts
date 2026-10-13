@@ -5,6 +5,7 @@ export type DirectoryStateRow = {
 };
 
 export type SqliteQueryExecutor = {
+  isInitialized: boolean;
   query: (statement: string, parameters?: Array<unknown>) => Promise<Array<DirectoryStateRow>>;
 };
 

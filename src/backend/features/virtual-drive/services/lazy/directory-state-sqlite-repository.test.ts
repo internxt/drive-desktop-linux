@@ -5,7 +5,7 @@ describe('directory-state-sqlite-repository', () => {
   const queryMock =
     vi.fn<(statement: string, parameters?: Array<unknown>) => Promise<Array<{ children_loaded_at: string | null }>>>();
   const stateProps = { folderId: 42, statusScope: 'EXISTS' as const };
-  const dataSource = { query: queryMock };
+  const dataSource = { isInitialized: true, query: queryMock };
 
   beforeEach(() => {
     queryMock.mockResolvedValue([]);

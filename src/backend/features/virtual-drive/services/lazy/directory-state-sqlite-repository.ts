@@ -5,6 +5,7 @@ import type {
   DirectoryStateInvalidationProps,
   DirectoryStateOperationProps,
   DirectoryStateRepositoryProps,
+  SqliteQueryExecutor,
 } from './types';
 
 async function isFresh({
