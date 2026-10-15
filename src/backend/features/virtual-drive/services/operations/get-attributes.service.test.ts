@@ -8,6 +8,7 @@ import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-dri
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import * as metadataSynchronizer from '../lazy/metadata-synchronizer';
+import * as fileExistsOnDiskModule from '../../../fuse/on-read/download-cache/file-exists-on-disk';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
@@ -24,6 +25,7 @@ describe('getAttributes', () => {
   const folderSearcher = mockDeep<SingleFolderMatchingSearcher>();
   const temporalFinder = mockDeep<TemporalFileByPathFinder>();
   const synchronizeMock = partialSpyOn(metadataSynchronizer, 'ensurePathMetadataSynchronized');
+  const fileExistsOnDiskMock = partialSpyOn(fileExistsOnDiskModule, 'fileExistsOnDisk');
   const fileRepository = mockDeep<FileRepository>();
   const folderRepository = mockDeep<FolderRepository>();
 
@@ -39,6 +41,7 @@ describe('getAttributes', () => {
     folderSearcher.run.mockResolvedValue(undefined);
     temporalFinder.run.mockResolvedValue(undefined);
     synchronizeMock.mockResolvedValue(Result.ok(undefined));
+    fileExistsOnDiskMock.mockResolvedValue(false);
   });
 
   describe('when path is root', () => {
@@ -81,6 +84,24 @@ describe('getAttributes', () => {
       const { data } = await getAttributes('/some/file.txt', container);
 
       expect(data?.mtime).toEqual(contentTime);
+    });
+
+    it('should return placeholder size when inspected by thumbnail process and file is not cached', async () => {
+      fileSearcher.run.mockResolvedValue({
+        nameWithExtension: 'photo.jpg',
+        contentsId: 'missing-id',
+        size: 2_000_000,
+        createdAt: now,
+        updatedAt: now,
+        modificationTime: now,
+      } as unknown as File);
+
+      const { data, error } = await getAttributes('/some/photo.jpg', container, 'gnome-thumbnail');
+
+      expect(error).toBeUndefined();
+      expect(data?.mode).toBe(FILE_MODE);
+      expect(data?.size).toBeLessThan(2_000_000);
+      expect(data?.size).toBeGreaterThan(0);
     });
   });
 
@@ -129,6 +150,25 @@ describe('getAttributes', () => {
         folderRepository,
         fileRepository,
       });
+    });
+
+    it('should return placeholder size when a thumbnail process stats a file hydrated by lazy sync', async () => {
+      fileSearcher.run.mockResolvedValueOnce(undefined).mockResolvedValue({
+        nameWithExtension: 'photo.jpg',
+        contentsId: 'missing-id',
+        size: 2_000_000,
+        createdAt: now,
+        updatedAt: now,
+        modificationTime: now,
+      } as unknown as File);
+
+      const { data, error } = await getAttributes('/hydrated/photo.jpg', container, 'gnome-thumbnail');
+
+      expect(error).toBeUndefined();
+      expect(data?.mode).toBe(FILE_MODE);
+      expect(data?.size).toBeLessThan(2_000_000);
+      expect(data?.size).toBeGreaterThan(0);
+      expect(synchronizeMock).toHaveBeenCalled();
     });
   });
 });
