@@ -1,4 +1,5 @@
 import { Container } from 'diod';
+import { join } from 'node:path';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { FILE_MODE, FOLDER_MODE, GetAttributesCallbackData } from '../../constants';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
@@ -10,6 +11,12 @@ import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { ensurePathMetadataSynchronized } from '../lazy/metadata-synchronizer';
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
+import type { File } from '../../../../../context/virtual-drive/files/domain/File';
+import { PATHS } from '../../../../../core/electron/paths';
+import { fileExistsOnDisk } from '../../../fuse/on-read/download-cache/file-exists-on-disk';
+import { resolveFileAttributes } from '../../../thumbnails/placeholders/resolve-file-attributes';
+import { isThumbnailProcess } from '../../../fuse/on-read/thumbnail-processes';
+import { requiresThumbnail } from '../../../thumbnails/placeholders/thumbnail-mime';
 
 type AttributesProps = {
   mode: number;
@@ -18,6 +25,11 @@ type AttributesProps = {
   modificationTime: Date;
   accessTime?: Date;
   links: number;
+};
+
+type FileAttributesProps = {
+  file: File;
+  processName?: string;
 };
 
 function getAttributesData({
@@ -40,9 +52,29 @@ function getAttributesData({
   };
 }
 
+/**
+ * Thumbnail processes must see the placeholder size until the bytes are on disk.
+ * Every other caller keeps the real size. mtime is the contents' modification
+ * time, not the row's updatedAt.
+ */
+async function fileAttributes({ file, processName }: FileAttributesProps) {
+  const fileName = file.nameWithExtension ?? file.name ?? '';
+  const needsThumbnail = requiresThumbnail({ fileName });
+  const isThumbnailInspection = needsThumbnail && isThumbnailProcess(processName ?? '');
+  const filePath = isThumbnailInspection && file.contentsId ? join(PATHS.DOWNLOADED, file.contentsId) : '';
+  const isCachedLocally = isThumbnailInspection ? (filePath ? await fileExistsOnDisk(filePath) : false) : true;
+
+  return resolveFileAttributes({
+    file,
+    isCachedLocally,
+    processName,
+  });
+}
+
 export async function getAttributes(
   path: string,
   container: Container,
+  processName?: string,
 ): Promise<Result<GetAttributesCallbackData, FuseError>> {
   if (path === '/' || path === '') {
     return {
@@ -63,19 +95,7 @@ export async function getAttributes(
     status: FileStatuses.EXISTS,
   });
   if (file) {
-    return {
-      data: getAttributesData({
-        mode: FILE_MODE,
-        size: file.size,
-        createdAt: file.createdAt,
-        // The contents' modification time, not the row's. These differ once a
-        // time has been set through utimensat; before that the getter falls
-        // back to updatedAt, which is what this used to read directly.
-        modificationTime: file.modificationTime,
-        accessTime: new Date(),
-        links: 1,
-      }),
-    };
+    return { data: await fileAttributes({ file, processName }) };
   }
   const folder = await folderSearcher.run({
     path,
@@ -124,16 +144,7 @@ export async function getAttributes(
 
   const hydratedFile = await fileSearcher.run({ path, status: FileStatuses.EXISTS });
   if (hydratedFile) {
-    return {
-      data: getAttributesData({
-        mode: FILE_MODE,
-        size: hydratedFile.size,
-        createdAt: hydratedFile.createdAt,
-        modificationTime: hydratedFile.modificationTime,
-        accessTime: new Date(),
-        links: 1,
-      }),
-    };
+    return { data: await fileAttributes({ file: hydratedFile, processName }) };
   }
 
   const hydratedFolder = await folderSearcher.run({ path });
