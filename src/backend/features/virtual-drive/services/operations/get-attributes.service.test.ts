@@ -68,6 +68,24 @@ describe('getAttributes', () => {
 
       expect(data?.mtime).toEqual(contentTime);
     });
+
+    it('should return placeholder size when inspected by thumbnail process and file is not cached', async () => {
+      fileSearcher.run.mockResolvedValue({
+        nameWithExtension: 'photo.jpg',
+        contentsId: 'missing-id',
+        size: 2_000_000,
+        createdAt: now,
+        updatedAt: now,
+        modificationTime: now,
+      } as unknown as File);
+
+      const { data, error } = await getAttributes('/some/photo.jpg', container, 'gnome-thumbnail');
+
+      expect(error).toBeUndefined();
+      expect(data?.mode).toBe(FILE_MODE);
+      expect(data?.size).toBeLessThan(2_000_000);
+      expect(data?.size).toBeGreaterThan(0);
+    });
   });
 
   describe('when a folder is found', () => {
