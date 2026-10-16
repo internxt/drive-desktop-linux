@@ -6,12 +6,13 @@ import path from 'path';
 import webpack from 'webpack';
 import { merge } from 'webpack-merge';
 import TerserPlugin from 'terser-webpack-plugin';
+// @ts-ignore no bundled types for this package in current config project
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import Dotenv from 'dotenv-webpack';
-import baseConfig from './webpack.config.base';
-import webpackPaths from './webpack.paths';
-import checkNodeEnv from '../scripts/check-node-env';
-import deleteSourceMaps from '../scripts/delete-source-maps';
+import baseConfig from './webpack.config.base.ts';
+import webpackPaths from './webpack.paths.ts';
+import checkNodeEnv from '../scripts/check-node-env.js';
+import deleteSourceMaps from '../scripts/delete-source-maps.js';
 
 checkNodeEnv('production');
 deleteSourceMaps();
