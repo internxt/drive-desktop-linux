@@ -1,6 +1,6 @@
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { createOrUpdateFileByBatch } from '../../../infra/sqlite/services/file/create-or-update-file-by-batch';
-import { patchFile } from './patch-file';
+import { mapFile } from './map-file';
 import type { FileSyncDto } from './types';
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
 };
 
 export async function persistFilesSyncBatch({ items }: Props) {
-  const files = items.map((file) => patchFile(file));
+  const files = items.map(mapFile);
   const persistResult = await createOrUpdateFileByBatch({ files });
 
   if (persistResult.error) return Result.err(persistResult.error);

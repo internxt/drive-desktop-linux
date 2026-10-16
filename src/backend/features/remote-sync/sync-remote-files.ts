@@ -5,7 +5,7 @@ import type { RemoteSyncErrorHandler } from '../../../apps/main/remote-sync/Remo
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { fetchFilesSyncPage } from './fetch-files-sync-page';
 import { persistFilesSyncBatch } from './persist-files-sync-batch';
-import { handleSyncFileFailure } from './handle-sync-file-failure';
+import { handleSyncItemFailure } from './handle-sync-item-failure';
 import type { FileSyncDto } from './types';
 
 type Props = {
@@ -49,10 +49,11 @@ export async function syncRemoteFiles({
     }
 
     retryCount++;
-    handleSyncFileFailure({
+    handleSyncItemFailure({
       error: syncResult.error,
       errorHandler,
-      fileCheckPoint,
+      syncItemType: 'files',
+      itemCheckpoint: fileCheckPoint,
     });
 
     if (retryCount >= syncConfig.maxRetries) return Result.err(syncResult.error);

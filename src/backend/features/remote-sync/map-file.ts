@@ -1,7 +1,7 @@
 import type { RemoteSyncedFile } from '../../../apps/main/remote-sync/helpers';
 import type { FileSyncDto } from './types';
 
-export function patchFile(dto: FileSyncDto): RemoteSyncedFile {
+export function mapFile(dto: FileSyncDto): RemoteSyncedFile {
   return {
     id: dto.id,
     uuid: dto.uuid,

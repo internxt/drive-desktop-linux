@@ -16,7 +16,7 @@ export function resolveFolderStatus(
   return 'EXISTS';
 }
 
-export function patchFolder(dto: FolderSyncDto): RemoteSyncedFolder {
+export function mapFolder(dto: FolderSyncDto): RemoteSyncedFolder {
   return {
     type: dto.type,
     id: dto.id,

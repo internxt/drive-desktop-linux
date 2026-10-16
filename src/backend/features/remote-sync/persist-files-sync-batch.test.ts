@@ -11,7 +11,7 @@ describe('persist-files-sync-batch', () => {
     vi.clearAllMocks();
   });
 
-  it('should patch items and call createOrUpdateFileByBatch', async () => {
+  it('should map items and call createOrUpdateFileByBatch', async () => {
     // Given
     createOrUpdateMock.mockResolvedValue({ data: [] });
     const items = [

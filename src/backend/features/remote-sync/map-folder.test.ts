@@ -1,4 +1,4 @@
-import { resolveFolderStatus, patchFolder } from './patch-folder';
+import { resolveFolderStatus, mapFolder } from './map-folder';
 import type { FolderSyncDto } from './types';
 
 const createFolderSyncDtoFixture = (payload: Partial<FolderSyncDto> = {}): FolderSyncDto => ({
@@ -24,7 +24,7 @@ const createFolderSyncDtoFixture = (payload: Partial<FolderSyncDto> = {}): Folde
   ...payload,
 });
 
-describe('patch-folder', () => {
+describe('map-folder', () => {
   describe('resolveFolderStatus', () => {
     it('should return existing status when valid string', () => {
       // When
@@ -59,8 +59,8 @@ describe('patch-folder', () => {
     });
   });
 
-  describe('patchFolder', () => {
-    it('should normalize folder payload with resolved status and string name', () => {
+  describe('mapFolder', () => {
+    it('should map all folder properties with resolved status', () => {
       // Given
       const folder = createFolderSyncDtoFixture({
         id: 1,
@@ -71,14 +71,21 @@ describe('patch-folder', () => {
       });
 
       // When
-      const result = patchFolder(folder);
+      const result = mapFolder(folder);
 
       // Then
-      expect(result).toMatchObject({
+      expect(result).toStrictEqual({
         id: 1,
         uuid: 'folder-uuid',
         name: 'My Folder',
         status: 'EXISTS',
+        type: 'folder',
+        parentId: 0,
+        bucket: 'bucket-1',
+        userId: 1,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        plainName: 'My Folder',
       });
     });
 
@@ -91,11 +98,26 @@ describe('patch-folder', () => {
       });
 
       // When
-      const result = patchFolder(folder);
+      const result = mapFolder(folder);
 
       // Then
       expect(result.name).toBeUndefined();
       expect(result.status).toBe('EXISTS');
+    });
+
+    it('should default missing parentId and bucket to null', () => {
+      // Given
+      const folder = createFolderSyncDtoFixture({
+        parentId: undefined,
+        bucket: undefined,
+      });
+
+      // When
+      const result = mapFolder(folder);
+
+      // Then
+      expect(result.parentId).toBe(null);
+      expect(result.bucket).toBe(null);
     });
   });
 });
