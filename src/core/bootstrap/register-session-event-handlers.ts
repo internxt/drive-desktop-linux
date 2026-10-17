@@ -1,6 +1,7 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import eventBus from '../../apps/main/event-bus';
 import { AppDataSource } from '../../apps/main/database/data-source';
+import { initializeVirtualDriveSqlite } from '../../apps/main/database/initialize-virtual-drive-sqlite';
 import { getOrCreateWidged, setBoundsOfWidgetByPath } from '../../apps/main/windows/widget';
 import { getAuthWindow } from '../../apps/main/windows/auth';
 import configStore from '../../apps/main/config';
@@ -14,17 +15,31 @@ import { startBackupsIfAvailable } from '../../backend/features/backup/start-bac
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
 import { showMarketingNotifications } from '../../backend/features/marketing';
 
+let isVirtualDriveSqliteInitialized = false;
+
 function onWidgetIsReady() {
   registerBackupHandlers();
   startBackupsIfAvailable();
 }
 
+async function initializeAppDataSource() {
+  if (!AppDataSource.isInitialized) {
+    isVirtualDriveSqliteInitialized = false;
+    await AppDataSource.initialize();
+  }
+
+  if (isVirtualDriveSqliteInitialized) {
+    return;
+  }
+
+  await initializeVirtualDriveSqlite();
+  isVirtualDriveSqliteInitialized = true;
+  eventBus.emit('APP_DATA_SOURCE_INITIALIZED');
+}
+
 async function onUserLoggedIn() {
   try {
-    if (!AppDataSource.isInitialized) {
-      await AppDataSource.initialize();
-      eventBus.emit('APP_DATA_SOURCE_INITIALIZED');
-    }
+    await initializeAppDataSource();
 
     // Keep product flags in sync even if later UI steps fail.
     await getUserAvailableProductsAndStore();
