@@ -15,11 +15,13 @@ import { unlinkController } from '../controllers/operations/unlink.controller';
 import { rmdirController } from '../controllers/operations/rmdir.controller';
 import { statfsController } from '../controllers/operations/statfs.controller';
 import { utimensController } from '../controllers/operations/utimens.controller';
+import { fuseTelemetryMiddleware } from '../../../../infra/telemetry';
 
 // Routes for FUSE operation endpoints (POST /op/<name>).
 // Each operation will be registered here as it is implemented in PB-6161.
 export function buildOperationsRouter(container: Container): Router {
   const router = Router();
+  router.use(fuseTelemetryMiddleware);
   router.post(OPERATION_PATHS.GET_ATTR, (req, res) => getAttributesController(req, res, container));
   router.post(OPERATION_PATHS.OPEN, (req, res) => openController(req, res, container));
   router.post(OPERATION_PATHS.OPEN_DIR, (req, res) => openDirController(req, res, container));
