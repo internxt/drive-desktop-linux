@@ -8,6 +8,7 @@ import { FoldersByParentPathLister } from '../../../../../context/virtual-drive/
 import { TemporalFileByFolderFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
 import { FolderNotFoundError } from '../../../../../context/virtual-drive/folders/domain/errors/FolderNotFoundError';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { enqueueThumbnailFolderSync } from '../../../thumbnails/queue/thumbnail-queue';
 
 export type DirEntry = {
   name: string;
@@ -31,6 +32,8 @@ export async function opendir(path: string, container: Container): Promise<Resul
       ...folderNames.map((name) => ({ name, mode: FOLDER_MODE })),
       ...temporalFiles.filter((f) => f.isAuxiliary()).map((f) => ({ name: f.name, mode: FILE_MODE })),
     ];
+
+    enqueueThumbnailFolderSync({ folderPath: path, fileNames, container });
 
     return { data: { entries } };
   } catch (err) {

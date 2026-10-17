@@ -192,7 +192,7 @@ function schedulePrefetchBlocksAhead({
   }
 }
 
-async function ensureFileAllocated(
+export async function ensureFileAllocated(
   filePath: string,
   virtualFile: File,
 ): Promise<Result<FileHydrationState, FuseError>> {
@@ -209,7 +209,7 @@ async function ensureFileAllocated(
   return { data: state };
 }
 
-async function ensureRangeDownloaded({
+export async function ensureRangeDownloaded({
   bucketId,
   mnemonic,
   network,
@@ -306,12 +306,12 @@ async function finalizeFullyHydratedFileIfNeeded(
   });
 }
 
-function fuseIOErrorFrom(error: unknown): FuseError {
+export function fuseIOErrorFrom(error: unknown): FuseError {
   if (error instanceof FuseError) return error;
   const details = error instanceof Error ? error.message : 'Unknown error occurred';
   return new FuseIOError(details);
 }
 
-function wasAborted(state: FileHydrationState): boolean {
+export function wasAborted(state: FileHydrationState): boolean {
   return state.abortController.signal.aborted;
 }
