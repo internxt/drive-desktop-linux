@@ -8,6 +8,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { readDirectory } from '../lazy/metadata-synchronizer';
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
+import { enqueueThumbnailFolderSync } from '../../../thumbnails/queue/thumbnail-queue';
 
 export type DirEntry = {
   name: string;
@@ -35,6 +36,8 @@ export async function opendir(path: string, container: Container): Promise<Resul
       ...directory.data.folders.map((name) => ({ name, mode: FOLDER_MODE })),
       ...temporalFiles.filter((f) => f.isAuxiliary()).map((f) => ({ name: f.name, mode: FILE_MODE })),
     ];
+
+    enqueueThumbnailFolderSync({ folderPath: path, fileNames: directory.data.files, container });
 
     return { data: { entries: directoryEntries } };
   } catch (err) {
