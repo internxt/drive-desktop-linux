@@ -2,6 +2,7 @@ import {
   abortAllHydrations,
   abortHydrationState,
   clearHydrationState,
+  clearHydrationStateForFile,
   ensureAllocatedOnce,
   finalizeIfNeeded,
   getExistingHydrationState,
@@ -38,6 +39,17 @@ describe('hydration-state lifecycle', () => {
 
     expect(missing).toBeUndefined();
     expect(getExistingHydrationState('missing')).toBeUndefined();
+  });
+
+  it('clears hydration state for a single file', () => {
+    const first = getOrCreateHydrationState('first', 1024);
+    const second = getOrCreateHydrationState('second', 1024);
+
+    clearHydrationStateForFile({ contentsId: 'first' });
+
+    expect(getExistingHydrationState('first')).toBeUndefined();
+    expect(getExistingHydrationState('second')).toBe(second);
+    expect(getOrCreateHydrationState('first', 1024)).not.toBe(first);
   });
 
   it('creates state once per contents id', () => {
