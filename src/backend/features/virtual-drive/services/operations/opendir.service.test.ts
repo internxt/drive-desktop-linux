@@ -10,8 +10,10 @@ import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import type { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import * as thumbnailQueueModule from '../../../thumbnails/queue/thumbnail-queue';
 
 describe('opendir', () => {
+  const enqueueThumbnailFolderSyncMock = partialSpyOn(thumbnailQueueModule, 'enqueueThumbnailFolderSync');
   let container: ReturnType<typeof mockDeep<Container>>;
   const temporalFinder = mockDeep<TemporalFileByFolderFinder>();
   const readDirectoryMock = partialSpyOn(metadataSynchronizer, 'readDirectory');
@@ -25,6 +27,7 @@ describe('opendir', () => {
     container.get.calledWith(FolderRepository).mockReturnValue(folderRepository);
     temporalFinder.run.mockResolvedValue([]);
     readDirectoryMock.mockResolvedValue({ data: { files: [], folders: [] } });
+    enqueueThumbnailFolderSyncMock.mockReturnValue({ data: undefined });
   });
 
   describe('when directory has files and subfolders', () => {
@@ -45,6 +48,11 @@ describe('opendir', () => {
         { name: 'photo.jpg', mode: FILE_MODE },
         { name: 'subdir', mode: FOLDER_MODE },
       ]);
+      expect(enqueueThumbnailFolderSyncMock).toHaveBeenCalledWith({
+        folderPath: '/some/folder',
+        fileNames: ['file.txt', 'photo.jpg'],
+        container,
+      });
     });
   });
 
