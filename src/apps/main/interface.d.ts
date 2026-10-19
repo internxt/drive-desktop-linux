@@ -94,7 +94,7 @@ export interface IElectronAPI {
 
   openLogs(): void;
 
-  openSettingsWindow(section?: 'BACKUPS' | 'GENERAL' | 'ACCOUNT' | 'ANTIVIRUS' | 'CLEANER'): void;
+  openSettingsWindow(section?: 'BACKUPS' | 'GENERAL' | 'ACCOUNT' | 'ANTIVIRUS' | 'CLEANER' | 'MAIL_BRIDGE'): void;
 
   logout(): void;
 
@@ -121,6 +121,8 @@ export interface IElectronAPI {
     onCleanupProgress: (callback: (progressData: CleanupProgress) => void) => () => void;
     getDiskSpace: () => Promise<number>;
   };
+  mailBridge: import('@internxt/drive-desktop-core/build/frontend/features/mail-bridge/mail-bridge-api.types').MailBridgeApi;
+
   antivirus: {
     isAvailable: () => Promise<boolean>;
     isBackgroundScanEnabled: () => Promise<boolean>;

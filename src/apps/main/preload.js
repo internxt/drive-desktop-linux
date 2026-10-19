@@ -300,6 +300,28 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.on(eventName, listener);
     return () => ipcRenderer.removeListener(eventName, listener);
   },
+  mailBridge: {
+    start: async () => await ipcRenderer.invoke("mail-bridge:start"),
+    getStatus: async () => await ipcRenderer.invoke("mail-bridge:get-status"),
+    getEmail: async () => await ipcRenderer.invoke("mail-bridge:get-email"),
+    getStartOnLogin: async () => await ipcRenderer.invoke("mail-bridge:get-start-on-login"),
+    setStartOnLogin: async (enabled) => await ipcRenderer.invoke("mail-bridge:set-start-on-login", enabled),
+    stop: async () => await ipcRenderer.invoke("mail-bridge:stop"),
+    resync: async () => await ipcRenderer.invoke("mail-bridge:resync"),
+    getSyncProgress: async () => await ipcRenderer.invoke("mail-bridge:get-sync-progress"),
+    onStatusChanged(callback) {
+      const eventName = "mail-bridge:status-changed";
+      const callbackWrapper = (_, status) => callback(status);
+      ipcRenderer.on(eventName, callbackWrapper);
+      return () => ipcRenderer.removeListener(eventName, callbackWrapper);
+    },
+    onSyncProgressChanged(callback) {
+      const eventName = "mail-bridge:sync-progress-changed";
+      const callbackWrapper = (_, progress) => callback(progress);
+      ipcRenderer.on(eventName, callbackWrapper);
+      return () => ipcRenderer.removeListener(eventName, callbackWrapper);
+    }
+  },
   antivirus: {
     /**
      * Check if antivirus feature is available for the current user

@@ -15,9 +15,13 @@ import { isTypeSection, Section } from './Utils/section.types';
 import { CleanerSection } from './Cleaner/cleaner-section';
 import { CleanerProvider } from '../../context/CleanerContext';
 
+import { MailBridgeSection } from '../../features/mail-bridge/components/mail-bridge-section';
+import { useUserAvailableProducts } from '../../hooks/useUserAvailableProducts/useUserAvailableProducts';
+
 const SHOW_ANTIVIRUS_TOOL = true;
 
 export default function Settings() {
+  const { products: availableProducts } = useUserAvailableProducts();
   const [activeSection, setActiveSection] = useState<Section>('GENERAL');
   const [subsection, setSubsection] = useState<'panel' | 'list' | 'download_list'>('panel');
 
@@ -68,7 +72,9 @@ export default function Settings() {
                 <div className="flex flex-grow flex-col">
                   <WindowTopBar title="Internxt" className="bg-surface dark:bg-gray-5" />
                   <Header active={activeSection} onClick={setActiveSection} />
-                  <div className="flex bg-gray-1 p-5" style={{ minHeight: 460, height: 460 }}>
+                  <div
+                    className={`flex min-w-0 overflow-y-auto bg-gray-1 ${activeSection === 'MAIL_BRIDGE' ? 'p-0' : 'p-5'}`}
+                    style={{ minHeight: 460, height: 460 }}>
                     <GeneralSection active={activeSection === 'GENERAL'} data-automation-id="itemSettingsGeneral" />
                     <AccountSection active={activeSection === 'ACCOUNT'} data-automation-id="itemSettingsAccount" />
                     <BackupsSection
@@ -84,6 +90,7 @@ export default function Settings() {
                         data-automation-id="itemSettingsAntivirus"
                       />
                     )}
+                    {activeSection === 'MAIL_BRIDGE' && <MailBridgeSection availableProducts={availableProducts} />}
                     <CleanerSection active={activeSection === 'CLEANER'} data-automation-id="itemSettingsCleaner" />
                   </div>
                 </div>

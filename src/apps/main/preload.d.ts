@@ -63,7 +63,7 @@ declare interface Window {
 
     openLogs(): void;
 
-    openSettingsWindow(section?: 'BACKUPS' | 'GENERAL' | 'ACCOUNT' | 'ANTIVIRUS'): void;
+    openSettingsWindow(section?: 'BACKUPS' | 'GENERAL' | 'ACCOUNT' | 'ANTIVIRUS' | 'CLEANER' | 'MAIL_BRIDGE'): void;
 
     settingsWindowResized(payload: { width: number; height: number }): void;
 
@@ -167,6 +167,8 @@ declare interface Window {
     };
     onBackupFailed: (callback: (error: { message: string; cause: string }) => void) => () => void;
     onMarketingNotifications: (callback: (notifications: Array<UserNotification>) => void) => () => void;
+
+    mailBridge: import('@internxt/drive-desktop-core/build/frontend/features/mail-bridge/mail-bridge-api.types').MailBridgeApi;
 
     antivirus: {
       isAvailable: () => Promise<boolean>;
