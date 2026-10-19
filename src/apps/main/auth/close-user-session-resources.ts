@@ -13,9 +13,6 @@ import { getAntivirusManager } from '../antivirus/antivirusManager';
 import { tryCatch } from '../../../shared/try-catch';
 import { clearMailBridgeIpc, stopMailBridge } from '../../../backend/features/mail-bridge';
 
-import { clearMailBridgeIpc } from '../../../backend/features/mail-bridge/ipc/mail-bridge-ipc';
-import { stopMailBridge } from '../../../backend/features/mail-bridge/services/mail-bridge.service';
-
 let closeUserSessionResourcesInFlight: Promise<void> | undefined;
 
 async function executeCloseUserSessionResources() {

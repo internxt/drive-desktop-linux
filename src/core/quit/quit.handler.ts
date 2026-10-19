@@ -3,8 +3,6 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { stopVirtualDriveOnce } from '../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
 import { stopMailBridge } from '../../backend/features/mail-bridge';
 
-import { stopMailBridge } from '../../backend/features/mail-bridge/services/mail-bridge.service';
-
 export function registerQuitHandler() {
   let isQuitting = false;
 
