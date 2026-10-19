@@ -1,146 +1,134 @@
-import {
-  createMailBridgeSession,
-  getMailBridgeEmail,
-  MailBridgeSessionPreparationError,
-  type MailBridgeSession,
-  type MailBridgeConnectionSettings,
-} from '@internxt/drive-desktop-core/build/backend/features/mail-bridge';
+import { ipcMain, type IpcMainInvokeEvent } from 'electron';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
-import { ipcMain } from 'electron';
-import { getCredentials } from '../../../../apps/main/auth/get-credentials';
-import type { User } from '../../../../apps/main/types';
-import { getUser } from '../../auth/user-session';
-import { getMailBridgeClientConfig } from '../config/get-mail-bridge-client-config';
-import { mailBridgeCredentialsStore } from '../config/mail-bridge-credentials-store';
-import * as lifecycle from '../services/mail-bridge.service';
-import {
-  clearMailBridgeIpc,
-  getMailBridgeEmailForRenderer,
-  setupMailBridgeIpc,
-  startMailBridge,
-} from './mail-bridge-ipc';
+import { MailBridgeSessionPreparationError } from '@internxt/drive-desktop-core/build/backend/features/mail-bridge';
+import { getWidget } from '../../../../apps/main/windows/widget';
+import { getSettingsWindow } from '../../../../apps/main/windows/settings';
+import { setMailBridgeStartOnLogin } from '../config/set-mail-bridge-start-on-login';
+import * as service from '../services/mail-bridge.service';
+import { clearMailBridgeIpc, setupMailBridgeIpc } from './mail-bridge-ipc';
 
-vi.mock('@internxt/drive-desktop-core/build/backend/features/mail-bridge', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@internxt/drive-desktop-core/build/backend/features/mail-bridge')>()),
-  createMailBridgeSession: vi.fn(),
-  getMailBridgeEmail: vi.fn(),
-}));
-vi.mock('../../../../apps/main/auth/get-credentials', () => ({ getCredentials: vi.fn() }));
-vi.mock('../../auth/user-session', () => ({ getUser: vi.fn() }));
-vi.mock('../../../../apps/main/windows/settings', () => ({ getSettingsWindow: vi.fn() }));
 vi.mock('../../../../apps/main/windows/widget', () => ({ getWidget: vi.fn() }));
+vi.mock('../../../../apps/main/windows/settings', () => ({ getSettingsWindow: vi.fn() }));
+vi.mock('../config/is-mail-bridge-start-on-login-enabled', () => ({ isMailBridgeStartOnLoginEnabled: vi.fn() }));
+vi.mock('../config/set-mail-bridge-start-on-login', () => ({ setMailBridgeStartOnLogin: vi.fn() }));
 vi.mock('../services/mail-bridge.service', () => ({
   startMailBridge: vi.fn(),
   stopMailBridge: vi.fn(),
-  getMailBridgeStatus: vi.fn(),
-  getMailBridgeSyncProgress: vi.fn(),
   resyncMailBridge: vi.fn(),
+  getMailBridgeStatus: vi.fn(),
+  getMailBridgeEmail: vi.fn(),
+  getMailBridgeSyncProgress: vi.fn(),
   subscribeToMailBridgeStatus: vi.fn(),
   subscribeToMailBridgeSyncProgress: vi.fn(),
 }));
 
-describe('Mail Bridge session IPC', () => {
-  const user = { uuid: 'account-id', email: 'account@example.test' } as User;
-  const session: MailBridgeSession = {
-    account_id: user.uuid,
-    addresses: [user.email],
-    backend_session: {
-      token: 'access-token',
-      encryption_private_key: 'private-key',
-      encryption_public_key: 'public-key',
-    },
-    mail_client: { username: user.email, password: 'client-credential' },
-  };
-  const connection: MailBridgeConnectionSettings = {
-    hostname: '127.0.0.1',
-    imapPort: 1143,
-    smtpPort: 1025,
-    imapSecurity: 'None',
-    smtpSecurity: 'None',
-    ...session.mail_client,
-  };
+describe('Mail Bridge IPC', () => {
+  const unsubscribeStatus = vi.fn();
+  const unsubscribeProgress = vi.fn();
+  const event = {} as IpcMainInvokeEvent;
 
   beforeEach(() => {
-    vi.mocked(getUser).mockReturnValue(user);
-    vi.mocked(getCredentials).mockReturnValue({ newToken: 'access-token', mnemonic: 'stored-mnemonic' });
-    vi.mocked(createMailBridgeSession).mockResolvedValue(Result.ok(session));
-    vi.mocked(lifecycle.startMailBridge).mockResolvedValue(Result.ok(connection));
+    vi.clearAllMocks();
+    vi.mocked(service.subscribeToMailBridgeStatus).mockReturnValue(unsubscribeStatus);
+    vi.mocked(service.subscribeToMailBridgeSyncProgress).mockReturnValue(unsubscribeProgress);
+    vi.mocked(getWidget).mockReturnValue(null);
+    vi.mocked(getSettingsWindow).mockReturnValue(null);
   });
-
   afterEach(() => clearMailBridgeIpc());
 
-  it('passes one authentication snapshot and account-scoped storage to core before starting the shared lifecycle', async () => {
-    await expect(startMailBridge()).resolves.toEqual(Result.ok(connection));
+  function handler(channel: string) {
+    const registered = vi.mocked(ipcMain.handle).mock.calls.find(([name]) => name === channel);
+    if (!registered) throw new Error(`No IPC handler registered for ${channel}`);
+    return registered[1];
+  }
 
-    expect(getCredentials).toHaveBeenCalledTimes(1);
-    expect(createMailBridgeSession).toHaveBeenCalledWith({
-      accountId: user.uuid,
-      email: user.email,
-      mnemonic: 'stored-mnemonic',
-      clientConfig: getMailBridgeClientConfig('access-token'),
-      credentialsStore: mailBridgeCredentialsStore,
-    });
-    expect(lifecycle.startMailBridge).toHaveBeenCalledWith(session);
-  });
-
-  it('rejects unauthenticated starts before preparing credentials', async () => {
-    vi.mocked(getUser).mockReturnValue(null);
-
-    expect((await startMailBridge()).error?.code).toBe('not-authenticated');
-    expect(createMailBridgeSession).not.toHaveBeenCalled();
-    expect(lifecycle.startMailBridge).not.toHaveBeenCalled();
-  });
-
-  it('preserves actionable core preparation errors as plain IPC data', async () => {
-    vi.mocked(createMailBridgeSession).mockResolvedValue(
-      Result.err(new MailBridgeSessionPreparationError('mail-not-setup', 'Mailbox is not configured')),
-    );
-
-    const result = await startMailBridge();
-
-    expect(result.error).toMatchObject({ code: 'mail-not-setup', message: 'Mailbox is not configured' });
-    expect(result.error).not.toBeInstanceOf(Error);
-    expect(lifecycle.startMailBridge).not.toHaveBeenCalled();
-  });
-
-  it('discards a prepared session when the signed-in account changes', async () => {
-    vi.mocked(getUser).mockReturnValueOnce(user).mockReturnValue(null);
-
-    expect((await startMailBridge()).error?.code).toBe('session-changed');
-    expect(lifecycle.startMailBridge).not.toHaveBeenCalled();
-  });
-
-  it('serializes lifecycle startup errors without exposing the prepared session', async () => {
-    vi.mocked(lifecycle.startMailBridge).mockResolvedValue(Result.err(new Error('Port is in use')));
-
-    expect(await startMailBridge()).toEqual(
-      Result.err({ name: 'Error', code: 'start-failed', message: 'Port is in use' }),
-    );
-  });
-
-  it('uses the current token for core email lookup and preserves its error code across IPC', async () => {
-    vi.mocked(getMailBridgeEmail).mockResolvedValue(
-      Result.err(new MailBridgeSessionPreparationError('mail-not-setup', 'Mailbox is not configured')),
-    );
-
-    const result = await getMailBridgeEmailForRenderer();
-
-    expect(getMailBridgeEmail).toHaveBeenCalledWith(getMailBridgeClientConfig('access-token'));
-    expect(result.error).toMatchObject({ code: 'mail-not-setup', message: 'Mailbox is not configured' });
-    expect(result.error).not.toBeInstanceOf(Error);
-  });
-
-  it('removes previous subscriptions when IPC handlers are registered again', () => {
-    const unsubscribeStatus = vi.fn();
-    const unsubscribeProgress = vi.fn();
-    vi.mocked(lifecycle.subscribeToMailBridgeStatus).mockReturnValueOnce(unsubscribeStatus);
-    vi.mocked(lifecycle.subscribeToMailBridgeSyncProgress).mockReturnValueOnce(unsubscribeProgress);
-
+  it('replaces handlers and subscriptions when setup runs again', () => {
     setupMailBridgeIpc();
+    expect(ipcMain.handle).toHaveBeenCalledTimes(8);
     setupMailBridgeIpc();
-
     expect(unsubscribeStatus).toHaveBeenCalledTimes(1);
     expect(unsubscribeProgress).toHaveBeenCalledTimes(1);
-    expect(ipcMain.removeHandler).toHaveBeenCalledWith('mail-bridge:start');
+    expect(ipcMain.handle).toHaveBeenCalledTimes(16);
+    expect(ipcMain.removeHandler).toHaveBeenCalledTimes(16);
+    expect(service.startMailBridge).not.toHaveBeenCalled();
+  });
+
+  it('removes every registered handler and listener during teardown', () => {
+    setupMailBridgeIpc();
+    vi.mocked(ipcMain.removeHandler).mockClear();
+    clearMailBridgeIpc();
+    for (const [channel] of vi.mocked(ipcMain.handle).mock.calls) {
+      expect(ipcMain.removeHandler).toHaveBeenCalledWith(channel);
+    }
+    expect(unsubscribeStatus).toHaveBeenCalledTimes(1);
+    expect(unsubscribeProgress).toHaveBeenCalledTimes(1);
+    clearMailBridgeIpc();
+    expect(unsubscribeStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps custom error codes when crossing Electron IPC', async () => {
+    const error = Object.assign(new Error('Mailbox not configured'), { code: 'mail-not-setup' });
+    vi.mocked(service.startMailBridge).mockResolvedValue(Result.err(error));
+    setupMailBridgeIpc();
+
+    const result: unknown = await handler('mail-bridge:start')(event);
+
+    expect(result).toEqual(Result.err({ name: 'Error', message: error.message, code: error.code }));
+    expect(structuredClone(result)).toEqual(result);
+    expect(result).not.toHaveProperty('error', expect.any(Error));
+  });
+
+  it('serializes account lookup errors without dropping mailbox error codes', async () => {
+    const error = new MailBridgeSessionPreparationError('mail-not-setup', 'Mailbox not configured');
+    vi.mocked(service.getMailBridgeEmail).mockResolvedValue(Result.err(error));
+    setupMailBridgeIpc();
+    expect(await handler('mail-bridge:get-email')(event)).toEqual(
+      Result.err({ name: 'Error', message: error.message, code: error.code }),
+    );
+  });
+
+  it.each(['stop', 'resync'] as const)('serializes %s errors with their messages', async (action) => {
+    const mock = action === 'stop' ? service.stopMailBridge : service.resyncMailBridge;
+    vi.mocked(mock).mockResolvedValue(Result.err(new Error('Control channel failed')));
+    setupMailBridgeIpc();
+    expect(await handler(`mail-bridge:${action}`)(event)).toEqual(
+      Result.err({ name: 'Error', message: 'Control channel failed' }),
+    );
+  });
+
+  it('passes successful results through without altering their data', async () => {
+    const result = Result.ok('user@inxt.me');
+    vi.mocked(service.getMailBridgeEmail).mockResolvedValue(result);
+    setupMailBridgeIpc();
+    expect(await handler('mail-bridge:get-email')(event)).toBe(result);
+  });
+
+  it('sends live updates to both the widget and settings window', () => {
+    const widget = { webContents: { send: vi.fn() } };
+    const settings = { webContents: { send: vi.fn() } };
+    vi.mocked(getWidget).mockReturnValue(widget as never);
+    vi.mocked(getSettingsWindow).mockReturnValue(settings as never);
+    setupMailBridgeIpc();
+    const status = { status: 'starting' as const, error: undefined };
+    const progress = { percentage: 40, completedMessages: 4, totalMessages: 10 };
+    vi.mocked(service.subscribeToMailBridgeStatus).mock.calls[0][0](status);
+    vi.mocked(service.subscribeToMailBridgeSyncProgress).mock.calls[0][0](progress);
+    for (const window of [widget, settings]) {
+      expect(window.webContents.send).toHaveBeenCalledWith('mail-bridge:status-changed', status);
+      expect(window.webContents.send).toHaveBeenCalledWith('mail-bridge:sync-progress-changed', progress);
+    }
+  });
+
+  it('handles updates while neither window exists', () => {
+    setupMailBridgeIpc();
+    expect(() =>
+      vi.mocked(service.subscribeToMailBridgeStatus).mock.calls[0][0]({ status: 'stopped', error: undefined }),
+    ).not.toThrow();
+  });
+
+  it.each([true, false])('forwards preference changes to the config adapter (%s)', async (enabled) => {
+    setupMailBridgeIpc();
+    await handler('mail-bridge:set-start-on-login')(event, enabled);
+    expect(setMailBridgeStartOnLogin).toHaveBeenCalledWith(enabled);
   });
 });

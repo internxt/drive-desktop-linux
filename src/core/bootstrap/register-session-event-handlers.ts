@@ -14,8 +14,8 @@ import { registerBackupHandlers } from '../../backend/features/backup/register-b
 import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
 import { showMarketingNotifications } from '../../backend/features/marketing';
+import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/features/mail-bridge';
 
-import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/features/mail-bridge/ipc/mail-bridge-ipc';
 let isVirtualDriveSqliteInitialized = false;
 
 function onWidgetIsReady() {
