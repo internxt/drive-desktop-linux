@@ -16,6 +16,8 @@ export const savedConfigFields = [
   'discoveredBackup',
   'maxUploadFileSizeInBytes',
   'availableUserProducts',
+  'mailBridgeCredentials',
+  'mailBridgeStartOnLogin',
 ] as (keyof SavedConfig)[];
 
 export function saveConfig({ uuid }: { uuid: string }) {
@@ -37,6 +39,8 @@ export function saveConfig({ uuid }: { uuid: string }) {
     discoveredBackup: ConfigStore.get('discoveredBackup'),
     maxUploadFileSizeInBytes: ConfigStore.get('maxUploadFileSizeInBytes'),
     availableUserProducts: ConfigStore.get('availableUserProducts'),
+    mailBridgeCredentials: ConfigStore.get('mailBridgeCredentials'),
+    mailBridgeStartOnLogin: ConfigStore.get('mailBridgeStartOnLogin'),
   };
 
   ConfigStore.set('savedConfigs', {
