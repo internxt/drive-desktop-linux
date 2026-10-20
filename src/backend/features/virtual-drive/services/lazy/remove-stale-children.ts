@@ -9,6 +9,7 @@ type Props = {
   fileRepository: FileRepository;
   remoteFolderUuids: Set<string>;
   remoteFileUuids: Set<string>;
+  remoteFolderPaths: Map<string, string>;
 };
 
 export async function removeStaleChildren({
@@ -17,10 +18,11 @@ export async function removeStaleChildren({
   fileRepository,
   remoteFolderUuids,
   remoteFileUuids,
+  remoteFolderPaths,
 }: Props) {
   const removedFolderChildren = folderRepository
     .matchingPartial({ parentId: folder.id })
-    .filter((child) => !remoteFolderUuids.has(child.uuid));
+    .filter((child) => !remoteFolderUuids.has(child.uuid) || remoteFolderPaths.get(child.uuid) !== child.path);
 
   const staleFolders = staleFolderTree({ removedFolderChildren, folderRepository });
 

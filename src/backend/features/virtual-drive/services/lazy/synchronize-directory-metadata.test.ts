@@ -196,6 +196,42 @@ describe('synchronize-directory-metadata', () => {
     expect(invalidateMock.mock.calls.map(([props]) => props.folderId).sort()).toStrictEqual([1, 4, 5]);
   });
 
+  it('should drop cached descendants when a remote folder keeps its uuid and changes path', async () => {
+    const parent = FolderMother.fromPartial({ id: 1, path: '/documents', parentId: null });
+    const renamed = FolderMother.fromPartial({ id: 2, parentId: parent.id, path: '/documents/old' });
+    const descendant = FolderMother.fromPartial({ id: 3, parentId: renamed.id, path: '/documents/old/nested' });
+    const nestedFile = FileMother.fromPartial({ folderId: descendant.id, path: '/documents/old/nested/keep.txt' });
+    const folders = new InMemoryFolderRepository();
+    const files = new InMemoryFileRepository();
+    for (const entry of [parent, renamed, descendant]) await folders.add(entry);
+    await files.upsert(nestedFile);
+    fetchFolderMock.mockResolvedValue({
+      data: {
+        children: [
+          {
+            ...renamed.attributes(),
+            plainName: 'new',
+            deleted: false,
+            removed: false,
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+        files: [],
+      },
+    });
+
+    await synchronizeDirectoryMetadata({ folder: parent, folderRepository: folders, fileRepository: files });
+
+    expect((await folders.searchById(renamed.id))?.path).toBe('/documents/new');
+    expect(await folders.searchById(descendant.id)).toBeUndefined();
+    expect(await files.searchByUuid(nestedFile.uuid)).toBeUndefined();
+    expect(invalidateMock.mock.calls.map(([props]) => props.folderId).sort()).toStrictEqual([
+      parent.id,
+      renamed.id,
+      descendant.id,
+    ]);
+  });
+
   it('should mark the directory as errored without mutating cached children when folder persistence fails', async () => {
     createOrUpdateFolderByBatchMock.mockResolvedValue({ error: new Error('database failure') });
 

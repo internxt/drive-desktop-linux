@@ -49,6 +49,10 @@ describe('remove-stale-children', () => {
       fileRepository: files,
       remoteFolderUuids: new Set([kept.uuid, sibling.uuid]),
       remoteFileUuids: new Set([directFile.uuid]),
+      remoteFolderPaths: new Map([
+        [kept.uuid, kept.path],
+        [sibling.uuid, sibling.path],
+      ]),
     });
 
     expect((await folders.all()).map((entry) => entry.id).sort()).toStrictEqual([1, 2, 3, 6]);
@@ -56,5 +60,32 @@ describe('remove-stale-children', () => {
       [directFile, nestedFile, siblingFile].map((entry) => entry.uuid).sort(),
     );
     expect(invalidateMock.mock.calls.map(([props]) => props.folderId).sort()).toStrictEqual([4, 5]);
+  });
+
+  it('should drop a renamed folder and its cached descendants', async () => {
+    const parent = FolderMother.fromPartial({ id: 1, path: '/documents', parentId: null });
+    const renamed = FolderMother.fromPartial({ id: 2, parentId: parent.id, path: '/documents/old' });
+    const descendant = FolderMother.fromPartial({ id: 3, parentId: renamed.id, path: '/documents/old/nested' });
+    const nestedFile = FileMother.fromPartial({ folderId: descendant.id, path: '/documents/old/nested/keep.txt' });
+    const folders = new InMemoryFolderRepository();
+    const files = new InMemoryFileRepository();
+    for (const entry of [parent, renamed, descendant]) await folders.add(entry);
+    await files.upsert(nestedFile);
+
+    await removeStaleChildren({
+      folder: parent,
+      folderRepository: folders,
+      fileRepository: files,
+      remoteFolderUuids: new Set([renamed.uuid]),
+      remoteFileUuids: new Set(),
+      remoteFolderPaths: new Map([[renamed.uuid, '/documents/new']]),
+    });
+
+    expect((await folders.all()).map((entry) => entry.id)).toStrictEqual([parent.id]);
+    expect(await files.all()).toHaveLength(0);
+    expect(invalidateMock.mock.calls.map(([props]) => props.folderId).sort()).toStrictEqual([
+      renamed.id,
+      descendant.id,
+    ]);
   });
 });

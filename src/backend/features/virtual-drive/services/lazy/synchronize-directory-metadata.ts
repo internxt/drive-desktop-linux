@@ -52,6 +52,9 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
       fileRepository,
       remoteFolderUuids: new Set(remoteFolders.map((child) => child.uuid)),
       remoteFileUuids: new Set(remoteFiles.map((child) => child.uuid)),
+      remoteFolderPaths: new Map(
+        remoteFolders.map((child) => [child.uuid, path.posix.join(folder.path, child.plainName)]),
+      ),
     });
 
     const localFolders = remoteFolders.map((remoteFolder) => {
