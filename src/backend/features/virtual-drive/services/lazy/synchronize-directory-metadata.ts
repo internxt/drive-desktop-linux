@@ -1,7 +1,6 @@
 import path from 'node:path';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
-import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { RemoteSyncedFile } from '../../../../../apps/main/remote-sync/helpers';
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
@@ -13,6 +12,7 @@ import { fetchFolder } from '../../../../../infra/drive-server/services/folder/s
 import { createOrUpdateFileByBatch } from '../../../../../infra/sqlite/services/file/create-or-update-file-by-batch';
 import { createOrUpdateFolderByBatch } from '../../../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
+import { DirectoryMetadataSyncError } from './directory-metadata-sync.error';
 import { toRemoteFile, toRemoteFolder } from './remote-synced-mappers';
 
 type Props = {
@@ -22,6 +22,7 @@ type Props = {
 };
 
 export async function synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository }: Props) {
+  let localMutationStarted = false;
   try {
     const response = await fetchFolder(folder.uuid);
 
@@ -33,6 +34,9 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
     const remoteFiles = response.data.files.filter(isExistingFile).map(toRemoteFile);
 
     // better-sqlite3 has one writer connection, so these batches must remain sequential.
+    localMutationStarted = true;
+    // A partial refresh must not leave a previous successful load eligible for fallback.
+    await DirectoryStateRepository.invalidate({ folderId: folder.id, statusScope: 'EXISTS' });
     const folderPersistence = await createOrUpdateFolderByBatch({ folders: remoteFolders });
     if (folderPersistence.error) throw folderPersistence.error;
 
@@ -57,10 +61,16 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
     ]);
     await DirectoryStateRepository.markLoaded({ folderId: folder.id, statusScope: 'EXISTS' });
   } catch (error) {
-    await DirectoryStateRepository.markError({ folderId: folder.id, statusScope: 'EXISTS' });
     logger.error({ msg: '[FUSE - Metadata sync] Failed to synchronize directory metadata', error, path: folder.path });
     const code = error instanceof DriveServerError && error.cause === 'NOT_FOUND' ? FuseCodes.ENOENT : FuseCodes.EIO;
-    throw new FuseError(code, `[FUSE - Metadata sync] Unable to synchronize directory metadata: ${folder.path}`);
+    const canUseCachedChildren = !localMutationStarted && code !== FuseCodes.ENOENT;
+    await DirectoryStateRepository.markError({
+      folderId: folder.id,
+      statusScope: 'EXISTS',
+      failureState:
+        code === FuseCodes.ENOENT ? 'error_not_found' : canUseCachedChildren ? 'error_before_mutation' : 'error',
+    });
+    throw new DirectoryMetadataSyncError({ code, folderPath: folder.path, canUseCachedChildren });
   }
 }
 

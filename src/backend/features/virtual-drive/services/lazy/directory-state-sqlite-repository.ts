@@ -2,10 +2,19 @@ import { AppDataSource } from '../../../../../apps/main/database/data-source';
 import { DIRECTORY_STATE_TTL_MS } from './constants';
 import type {
   DirectoryStateFreshnessProps,
+  DirectoryStateErrorProps,
   DirectoryStateInvalidationProps,
   DirectoryStateOperationProps,
   DirectoryStateRepositoryProps,
 } from './types';
+
+async function getState({ dataSource = AppDataSource, folderId, statusScope }: DirectoryStateOperationProps) {
+  const rows = await dataSource.query(
+    'SELECT children_loaded_at, children_last_error_at, fetch_state FROM drive_directory_state WHERE folder_id = ? AND status_scope = ? LIMIT 1',
+    [folderId, statusScope],
+  );
+  return rows.at(0);
+}
 
 async function isFresh({
   dataSource = AppDataSource,
@@ -36,13 +45,18 @@ async function markLoaded({ dataSource = AppDataSource, folderId, statusScope }:
   );
 }
 
-async function markError({ dataSource = AppDataSource, folderId, statusScope }: DirectoryStateOperationProps) {
+async function markError({
+  dataSource = AppDataSource,
+  folderId,
+  statusScope,
+  failureState = 'error',
+}: DirectoryStateErrorProps) {
   await dataSource.query(
     `INSERT INTO drive_directory_state (folder_id, status_scope, children_loaded_at, children_last_error_at, fetch_state)
-     VALUES (?, ?, NULL, ?, 'error')
+     VALUES (?, ?, NULL, ?, ?)
      ON CONFLICT(folder_id, status_scope)
-     DO UPDATE SET children_last_error_at = excluded.children_last_error_at, fetch_state = 'error'`,
-    [folderId, statusScope, new Date().toISOString()],
+     DO UPDATE SET children_last_error_at = excluded.children_last_error_at, fetch_state = excluded.fetch_state`,
+    [folderId, statusScope, new Date().toISOString(), failureState],
   );
 }
 
@@ -58,6 +72,7 @@ async function clear({ dataSource = AppDataSource }: DirectoryStateRepositoryPro
 }
 
 export const DirectoryStateRepository = {
+  getState,
   isFresh,
   markLoaded,
   markError,

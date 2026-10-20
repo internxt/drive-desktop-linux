@@ -2,6 +2,8 @@ export type DirectoryStatusScope = 'EXISTS';
 
 export type DirectoryStateRow = {
   children_loaded_at: string | null;
+  children_last_error_at: string | null;
+  fetch_state: string;
 };
 
 export type SqliteQueryExecutor = {
@@ -18,6 +20,10 @@ export type DirectoryStateRepositoryProps = {
 };
 
 export type DirectoryStateOperationProps = DirectoryStateProps & DirectoryStateRepositoryProps;
+
+export type DirectoryStateErrorProps = DirectoryStateOperationProps & {
+  failureState?: 'error' | 'error_before_mutation' | 'error_not_found';
+};
 
 export type DirectoryStateInvalidationProps = DirectoryStateOperationProps;
 
