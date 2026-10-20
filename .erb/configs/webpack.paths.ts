@@ -7,6 +7,7 @@ const dllPath = path.join(__dirname, '../dll');
 const srcPath = path.join(rootPath, 'src', 'apps');
 const srcMainPath = path.join(srcPath, 'main');
 const srcRendererPath = path.join(srcPath, 'renderer');
+const appNodeModulesPath = path.join(rootPath, 'node_modules');
 const srcSyncPath = path.join(srcPath, 'workers', 'sync');
 const srcBackupsPath = path.join(srcPath, 'backups');
 const srcVirtualDrivePath = path.join(srcPath, 'drive');
@@ -27,6 +28,7 @@ export default {
   srcPath,
   srcMainPath,
   srcRendererPath,
+  appNodeModulesPath,
   distPath,
   distMainPath,
   distRendererPath,

@@ -1,14 +1,12 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { RemoteSyncStatus, RemoteSyncedFolder, SyncConfig, rewind, SIX_HOURS_IN_MILLISECONDS } from './helpers';
+import { RemoteSyncStatus, SyncConfig, rewind, SIX_HOURS_IN_MILLISECONDS } from './helpers';
 import { DatabaseCollectionAdapter } from '../database/adapters/base';
 import { DriveFolder } from '../database/entities/DriveFolder';
 import { DriveFile } from '../database/entities/DriveFile';
 import { Nullable } from '../../shared/types/Nullable';
-import { RemoteSyncError, RemoteSyncNetworkError } from './errors';
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
-import { createOrUpdateFolderByBatch } from '../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
-import { fetchFolders } from '../../../infra/drive-server/services/folder/services/fetch-folders';
 import { syncRemoteFiles as syncFiles } from '../../../backend/features/remote-sync/sync-remote-files';
+import { syncRemoteFolders as syncFolders } from '../../../backend/features/remote-sync/sync-remote-folders';
 
 export class RemoteSyncManager {
   private foldersSyncStatus: RemoteSyncStatus = 'IDLE';
@@ -219,100 +217,20 @@ export class RemoteSyncManager {
    * @returns
    */
   private async syncRemoteFolders(syncConfig: SyncConfig, from?: Date) {
-    let folderCheckPoint = from ?? (await this.getLastFolderSyncAt());
-    let hasMore = true;
-    let retryCount = 0;
-
-    while (hasMore && retryCount < syncConfig.maxRetries) {
-      let lastFolderSynced = null;
-
-      try {
-        const { hasMore: moreAvailable, result } = await this.fetchFoldersFromRemote(folderCheckPoint);
-
-        await createOrUpdateFolderByBatch({ folders: result });
-        this.totalFoldersSynced += result.length;
-        lastFolderSynced = result.length > 0 ? result[result.length - 1] : null;
-
-        hasMore = moreAvailable;
-
-        if (hasMore && lastFolderSynced) {
-          folderCheckPoint = new Date(lastFolderSynced.updatedAt);
-        }
-
-        // Reset retry count on successful fetch
-        retryCount = 0;
-      } catch (error) {
-        retryCount++;
-
-        if (error instanceof RemoteSyncError) {
-          this.errorHandler.handleSyncError(error, 'folders', lastFolderSynced?.name ?? 'unknown', folderCheckPoint);
-        } else {
-          logger.error({
-            tag: 'SYNC-ENGINE',
-            msg: 'Remote folders sync failed with uncontrolled error: ',
-            error,
-          });
-        }
-
-        if (retryCount >= syncConfig.maxRetries) {
-          this.foldersSyncStatus = 'SYNC_FAILED';
-          this.checkRemoteSyncStatus();
-          return;
-        }
-
-        // Brief delay before retry to avoid hammering the server
-        await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
-      }
-    }
-
-    logger.debug({
-      tag: 'SYNC-ENGINE',
-      msg: 'Remote folders sync finished',
+    const folderCheckPoint = from ?? (await this.getLastFolderSyncAt());
+    const result = await syncFolders({
+      syncConfig,
+      folderCheckPoint,
+      limit: this.config.fetchFoldersLimitPerRequest,
+      errorHandler: this.errorHandler,
     });
-    this.foldersSyncStatus = 'SYNCED';
+
+    if (result.error) {
+      this.foldersSyncStatus = 'SYNC_FAILED';
+    } else {
+      this.totalFoldersSynced += result.data.totalSynced;
+      this.foldersSyncStatus = 'SYNCED';
+    }
     this.checkRemoteSyncStatus();
-  }
-
-  /**
-   * Fetch the folders that were updated after the given date
-   *
-   * @param updatedAtCheckpoint Retrieve folders that were updated after this date
-   */
-  private async fetchFoldersFromRemote(updatedAtCheckpoint?: Date): Promise<{
-    hasMore: boolean;
-    result: RemoteSyncedFolder[];
-  }> {
-    const { data, error } = await fetchFolders({
-      limit: this.config.fetchFilesLimitPerRequest,
-      offset: 0,
-      status: 'ALL',
-      updatedAt: updatedAtCheckpoint?.toISOString(),
-    });
-
-    if (error) {
-      throw new RemoteSyncNetworkError(error.message, undefined, error.statusCode);
-    }
-
-    return {
-      hasMore: data.hasMore,
-      result: data.folders.map(this.patchDriveFolderResponseItem),
-    };
-  }
-
-  private patchDriveFolderResponseItem = (payload: Record<string, unknown>): RemoteSyncedFolder => {
-    const status = this.resolveFolderStatus(payload);
-
-    return {
-      ...(payload as Omit<RemoteSyncedFolder, 'status' | 'name'>),
-      status,
-      name: typeof payload.name === 'string' ? payload.name : undefined,
-    };
-  };
-
-  private resolveFolderStatus(payload: Record<string, unknown>): RemoteSyncedFolder['status'] {
-    if (typeof payload.status === 'string' && payload.status) return payload.status;
-    if (payload.removed) return 'REMOVED';
-    if (payload.deleted) return 'DELETED';
-    return 'EXISTS';
   }
 }
