@@ -3,14 +3,14 @@ import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { components } from '../../../../schemas';
 
-type FetchFilesSyncQuery = {
+export type FetchFilesSyncQuery = {
   limit: number;
   status?: 'EXISTS' | 'TRASHED' | 'DELETED';
   updatedAt?: string;
   cursor?: string;
 };
 
-type FetchFilesSyncResult = components['schemas']['GetFilesSyncResponseDto'];
+export type FetchFilesSyncResult = components['schemas']['GetFilesSyncResponseDto'];
 
 export async function fetchFilesSync(
   query: FetchFilesSyncQuery,
