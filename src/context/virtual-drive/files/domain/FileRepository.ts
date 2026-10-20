@@ -18,6 +18,8 @@ export abstract class FileRepository {
 
   abstract update(file: File): Promise<void>;
 
+  abstract delete(uuid: File['uuid']): Promise<void>;
+
   abstract deleteByFolderPath(folderPath: string): Promise<void>;
 
   abstract clear(): Promise<void>;

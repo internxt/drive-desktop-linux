@@ -43,7 +43,13 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
     const filePersistence = await createOrUpdateFileByBatch({ files: remoteFiles });
     if (filePersistence.error) throw filePersistence.error;
 
-    await removeStaleChildren({ folder, folderRepository, fileRepository });
+    await removeStaleChildren({
+      folder,
+      folderRepository,
+      fileRepository,
+      remoteFolderUuids: new Set(remoteFolders.map((child) => child.uuid)),
+      remoteFileUuids: new Set(remoteFiles.map((child) => child.uuid)),
+    });
 
     const localFolders = remoteFolders.map((remoteFolder) => {
       return createFolderFromServerFolder(
@@ -78,23 +84,29 @@ async function removeStaleChildren({
   folder,
   folderRepository,
   fileRepository,
-}: {
-  folder: Folder;
-  folderRepository: FolderRepository;
-  fileRepository: FileRepository;
+  remoteFolderUuids,
+  remoteFileUuids,
+}: Props & {
+  remoteFolderUuids: Set<string>;
+  remoteFileUuids: Set<string>;
 }) {
-  const childPathPrefix = `${folder.path.replace(/\/$/, '')}/`;
-  const staleFolders = folderRepository
-    .searchByPathPrefix(childPathPrefix)
-    .filter((staleFolder) => staleFolder.id !== folder.id)
+  const removedFolderChildren = folderRepository
+    .matchingPartial({ parentId: folder.id })
+    .filter((child) => !remoteFolderUuids.has(child.uuid));
+  const staleFolders = removedFolderChildren
+    .flatMap((child) => [child, ...folderRepository.searchByPathPrefix(`${child.path}/`)])
     .sort((left, right) => right.path.length - left.path.length);
+  const staleFiles = fileRepository
+    .matchingPartial({ folderId: folder.id })
+    .filter((child) => !remoteFileUuids.has(child.uuid));
 
   await Promise.all([
     ...staleFolders.map(async (staleFolder) => {
       await DirectoryStateRepository.invalidate({ folderId: staleFolder.id, statusScope: 'EXISTS' });
       await folderRepository.delete(staleFolder.id);
     }),
-    fileRepository.deleteByFolderPath(folder.path),
+    ...staleFiles.map((child) => fileRepository.delete(child.uuid)),
+    ...removedFolderChildren.map((child) => fileRepository.deleteByFolderPath(child.path)),
   ]);
 }
 

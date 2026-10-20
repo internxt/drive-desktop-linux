@@ -10,6 +10,7 @@ import { synchronizeDirectoryMetadata } from './synchronize-directory-metadata';
 import { LazyVirtualDriveMetadataSynchronizer } from './lazy-virtual-drive-metadata-synchronizer';
 import { DIRECTORY_STATE_ERROR_COOLDOWN_MS } from './constants';
 import { DirectoryStateRow } from './types';
+import { FileMother } from '../../../../../context/virtual-drive/files/domain/__test-helpers__/FileMother';
 
 const {
   fetchFolderMock,
@@ -59,10 +60,13 @@ describe('synchronize-directory-metadata', () => {
   const fileRepository = mockDeep<FileRepository>();
 
   beforeEach(() => {
+    folderRepository.matchingPartial.mockReturnValue([]);
     folderRepository.searchByPathPrefix.mockReturnValue([]);
     folderRepository.add.mockResolvedValue(undefined);
     fileRepository.deleteByFolderPath.mockResolvedValue(undefined);
     fileRepository.upsert.mockResolvedValue(false);
+    fileRepository.matchingPartial.mockReturnValue([]);
+    fileRepository.delete.mockResolvedValue(undefined);
     fetchFolderMock.mockResolvedValue({ data: { children: [], files: [] } });
     createOrUpdateFolderByBatchMock.mockResolvedValue({ data: [] });
     createOrUpdateFileByBatchMock.mockResolvedValue({ data: [] });
@@ -77,7 +81,7 @@ describe('synchronize-directory-metadata', () => {
     expect(fetchFolderMock).toHaveBeenCalledWith(folder.uuid);
     expect(createOrUpdateFolderByBatchMock).toHaveBeenCalledWith({ folders: [] });
     expect(createOrUpdateFileByBatchMock).toHaveBeenCalledWith({ files: [] });
-    expect(fileRepository.deleteByFolderPath).toHaveBeenCalledWith(folder.path);
+    expect(fileRepository.deleteByFolderPath).not.toHaveBeenCalled();
     expect(markLoadedMock).toHaveBeenCalledWith({ folderId: folder.id, statusScope: 'EXISTS' });
     expect(markErrorMock).not.toHaveBeenCalled();
   });
@@ -130,6 +134,64 @@ describe('synchronize-directory-metadata', () => {
     });
   });
 
+  it.each(['/', '/documents'])('should retain valid descendants and only remove stale children of %s', async (path) => {
+    const parent = FolderMother.fromPartial({ id: 1, path, parentId: null });
+    const prefix = path === '/' ? '' : path;
+    const kept = FolderMother.fromPartial({ id: 2, parentId: parent.id, path: `${prefix}/kept` });
+    const descendant = FolderMother.fromPartial({ id: 3, parentId: kept.id, path: `${kept.path}/nested` });
+    const removed = FolderMother.fromPartial({ id: 4, parentId: parent.id, path: `${prefix}/gone` });
+    const removedDescendant = FolderMother.fromPartial({ id: 5, parentId: removed.id, path: `${removed.path}/nested` });
+    const sibling = FolderMother.fromPartial({ id: 6, parentId: parent.id, path: `${prefix}/gone-too` });
+    const directFile = FileMother.fromPartial({ folderId: parent.id, path: `${prefix}/keep.txt`, size: 1 });
+    const staleFile = FileMother.fromPartial({ folderId: parent.id, path: `${prefix}/stale.txt` });
+    const nestedFile = FileMother.fromPartial({ folderId: descendant.id, path: `${descendant.path}/keep.txt` });
+    const removedFile = FileMother.fromPartial({ folderId: removed.id, path: `${removed.path}/remove.txt` });
+    const removedNestedFile = FileMother.fromPartial({
+      folderId: removedDescendant.id,
+      path: `${removedDescendant.path}/remove.txt`,
+    });
+    const siblingFile = FileMother.fromPartial({ folderId: sibling.id, path: `${sibling.path}/keep.txt` });
+    const folders = new InMemoryFolderRepository();
+    const files = new InMemoryFileRepository();
+    for (const entry of [parent, kept, descendant, removed, removedDescendant, sibling]) await folders.add(entry);
+    for (const entry of [directFile, staleFile, nestedFile, removedFile, removedNestedFile, siblingFile])
+      await files.upsert(entry);
+    fetchFolderMock.mockResolvedValue({
+      data: {
+        children: [kept, sibling].map((entry) => ({
+          ...entry.attributes(),
+          plainName: entry.name,
+          deleted: false,
+          removed: false,
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        })),
+        files: [
+          {
+            ...directFile.attributes(),
+            plainName: 'keep',
+            type: 'txt',
+            fileId: directFile.contentsId,
+            size: '42',
+          },
+        ],
+      },
+    });
+
+    await synchronizeDirectoryMetadata({ folder: parent, folderRepository: folders, fileRepository: files });
+
+    expect((await folders.all()).map((entry) => entry.id).sort()).toStrictEqual([1, 2, 3, 6]);
+    expect((await folders.searchById(kept.id))?.attributes()).toMatchObject({
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    expect((await files.all()).map((entry) => entry.uuid).sort()).toStrictEqual(
+      [directFile, nestedFile, siblingFile].map((entry) => entry.uuid).sort(),
+    );
+    expect(await files.searchByUuid(directFile.uuid)).toMatchObject({ size: 42 });
+    expect(await files.searchByContentsId(staleFile.contentsId)).toBeUndefined();
+    expect(await files.searchByContentsId(removedNestedFile.contentsId)).toBeUndefined();
+    expect(invalidateMock.mock.calls.map(([props]) => props.folderId).sort()).toStrictEqual([1, 4, 5]);
+  });
+
   it('should mark the directory as errored without mutating cached children when folder persistence fails', async () => {
     createOrUpdateFolderByBatchMock.mockResolvedValue({ error: new Error('database failure') });
 
@@ -161,7 +223,10 @@ describe('synchronize-directory-metadata', () => {
       if (stage === 'folder')
         createOrUpdateFolderByBatchMock.mockResolvedValue({ error: new Error('folder persistence') });
       if (stage === 'file') createOrUpdateFileByBatchMock.mockResolvedValue({ error: new Error('file persistence') });
-      if (stage === 'deletion') fileRepository.deleteByFolderPath.mockRejectedValue(new Error('deletion'));
+      if (stage === 'deletion') {
+        fileRepository.matchingPartial.mockReturnValue([FileMother.fromPartial({ folderId: folder.id })]);
+        fileRepository.delete.mockRejectedValue(new Error('deletion'));
+      }
       if (stage === 'markLoaded') markLoadedMock.mockRejectedValue(new Error('state persistence'));
 
       await expect(synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository })).rejects.toMatchObject({
