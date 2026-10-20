@@ -14,22 +14,23 @@ type Props = {
 };
 
 export function handleSyncItemFailure({ error, errorHandler, syncItemType, itemCheckpoint }: Props) {
-  let syncError: Error;
-  if (error instanceof RemoteSyncError) {
-    syncError = error;
-  } else if (error instanceof DriveServerError) {
-    syncError = new RemoteSyncNetworkError(error.message, undefined, error.statusCode);
-  } else {
-    syncError = error;
-  }
-
-  if (syncError instanceof RemoteSyncError) {
-    errorHandler.handleSyncError(syncError, syncItemType, 'unknown', itemCheckpoint);
-  } else {
-    logger.error({
-      tag: 'SYNC-ENGINE',
-      msg: `Remote ${syncItemType} sync failed with uncontrolled error`,
-      error,
-    });
+  switch (true) {
+    case error instanceof RemoteSyncError:
+      errorHandler.handleSyncError(error, syncItemType, 'unknown', itemCheckpoint);
+      return;
+    case error instanceof DriveServerError:
+      errorHandler.handleSyncError(
+        new RemoteSyncNetworkError(error.message, undefined, error.statusCode),
+        syncItemType,
+        'unknown',
+        itemCheckpoint,
+      );
+      return;
+    default:
+      logger.error({
+        tag: 'SYNC-ENGINE',
+        msg: `Remote ${syncItemType} sync failed with uncontrolled error`,
+        error,
+      });
   }
 }
