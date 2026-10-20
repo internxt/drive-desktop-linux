@@ -250,7 +250,9 @@ func TestRead(t *testing.T) {
 		}
 	})
 
-	t.Run("returns ENOENT when errno is 2", func(t *testing.T) {
+	// Buffered reads go through the page cache. A synchronous read keeps ENOENT.
+	// Asynchronous readahead drops that errno and filemap_read_folio reports EIO.
+	t.Run("fails when the read errno is 2", func(t *testing.T) {
 		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
 			client.OperationGetAttr: nonEmptyFileAttrHandler(1024),
 			client.OperationOpen: func(w http.ResponseWriter, r *http.Request) {
@@ -274,8 +276,8 @@ func TestRead(t *testing.T) {
 			t.Fatalf("expected *os.PathError, got %T", err)
 		}
 
-		if pathErr.Err != syscall.ENOENT {
-			t.Errorf("expected ENOENT, got %v", pathErr.Err)
+		if pathErr.Err != syscall.ENOENT && pathErr.Err != syscall.EIO {
+			t.Errorf("expected ENOENT or EIO, got %v", pathErr.Err)
 		}
 	})
 }
