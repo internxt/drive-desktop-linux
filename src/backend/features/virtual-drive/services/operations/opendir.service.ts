@@ -5,7 +5,9 @@ import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { TemporalFileByFolderFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
+import { readDirectory } from '../lazy/metadata-synchronizer';
+import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
+import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 
 export type DirEntry = {
   name: string;
@@ -18,14 +20,19 @@ export type OpenDirData = {
 
 export async function opendir(path: string, container: Container): Promise<Result<OpenDirData, FuseError>> {
   try {
-    const [entries, temporalFiles] = await Promise.all([
-      container.get(LazyVirtualDriveMetadataSynchronizationService).readDirectory({ path }),
+    const [directory, temporalFiles] = await Promise.all([
+      readDirectory({
+        path,
+        folderRepository: container.get(FolderRepository),
+        fileRepository: container.get(FileRepository),
+      }),
       container.get(TemporalFileByFolderFinder).run(path),
     ]);
+    if (directory.error) return { error: directory.error };
 
     const directoryEntries: DirEntry[] = [
-      ...entries.files.map((name) => ({ name, mode: FILE_MODE })),
-      ...entries.folders.map((name) => ({ name, mode: FOLDER_MODE })),
+      ...directory.data.files.map((name) => ({ name, mode: FILE_MODE })),
+      ...directory.data.folders.map((name) => ({ name, mode: FOLDER_MODE })),
       ...temporalFiles.filter((f) => f.isAuxiliary()).map((f) => ({ name: f.name, mode: FILE_MODE })),
     ];
 

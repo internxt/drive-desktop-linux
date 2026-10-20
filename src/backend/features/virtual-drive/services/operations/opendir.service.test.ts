@@ -5,34 +5,41 @@ import { TemporalFileByFolderFinder } from '../../../../../context/storage/Tempo
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { FILE_MODE, FOLDER_MODE } from '../../constants';
-import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
+import * as metadataSynchronizer from '../lazy/metadata-synchronizer';
+import { call, partialSpyOn } from 'tests/vitest/utils.helper';
+import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
+import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import type { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 
 describe('opendir', () => {
   let container: ReturnType<typeof mockDeep<Container>>;
   const temporalFinder = mockDeep<TemporalFileByFolderFinder>();
-  const lazyMetadataSynchronizationService = mockDeep<LazyVirtualDriveMetadataSynchronizationService>();
+  const readDirectoryMock = partialSpyOn(metadataSynchronizer, 'readDirectory');
+  const fileRepository = mockDeep<FileRepository>();
+  const folderRepository = mockDeep<FolderRepository>();
 
   beforeEach(() => {
     container = mockDeep<Container>();
     container.get.calledWith(TemporalFileByFolderFinder).mockReturnValue(temporalFinder);
-    container.get
-      .calledWith(LazyVirtualDriveMetadataSynchronizationService)
-      .mockReturnValue(lazyMetadataSynchronizationService);
+    container.get.calledWith(FileRepository).mockReturnValue(fileRepository);
+    container.get.calledWith(FolderRepository).mockReturnValue(folderRepository);
     temporalFinder.run.mockResolvedValue([]);
-    lazyMetadataSynchronizationService.readDirectory.mockResolvedValue({ files: [], folders: [] });
+    readDirectoryMock.mockResolvedValue({ data: { files: [], folders: [] } });
   });
 
   describe('when directory has files and subfolders', () => {
     it('should return entries with correct modes', async () => {
-      lazyMetadataSynchronizationService.readDirectory.mockResolvedValue({
-        files: ['file.txt', 'photo.jpg'],
-        folders: ['subdir'],
+      readDirectoryMock.mockResolvedValue({
+        data: {
+          files: ['file.txt', 'photo.jpg'],
+          folders: ['subdir'],
+        },
       });
 
       const { data, error } = await opendir('/some/folder', container);
 
       expect(error).toBeUndefined();
+      call(readDirectoryMock).toStrictEqual({ path: '/some/folder', folderRepository, fileRepository });
       expect(data?.entries).toStrictEqual([
         { name: 'file.txt', mode: FILE_MODE },
         { name: 'photo.jpg', mode: FILE_MODE },
@@ -61,7 +68,7 @@ describe('opendir', () => {
 
   describe('when the directory does not exist remotely', () => {
     it('should return ENOENT', async () => {
-      lazyMetadataSynchronizationService.readDirectory.mockRejectedValue(new FuseError(FuseCodes.ENOENT, 'not found'));
+      readDirectoryMock.mockResolvedValue({ error: new FuseError(FuseCodes.ENOENT, 'not found') });
 
       const { data, error } = await opendir('/unsynced/folder', container);
 
@@ -72,7 +79,7 @@ describe('opendir', () => {
 
   describe('when an unexpected error is thrown', () => {
     it('should return EIO', async () => {
-      lazyMetadataSynchronizationService.readDirectory.mockRejectedValue(new Error('unexpected'));
+      readDirectoryMock.mockRejectedValue(new Error('unexpected'));
 
       const { data, error } = await opendir('/some/folder', container);
 

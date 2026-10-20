@@ -1,19 +1,18 @@
 import path from 'node:path';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
+import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { RemoteSyncedFile } from '../../../../../apps/main/remote-sync/helpers';
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
-import { createFileFromServerFile } from '../../../../../context/virtual-drive/remoteTree/application/FileCreatorFromServerFile';
 import { createFolderFromServerFolder } from '../../../../../context/virtual-drive/folders/application/create/FolderCreatorFromServerFolder';
-import { DriveServerError } from '../../../../../infra/drive-server/drive-server.error';
+import { createFileFromServerFile } from '../../../../../context/virtual-drive/remoteTree/application/FileCreatorFromServerFile';
 import { fetchFolder } from '../../../../../infra/drive-server/services/folder/services/fetch-folder';
 import { createOrUpdateFileByBatch } from '../../../../../infra/sqlite/services/file/create-or-update-file-by-batch';
 import { createOrUpdateFolderByBatch } from '../../../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
+import { mapFile } from '../../../remote-sync/map-file';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
-import { DirectoryMetadataSyncError } from './directory-metadata-sync.error';
-import { toRemoteFile, toRemoteFolder } from './remote-synced-mappers';
+import { recordSynchronizationFailure } from './record-synchronization-failure';
+import { removeStaleChildren } from './remove-stale-children';
 
 type Props = {
   folder: Folder;
@@ -27,21 +26,25 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
     const response = await fetchFolder(folder.uuid);
 
     if (response.error) {
-      throw response.error;
+      return recordSynchronizationFailure({ folder, error: response.error, localMutationStarted });
     }
 
-    const remoteFolders = response.data.children.filter(isExistingFolder).map(toRemoteFolder);
-    const remoteFiles = response.data.files.filter(isExistingFile).map(toRemoteFile);
+    const remoteFolders = response.data.children.filter(isExistingFolder);
+    const remoteFiles = response.data.files.filter(isExistingFile).map(mapFile);
 
     // better-sqlite3 has one writer connection, so these batches must remain sequential.
     localMutationStarted = true;
     // A partial refresh must not leave a previous successful load eligible for fallback.
     await DirectoryStateRepository.invalidate({ folderId: folder.id, statusScope: 'EXISTS' });
     const folderPersistence = await createOrUpdateFolderByBatch({ folders: remoteFolders });
-    if (folderPersistence.error) throw folderPersistence.error;
+    if (folderPersistence.error) {
+      return recordSynchronizationFailure({ folder, error: folderPersistence.error, localMutationStarted });
+    }
 
     const filePersistence = await createOrUpdateFileByBatch({ files: remoteFiles });
-    if (filePersistence.error) throw filePersistence.error;
+    if (filePersistence.error) {
+      return recordSynchronizationFailure({ folder, error: filePersistence.error, localMutationStarted });
+    }
 
     await removeStaleChildren({
       folder,
@@ -52,13 +55,10 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
     });
 
     const localFolders = remoteFolders.map((remoteFolder) => {
-      return createFolderFromServerFolder(
-        remoteFolder,
-        joinPath({ parentPath: folder.path, name: remoteFolder.plainName }),
-      );
+      return createFolderFromServerFolder(remoteFolder, path.posix.join(folder.path, remoteFolder.plainName));
     });
     const localFiles = remoteFiles.map((remoteFile) => {
-      return createFileFromServerFile(remoteFile, joinPath({ parentPath: folder.path, name: fileName(remoteFile) }));
+      return createFileFromServerFile(remoteFile, path.posix.join(folder.path, fileName(remoteFile)));
     });
 
     await Promise.all([
@@ -66,48 +66,11 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
       ...localFiles.map((child) => fileRepository.upsert(child)),
     ]);
     await DirectoryStateRepository.markLoaded({ folderId: folder.id, statusScope: 'EXISTS' });
+    return Result.ok(undefined);
   } catch (error) {
-    logger.error({ msg: '[FUSE - Metadata sync] Failed to synchronize directory metadata', error, path: folder.path });
-    const code = error instanceof DriveServerError && error.cause === 'NOT_FOUND' ? FuseCodes.ENOENT : FuseCodes.EIO;
-    const canUseCachedChildren = !localMutationStarted && code !== FuseCodes.ENOENT;
-    await DirectoryStateRepository.markError({
-      folderId: folder.id,
-      statusScope: 'EXISTS',
-      failureState:
-        code === FuseCodes.ENOENT ? 'error_not_found' : canUseCachedChildren ? 'error_before_mutation' : 'error',
-    });
-    throw new DirectoryMetadataSyncError({ code, folderPath: folder.path, canUseCachedChildren });
+    // Repository and sqlite operations still reject. Fold those failures into the same Result.
+    return recordSynchronizationFailure({ folder, error, localMutationStarted });
   }
-}
-
-async function removeStaleChildren({
-  folder,
-  folderRepository,
-  fileRepository,
-  remoteFolderUuids,
-  remoteFileUuids,
-}: Props & {
-  remoteFolderUuids: Set<string>;
-  remoteFileUuids: Set<string>;
-}) {
-  const removedFolderChildren = folderRepository
-    .matchingPartial({ parentId: folder.id })
-    .filter((child) => !remoteFolderUuids.has(child.uuid));
-  const staleFolders = removedFolderChildren
-    .flatMap((child) => [child, ...folderRepository.searchByPathPrefix(`${child.path}/`)])
-    .sort((left, right) => right.path.length - left.path.length);
-  const staleFiles = fileRepository
-    .matchingPartial({ folderId: folder.id })
-    .filter((child) => !remoteFileUuids.has(child.uuid));
-
-  await Promise.all([
-    ...staleFolders.map(async (staleFolder) => {
-      await DirectoryStateRepository.invalidate({ folderId: staleFolder.id, statusScope: 'EXISTS' });
-      await folderRepository.delete(staleFolder.id);
-    }),
-    ...staleFiles.map((child) => fileRepository.delete(child.uuid)),
-    ...removedFolderChildren.map((child) => fileRepository.deleteByFolderPath(child.path)),
-  ]);
 }
 
 function isExistingFolder(folder: { status: string; deleted: boolean; removed: boolean }) {
@@ -116,10 +79,6 @@ function isExistingFolder(folder: { status: string; deleted: boolean; removed: b
 
 function isExistingFile(file: { status: string }) {
   return file.status === 'EXISTS';
-}
-
-function joinPath({ parentPath, name }: { parentPath: string; name: string }) {
-  return path.posix.join(parentPath, name);
 }
 
 function fileName(file: RemoteSyncedFile) {

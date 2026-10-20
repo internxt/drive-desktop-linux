@@ -7,7 +7,9 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
-import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
+import { ensurePathMetadataSynchronized } from '../lazy/metadata-synchronizer';
+import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
+import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 
 type AttributesProps = {
   mode: number;
@@ -106,7 +108,12 @@ export async function getAttributes(
   }
 
   try {
-    await container.get(LazyVirtualDriveMetadataSynchronizationService).ensurePathMetadataSynchronized({ path });
+    const synchronized = await ensurePathMetadataSynchronized({
+      path,
+      folderRepository: container.get(FolderRepository),
+      fileRepository: container.get(FileRepository),
+    });
+    if (synchronized.error) return { error: synchronized.error };
   } catch (error) {
     if (error instanceof FuseError) {
       return { error };

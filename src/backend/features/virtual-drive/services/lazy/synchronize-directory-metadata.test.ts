@@ -7,7 +7,7 @@ import { InMemoryFileRepository } from '../../../../../context/virtual-drive/fil
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { DriveServerError } from '../../../../../infra/drive-server/drive-server.error';
 import { synchronizeDirectoryMetadata } from './synchronize-directory-metadata';
-import { LazyVirtualDriveMetadataSynchronizer } from './lazy-virtual-drive-metadata-synchronizer';
+import { readDirectory } from './metadata-synchronizer';
 import { DIRECTORY_STATE_ERROR_COOLDOWN_MS } from './constants';
 import { DirectoryStateRow } from './types';
 import { FileMother } from '../../../../../context/virtual-drive/files/domain/__test-helpers__/FileMother';
@@ -89,7 +89,9 @@ describe('synchronize-directory-metadata', () => {
   it('should mark the directory as errored and return EIO when fetching fails', async () => {
     fetchFolderMock.mockResolvedValue({ error: new Error('network failure') });
 
-    await expect(synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository })).rejects.toMatchObject({
+    const result = await synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository });
+
+    expect(result.error).toMatchObject({
       code: FuseCodes.EIO,
     });
 
@@ -105,7 +107,9 @@ describe('synchronize-directory-metadata', () => {
   it('should return ENOENT when the directory no longer exists remotely', async () => {
     fetchFolderMock.mockResolvedValue({ error: new DriveServerError('NOT_FOUND') });
 
-    await expect(synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository })).rejects.toMatchObject({
+    const result = await synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository });
+
+    expect(result.error).toMatchObject({
       code: FuseCodes.ENOENT,
     });
 
@@ -195,7 +199,9 @@ describe('synchronize-directory-metadata', () => {
   it('should mark the directory as errored without mutating cached children when folder persistence fails', async () => {
     createOrUpdateFolderByBatchMock.mockResolvedValue({ error: new Error('database failure') });
 
-    await expect(synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository })).rejects.toMatchObject({
+    const result = await synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository });
+
+    expect(result.error).toMatchObject({
       code: FuseCodes.EIO,
     });
 
@@ -208,7 +214,9 @@ describe('synchronize-directory-metadata', () => {
   it('should mark the directory as errored without mutating cached children when file persistence fails', async () => {
     createOrUpdateFileByBatchMock.mockResolvedValue({ error: new Error('database failure') });
 
-    await expect(synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository })).rejects.toMatchObject({
+    const result = await synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository });
+
+    expect(result.error).toMatchObject({
       code: FuseCodes.EIO,
     });
 
@@ -229,7 +237,9 @@ describe('synchronize-directory-metadata', () => {
       }
       if (stage === 'markLoaded') markLoadedMock.mockRejectedValue(new Error('state persistence'));
 
-      await expect(synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository })).rejects.toMatchObject({
+      const result = await synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository });
+
+      expect(result.error).toMatchObject({
         code: FuseCodes.EIO,
         canUseCachedChildren: false,
       });
@@ -262,13 +272,17 @@ describe('synchronize-directory-metadata', () => {
       fetchFolderMock.mockRejectedValue(new Error('network failure'));
       const props = { path: '/', folderRepository, fileRepository };
 
-      expect(await LazyVirtualDriveMetadataSynchronizer.readDirectory(props)).toStrictEqual({
-        folders: empty ? [] : [child.name],
-        files: [],
+      expect(await readDirectory(props)).toStrictEqual({
+        data: {
+          folders: empty ? [] : [child.name],
+          files: [],
+        },
       });
-      expect(await LazyVirtualDriveMetadataSynchronizer.readDirectory(props)).toStrictEqual({
-        folders: empty ? [] : [child.name],
-        files: [],
+      expect(await readDirectory(props)).toStrictEqual({
+        data: {
+          folders: empty ? [] : [child.name],
+          files: [],
+        },
       });
       expect(fetchFolderMock).toHaveBeenCalledTimes(1);
       expect(invalidateMock).not.toHaveBeenCalled();
@@ -296,14 +310,18 @@ describe('synchronize-directory-metadata', () => {
     createOrUpdateFileByBatchMock.mockResolvedValue({ error: new Error('partial persistence') });
     const props = { path: '/', folderRepository, fileRepository };
 
-    await expect(LazyVirtualDriveMetadataSynchronizer.readDirectory(props)).rejects.toMatchObject({
+    const failedRefresh = await readDirectory(props);
+
+    expect(failedRefresh.error).toMatchObject({
       code: FuseCodes.EIO,
       canUseCachedChildren: false,
     });
     clock.mockReturnValue(now + DIRECTORY_STATE_ERROR_COOLDOWN_MS);
     fetchFolderMock.mockRejectedValue(new Error('network failure'));
 
-    await expect(LazyVirtualDriveMetadataSynchronizer.readDirectory(props)).rejects.toMatchObject({
+    const failedFetch = await readDirectory(props);
+
+    expect(failedFetch.error).toMatchObject({
       code: FuseCodes.EIO,
     });
     expect(state.children_loaded_at).toBeNull();

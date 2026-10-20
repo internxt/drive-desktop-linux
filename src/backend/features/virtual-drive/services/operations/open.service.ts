@@ -6,7 +6,9 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
+import { ensurePathMetadataSynchronized } from '../lazy/metadata-synchronizer';
+import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
+import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 
 export async function open(path: string, processName: string, container: Container): Promise<Result<void, FuseError>> {
   try {
@@ -22,7 +24,12 @@ export async function open(path: string, processName: string, container: Contain
       return { data: undefined };
     }
 
-    await container.get(LazyVirtualDriveMetadataSynchronizationService).ensurePathMetadataSynchronized({ path });
+    const synchronized = await ensurePathMetadataSynchronized({
+      path,
+      folderRepository: container.get(FolderRepository),
+      fileRepository: container.get(FileRepository),
+    });
+    if (synchronized.error) return { error: synchronized.error };
 
     const hydratedFile = await container.get(FirstsFileSearcher).run({ path });
 

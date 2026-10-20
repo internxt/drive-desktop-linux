@@ -1,8 +1,9 @@
+import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { mockDeep } from 'vitest-mock-extended';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { FolderMother } from '../../../../../context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
-import { LazyVirtualDriveMetadataSynchronizer } from './lazy-virtual-drive-metadata-synchronizer';
+import { readDirectory, ensurePathMetadataSynchronized } from './metadata-synchronizer';
 import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
 import * as synchronization from './synchronize-directory-metadata';
@@ -24,7 +25,7 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
     fileRepository.matchingPartial.mockReturnValue([]);
     isFreshMock.mockResolvedValue(true);
     getStateMock.mockResolvedValue(undefined);
-    synchronizeDirectoryMetadataMock.mockResolvedValue(undefined);
+    synchronizeDirectoryMetadataMock.mockResolvedValue(Result.ok(undefined));
   });
 
   it('should list locally cached children when the directory state is fresh', async () => {
@@ -35,20 +36,20 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
       return [];
     });
 
-    const entries = await LazyVirtualDriveMetadataSynchronizer.readDirectory({
+    const entries = await readDirectory({
       path: '/',
       folderRepository,
       fileRepository,
     });
 
-    expect(entries).toStrictEqual({ folders: [childFolder.name], files: [] });
+    expect(entries).toStrictEqual({ data: { folders: [childFolder.name], files: [] } });
     expect(synchronizeDirectoryMetadataMock).not.toHaveBeenCalled();
   });
 
   it('should synchronize a stale directory before returning its children', async () => {
     isFreshMock.mockResolvedValue(false);
 
-    await LazyVirtualDriveMetadataSynchronizer.readDirectory({ path: '/', folderRepository, fileRepository });
+    await readDirectory({ path: '/', folderRepository, fileRepository });
 
     expect(synchronizeDirectoryMetadataMock).toHaveBeenCalledWith({
       folder: rootFolder,
@@ -60,7 +61,7 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
   it('should synchronize the parent directory metadata before resolving a missing path', async () => {
     isFreshMock.mockResolvedValue(false);
 
-    await LazyVirtualDriveMetadataSynchronizer.ensurePathMetadataSynchronized({
+    await ensurePathMetadataSynchronized({
       path: '/missing-file.txt',
       folderRepository,
       fileRepository,
@@ -80,21 +81,23 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
     );
     isFreshMock.mockResolvedValue(false);
     getStateMock.mockResolvedValue({ children_loaded_at: new Date(0).toISOString() });
-    synchronizeDirectoryMetadataMock.mockRejectedValue(
-      new DirectoryMetadataSyncError({
-        code: FuseCodes.EIO,
-        folderPath: '/',
-        canUseCachedChildren: true,
-      }),
+    synchronizeDirectoryMetadataMock.mockResolvedValue(
+      Result.err(
+        new DirectoryMetadataSyncError({
+          code: FuseCodes.EIO,
+          folderPath: '/',
+          canUseCachedChildren: true,
+        }),
+      ),
     );
 
-    const entries = await LazyVirtualDriveMetadataSynchronizer.readDirectory({
+    const entries = await readDirectory({
       path: '/',
       folderRepository,
       fileRepository,
     });
 
-    expect(entries).toStrictEqual({ folders: [child.name], files: [] });
+    expect(entries).toStrictEqual({ data: { folders: [child.name], files: [] } });
   });
 
   it.each([
@@ -105,11 +108,11 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
     isFreshMock.mockResolvedValue(false);
     getStateMock.mockResolvedValue({ children_loaded_at: loaded ? new Date(0).toISOString() : null });
     const error = new DirectoryMetadataSyncError({ code, folderPath: '/', canUseCachedChildren });
-    synchronizeDirectoryMetadataMock.mockRejectedValue(error);
+    synchronizeDirectoryMetadataMock.mockResolvedValue(Result.err(error));
 
-    await expect(
-      LazyVirtualDriveMetadataSynchronizer.readDirectory({ path: '/', folderRepository, fileRepository }),
-    ).rejects.toBe(error);
+    const result = await readDirectory({ path: '/', folderRepository, fileRepository });
+
+    expect(result.error).toBe(error);
     calls(fileRepository.matchingPartial).toHaveLength(0);
   });
 
@@ -126,15 +129,15 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
     });
 
     for (let attempt = 0; attempt < 2; attempt++) {
-      const listing = LazyVirtualDriveMetadataSynchronizer.readDirectory({
+      const listing = await readDirectory({
         path: '/',
         folderRepository,
         fileRepository,
       });
       if (code === undefined) {
-        expect(await listing).toStrictEqual({ folders: [], files: [] });
+        expect(listing.data).toStrictEqual({ folders: [], files: [] });
       } else {
-        await expect(listing).rejects.toMatchObject({ code });
+        expect(listing.error).toMatchObject({ code });
       }
     }
 
@@ -155,33 +158,28 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
       state.children_last_error_at = null;
       state.fetch_state = 'idle';
       isFreshMock.mockResolvedValue(true);
+      return Result.ok(undefined);
     });
 
-    await LazyVirtualDriveMetadataSynchronizer.readDirectory({ path: '/', folderRepository, fileRepository });
+    await readDirectory({ path: '/', folderRepository, fileRepository });
     calls(synchronizeDirectoryMetadataMock).toHaveLength(0);
     vi.spyOn(Date, 'now').mockReturnValue(now + 1);
-    await LazyVirtualDriveMetadataSynchronizer.readDirectory({ path: '/', folderRepository, fileRepository });
-    await LazyVirtualDriveMetadataSynchronizer.readDirectory({ path: '/', folderRepository, fileRepository });
+    await readDirectory({ path: '/', folderRepository, fileRepository });
+    await readDirectory({ path: '/', folderRepository, fileRepository });
 
     call(synchronizeDirectoryMetadataMock).toMatchObject({ folder: rootFolder });
   });
 
   it('should share a refresh between concurrent directory reads', async () => {
     isFreshMock.mockResolvedValue(false);
-    const refresh = Promise.withResolvers<void>();
+    const refresh = Promise.withResolvers<Awaited<ReturnType<typeof synchronization.synchronizeDirectoryMetadata>>>();
     synchronizeDirectoryMetadataMock.mockReturnValue(refresh.promise);
     const props = { path: '/', folderRepository, fileRepository };
-    const listings = Promise.all([
-      LazyVirtualDriveMetadataSynchronizer.readDirectory(props),
-      LazyVirtualDriveMetadataSynchronizer.readDirectory(props),
-    ]);
+    const listings = Promise.all([readDirectory(props), readDirectory(props)]);
     await vi.waitFor(() => calls(synchronizeDirectoryMetadataMock).toHaveLength(1));
-    refresh.resolve();
+    refresh.resolve(Result.ok(undefined));
 
-    expect(await listings).toStrictEqual([
-      { folders: [], files: [] },
-      { folders: [], files: [] },
-    ]);
+    expect(await listings).toStrictEqual([{ data: { folders: [], files: [] } }, { data: { folders: [], files: [] } }]);
   });
 
   it('should not hide cached refresh failures from metadata synchronization', async () => {
@@ -191,13 +189,13 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
       fetch_state: 'error_before_mutation',
     });
 
-    await expect(
-      LazyVirtualDriveMetadataSynchronizer.ensurePathMetadataSynchronized({
-        path: '/file.txt',
-        folderRepository,
-        fileRepository,
-      }),
-    ).rejects.toMatchObject({ code: FuseCodes.EIO });
+    const result = await ensurePathMetadataSynchronized({
+      path: '/file.txt',
+      folderRepository,
+      fileRepository,
+    });
+
+    expect(result.error).toMatchObject({ code: FuseCodes.EIO });
     calls(synchronizeDirectoryMetadataMock).toHaveLength(0);
   });
 });

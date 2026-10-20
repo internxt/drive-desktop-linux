@@ -1,3 +1,4 @@
+import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { getAttributes } from './get-attributes.service';
@@ -6,7 +7,10 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
-import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
+import * as metadataSynchronizer from '../lazy/metadata-synchronizer';
+import { partialSpyOn } from 'tests/vitest/utils.helper';
+import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
+import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import type { File } from '../../../../../context/virtual-drive/files/domain/File';
 import type { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import type { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
@@ -19,7 +23,9 @@ describe('getAttributes', () => {
   const fileSearcher = mockDeep<FirstsFileSearcher>();
   const folderSearcher = mockDeep<SingleFolderMatchingSearcher>();
   const temporalFinder = mockDeep<TemporalFileByPathFinder>();
-  const lazyMetadataSynchronizationService = mockDeep<LazyVirtualDriveMetadataSynchronizationService>();
+  const synchronizeMock = partialSpyOn(metadataSynchronizer, 'ensurePathMetadataSynchronized');
+  const fileRepository = mockDeep<FileRepository>();
+  const folderRepository = mockDeep<FolderRepository>();
 
   beforeEach(() => {
     now = new Date();
@@ -27,13 +33,12 @@ describe('getAttributes', () => {
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(fileSearcher);
     container.get.calledWith(SingleFolderMatchingSearcher).mockReturnValue(folderSearcher);
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFinder);
-    container.get
-      .calledWith(LazyVirtualDriveMetadataSynchronizationService)
-      .mockReturnValue(lazyMetadataSynchronizationService);
+    container.get.calledWith(FileRepository).mockReturnValue(fileRepository);
+    container.get.calledWith(FolderRepository).mockReturnValue(folderRepository);
     fileSearcher.run.mockResolvedValue(undefined);
     folderSearcher.run.mockResolvedValue(undefined);
     temporalFinder.run.mockResolvedValue(undefined);
-    lazyMetadataSynchronizationService.ensurePathMetadataSynchronized.mockResolvedValue(undefined);
+    synchronizeMock.mockResolvedValue(Result.ok(undefined));
   });
 
   describe('when path is root', () => {
@@ -119,8 +124,10 @@ describe('getAttributes', () => {
 
       expect(error).toBeUndefined();
       expect(data?.size).toBe(10);
-      expect(lazyMetadataSynchronizationService.ensurePathMetadataSynchronized).toHaveBeenCalledWith({
+      expect(synchronizeMock).toHaveBeenCalledWith({
         path: '/hydrated/file.txt',
+        folderRepository,
+        fileRepository,
       });
     });
   });
