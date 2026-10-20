@@ -59,4 +59,15 @@ describe('getAttributesController', () => {
       }),
     );
   });
+
+  it('should forward processName from request body to getAttributes', async () => {
+    req.body = { path: '/some/file.png', processName: 'gnome-thumbnail' };
+    getAttributesMock.mockResolvedValue({
+      error: new FuseError(FuseCodes.ENOENT, 'File not found'),
+    });
+
+    await getAttributesController(req, res, container);
+
+    expect(getAttributesMock).toHaveBeenCalledWith('/some/file.png', container, 'gnome-thumbnail');
+  });
 });

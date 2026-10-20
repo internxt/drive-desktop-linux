@@ -1,4 +1,5 @@
 import { Container } from 'diod';
+import { join } from 'node:path';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { FILE_MODE, FOLDER_MODE, GetAttributesCallbackData } from '../../constants';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
@@ -7,10 +8,16 @@ import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/a
 import { SingleFolderMatchingSearcher } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
+import { PATHS } from '../../../../../core/electron/paths';
+import { fileExistsOnDisk } from '../../../fuse/on-read/download-cache/file-exists-on-disk';
+import { resolveFileAttributes } from '../../../thumbnails/placeholders/resolve-file-attributes';
+import { isThumbnailProcess } from '../../../fuse/on-read/thumbnail-processes';
+import { requiresThumbnail } from '../../../thumbnails/placeholders/thumbnail-mime';
 
 export async function getAttributes(
   path: string,
   container: Container,
+  processName?: string,
 ): Promise<Result<GetAttributesCallbackData, FuseError>> {
   if (path === '/' || path === '') {
     return {
@@ -32,21 +39,17 @@ export async function getAttributes(
     status: FileStatuses.EXISTS,
   });
   if (file) {
-    return {
-      data: {
-        mode: FILE_MODE,
-        size: file.size,
-        ctime: file.createdAt,
-        // The contents' modification time, not the row's. These differ once a
-        // time has been set through utimensat; before that the getter falls
-        // back to updatedAt, which is what this used to read directly.
-        mtime: file.modificationTime,
-        atime: new Date(),
-        uid: process.getuid?.() || 0,
-        gid: process.getgid?.() || 0,
-        nlink: 1,
-      },
-    };
+    const fileName = file.nameWithExtension ?? file.name ?? '';
+    const needsThumbnail = requiresThumbnail({ fileName });
+    const isThumbnailInspection = needsThumbnail && isThumbnailProcess(processName ?? '');
+    const filePath = isThumbnailInspection && file.contentsId ? join(PATHS.DOWNLOADED, file.contentsId) : '';
+    const isCachedLocally = isThumbnailInspection ? (filePath ? await fileExistsOnDisk(filePath) : false) : true;
+    const attrs = resolveFileAttributes({
+      file,
+      isCachedLocally,
+      processName,
+    });
+    return { data: attrs };
   }
   const folder = await container.get(SingleFolderMatchingSearcher).run({
     path,
