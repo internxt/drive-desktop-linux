@@ -10,8 +10,9 @@ import * as serverServiceModule from '../server.service';
 import * as hydrationApiServiceModule from '../hydration-api.service';
 import * as hydrationStateModule from '../../../fuse/on-read/download-cache/hydration-state';
 import * as virtualRootFolderModule from '../../../../../apps/main/virtual-root-folder/service';
-import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
+import * as seedRootFoldersModule from './seed-virtual-drive-root-folders';
 import { StorageFilesRepository } from '../../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
+import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import { DirectoryStateRepository } from '../lazy/directory-state-sqlite-repository';
 import {
   startVirtualDrive,
@@ -33,14 +34,15 @@ describe('virtual-drive.service', () => {
   const buildContainer = partialSpyOn(DriveDependencyContainerFactory, 'build');
   const getUser = partialSpyOn(getUserModule, 'getUser');
   const clearDirectoryState = partialSpyOn(DirectoryStateRepository, 'clear');
+  const seedRootFolders = partialSpyOn(seedRootFoldersModule, 'seedVirtualDriveRootFolders');
 
   const deleteAll = vi.fn();
-  const seedRootFolders = vi.fn();
+  const folderRepository = {};
   const containerMock = {
     get: vi.fn((token) => {
       if (token === StorageFilesRepository) return { deleteAll };
-      if (token === LazyVirtualDriveMetadataSynchronizationService) return { seedRootFolders };
-      return { deleteAll, seedRootFolders };
+      if (token === FolderRepository) return folderRepository;
+      return { deleteAll };
     }),
   } as unknown as Container;
   const user: User = mockDeep<User>({
@@ -89,7 +91,7 @@ describe('virtual-drive.service', () => {
       await startVirtualDrive();
 
       // Then
-      call(seedRootFolders).toStrictEqual({ user });
+      call(seedRootFolders).toStrictEqual({ folderRepository, user });
     });
 
     it('clears hydration state before starting daemon', async () => {

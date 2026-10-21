@@ -5,12 +5,13 @@ import { startDaemon } from '../daemon.service';
 import { startFuseDaemonServer } from '../server.service';
 import { clearHydrationState } from '../../../fuse/on-read/download-cache/hydration-state';
 import { StorageFilesRepository } from '../../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
+import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import { remountVirtualDrive } from './remount-virtual-drive';
 import { stopVirtualDrive } from './stop-virual-drive';
 import { startHydrationApi } from '../hydration-api.service';
-import { LazyVirtualDriveMetadataSynchronizationService } from '../lazy/LazyVirtualDriveMetadataSynchronizationService';
 import { DirectoryStateRepository } from '../lazy/directory-state-sqlite-repository';
-import { getUserOrThrow } from 'src/backend/features/auth/get-user-or-throw';
+import { seedVirtualDriveRootFolders } from './seed-virtual-drive-root-folders';
+import { getUserOrThrow } from '../../../../../backend/features/auth/get-user-or-throw';
 
 let container: Container | undefined;
 let stopInFlight: Promise<void> | undefined;
@@ -48,7 +49,10 @@ export async function startVirtualDrive() {
     const localRoot = getRootVirtualDrive();
     const newContainer = await DriveDependencyContainerFactory.build();
     await DirectoryStateRepository.clear();
-    await newContainer.get(LazyVirtualDriveMetadataSynchronizationService).seedRootFolders({ user: getUserOrThrow() });
+    await seedVirtualDriveRootFolders({
+      folderRepository: newContainer.get(FolderRepository),
+      user: getUserOrThrow(),
+    });
     /**
      * Clear stale block-cache state and orphaned hydrated files before mounting.
      * Future virtual-drive reads recreate cache files and hydrate only requested blocks.
