@@ -124,7 +124,8 @@ describe('virtual-drive.service', () => {
 
       // Then
       await expect(start).rejects.toBe(error);
-      calls(buildContainer).toHaveLength(0);
+      calls(buildContainer).toHaveLength(1);
+      calls(seedRootFolders).toHaveLength(0);
       calls(startFuseDaemonServer).toHaveLength(0);
       calls(startHydrationApi).toHaveLength(0);
       calls(startDaemon).toHaveLength(0);

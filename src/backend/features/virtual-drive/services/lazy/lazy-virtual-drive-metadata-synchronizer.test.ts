@@ -4,13 +4,10 @@ import { FolderRepository } from '../../../../../context/virtual-drive/folders/d
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { FolderMother } from '../../../../../context/virtual-drive/folders/domain/__test-helpers__/FolderMother';
 import { readDirectory, ensurePathMetadataSynchronized } from './metadata-synchronizer';
-import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
+import { LazyVirtualDriveMetadataSynchronizer } from './lazy-virtual-drive-metadata-synchronizer';
+import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
 import * as synchronization from './synchronize-directory-metadata';
-import { DirectoryMetadataSyncError } from './directory-metadata-sync.error';
-import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
-import { DIRECTORY_STATE_ERROR_COOLDOWN_MS } from './constants';
-import { DirectoryStateRow } from './types';
 
 describe('lazy-virtual-drive-metadata-synchronizer', () => {
   const isFreshMock = partialSpyOn(DirectoryStateRepository, 'isFresh');

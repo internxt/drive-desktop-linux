@@ -1,6 +1,7 @@
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
+import { isVirtualTrashFolder } from '../drive-folder/seed-virtual-drive-root-folders';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
 
 type Props = {
@@ -20,9 +21,14 @@ export async function removeStaleChildren({
   remoteFileUuids,
   remoteFolderPaths,
 }: Props) {
+  // /.Trash is local. It is absent from the remote listing and must survive a refresh.
   const removedFolderChildren = folderRepository
     .matchingPartial({ parentId: folder.id })
-    .filter((child) => !remoteFolderUuids.has(child.uuid) || remoteFolderPaths.get(child.uuid) !== child.path);
+    .filter(
+      (child) =>
+        !isVirtualTrashFolder(child) &&
+        (!remoteFolderUuids.has(child.uuid) || remoteFolderPaths.get(child.uuid) !== child.path),
+    );
 
   const staleFolders = staleFolderTree({ removedFolderChildren, folderRepository });
 

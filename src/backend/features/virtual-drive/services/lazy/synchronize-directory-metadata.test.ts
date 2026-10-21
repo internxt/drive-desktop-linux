@@ -230,6 +230,8 @@ describe('synchronize-directory-metadata', () => {
       renamed.id,
       descendant.id,
     ]);
+  });
+
   it('should preserve /.Trash folder when refreshing root children', async () => {
     const rootFolder = FolderMother.root();
     const trashFolder = FolderMother.fromPartial({
