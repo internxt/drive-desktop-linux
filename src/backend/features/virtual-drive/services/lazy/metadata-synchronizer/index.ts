@@ -1,4 +1,2 @@
-import { readDirectory } from './read-directory';
-import { ensurePathMetadataSynchronized } from './ensure-path-metadata-synchronized';
-
-export { readDirectory, ensurePathMetadataSynchronized };
+export { readDirectory } from './read-directory';
+export { ensurePathMetadataSynchronized } from './ensure-path-metadata-synchronized';
