@@ -82,16 +82,15 @@ async function getFreshDirectoryStates({
   }
 
   const cutoff = new Date(Date.now() - ttlMs).toISOString();
-  const rows = (await dataSource.query(
+  const rows = await dataSource.query(
     'SELECT folder_id, children_loaded_at FROM drive_directory_state WHERE status_scope = ? AND children_loaded_at > ?',
     [statusScope, cutoff],
-  )) as Array<{ folder_id: number; children_loaded_at: string }> | undefined;
+  );
 
   const states = new Map<number, Date>();
-  if (rows) {
-    for (const row of rows) {
-      states.set(row.folder_id, new Date(row.children_loaded_at));
-    }
+  for (const row of rows) {
+    if (row.folder_id === undefined || row.children_loaded_at === null) continue;
+    states.set(row.folder_id, new Date(row.children_loaded_at));
   }
 
   return states;
