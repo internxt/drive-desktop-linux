@@ -8,6 +8,8 @@ declare global {
       NEW_CRYPTO_KEY: string;
 
       // Core API endpoints
+      MAIL_API_URL?: string;
+      MAIL_SERVER_PUBLIC_KEY?: string;
       NEW_DRIVE_URL: string;
       BRIDGE_URL: string;
       PAYMENTS_URL: string;
