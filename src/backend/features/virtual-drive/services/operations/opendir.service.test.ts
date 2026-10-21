@@ -8,8 +8,11 @@ import { FolderNotFoundError } from '../../../../../context/virtual-drive/folder
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FILE_MODE, FOLDER_MODE } from '../../constants';
 import type { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import * as thumbnailQueueModule from '../../../thumbnails/queue/thumbnail-queue';
+import { partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
 
 describe('opendir', () => {
+  const enqueueThumbnailFolderSyncMock = partialSpyOn(thumbnailQueueModule, 'enqueueThumbnailFolderSync');
   let container: ReturnType<typeof mockDeep<Container>>;
   const fileSearcher = mockDeep<FilesByFolderPathSearcher>();
   const folderLister = mockDeep<FoldersByParentPathLister>();
@@ -23,6 +26,7 @@ describe('opendir', () => {
     fileSearcher.run.mockResolvedValue([]);
     folderLister.run.mockResolvedValue([]);
     temporalFinder.run.mockResolvedValue([]);
+    enqueueThumbnailFolderSyncMock.mockReturnValue({ data: undefined });
   });
 
   describe('when directory has files and subfolders', () => {
@@ -38,6 +42,11 @@ describe('opendir', () => {
         { name: 'photo.jpg', mode: FILE_MODE },
         { name: 'subdir', mode: FOLDER_MODE },
       ]);
+      expect(enqueueThumbnailFolderSyncMock).toHaveBeenCalledWith({
+        folderPath: '/some/folder',
+        fileNames: ['file.txt', 'photo.jpg'],
+        container,
+      });
     });
   });
 

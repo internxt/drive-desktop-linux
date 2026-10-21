@@ -3,6 +3,7 @@ import * as daemonServiceModule from '../daemon.service';
 import * as serverServiceModule from '../server.service';
 import * as hydrationApiServiceModule from '../hydration-api.service';
 import * as hydrationStateModule from '../../../fuse/on-read/download-cache/hydration-state';
+import * as thumbnailQueueModule from '../../../thumbnails/queue/thumbnail-queue';
 import { stopVirtualDrive } from './stop-virual-drive';
 import { partialSpyOn, calls } from '../../../../../../tests/vitest/utils.helper';
 
@@ -12,6 +13,7 @@ describe('stop-virual-drive', () => {
   const stopHydrationApi = partialSpyOn(hydrationApiServiceModule, 'stopHydrationApi');
   const abortAllHydrations = partialSpyOn(hydrationStateModule, 'abortAllHydrations');
   const clearHydrationState = partialSpyOn(hydrationStateModule, 'clearHydrationState');
+  const stopThumbnailQueue = partialSpyOn(thumbnailQueueModule, 'stopThumbnailQueue');
 
   const deleteAll = vi.fn();
   const container = {
@@ -26,15 +28,18 @@ describe('stop-virual-drive', () => {
     stopFuseDaemonServer.mockResolvedValue(undefined);
     stopHydrationApi.mockResolvedValue(undefined);
     deleteAll.mockResolvedValue(undefined);
+    stopThumbnailQueue.mockImplementation(() => undefined);
   });
 
-  it('aborts active hydrations before clearing hydration state', async () => {
+  it('stops thumbnail queue and aborts active hydrations before clearing hydration state', async () => {
     // When
     await stopVirtualDrive(props);
 
     // Then
+    calls(stopThumbnailQueue).toHaveLength(1);
     calls(abortAllHydrations).toHaveLength(1);
     calls(clearHydrationState).toHaveLength(1);
+    expect(stopThumbnailQueue.mock.invocationCallOrder[0]).toBeLessThan(abortAllHydrations.mock.invocationCallOrder[0]);
     expect(abortAllHydrations.mock.invocationCallOrder[0]).toBeLessThan(
       clearHydrationState.mock.invocationCallOrder[0],
     );
