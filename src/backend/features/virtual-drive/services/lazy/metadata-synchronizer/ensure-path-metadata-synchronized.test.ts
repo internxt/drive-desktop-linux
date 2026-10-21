@@ -30,6 +30,20 @@ describe('ensure-path-metadata-synchronized', () => {
     call(synchronizeMock).toStrictEqual({ folder, folderRepository, fileRepository });
   });
 
+  it.each(['/.Trash', '/.Trash-1000', '/.Trash-1000/info'])(
+    'should skip remote synchronization for %s',
+    async (path) => {
+      resolveMock.mockClear();
+      synchronizeMock.mockClear();
+
+      const result = await ensurePathMetadataSynchronized({ path, folderRepository, fileRepository });
+
+      expect(result).toStrictEqual({ data: undefined });
+      expect(resolveMock).not.toHaveBeenCalled();
+      expect(synchronizeMock).not.toHaveBeenCalled();
+    },
+  );
+
   it('should propagate resolution errors without refreshing', async () => {
     const error = new Error('resolution failed');
     resolveMock.mockResolvedValue(Result.err(error));

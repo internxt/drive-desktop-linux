@@ -57,6 +57,21 @@ describe('resolve-folder', () => {
     expect(synchronizeMock).not.toHaveBeenCalled();
   });
 
+  it('should not refresh the parent of a missing virtual trash path', async () => {
+    synchronizeMock.mockClear();
+    const trash = FolderMother.fromPartial({ id: 7, parentId: root.id, path: '/.Trash-1000' });
+    folderRepository.matchingPartial.mockImplementation(({ path }) => {
+      if (path === '/') return [root];
+      if (path === '/.Trash-1000') return [trash];
+      return [];
+    });
+
+    const result = await resolveFolder({ path: '/.Trash-1000/info', folderRepository, fileRepository });
+
+    expect(result.error).toMatchObject({ code: FuseCodes.ENOENT });
+    expect(synchronizeMock).not.toHaveBeenCalled();
+  });
+
   it('should return ENOENT when hydration does not find the folder', async () => {
     const result = await resolveFolder({ path: '/missing', folderRepository, fileRepository });
 
