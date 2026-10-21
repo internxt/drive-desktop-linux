@@ -31,6 +31,32 @@ export function resetVirtualDriveServiceState() {
   mountGeneration = 0;
 }
 
+async function mountVirtualDrive(startGeneration: number) {
+  const localRoot = getRootVirtualDrive();
+  const newContainer = await DriveDependencyContainerFactory.build();
+  await DirectoryStateRepository.clear();
+  await seedVirtualDriveRootFolders({
+    folderRepository: newContainer.get(FolderRepository),
+    user: getUserOrThrow(),
+  });
+  /**
+   * Clear stale block-cache state and orphaned hydrated files before mounting.
+   * Future virtual-drive reads recreate cache files and hydrate only requested blocks.
+   */
+  clearHydrationState();
+  await newContainer.get(StorageFilesRepository).deleteAll();
+  if (startGeneration !== mountGeneration) return;
+
+  await startFuseDaemonServer(newContainer);
+  await startHydrationApi({ container: newContainer });
+  if (startGeneration !== mountGeneration) return;
+
+  await startDaemon(localRoot);
+  if (startGeneration !== mountGeneration) return;
+
+  container = newContainer;
+}
+
 export async function startVirtualDrive() {
   if (stopInFlight) {
     await stopInFlight;
@@ -44,32 +70,8 @@ export async function startVirtualDrive() {
     return startInFlight;
   }
 
-  const generation = mountGeneration;
-  startInFlight = (async () => {
-    const localRoot = getRootVirtualDrive();
-    const newContainer = await DriveDependencyContainerFactory.build();
-    await DirectoryStateRepository.clear();
-    await seedVirtualDriveRootFolders({
-      folderRepository: newContainer.get(FolderRepository),
-      user: getUserOrThrow(),
-    });
-    /**
-     * Clear stale block-cache state and orphaned hydrated files before mounting.
-     * Future virtual-drive reads recreate cache files and hydrate only requested blocks.
-     */
-    clearHydrationState();
-    await newContainer.get(StorageFilesRepository).deleteAll();
-    if (generation !== mountGeneration) return;
-
-    await startFuseDaemonServer(newContainer);
-    await startHydrationApi({ container: newContainer });
-    if (generation !== mountGeneration) return;
-
-    await startDaemon(localRoot);
-    if (generation !== mountGeneration) return;
-
-    container = newContainer;
-  })();
+  const startGeneration = mountGeneration;
+  startInFlight = mountVirtualDrive(startGeneration);
 
   try {
     await startInFlight;
@@ -78,24 +80,25 @@ export async function startVirtualDrive() {
   }
 }
 
+async function unmountVirtualDrive(pendingStart: Promise<void> | undefined) {
+  try {
+    await pendingStart;
+  } catch {
+    // startVirtualDrive propagates its own failure to its caller.
+  }
+
+  const currentContainer = container;
+  container = undefined;
+  await stopVirtualDrive({ container: currentContainer });
+}
+
 export async function stopVirtualDriveOnce() {
   if (stopInFlight) {
     return stopInFlight;
   }
 
   mountGeneration += 1;
-  const pendingStart = startInFlight;
-  stopInFlight = (async () => {
-    try {
-      await pendingStart;
-    } catch {
-      // startVirtualDrive propagates its own failure to its caller.
-    }
-
-    const currentContainer = container;
-    container = undefined;
-    await stopVirtualDrive({ container: currentContainer });
-  })();
+  stopInFlight = unmountVirtualDrive(startInFlight);
 
   try {
     await stopInFlight;

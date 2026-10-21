@@ -1,5 +1,5 @@
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
-import { isVirtualTrashFolder } from '../../drive-folder/seed-virtual-drive-root-folders';
+import { isVirtualTrashFolder } from '../../drive-folder/is-virtual-trash';
 import { refreshChildren } from './refresh-children';
 import { FolderMetadataProps } from './types';
 

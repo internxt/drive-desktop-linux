@@ -1,7 +1,7 @@
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
-import { isVirtualTrashFolder } from '../drive-folder/seed-virtual-drive-root-folders';
+import { isVirtualTrashFolder } from '../drive-folder/is-virtual-trash';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
 
 type Props = {

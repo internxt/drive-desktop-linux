@@ -2,19 +2,7 @@ import { Folder } from '../../../../../context/virtual-drive/folders/domain/Fold
 import { FolderStatuses } from '../../../../../context/virtual-drive/folders/domain/FolderStatus';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import { User } from '../../../../../apps/main/types';
-
-export const TRASH_FOLDER_ID = Number.MAX_SAFE_INTEGER;
-export const TRASH_FOLDER_UUID = '00000000-0000-4000-8000-000000000001';
-export const TRASH_UID_FOLDER_ID = Number.MAX_SAFE_INTEGER - 1;
-export const TRASH_UID_FOLDER_UUID = '00000000-0000-4000-8000-000000000002';
-
-export function isVirtualTrashPath(path: string) {
-  return /^\/\.Trash(?:$|\/)|^\/\.Trash-\d+(?:$|\/)/.test(path);
-}
-
-export function isVirtualTrashFolder(folder: { path: string; id: number }) {
-  return isVirtualTrashPath(folder.path) || folder.id >= TRASH_UID_FOLDER_ID;
-}
+import { TRASH_FOLDER_ID, TRASH_FOLDER_UUID, TRASH_UID_FOLDER_ID, TRASH_UID_FOLDER_UUID } from './constants';
 
 type Props = {
   folderRepository: FolderRepository;

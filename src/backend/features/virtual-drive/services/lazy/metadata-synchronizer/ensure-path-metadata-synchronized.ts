@@ -1,6 +1,6 @@
 import { posix } from 'node:path';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
-import { isVirtualTrashPath } from '../../drive-folder/seed-virtual-drive-root-folders';
+import { isVirtualTrashPath } from '../../drive-folder/is-virtual-trash';
 import { normalizePath } from '../../normalize-path';
 import { resolveFolder } from './resolve-folder';
 import { synchronizeChildrenIfStale } from './synchronize-children-if-stale';

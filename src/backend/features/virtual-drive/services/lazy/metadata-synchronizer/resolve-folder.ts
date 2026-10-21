@@ -2,7 +2,7 @@ import { posix } from 'node:path';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { FuseCodes } from '../../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
-import { isVirtualTrashPath } from '../../drive-folder/seed-virtual-drive-root-folders';
+import { isVirtualTrashPath } from '../../drive-folder/is-virtual-trash';
 import { normalizePath } from '../../normalize-path';
 import { synchronizeChildrenIfStale } from './synchronize-children-if-stale';
 import { PathMetadataProps } from './types';
