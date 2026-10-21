@@ -111,6 +111,7 @@ describe('RemoteSyncManager', () => {
         fetchFoldersLimitPerRequest: 2,
         syncFiles: true,
         syncFolders: true,
+        retryDelayMs: 0,
       },
       errorHandler,
     );
@@ -338,9 +339,9 @@ describe('RemoteSyncManager', () => {
     it('should synchronize folders before files sequentially', async () => {
       const callOrder: string[] = [];
       mockedGet.mockImplementation(async (endpoint: unknown) => {
-        if (endpoint === '/folders') {
+        if (endpoint === '/folders/sync') {
           callOrder.push('folders');
-          return { data: [] };
+          return { data: { folders: [], nextCursor: null } };
         }
         if (endpoint === '/files/sync') {
           callOrder.push('files');
@@ -359,10 +360,10 @@ describe('RemoteSyncManager', () => {
       inMemorySyncedFoldersCollection.getLastUpdated = () => Promise.resolve({ success: false, result: null });
 
       mockedGet.mockImplementation(async (endpoint: unknown, config: unknown) => {
-        if (endpoint === '/folders') {
+        if (endpoint === '/folders/sync') {
           const query = (config as { query: { status: string } })?.query;
           expect(query.status).toBe('EXISTS');
-          return { data: [] };
+          return { data: { folders: [], nextCursor: null } };
         }
         return { data: { files: [], nextCursor: null } };
       });
@@ -370,7 +371,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
     });
 
-    it('should query status ALL for folders during incremental sync with checkpoint', async () => {
+    it('should omit status for folders during incremental sync with checkpoint', async () => {
       inMemorySyncedFoldersCollection.getLastUpdated = () =>
         Promise.resolve({
           success: true,
@@ -378,10 +379,10 @@ describe('RemoteSyncManager', () => {
         });
 
       mockedGet.mockImplementation(async (endpoint: unknown, config: unknown) => {
-        if (endpoint === '/folders') {
-          const query = (config as { query: { status: string } })?.query;
-          expect(query.status).toBe('ALL');
-          return { data: [] };
+        if (endpoint === '/folders/sync') {
+          const query = (config as { query: { status?: string } })?.query;
+          expect(query.status).toBeUndefined();
+          return { data: { folders: [], nextCursor: null } };
         }
         return { data: { files: [], nextCursor: null } };
       });

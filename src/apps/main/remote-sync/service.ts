@@ -8,8 +8,7 @@ import { isInitialSyncReady, setInitialSyncState } from './InitialSyncReady';
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 
 const SYNC_DEBOUNCE_DELAY = 3_000;
-export const DEFAULT_FETCH_FILES_LIMIT = 500;
-export const DEFAULT_FETCH_FOLDERS_LIMIT = 500;
+const DEFAULT_FETCH_LIMIT = 500;
 
 const driveFilesCollection = new DriveFilesCollection();
 const driveFoldersCollection = new DriveFoldersCollection();
@@ -21,8 +20,8 @@ export const remoteSyncManager = new RemoteSyncManager(
     folders: driveFoldersCollection,
   },
   {
-    fetchFilesLimitPerRequest: DEFAULT_FETCH_FILES_LIMIT,
-    fetchFoldersLimitPerRequest: DEFAULT_FETCH_FOLDERS_LIMIT,
+    fetchFilesLimitPerRequest: DEFAULT_FETCH_LIMIT,
+    fetchFoldersLimitPerRequest: DEFAULT_FETCH_LIMIT,
     syncFiles: true,
     syncFolders: true,
   },

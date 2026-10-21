@@ -194,6 +194,7 @@ export class RemoteSyncManager {
       fileCheckPoint,
       limit: this.config.fetchFilesLimitPerRequest,
       errorHandler: this.errorHandler,
+      retryDelayMs: this.config.retryDelayMs,
     });
 
     if (result.error) {
@@ -228,6 +229,7 @@ export class RemoteSyncManager {
       folderCheckPoint,
       limit: this.config.fetchFoldersLimitPerRequest,
       errorHandler: this.errorHandler,
+      retryDelayMs: this.config.retryDelayMs,
     });
 
     if (result.error) {

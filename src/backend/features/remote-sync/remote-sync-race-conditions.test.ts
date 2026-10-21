@@ -1,4 +1,3 @@
-vi.mock('@internxt/drive-desktop-core/build/backend');
 vi.mock('../../../infra/drive-server/client/drive-server.client.instance', () => ({
   driveServerClient: {
     GET: vi.fn(),
@@ -88,7 +87,7 @@ describe('remote-sync-race-conditions', () => {
   describe('concurrent execution', () => {
     it('prevents multiple concurrent background syncs from starting simultaneously', async () => {
       mockedGet.mockImplementation(async (endpoint: unknown) => {
-        if (endpoint === '/folders') return { data: [] };
+        if (endpoint === '/folders/sync') return { data: { folders: [], nextCursor: null } };
         if (endpoint === '/files/sync') return { data: { files: [], nextCursor: null } };
         return { data: [] };
       });
@@ -109,7 +108,7 @@ describe('remote-sync-race-conditions', () => {
       mockedGetFreshDirectoryStates.mockResolvedValue(new Map([[42, freshLoadedAt]]));
 
       mockedGet.mockImplementation(async (endpoint: unknown) => {
-        if (endpoint === '/folders') return { data: [] };
+        if (endpoint === '/folders/sync') return { data: { folders: [], nextCursor: null } };
         if (endpoint === '/files/sync') {
           return {
             data: {
@@ -165,7 +164,7 @@ describe('remote-sync-race-conditions', () => {
       mockedGetFreshDirectoryStates.mockResolvedValue(new Map([[42, freshLoadedAt]]));
 
       mockedGet.mockImplementation(async (endpoint: unknown) => {
-        if (endpoint === '/folders') return { data: [] };
+        if (endpoint === '/folders/sync') return { data: { folders: [], nextCursor: null } };
         if (endpoint === '/files/sync') {
           return {
             data: {
@@ -206,12 +205,12 @@ describe('remote-sync-race-conditions', () => {
     it('recovers and completes sync when transient error resolves on retry', async () => {
       let folderAttempts = 0;
       mockedGet.mockImplementation(async (endpoint: unknown) => {
-        if (endpoint === '/folders') {
+        if (endpoint === '/folders/sync') {
           folderAttempts++;
           if (folderAttempts === 1) {
             return { error: new DriveServerError('SERVER_ERROR', 500, 'Temporary glitch') };
           }
-          return { data: [] };
+          return { data: { folders: [], nextCursor: null } };
         }
         if (endpoint === '/files/sync') {
           return { data: { files: [], nextCursor: null } };

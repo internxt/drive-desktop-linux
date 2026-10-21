@@ -13,6 +13,7 @@ type Props = {
   fileCheckPoint: Date | undefined;
   limit: number;
   errorHandler: RemoteSyncErrorHandler;
+  retryDelayMs?: number;
 };
 
 export async function syncRemoteFiles({
@@ -20,6 +21,7 @@ export async function syncRemoteFiles({
   fileCheckPoint,
   limit,
   errorHandler,
+  retryDelayMs = 1000,
 }: Props): Promise<Result<{ totalSynced: number }>> {
   let retryCount = 0;
 
@@ -58,7 +60,7 @@ export async function syncRemoteFiles({
 
     if (retryCount >= syncConfig.maxRetries) return Result.err(syncResult.error);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
+    await new Promise((resolve) => setTimeout(resolve, retryDelayMs * retryCount));
   }
 
   return Result.err(new Error('Unknown sync error'));
