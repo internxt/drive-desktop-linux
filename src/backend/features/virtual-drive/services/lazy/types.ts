@@ -25,8 +25,6 @@ export type DirectoryStateErrorProps = DirectoryStateOperationProps & {
   failureState?: 'error' | 'error_before_mutation' | 'error_not_found';
 };
 
-export type DirectoryStateInvalidationProps = DirectoryStateOperationProps;
-
 export type DirectoryStateFreshnessProps = DirectoryStateOperationProps & {
   ttlMs?: number;
 };
