@@ -11,6 +11,8 @@ import * as initialSyncReadyModule from '../remote-sync/InitialSyncReady';
 import * as remoteSyncModule from '../remote-sync/service';
 import * as antivirusScanServiceModule from '../antivirus/AntivirusScanService';
 import * as antivirusManagerModule from '../antivirus/antivirusManager';
+import * as mailBridgeIpcModule from '../../../backend/features/mail-bridge/ipc/mail-bridge-ipc';
+import * as mailBridgeServiceModule from '../../../backend/features/mail-bridge/services/mail-bridge.service';
 
 const { shutdownMock } = vi.hoisted(() => ({
   shutdownMock: vi.fn(),
@@ -28,6 +30,8 @@ const resetRemoteSyncMock = partialSpyOn(remoteSyncModule.remoteSyncManager, 're
 const cancelScanMock = partialSpyOn(antivirusScanServiceModule.AntivirusScanService, 'cancelScan');
 const getAntivirusManagerMock = partialSpyOn(antivirusManagerModule, 'getAntivirusManager');
 const cancelAllJobsMock = partialSpyOn(tokenSchedulerModule.TokenScheduler, 'cancelAll');
+const clearMailBridgeIpcMock = partialSpyOn(mailBridgeIpcModule, 'clearMailBridgeIpc');
+const stopMailBridgeMock = partialSpyOn(mailBridgeServiceModule, 'stopMailBridge');
 
 describe('close-user-session-resources', () => {
   let closeUserSessionResources: typeof import('./close-user-session-resources').closeUserSessionResources;
@@ -38,6 +42,7 @@ describe('close-user-session-resources', () => {
 
   beforeEach(() => {
     getAntivirusManagerMock.mockReturnValue({ shutdown: shutdownMock } as never);
+    stopMailBridgeMock.mockResolvedValue({ data: undefined, error: undefined });
   });
 
   it('runs all cleanup steps and reports completion', async () => {
@@ -53,6 +58,8 @@ describe('close-user-session-resources', () => {
 
     call(resetTrayStatusMock).toBe('IDLE');
     calls(widget.hide).toHaveLength(1);
+    calls(clearMailBridgeIpcMock).toHaveLength(1);
+    calls(stopMailBridgeMock).toHaveLength(1);
     calls(cancelAllJobsMock).toHaveLength(1);
     calls(cancelPendingRemoteSyncMock).toHaveLength(1);
     call(setInitialSyncStateMock).toBe('NOT_READY');

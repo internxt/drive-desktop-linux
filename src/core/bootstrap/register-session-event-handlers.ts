@@ -15,6 +15,7 @@ import { startBackupsIfAvailable } from '../../backend/features/backup/start-bac
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
 import { showMarketingNotifications } from '../../backend/features/marketing';
 
+import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/features/mail-bridge/ipc/mail-bridge-ipc';
 let isVirtualDriveSqliteInitialized = false;
 
 function onWidgetIsReady() {
@@ -43,6 +44,9 @@ async function onUserLoggedIn() {
 
     // Keep product flags in sync even if later UI steps fail.
     await getUserAvailableProductsAndStore();
+
+    setupMailBridgeIpc();
+    void startMailBridgeOnLogin();
 
     getAuthWindow()?.hide();
 
