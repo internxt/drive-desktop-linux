@@ -1,4 +1,4 @@
-import { User } from '../../../apps/main/types';
+import { UserDto } from '../../../infra/drive-server/out/dto';
 import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 import { Language } from '../../../apps/shared/Locale/Language';
 import { ConfigTheme } from '../../../apps/shared/types/Theme';
@@ -31,7 +31,7 @@ export type AppStore = {
   newTokenEncrypted: boolean;
   mnemonic: string;
   mnemonicEncrypted: boolean;
-  userData: User;
+  userData: UserDto;
 
   // Sync / backup
   backupsEnabled: boolean;

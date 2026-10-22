@@ -3,7 +3,7 @@ import * as getCredentialsModule from '../../../apps/main/auth/get-credentials';
 import * as downloadModule from '../download/download-folder-as-zip';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { downloadDeviceBackupZip } from './download-device-backup-zip';
-import { User } from '../../../apps/main/types';
+import { UserDto } from '../../../infra/drive-server/out/dto';
 
 describe('download-device-backup-zip', () => {
   const fetchFolderMock = partialSpyOn(fetchFolderModule, 'fetchFolder');
@@ -12,7 +12,7 @@ describe('download-device-backup-zip', () => {
 
   const updateProgress = vi.fn();
   const abortController = new AbortController();
-  const user = { bridgeUser: 'bridge-user', userId: 'user-id' } as unknown as User;
+  const user = { bridgeUser: 'bridge-user', userId: 'user-id' } as unknown as UserDto;
 
   const device = {
     id: 1,

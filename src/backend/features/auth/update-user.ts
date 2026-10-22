@@ -1,8 +1,8 @@
 import ConfigStore from '../../../apps/main/config';
-import { User } from '../../../apps/main/types';
+import { UserDto } from '../../../infra/drive-server/out/dto';
 
 type Props = {
-  user: User;
+  user: UserDto;
 };
 
 export function updateUser({ user }: Props) {

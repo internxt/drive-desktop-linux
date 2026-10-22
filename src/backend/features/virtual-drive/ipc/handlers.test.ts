@@ -8,7 +8,7 @@ import * as getUserModule from '../../../../backend/features/auth/get-user';
 import { registerVirtualDriveHandlers } from './handlers';
 import { partialSpyOn, calls } from '../../../../../tests/vitest/utils.helper';
 import type { Container } from 'diod';
-import type { User } from '../../../../apps/main/types';
+import type { UserDto } from '../../../../infra/drive-server/out/dto';
 
 describe('virtual-drive handlers', () => {
   const startVirtualDriveSpy = partialSpyOn(virtualDriveServiceModule, 'startVirtualDrive');
@@ -18,7 +18,7 @@ describe('virtual-drive handlers', () => {
   const getVirtualDriveStateSpy = partialSpyOn(daemonServiceModule, 'getVirtualDriveState');
   const getUserSpy = partialSpyOn(getUserModule, 'getUser');
   const ipcHandleSpy = vi.spyOn(ipcMain, 'handle').mockImplementation(() => undefined as never);
-  const user: User = mockDeep<User>({
+  const user: UserDto = mockDeep<UserDto>({
     root_folder_id: 1,
     rootFolderId: 'root-uuid',
   });

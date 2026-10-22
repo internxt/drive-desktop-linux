@@ -1,7 +1,7 @@
 import type { Container } from 'diod';
 import { mockDeep } from 'vitest-mock-extended';
 import { DriveDependencyContainerFactory } from '../../../../../apps/drive/dependency-injection/DriveDependencyContainerFactory';
-import type { User } from '../../../../../apps/main/types';
+import type { UserDto } from '../../../../../infra/drive-server/out/dto';
 import * as getUserModule from '../../../auth/get-user';
 import * as stopVirtualDriveModule from './stop-virual-drive';
 import * as remountVirtualDriveModule from './remount-virtual-drive';
@@ -45,7 +45,7 @@ describe('virtual-drive.service', () => {
       return { deleteAll };
     }),
   } as unknown as Container;
-  const user: User = mockDeep<User>({
+  const user: UserDto = mockDeep<UserDto>({
     root_folder_id: 1,
     rootFolderId: 'root-folder-id',
   });
