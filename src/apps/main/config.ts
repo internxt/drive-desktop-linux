@@ -14,6 +14,9 @@ const schema: Schema<AppStore> = {
   mnemonicEncrypted: { type: 'boolean' },
   userData: { type: 'object' },
 
+  mailBridgeCredentials: { type: 'string' },
+  mailBridgeStartOnLogin: { type: 'boolean' },
+
   backupsEnabled: { type: 'boolean' },
   backgroundScanEnabled: { type: 'boolean' },
   backupInterval: { type: 'number' },
