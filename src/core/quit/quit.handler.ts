@@ -1,8 +1,7 @@
 import { app, ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { stopVirtualDriveOnce } from '../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
-
-import { stopMailBridge } from '../../backend/features/mail-bridge/services/mail-bridge.service';
+import { stopMailBridge } from '../../backend/features/mail-bridge';
 
 export function registerQuitHandler() {
   let isQuitting = false;

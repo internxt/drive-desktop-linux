@@ -1,5 +1,5 @@
-import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/features/mail-bridge/ipc/mail-bridge-ipc';
-vi.mock('../../backend/features/mail-bridge/ipc/mail-bridge-ipc', () => ({
+import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/features/mail-bridge';
+vi.mock('../../backend/features/mail-bridge', () => ({
   setupMailBridgeIpc: vi.fn(),
   startMailBridgeOnLogin: vi.fn().mockResolvedValue(undefined),
 }));

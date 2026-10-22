@@ -11,8 +11,7 @@ import * as initialSyncReadyModule from '../remote-sync/InitialSyncReady';
 import * as remoteSyncModule from '../remote-sync/service';
 import * as antivirusScanServiceModule from '../antivirus/AntivirusScanService';
 import * as antivirusManagerModule from '../antivirus/antivirusManager';
-import * as mailBridgeIpcModule from '../../../backend/features/mail-bridge/ipc/mail-bridge-ipc';
-import * as mailBridgeServiceModule from '../../../backend/features/mail-bridge/services/mail-bridge.service';
+import * as mailBridgeModule from '../../../backend/features/mail-bridge';
 
 const { shutdownMock } = vi.hoisted(() => ({
   shutdownMock: vi.fn(),
@@ -30,8 +29,8 @@ const resetRemoteSyncMock = partialSpyOn(remoteSyncModule.remoteSyncManager, 're
 const cancelScanMock = partialSpyOn(antivirusScanServiceModule.AntivirusScanService, 'cancelScan');
 const getAntivirusManagerMock = partialSpyOn(antivirusManagerModule, 'getAntivirusManager');
 const cancelAllJobsMock = partialSpyOn(tokenSchedulerModule.TokenScheduler, 'cancelAll');
-const clearMailBridgeIpcMock = partialSpyOn(mailBridgeIpcModule, 'clearMailBridgeIpc');
-const stopMailBridgeMock = partialSpyOn(mailBridgeServiceModule, 'stopMailBridge');
+const clearMailBridgeIpcMock = partialSpyOn(mailBridgeModule, 'clearMailBridgeIpc');
+const stopMailBridgeMock = partialSpyOn(mailBridgeModule, 'stopMailBridge');
 
 describe('close-user-session-resources', () => {
   let closeUserSessionResources: typeof import('./close-user-session-resources').closeUserSessionResources;
