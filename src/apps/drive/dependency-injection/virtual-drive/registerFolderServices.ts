@@ -27,7 +27,7 @@ export async function registerFolderServices(builder: ContainerBuilder): Promise
   builder.register(SyncFolderMessenger).use(MainProcessSyncFolderMessenger);
   // TODO: can be private?
 
-  builder.register(FolderRepository).use(InMemoryFolderRepository).asSingleton().private();
+  builder.register(FolderRepository).use(InMemoryFolderRepository).asSingleton();
 
   builder.register(RemoteFileSystem).use(HttpRemoteFileSystem).private();
 

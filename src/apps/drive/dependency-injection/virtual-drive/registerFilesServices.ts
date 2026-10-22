@@ -26,7 +26,7 @@ import { Environment } from '@internxt/inxt-js';
 export function registerFilesServices(builder: ContainerBuilder) {
   // Infra
 
-  builder.register(FileRepository).use(InMemoryFileRepository).asSingleton().private();
+  builder.register(FileRepository).use(InMemoryFileRepository).asSingleton();
 
   const user = getUserOrThrow();
 
