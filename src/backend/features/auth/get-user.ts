@@ -1,8 +1,8 @@
 import ConfigStore from '../../../apps/main/config';
-import { User } from '../../../apps/main/types';
+import { UserDto } from '../../../infra/drive-server/out/dto';
 import { Result } from '../../../context/shared/domain/Result';
 
-export function getUser(): Result<User, Error> {
+export function getUser(): Result<UserDto, Error> {
   const user = ConfigStore.get('userData');
 
   if (user && Object.keys(user).length) {

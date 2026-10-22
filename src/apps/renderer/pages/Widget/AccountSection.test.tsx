@@ -3,7 +3,7 @@ import { type Mock } from 'vitest';
 import { useTranslationContext } from '../../context/LocalContext';
 import { useUsage } from '../../context/UsageContext/useUsage';
 import { AccountSection } from './AccountSection';
-import { type User } from '../../../main/types';
+import { type UserDto } from '../../../../infra/drive-server/out/dto';
 
 vi.mock('../../context/LocalContext');
 vi.mock('../../context/UsageContext/useUsage');
@@ -31,7 +31,7 @@ describe('AccountSection', () => {
       name: 'John',
       lastname: 'Doe',
       email: 'john@example.com',
-    } as Partial<User> as User);
+    } as Partial<UserDto> as UserDto);
 
     render(<AccountSection />);
 
@@ -44,7 +44,7 @@ describe('AccountSection', () => {
       name: 'John',
       lastname: 'Doe',
       email: 'john@example.com',
-    } as Partial<User> as User);
+    } as Partial<UserDto> as UserDto);
 
     render(<AccountSection />);
 

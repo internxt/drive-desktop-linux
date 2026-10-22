@@ -1,4 +1,4 @@
-import { User } from '../../../apps/main/types';
+import { UserDto } from '../../../infra/drive-server/out/dto';
 import { AppStore } from './app-store.interface';
 import { DEFAULT_LANGUAGE } from '../../../apps/shared/Locale/Language';
 
@@ -8,7 +8,7 @@ export const defaults: AppStore = {
   newTokenEncrypted: false,
   mnemonic: '',
   mnemonicEncrypted: false,
-  userData: {} as User,
+  userData: {} as UserDto,
 
   // Sync / backup
   backupsEnabled: false,
