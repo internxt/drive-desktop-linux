@@ -25,10 +25,10 @@ describe('InMemoryFileRepository', () => {
     expect(await sut.searchByContentsId(kept.contentsId)).toStrictEqual(kept);
   });
 
-  it('should report a missing UUID when deleting a file', async () => {
+  it('should report a missing UUID when deleting a file', () => {
     const file = FileMother.any();
 
-    await expect(sut.delete(file.uuid)).rejects.toBeInstanceOf(FileNotFoundError);
+    expect(() => sut.delete(file.uuid)).toThrow(FileNotFoundError);
   });
 
   it('should return an empty array if no contentsIds are provided', async () => {

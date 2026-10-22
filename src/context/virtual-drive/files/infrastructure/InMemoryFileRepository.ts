@@ -112,7 +112,7 @@ export class InMemoryFileRepository implements FileRepository {
     this.upsert(file);
   }
 
-  async delete(uuid: File['uuid']): Promise<void> {
+  delete(uuid: File['uuid']): void {
     const attributes = this.filesByUuid.get(uuid);
     if (!attributes) throw new FileNotFoundError(uuid);
 
