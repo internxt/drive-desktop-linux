@@ -1,8 +1,8 @@
-import { User } from '../../../../main/types';
+import { UserDto } from '../../../../../infra/drive-server/out/dto';
 import Button from '../../../components/Button';
 import { useTranslationContext } from '../../../context/LocalContext';
 
-export default function UserInfo({ user }: { user: User }) {
+export default function UserInfo({ user }: { user: UserDto }) {
   const { translate } = useTranslationContext();
 
   const Avatar = () => {

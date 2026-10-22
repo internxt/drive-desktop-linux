@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { User } from '../../../../main/types';
+import { UserDto } from '../../../../../infra/drive-server/out/dto';
 import Spinner from '../../../assets/spinner.svg';
 import Usage from './Usage';
 import UserInfo from './UserInfo';
@@ -9,7 +9,7 @@ import { useUsage } from '../../../context/UsageContext/useUsage';
 
 export default function AccountSection({ active }: { active: boolean }) {
   const { translate } = useTranslationContext();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserDto | null>(null);
   const { usage, status, refreshUsage } = useUsage();
 
   useEffect(() => {
