@@ -5,9 +5,6 @@ import { User } from '../types';
 import { updateMailBridgeAccessToken } from '../../../backend/features/mail-bridge/services/mail-bridge.service';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
-import { updateMailBridgeAccessToken } from '../../../backend/features/mail-bridge/services/mail-bridge.service';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
-
 const TOKEN_ENCODING = 'latin1';
 
 function encryptKey({ key }: { key: string }) {

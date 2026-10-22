@@ -1,11 +1,19 @@
-import { MailBridgeSessionPreparationError } from '@internxt/drive-desktop-core/build/backend';
+import {
+  createMailBridgeSession,
+  getMailBridgeEmail,
+  MailBridgeSessionPreparationError,
+  type MailBridgeConnectionSettings,
+  type MailBridgeStatus,
+} from '@internxt/drive-desktop-core/build/backend/features/mail-bridge';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { ipcMain } from 'electron';
 import { getUser } from '../../auth/user-session';
 import { getSettingsWindow } from '../../../../apps/main/windows/settings';
-import { createMailBridgeSession } from '../create-mail-bridge-session';
-import { isMailBridgeStartOnLoginEnabled, setMailBridgeStartOnLogin } from '../mail-bridge-start-on-login.service';
-import { getMailBridgeEmail } from '../services/get-mail-bridge-email.service';
+import { getCredentials } from '../../../../apps/main/auth/get-credentials';
+import { getMailBridgeClientConfig } from '../config/get-mail-bridge-client-config';
+import { mailBridgeCredentialsStore } from '../config/mail-bridge-credentials-store';
+import { isMailBridgeStartOnLoginEnabled } from '../config/is-mail-bridge-start-on-login-enabled';
+import { setMailBridgeStartOnLogin } from '../config/set-mail-bridge-start-on-login';
 import {
   getMailBridgeStatus as getLifecycleMailBridgeStatus,
   getMailBridgeSyncProgress as getLifecycleMailBridgeSyncProgress,
@@ -17,7 +25,6 @@ import {
 } from '../services/mail-bridge.service';
 import { getWidget } from '../../../../apps/main/windows/widget';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import type { MailBridgeConnectionSettings, MailBridgeStatus } from '../mail-bridge.types';
 
 let unsubscribeFromMailBridgeStatus: (() => void) | undefined;
 let unsubscribeFromMailBridgeSyncProgress: (() => void) | undefined;
@@ -31,7 +38,7 @@ export function getMailBridgeStartOnLogin(): boolean {
 }
 
 export function setMailBridgeStartOnLoginPreference({ enabled }: { enabled: boolean }): void {
-  setMailBridgeStartOnLogin({ enabled });
+  setMailBridgeStartOnLogin(enabled);
   logger.debug({ tag: 'MAIL-BRIDGE', msg: 'Mail Bridge start-on-login preference changed', enabled });
 }
 
@@ -40,7 +47,14 @@ export async function startMailBridge(): Promise<Result<MailBridgeConnectionSett
   if (!user) {
     return Result.err({ name: 'Error', code: 'not-authenticated', message: 'Please log in to start Mail Bridge' });
   }
-  const session = await createMailBridgeSession(user);
+  const { newToken, mnemonic } = getCredentials();
+  const session = await createMailBridgeSession({
+    accountId: user.uuid,
+    email: user.email,
+    mnemonic,
+    clientConfig: getMailBridgeClientConfig(newToken),
+    credentialsStore: mailBridgeCredentialsStore,
+  });
   if (getUser()?.uuid !== user.uuid) {
     return Result.err({ name: 'Error', code: 'session-changed', message: 'Mail Bridge session was cancelled' });
   }
@@ -89,7 +103,8 @@ export async function resyncMailBridge(): Promise<Result<undefined, Error>> {
 export async function getMailBridgeEmailForRenderer(): Promise<
   Result<string, Error & Pick<MailBridgeSessionPreparationError, 'code'>>
 > {
-  const result = await getMailBridgeEmail();
+  const { newToken } = getCredentials();
+  const result = await getMailBridgeEmail(getMailBridgeClientConfig(newToken));
   return result.error
     ? Result.err({ name: result.error.name, code: result.error.code, message: result.error.message })
     : Result.ok(result.data);
@@ -97,12 +112,10 @@ export async function getMailBridgeEmailForRenderer(): Promise<
 
 export function setupMailBridgeIpc(): void {
   clearMailBridgeIpc();
-  unsubscribeFromMailBridgeStatus?.();
   unsubscribeFromMailBridgeStatus = subscribeToMailBridgeStatus((status) => {
     getWidget()?.webContents.send('mail-bridge:status-changed', status);
     getSettingsWindow()?.webContents.send('mail-bridge:status-changed', status);
   });
-  unsubscribeFromMailBridgeSyncProgress?.();
   unsubscribeFromMailBridgeSyncProgress = subscribeToMailBridgeSyncProgress((progress) => {
     getWidget()?.webContents.send('mail-bridge:sync-progress-changed', progress);
     getSettingsWindow()?.webContents.send('mail-bridge:sync-progress-changed', progress);
