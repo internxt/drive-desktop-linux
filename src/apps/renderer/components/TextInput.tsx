@@ -7,7 +7,7 @@ export default function TextInput(props: TextInputProps) {
   return (
     <input
       type={props.variant ?? 'text'}
-      className={`h-10 appearance-none rounded-lg border border-gray-40 bg-surface px-3 text-lg shadow-sm outline-none transition-all duration-75 ease-in-out focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary/10 dark:border-gray-30 dark:focus:ring-primary/25 ${
+      className={`h-10 appearance-none rounded-lg border border-gray-40 bg-surface px-3 text-lg shadow-sm transition-all duration-75 ease-in-out outline-none focus:border-primary focus:ring-3 focus:ring-primary/10 focus:outline-none dark:border-gray-30 dark:focus:ring-primary/25 ${
         props.customClassName ?? ''
       }`}
       {...props}

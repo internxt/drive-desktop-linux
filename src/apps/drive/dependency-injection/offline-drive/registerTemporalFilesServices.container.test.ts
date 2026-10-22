@@ -22,10 +22,8 @@ vi.mock('../../../../core/electron/paths', () => ({
   },
 }));
 
-vi.mock('../../../shared/dependency-injection/DependencyInjectionUserProvider', () => ({
-  DependencyInjectionUserProvider: {
-    get: () => ({ bucket: 'test-bucket' }),
-  },
+vi.mock('../../../../backend/features/auth/get-user', () => ({
+  getUser: () => ({ data: { bucket: 'test-bucket' } }),
 }));
 
 const PATH = '/Private/notes/passwords.kdbx';

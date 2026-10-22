@@ -1233,3 +1233,8 @@ declare module '@iconscout/react-unicons' {
     UilYoutube,
   };
 }
+
+declare module '@vitejs/plugin-react' {
+  const plugin: () => import('vite').PluginOption;
+  export default plugin;
+}

@@ -56,7 +56,7 @@ export function ItemsSection({ numberOfIssues, numberOfIssuesDisplay, onQuitClic
               leaveFrom="transform scale-100 opacity-100"
               leaveTo="transform scale-95 opacity-0"
               className="relative z-10">
-              <Menu.Items className="absolute right-0 top-1 max-w-[288px] origin-top-right whitespace-nowrap rounded-md bg-surface py-1 shadow-xl ring-1 ring-gray-20 focus:outline-none dark:bg-gray-1">
+              <Menu.Items className="absolute top-1 right-0 max-w-[288px] origin-top-right rounded-md bg-surface py-1 whitespace-nowrap shadow-xl ring-1 ring-gray-20 focus:outline-none dark:bg-gray-1">
                 <Menu.Item>
                   {({ active }) => (
                     <div>
@@ -111,12 +111,7 @@ export function ItemsSection({ numberOfIssues, numberOfIssuesDisplay, onQuitClic
                         active={active}
                         onClick={() => window.electron.openSettingsWindow('CLEANER')}
                         data-automation-id="menuItemCleaner">
-                        <div className="flex flex-row items-center justify-end gap-4">
-                          <span>{translate('widget.header.dropdown.cleaner')}</span>
-                          <div className="flex rounded-full border border-primary bg-primary/5 px-2 py-1 text-primary">
-                            {translate('widget.header.dropdown.new')}
-                          </div>
-                        </div>
+                        <span>{translate('widget.header.dropdown.cleaner')}</span>
                       </DropdownItem>
                     </div>
                   )}

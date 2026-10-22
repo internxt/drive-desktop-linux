@@ -44,7 +44,7 @@ describe('getUsageAndLimit', () => {
 
   it('should return error when getLimit returns an error', async () => {
     const mockError = new Error('Limit fetch failed');
-    mockGetUsage.mockResolvedValue(right({ drive: 1024, backup: 512, total: 1536 }));
+    mockGetUsage.mockResolvedValue(right({ drive: 1024, backup: 512, mail: 0, total: 1536 }));
     mockGetLimit.mockResolvedValue(left(mockError));
     mockLogger.error.mockReturnValue(mockError);
 
@@ -76,7 +76,7 @@ describe('getUsageAndLimit', () => {
   });
 
   it('should return usage and limit when both requests are successful', async () => {
-    const mockUsageData = { drive: 1024, backup: 512, total: 1536 };
+    const mockUsageData = { drive: 1024, backup: 512, mail: 0, total: 1536 };
     const mockLimitData = { maxSpaceBytes: 5120 };
 
     mockGetUsage.mockResolvedValue(right(mockUsageData));
@@ -93,7 +93,7 @@ describe('getUsageAndLimit', () => {
   });
 
   it('should extract total from usage data correctly', async () => {
-    const mockUsageData = { drive: 2048, backup: 1024, total: 3072 };
+    const mockUsageData = { drive: 2048, backup: 1024, mail: 0, total: 3072 };
     const mockLimitData = { maxSpaceBytes: 10240 };
 
     mockGetUsage.mockResolvedValue(right(mockUsageData));
@@ -106,7 +106,7 @@ describe('getUsageAndLimit', () => {
   });
 
   it('should call both getUsage and getLimit in parallel', async () => {
-    const mockUsageData = { drive: 1024, backup: 512, total: 1536 };
+    const mockUsageData = { drive: 1024, backup: 512, mail: 0, total: 1536 };
     const mockLimitData = { maxSpaceBytes: 5120 };
 
     mockGetUsage.mockResolvedValue(right(mockUsageData));

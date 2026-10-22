@@ -1,5 +1,5 @@
 import { scanDirectory } from './scan-directory';
-import { Dirent, promises as fs, Stats } from 'node:fs';
+import { promises as fs, Stats } from 'node:fs';
 import path from 'node:path';
 import { isInternxtRelated } from './utils/is-file-internxt-related';
 import { processDirent } from './process-dirent';
@@ -21,15 +21,17 @@ vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
 }));
 const createMockStats = (isDirectory = true, size = 0): Stats => ({ isDirectory: () => isDirectory, size }) as Stats;
 
-const createMockDirent = (name: string, isFile = true): Dirent =>
-  ({ name, isFile: () => isFile, isDirectory: () => !isFile }) as Dirent;
-
 describe('scanDirectory', () => {
   const mockedFs = vi.mocked(fs);
   const mockedPath = vi.mocked(path);
   const mockBasePath = '/test/path';
   const mockedIsInternxtRelated = vi.mocked(isInternxtRelated);
   const mockedProcessDirent = vi.mocked(processDirent);
+
+  const createMockDirent = (name: string, isFile = true) =>
+    ({ name, isFile: () => isFile, isDirectory: () => !isFile }) as unknown as Parameters<
+      typeof mockedFs.readdir.mockResolvedValue
+    >[0][number];
 
   const createCleanableItemMock = (fileName: string, size: number, basePath = mockBasePath) => ({
     fullPath: `${basePath}/${fileName}`,

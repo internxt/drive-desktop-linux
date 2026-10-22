@@ -12,12 +12,6 @@ describe('CleanerSlide', () => {
     expect(screen.getByText('onboarding.slides.cleaner.title')).toBeInTheDocument();
   });
 
-  it('should render the "new" badge', () => {
-    render(<CleanerSlide />);
-
-    expect(screen.getByText('onboarding.common.new')).toBeInTheDocument();
-  });
-
   it('should render the description', () => {
     render(<CleanerSlide />);
 

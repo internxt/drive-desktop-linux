@@ -1,6 +1,12 @@
 import { IpcMainEvent } from 'electron';
 
-type EventHandler = (...args: unknown[]) => unknown;
+/**
+ * `any` is required here because function parameters are contravariant in TypeScript.
+ * Using `unknown[]` would prevent concrete handler signatures (e.g. `(items: Item[]) => void`)
+ * from satisfying `Record<string, EventHandler>`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EventHandler = (...args: any[]) => any;
 
 type CustomIPCEvents = Record<string, EventHandler>;
 

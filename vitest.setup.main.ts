@@ -41,20 +41,6 @@ vi.mock('@internxt/drive-desktop-core/build/backend', async (importOriginal) => 
   };
 });
 
-vi.mock('@internxt/drive-desktop-core/src/backend', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@internxt/drive-desktop-core/src/backend')>();
-
-  return {
-    ...actual,
-    logger: {
-      error: vi.fn(),
-      warn: vi.fn(),
-      info: vi.fn(),
-      debug: vi.fn(),
-    },
-  };
-});
-
 // Mock electron-store
 vi.mock('electron-store', () => {
   return {

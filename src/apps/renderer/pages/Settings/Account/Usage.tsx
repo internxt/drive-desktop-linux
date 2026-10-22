@@ -35,7 +35,7 @@ export default function Usage({ isInfinite, offerUpgrade, usageInBytes, limitInB
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="flex items-baseline space-x-px">
-            <p className="text-3xl font-medium leading-8">{displaySpaceUsed().amount}</p>
+            <p className="text-3xl leading-8 font-medium">{displaySpaceUsed().amount}</p>
             <p className="text-2xl font-medium">{displaySpaceUsed().unit}</p>
           </div>
 
@@ -86,7 +86,7 @@ export default function Usage({ isInfinite, offerUpgrade, usageInBytes, limitInB
           </div>
 
           <div className="flex flex-1 flex-col space-y-0.5 leading-5">
-            <p className="font-medium leading-5">{translate('settings.account.usage.full.title')}</p>
+            <p className="leading-5 font-medium">{translate('settings.account.usage.full.title')}</p>
             <p className="text-sm">{translate('settings.account.usage.full.subtitle')}</p>
           </div>
         </div>

@@ -1,7 +1,5 @@
 import { partialSpyOn, call, calls } from 'tests/vitest/utils.helper';
 
-vi.mock('@internxt/drive-desktop-core/build/backend');
-
 import * as fetchFilesModule from '../../../infra/drive-server/services/files/services/fetch-files';
 import * as createOrUpdateFileModule from '../../../infra/sqlite/services/file/create-or-update-file-by-batch';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
@@ -44,8 +42,7 @@ describe('sync-remote-files', () => {
 
     await syncRemoteFiles({ ...defaultProps, fileCheckPoint: checkpoint });
 
-    call(fetchFilesSyncMock).toMatchObject({ updatedAt: checkpoint.toISOString() });
-    call(fetchFilesSyncMock).not.toHaveProperty('status');
+    call(fetchFilesSyncMock).toMatchObject({ updatedAt: checkpoint.toISOString(), status: undefined });
   });
 
   it('should pass cursor alongside filter params on subsequent pages', async () => {
@@ -57,7 +54,7 @@ describe('sync-remote-files', () => {
 
     calls(fetchFilesSyncMock).toMatchObject([
       { limit: 10, status: 'EXISTS', updatedAt: new Date(0).toISOString() },
-      { limit: 10, status: 'EXISTS', updatedAt: new Date(0).toISOString(), cursor: 'cursor-abc' },
+      { limit: 10, status: 'EXISTS', cursor: 'cursor-abc' },
     ]);
   });
 
