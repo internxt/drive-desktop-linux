@@ -3,6 +3,7 @@ import { FileStatuses } from '../../../../../../context/virtual-drive/files/doma
 import { FolderStatuses } from '../../../../../../context/virtual-drive/folders/domain/FolderStatus';
 import { DirectoryMetadataSyncError } from '../directory-metadata-sync.error';
 import { DirectoryStateRepository } from '../directory-state-sqlite-repository';
+import { isVirtualTrashFolder } from '../../drive-folder/is-virtual-trash';
 import { resolveFolder } from './resolve-folder';
 import { synchronizeChildrenIfStale } from './synchronize-children-if-stale';
 import { PathMetadataProps } from './types';
@@ -20,6 +21,7 @@ export async function readDirectory({ path, folderRepository, fileRepository }: 
   return Result.ok({
     folders: folderRepository
       .matchingPartial({ parentId: folder.id, status: FolderStatuses.EXISTS })
+      .filter((child) => !isVirtualTrashFolder(child))
       .map((child) => child.name),
     files: fileRepository
       .matchingPartial({ folderId: folder.id, status: FileStatuses.EXISTS })

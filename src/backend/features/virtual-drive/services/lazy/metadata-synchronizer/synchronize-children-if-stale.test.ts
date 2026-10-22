@@ -39,6 +39,18 @@ describe('synchronize-children-if-stale', () => {
     calls(refreshMock).toHaveLength(2);
   });
 
+  it('should not refresh a virtual trash folder', async () => {
+    refreshMock.mockClear();
+
+    const result = await synchronizeChildrenIfStale({
+      ...props,
+      folder: FolderMother.fromPartial({ path: '/.Trash-1000' }),
+    });
+
+    expect(result).toStrictEqual({ data: undefined });
+    expect(refreshMock).not.toHaveBeenCalled();
+  });
+
   it('should refresh different folders independently', async () => {
     const pending = Promise.withResolvers<Awaited<ReturnType<typeof refresh.refreshChildren>>>();
     refreshMock.mockReturnValue(pending.promise);

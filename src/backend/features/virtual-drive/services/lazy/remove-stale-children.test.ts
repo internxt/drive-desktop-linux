@@ -88,4 +88,25 @@ describe('remove-stale-children', () => {
       descendant.id,
     ]);
   });
+
+  it('should keep the local virtual trash folder', async () => {
+    const parent = FolderMother.fromPartial({ id: 1, path: '/', parentId: null });
+    const trash = FolderMother.fromPartial({ id: Number.MAX_SAFE_INTEGER, parentId: parent.id, path: '/.Trash' });
+    const folders = new InMemoryFolderRepository();
+    const files = new InMemoryFileRepository();
+    await folders.add(parent);
+    await folders.add(trash);
+
+    await removeStaleChildren({
+      folder: parent,
+      folderRepository: folders,
+      fileRepository: files,
+      remoteFolderUuids: new Set(),
+      remoteFileUuids: new Set(),
+      remoteFolderPaths: new Map(),
+    });
+
+    expect((await folders.all()).map((entry) => entry.id).sort()).toStrictEqual([parent.id, trash.id].sort());
+    expect(invalidateMock).not.toHaveBeenCalled();
+  });
 });

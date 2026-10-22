@@ -2,6 +2,7 @@ import { posix } from 'node:path';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { FuseCodes } from '../../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
+import { isVirtualTrashPath } from '../../drive-folder/is-virtual-trash';
 import { normalizePath } from '../../normalize-path';
 import { synchronizeChildrenIfStale } from './synchronize-children-if-stale';
 import { PathMetadataProps } from './types';
@@ -24,6 +25,10 @@ export async function resolveFolder({ path, folderRepository, fileRepository }: 
     if (existingFolder) {
       currentFolder = existingFolder;
       continue;
+    }
+
+    if (isVirtualTrashPath(absolutePath)) {
+      return Result.err(new FuseError(FuseCodes.ENOENT, `[FUSE - Metadata sync] Folder not found: ${absolutePath}`));
     }
 
     const refresh = await synchronizeChildrenIfStale({ folder: currentFolder, folderRepository, fileRepository });
