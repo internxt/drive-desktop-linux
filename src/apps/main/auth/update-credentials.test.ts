@@ -2,7 +2,7 @@ import { safeStorage } from 'electron';
 import { updateCredentials } from './update-credentials';
 import ConfigStore from '../config';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
-import { User } from '../types';
+import { UserDto } from '../../../infra/drive-server/out/dto';
 import * as mailBridge from '../../../backend/features/mail-bridge/services/mail-bridge.service';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
@@ -19,7 +19,7 @@ describe('updateCredentials', () => {
   const encryptedTokenBuffer = Buffer.from('encrypted-token-data');
   const encryptedMnemonicBuffer = Buffer.from('encrypted-mnemonic-data');
 
-  const fakeUser: User = {
+  const fakeUser: UserDto = {
     uuid: 'user-uuid',
     email: 'test@test.com',
     userId: 'user-id',
@@ -41,6 +41,13 @@ describe('updateCredentials', () => {
     sharedWorkspace: false,
     hasReferralsProgram: false,
     teams: false,
+    avatar: '',
+    emailVerified: true,
+    lastPasswordChangedAt: '2025-01-01',
+    keys: {
+      ecc: { publicKey: '', privateKey: '' },
+      kyber: { publicKey: '', privateKey: '' },
+    },
   };
 
   beforeEach(() => {

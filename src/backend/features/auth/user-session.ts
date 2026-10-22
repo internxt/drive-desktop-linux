@@ -1,7 +1,7 @@
 import ConfigStore from '../../../apps/main/config';
-import { User } from '../../../apps/main/types';
+import { UserDto } from '../../../infra/drive-server/out/dto';
 
-export function getUser(): User | null {
+export function getUser(): UserDto | null {
   const user = ConfigStore.get('userData');
 
   return user && Object.keys(user).length ? user : null;

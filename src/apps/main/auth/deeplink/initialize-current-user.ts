@@ -1,5 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { User } from '../../types';
+import { UserDto } from '../../../../infra/drive-server/out/dto';
 import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 import ConfigStore from '../../config';
 import { updateCredentials } from '../update-credentials';
@@ -17,11 +17,14 @@ export async function initializeCurrentUser() {
     const refreshData = refreshResult.getRight();
     updateCredentials({ newToken: refreshData.newToken });
 
-    const currentUser = ConfigStore.get('userData') as User;
-    const updatedUser: User = {
+    const currentUser = ConfigStore.get('userData');
+    const updatedUser: UserDto = {
       ...currentUser,
       ...refreshData.user,
       mnemonic: currentUser.mnemonic,
+      privateKey: currentUser.privateKey,
+      publicKey: currentUser.publicKey,
+      revocateKey: currentUser.revocateKey,
     };
 
     updateUser({ user: updatedUser });

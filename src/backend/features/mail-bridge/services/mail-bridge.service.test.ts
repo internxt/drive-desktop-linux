@@ -1,7 +1,7 @@
 import * as core from '@internxt/drive-desktop-core/build/backend/features/mail-bridge';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { getCredentials } from '../../../../apps/main/auth/get-credentials';
-import type { User } from '../../../../apps/main/types';
+import type { UserDto } from '../../../../infra/drive-server/out/dto';
 import { getUser } from '../../auth/user-session';
 import { getMailBridgeClientConfig } from '../config/get-mail-bridge-client-config';
 import { isMailBridgeStartOnLoginEnabled } from '../config/is-mail-bridge-start-on-login-enabled';
@@ -40,7 +40,7 @@ vi.mock('../config/mail-bridge-credentials-store', () => ({
 vi.mock('./mail-bridge-platform', () => ({ linuxMailBridgePlatform: {} }));
 
 describe('Linux Mail Bridge service', () => {
-  const user = { uuid: 'account-id', email: 'user@example.test' } as User;
+  const user = { uuid: 'account-id', email: 'user@example.test' } as UserDto;
   const config: core.MailBridgeClientConfig = {
     gatewayUrl: 'https://gateway.example.test/drive',
     clientName: 'linux-test',
