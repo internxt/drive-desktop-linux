@@ -47,7 +47,7 @@ function VirtualDriveIssue({
 
         <div className="flex flex-col space-y-1">
           <h1
-            className="flex flex-1 flex-col text-base font-medium leading-5 text-gray-100"
+            className="flex flex-1 flex-col text-base leading-5 font-medium text-gray-100"
             data-test="sync-issue-name">
             {translate(shortMessages[errorName])}
           </h1>

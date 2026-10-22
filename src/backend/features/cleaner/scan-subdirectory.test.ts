@@ -1,4 +1,4 @@
-import { Dirent, promises as fs } from 'node:fs';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { isInternxtRelated } from './utils/is-file-internxt-related';
 import { scanDirectory } from './scan-directory';
@@ -28,7 +28,7 @@ describe('scanSubDirectory', () => {
       name,
       isDirectory: () => isDirectory,
       isFile: () => !isDirectory,
-    }) as Dirent;
+    }) as unknown as Parameters<typeof mockedFs.readdir.mockResolvedValue>[0][number];
 
   const mockBaseDir = '/home/user/.cache';
   const mockSubDir = 'cache';

@@ -34,7 +34,7 @@ describe('download-backup-file', () => {
       await operation();
       return { data: undefined };
     });
-    downloadFileMock.mockResolvedValue(downloadedStream);
+    downloadFileMock.mockResolvedValue({ data: downloadedStream });
     writeDownloadStreamToFileMock.mockResolvedValue(undefined);
     createReadStreamMock.mockReturnValue({});
     convertToReadableStreamMock.mockReturnValue(zipSource);

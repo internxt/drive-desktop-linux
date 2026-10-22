@@ -1,29 +1,27 @@
+import { Mock } from 'vitest';
 import { BackupScheduler } from './BackupScheduler';
 import { BACKUP_MANUAL_INTERVAL } from '../types/types';
-
-vi.mock('../../../auth/handlers', () => ({
-  getIsLoggedIn: vi.fn(() => true),
-}));
-
-vi.mock('../../../config', () => ({
-  default: {
-    set: vi.fn(),
-    get: vi.fn(),
-  },
-}));
+import * as authHandlersModule from '../../../auth/handlers';
+import configStore from '../../../config';
+import { partialSpyOn } from 'tests/vitest/utils.helper';
 
 describe('BackupScheduler', () => {
-  let mockTask: ReturnType<typeof vi.fn>;
-  let mockLastBackup: ReturnType<typeof vi.fn>;
-  let mockInterval: ReturnType<typeof vi.fn>;
+  const getIsLoggedInMock = partialSpyOn(authHandlersModule, 'getIsLoggedIn');
+  const configSetMock = partialSpyOn(configStore, 'set');
+
+  let mockTask: Mock<() => Promise<void>>;
+  let mockLastBackup: Mock<() => number>;
+  let mockInterval: Mock<() => number>;
   let scheduler: BackupScheduler;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     vi.useFakeTimers();
-    mockTask = vi.fn().mockResolvedValue(undefined);
-    mockLastBackup = vi.fn();
-    mockInterval = vi.fn();
+    getIsLoggedInMock.mockReturnValue(true);
+    configSetMock.mockReturnValue(undefined);
+
+    mockTask = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    mockLastBackup = vi.fn<() => number>();
+    mockInterval = vi.fn<() => number>();
   });
 
   afterEach(() => {

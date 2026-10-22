@@ -223,7 +223,7 @@ describe('HttpRemoteFileSystem', () => {
       plainName: index === 0 ? 'other' : `other-${index}`,
       updatedAt: '2025-01-01T00:00:00.000Z',
       createdAt: '2025-01-01T00:00:00.000Z',
-      status: 'EXISTS',
+      status: 'EXISTS' as const,
     }));
 
     searchFolderMock.mockResolvedValueOnce({
@@ -240,7 +240,7 @@ describe('HttpRemoteFileSystem', () => {
           plainName: 'child',
           updatedAt: '2025-01-02T00:00:00.000Z',
           createdAt: '2025-01-02T00:00:00.000Z',
-          status: 'EXISTS',
+          status: 'EXISTS' as const,
         },
       ],
       error: undefined,

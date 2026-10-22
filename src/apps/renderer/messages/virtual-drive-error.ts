@@ -5,6 +5,7 @@ type ProcessErrorMessages = Record<SyncError, string>;
 export const shortMessages: ProcessErrorMessages = {
   ABORTED: 'issues.short-error-messages.unknown',
   RATE_LIMITED: 'issues.short-error-messages.unknown',
+  CONNECTION_TIMEOUT: 'issues.short-error-messages.no-remote-connection',
   NOT_EXISTS: 'issues.short-error-messages.file-does-not-exist',
   NO_INTERNET: 'issues.short-error-messages.no-internet-connection',
   NO_REMOTE_CONNECTION: 'issues.short-error-messages.no-remote-connection',
@@ -20,6 +21,7 @@ export const shortMessages: ProcessErrorMessages = {
   PARENT_FOLDER_NOT_FOUND: 'issues.short-error-messages.unknown',
   COULD_NOT_ENCRYPT_NAME: '',
   BAD_REQUEST: 'issues.short-error-messages.no-remote-connection',
+  NETWORK_ERROR: 'issues.short-error-messages.no-internet-connection',
   UNKNOWN: 'issues.short-error-messages.unknown',
   INTERNAL_SERVER_ERROR: 'issues.short-error-messages.unknown',
   ITEMS_SKIPPED: 'issues.short-error-messages.unknown',

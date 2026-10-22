@@ -1,46 +1,45 @@
-import { getOrCreateDevice } from './getOrCreateDevice';
-import { getDeviceIdentifier } from './getDeviceIdentifier';
-import { addUnknownDeviceIssue } from './addUnknownDeviceIssue';
-import { fetchDevice } from './fetchDevice';
+import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import configStore from '../../../apps/main/config';
+import * as addUnknownDeviceIssueModule from './addUnknownDeviceIssue';
+import * as fetchDeviceModule from './fetchDevice';
+import * as getDeviceIdentifierModule from './getDeviceIdentifier';
+import { getOrCreateDevice } from './getOrCreateDevice';
 
 vi.mock('./getDeviceIdentifier');
 vi.mock('./addUnknownDeviceIssue');
 vi.mock('./fetchDevice');
 vi.mock('./fetchDeviceLegacyAndMigrate');
 vi.mock('./createAndSetupNewDevice');
-vi.mock('../../../apps/main/config', () => ({
-  default: { get: vi.fn() },
-}));
-vi.mock('../../../apps/shared/dependency-injection/DependencyInjectionUserProvider', () => ({
-  DependencyInjectionUserProvider: { get: vi.fn(), updateUser: vi.fn() },
-}));
 
 describe('getOrCreateDevice', () => {
-  const mockedGetDeviceIdentifier = vi.mocked(getDeviceIdentifier);
-  const mockedAddUnknownDeviceIssue = vi.mocked(addUnknownDeviceIssue);
-  const mockedFetchDevice = vi.mocked(fetchDevice);
-  const mockedConfigStore = vi.mocked(configStore);
+  const getDeviceIdentifierMock = partialSpyOn(getDeviceIdentifierModule, 'getDeviceIdentifier');
+  const addUnknownDeviceIssueMock = partialSpyOn(addUnknownDeviceIssueModule, 'addUnknownDeviceIssue');
+  const fetchDeviceMock = partialSpyOn(fetchDeviceModule, 'fetchDevice');
+  const configGetMock = partialSpyOn(configStore, 'get');
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    configGetMock.mockImplementation((key: string) => {
+      if (key === 'deviceId') return -1;
+      if (key === 'deviceUUID') return '';
+      return undefined;
+    });
   });
 
-  describe('when an unexpected error is thrown', () => {
-    it('should return the error and call addUnknownDeviceIssue', async () => {
+  describe('when getDeviceIdentifier throws', () => {
+    it('should return the error and notify the issue tracker', async () => {
       const unexpectedError = new Error('Unexpected failure');
-      mockedGetDeviceIdentifier.mockImplementation(() => {
+      getDeviceIdentifierMock.mockImplementation(() => {
         throw unexpectedError;
       });
 
       const result = await getOrCreateDevice();
 
       expect(result.error).toBe(unexpectedError);
-      expect(mockedAddUnknownDeviceIssue).toHaveBeenCalledWith(unexpectedError);
+      call(addUnknownDeviceIssueMock).toBe(unexpectedError);
     });
 
     it('should wrap non-Error throws in an Error instance', async () => {
-      mockedGetDeviceIdentifier.mockImplementation(() => {
+      getDeviceIdentifierMock.mockImplementation(() => {
         throw 'something went wrong';
       });
 
@@ -48,25 +47,22 @@ describe('getOrCreateDevice', () => {
 
       expect(result.error).toBeInstanceOf(Error);
       expect(result.error?.message).toBe('Unexpected error in getOrCreateDevice');
-      expect(mockedAddUnknownDeviceIssue).toHaveBeenCalledWith(result.error);
+      call(addUnknownDeviceIssueMock).toStrictEqual(result.error);
     });
+  });
 
-    it('should return the error when fetchDevice throws', async () => {
-      mockedGetDeviceIdentifier.mockReturnValue({
+  describe('when fetchDevice throws', () => {
+    it('should return the error and notify the issue tracker', async () => {
+      getDeviceIdentifierMock.mockReturnValue({
         data: { key: 'key', platform: 'linux', hostname: 'host' },
       });
-      mockedConfigStore.get.mockImplementation((key: string) => {
-        if (key === 'deviceId') return -1;
-        if (key === 'deviceUUID') return '';
-        return undefined;
-      });
       const fetchError = new Error('Network error');
-      mockedFetchDevice.mockRejectedValue(fetchError);
+      fetchDeviceMock.mockRejectedValue(fetchError);
 
       const result = await getOrCreateDevice();
 
       expect(result.error).toBe(fetchError);
-      expect(mockedAddUnknownDeviceIssue).toHaveBeenCalledWith(fetchError);
+      call(addUnknownDeviceIssueMock).toBe(fetchError);
     });
   });
 });

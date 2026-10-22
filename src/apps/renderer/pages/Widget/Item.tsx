@@ -60,7 +60,7 @@ export function Item({ name, action, progress }: DriveOperationInfo) {
                   pathColor: 'rgb(var(--color-primary) / 1)',
                   strokeLinecap: 'round',
                 })}
-                className="aspect-square w-6 rounded-full ring-4 ring-inset ring-primary/15 dark:ring-gray-10"
+                className="aspect-square w-6 rounded-full ring-4 ring-primary/15 ring-inset dark:ring-gray-10"
               />
             )}
 
