@@ -60,13 +60,6 @@ async function markError({
   );
 }
 
-async function invalidate({ dataSource = AppDataSource, folderId, statusScope }: DirectoryStateInvalidationProps) {
-  await dataSource.query('DELETE FROM drive_directory_state WHERE folder_id = ? AND status_scope = ?', [
-    folderId,
-    statusScope,
-  ]);
-}
-
 async function getFreshDirectoryStates({
   dataSource = AppDataSource,
   statusScope = 'EXISTS',
