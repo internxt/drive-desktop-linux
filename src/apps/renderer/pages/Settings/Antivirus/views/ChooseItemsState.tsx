@@ -42,7 +42,7 @@ export const ChooseItemsState = () => {
               aria-label={translate('settings.antivirus.realtimeProtection.infoAriaLabel')}>
               i
             </button>
-            <div className="pointer-events-none absolute left-1/2 top-6 z-10 hidden w-64 -translate-x-1/2 rounded-md border border-gray-80/10 bg-gray-100 px-3 py-2 text-xs text-white shadow-md group-hover:block dark:border-gray-30 dark:bg-gray-5 dark:text-gray-80">
+            <div className="pointer-events-none absolute top-6 left-1/2 z-10 hidden w-64 -translate-x-1/2 rounded-md border border-gray-80/10 bg-gray-100 px-3 py-2 text-xs text-white shadow-md group-hover:block dark:border-gray-30 dark:bg-gray-5 dark:text-gray-80">
               {translate('settings.antivirus.realtimeProtection.tooltip')}
             </div>
           </div>

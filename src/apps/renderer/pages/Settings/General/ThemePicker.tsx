@@ -42,7 +42,7 @@ export default function ThemePicker(): JSX.Element {
 
   return (
     <div id="theme-picker" className="flex flex-1 flex-col items-start space-y-2">
-      <p className="text-sm font-medium leading-4 text-gray-80">{translate('settings.general.theme.label')}</p>
+      <p className="text-sm leading-4 font-medium text-gray-80">{translate('settings.general.theme.label')}</p>
 
       {selectedTheme && <Select options={themes} value={selectedTheme} onValueChange={updatePreferedTheme} />}
     </div>

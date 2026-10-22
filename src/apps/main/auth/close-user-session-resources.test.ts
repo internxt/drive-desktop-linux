@@ -11,7 +11,6 @@ import * as initialSyncReadyModule from '../remote-sync/InitialSyncReady';
 import * as remoteSyncModule from '../remote-sync/service';
 import * as antivirusScanServiceModule from '../antivirus/AntivirusScanService';
 import * as antivirusManagerModule from '../antivirus/antivirusManager';
-import * as dependencyInjectionUserProviderModule from '../../shared/dependency-injection/DependencyInjectionUserProvider';
 import * as mailBridgeIpcModule from '../../../backend/features/mail-bridge/ipc/mail-bridge-ipc';
 import * as mailBridgeServiceModule from '../../../backend/features/mail-bridge/services/mail-bridge.service';
 
@@ -30,7 +29,6 @@ const cancelPendingRemoteSyncMock = partialSpyOn(remoteSyncModule, 'cancelPendin
 const resetRemoteSyncMock = partialSpyOn(remoteSyncModule.remoteSyncManager, 'resetRemoteSync');
 const cancelScanMock = partialSpyOn(antivirusScanServiceModule.AntivirusScanService, 'cancelScan');
 const getAntivirusManagerMock = partialSpyOn(antivirusManagerModule, 'getAntivirusManager');
-const clearUserMock = partialSpyOn(dependencyInjectionUserProviderModule.DependencyInjectionUserProvider, 'clearUser');
 const cancelAllJobsMock = partialSpyOn(tokenSchedulerModule.TokenScheduler, 'cancelAll');
 const clearMailBridgeIpcMock = partialSpyOn(mailBridgeIpcModule, 'clearMailBridgeIpc');
 const stopMailBridgeMock = partialSpyOn(mailBridgeServiceModule, 'stopMailBridge');
@@ -62,7 +60,6 @@ describe('close-user-session-resources', () => {
     calls(widget.hide).toHaveLength(1);
     calls(clearMailBridgeIpcMock).toHaveLength(1);
     calls(stopMailBridgeMock).toHaveLength(1);
-    calls(clearUserMock).toHaveLength(1);
     calls(cancelAllJobsMock).toHaveLength(1);
     calls(cancelPendingRemoteSyncMock).toHaveLength(1);
     call(setInitialSyncStateMock).toBe('NOT_READY');

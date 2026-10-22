@@ -12,7 +12,9 @@ export default defineConfig({
     ],
     exclude: [
       '**/node_modules/**',
+      'packages/core/**',
       '**/release/**',
+      'packages/core/**',
       'src/apps/renderer/**',
       'src/apps/backups/**',
       '**/*.test.tsx',

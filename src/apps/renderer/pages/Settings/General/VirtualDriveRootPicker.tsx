@@ -8,7 +8,7 @@ export default function VirtualDriveRootPicker() {
 
   return (
     <div className="flex w-full flex-col space-y-2">
-      <p className="text-sm font-medium leading-4 text-gray-80">
+      <p className="text-sm leading-4 font-medium text-gray-80">
         {translate('settings.general.virtual-drive-root.label')}
       </p>
 

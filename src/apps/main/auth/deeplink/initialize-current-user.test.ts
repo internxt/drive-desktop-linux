@@ -26,10 +26,8 @@ vi.mock('../update-credentials', () => ({
   updateCredentials: updateCredentialsMock,
 }));
 
-vi.mock('../../../shared/dependency-injection/DependencyInjectionUserProvider', () => ({
-  DependencyInjectionUserProvider: {
-    updateUser: updateUserMock,
-  },
+vi.mock('../../../../backend/features/auth/update-user', () => ({
+  updateUser: updateUserMock,
 }));
 
 describe('initializeCurrentUser', () => {
@@ -73,9 +71,11 @@ describe('initializeCurrentUser', () => {
     expect(updateCredentialsMock).toHaveBeenCalledWith({ newToken: 'new-token' });
     expect(configGetMock).toHaveBeenCalledWith('userData');
     expect(updateUserMock).toHaveBeenCalledWith({
-      ...currentUser,
-      ...refreshData.user,
-      mnemonic: currentUser.mnemonic,
+      user: {
+        ...currentUser,
+        ...refreshData.user,
+        mnemonic: currentUser.mnemonic,
+      },
     });
     expect(loggerMock.debug).toHaveBeenCalledWith({
       tag: 'AUTH',

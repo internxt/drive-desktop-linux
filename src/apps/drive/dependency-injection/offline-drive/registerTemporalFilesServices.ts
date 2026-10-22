@@ -15,13 +15,14 @@ import { TemporalFileRepository } from '../../../../context/storage/TemporalFile
 import { TemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/domain/upload/TemporalFileUploaderFactory';
 import { NodeTemporalFileRepository } from '../../../../context/storage/TemporalFiles/infrastructure/NodeTemporalFileRepository';
 import { EnvironmentTemporalFileUploaderFactory } from '../../../../context/storage/TemporalFiles/infrastructure/upload/EnvironmentTemporalFileUploaderFactory';
+import { getUser } from '../../../../backend/features/auth/get-user';
 import { PendingModificationTimes } from '../../../../context/virtual-drive/files/application/utimens/PendingModificationTimes';
-import { DependencyInjectionUserProvider } from '../../../shared/dependency-injection/DependencyInjectionUserProvider';
 import { PATHS } from '../../../../core/electron/paths';
 
 export function registerTemporalFilesServices(builder: ContainerBuilder) {
   // Infra
-  const user = DependencyInjectionUserProvider.get();
+  const { data: user, error } = getUser();
+  if (error) throw error;
 
   builder
     .register(TemporalFileRepository)

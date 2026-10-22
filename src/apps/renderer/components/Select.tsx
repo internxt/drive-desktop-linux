@@ -18,7 +18,7 @@ export default function Select(props: SelectProps) {
   const SelectItem = ({ value, name, ...props }: { value: string; name: string }) => (
     <RadixSelect.Item
       value={value}
-      className="flex h-7 items-center justify-start space-x-1 rounded-md pl-1.5 pr-4 outline-none data-[highlighted]:bg-primary data-[highlighted]:text-white"
+      className="flex h-7 items-center justify-start space-x-1 rounded-md pr-4 pl-1.5 outline-none data-[highlighted]:bg-primary data-[highlighted]:text-white"
       {...props}>
       <div className="flex w-4 items-center">
         <RadixSelect.ItemIndicator>
@@ -33,7 +33,7 @@ export default function Select(props: SelectProps) {
   return (
     <RadixSelect.Root onValueChange={props.onValueChange} value={props.value} disabled={props.disabled}>
       <RadixSelect.Trigger
-        className={`flex h-8 items-center space-x-1.5 truncate rounded-lg border bg-surface pl-3 pr-1.5 shadow-sm outline-none transition-all duration-75 ease-in-out active:bg-gray-1 dark:bg-gray-5 dark:active:border-gray-30 dark:active:bg-gray-10 ${
+        className={`flex h-8 items-center space-x-1.5 truncate rounded-lg border bg-surface pr-1.5 pl-3 shadow-sm transition-all duration-75 ease-in-out outline-none active:bg-gray-1 dark:bg-gray-5 dark:active:border-gray-30 dark:active:bg-gray-10 ${
           props.disabled ? 'pointer-events-none border-gray-5 text-gray-40' : 'border-gray-20 text-highlight'
         }`}
         aria-label={props.ariaLabel ?? undefined}>

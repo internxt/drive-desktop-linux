@@ -129,7 +129,7 @@ describe('tray-setup', () => {
     traySetup.setTrayStatus('IDLE');
 
     // Then — icon must NOT flip back to IDLE while file B is still syncing
-    const idleCalls = trayMenuInstance.setState.mock.calls.filter(([s]: [string]) => s === 'IDLE');
+    const idleCalls = trayMenuInstance.setState.mock.calls.filter(([s]) => s === 'IDLE');
     expect(idleCalls).toHaveLength(0);
   });
 

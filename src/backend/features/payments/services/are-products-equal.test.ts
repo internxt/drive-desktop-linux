@@ -5,15 +5,15 @@ describe('areProductsEqual', () => {
   it('should return false when stored is undefined', () => {
     const result = areProductsEqual({
       stored: undefined,
-      fetched: { backups: true, antivirus: false, cleaner: true },
+      fetched: { backups: true, antivirus: false, cleaner: true, mail: true },
     });
 
     expect(result).toBe(false);
   });
 
   it('should return true when all products are equal', () => {
-    const stored = { backups: true, antivirus: false, cleaner: true };
-    const fetched = { backups: true, antivirus: false, cleaner: true };
+    const stored = { backups: true, antivirus: false, cleaner: true, mail: true };
+    const fetched = { backups: true, antivirus: false, cleaner: true, mail: true };
 
     const result = areProductsEqual({ stored, fetched });
 
@@ -21,8 +21,8 @@ describe('areProductsEqual', () => {
   });
 
   it('should return false when backups differ', () => {
-    const stored = { backups: true, antivirus: false, cleaner: true };
-    const fetched = { backups: false, antivirus: false, cleaner: true };
+    const stored = { backups: true, antivirus: false, cleaner: true, mail: true };
+    const fetched = { backups: false, antivirus: false, cleaner: true, mail: true };
 
     const result = areProductsEqual({ stored, fetched });
 
@@ -30,8 +30,8 @@ describe('areProductsEqual', () => {
   });
 
   it('should return false when antivirus differ', () => {
-    const stored = { backups: true, antivirus: false, cleaner: true };
-    const fetched = { backups: true, antivirus: true, cleaner: true };
+    const stored = { backups: true, antivirus: false, cleaner: true, mail: true };
+    const fetched = { backups: true, antivirus: true, cleaner: true, mail: true };
 
     const result = areProductsEqual({ stored, fetched });
 
@@ -39,8 +39,8 @@ describe('areProductsEqual', () => {
   });
 
   it('should return false when cleaner differ', () => {
-    const stored = { backups: true, antivirus: false, cleaner: true };
-    const fetched = { backups: true, antivirus: false, cleaner: false };
+    const stored = { backups: true, antivirus: false, cleaner: true, mail: true };
+    const fetched = { backups: true, antivirus: false, cleaner: false, mail: true };
 
     const result = areProductsEqual({ stored, fetched });
 
@@ -48,8 +48,8 @@ describe('areProductsEqual', () => {
   });
 
   it('should return false when multiple products differ', () => {
-    const stored = { backups: true, antivirus: false, cleaner: true };
-    const fetched = { backups: false, antivirus: true, cleaner: false };
+    const stored = { backups: true, antivirus: false, cleaner: true, mail: true };
+    const fetched = { backups: false, antivirus: true, cleaner: false, mail: true };
 
     const result = areProductsEqual({ stored, fetched });
 
@@ -61,7 +61,7 @@ describe('areProductsEqual', () => {
       backups: true,
       antivirus: false,
     } as unknown as UserAvailableProducts;
-    const fetched = { backups: true, antivirus: false, cleaner: true };
+    const fetched = { backups: true, antivirus: false, cleaner: true, mail: true };
 
     const result = areProductsEqual({ stored, fetched });
 

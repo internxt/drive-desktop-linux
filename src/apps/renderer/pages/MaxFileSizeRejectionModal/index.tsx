@@ -21,7 +21,7 @@ export function MaxFileSizeRejectionModal() {
   return (
     <main className="flex h-screen w-screen items-center justify-center rounded-[20px] bg-transparent p-5 text-highlight">
       <section className="w-full max-w-[486px] bg-surface p-5 shadow-xl dark:bg-gray-1">
-        <h1 className="mb-4 text-xl font-medium leading-6">
+        <h1 className="mb-4 text-xl leading-6 font-medium">
           {modal.variant === 'single'
             ? translate('maxFileSizeRejectionModal.single.title')
             : translate('maxFileSizeRejectionModal.multiple.title')}

@@ -13,6 +13,7 @@ const fetchedProducts: UserAvailableProducts = {
   antivirus: true,
   backups: true,
   cleaner: false,
+  mail: false,
 };
 
 describe('getUserAvailableProductsAndStore', () => {
@@ -67,6 +68,7 @@ describe('getUserAvailableProductsAndStore', () => {
       antivirus: false,
       backups: false,
       cleaner: false,
+      mail: false,
     };
     configGetMock.mockReturnValue(storedProducts);
     getUserAvailableProductsMock.mockResolvedValue(fetchedProducts);
