@@ -12,6 +12,6 @@ export class VirtualDriveDependencyContainerFactory {
 
     await registerFolderServices(builder);
 
-    registerFilesServices(builder);
+    await registerFilesServices(builder);
   }
 }

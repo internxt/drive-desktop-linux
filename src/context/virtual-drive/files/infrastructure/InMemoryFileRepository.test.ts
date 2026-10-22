@@ -1,12 +1,34 @@
 import { InMemoryFileRepository } from './InMemoryFileRepository';
 import { FileAttributes, File } from '../domain/File';
 import { FileStatuses } from '../domain/FileStatus';
+import { FileMother } from '../domain/__test-helpers__/FileMother';
+import { FileNotFoundError } from '../domain/errors/FileNotFoundError';
 
 describe('InMemoryFileRepository', () => {
   let sut: InMemoryFileRepository;
 
   beforeEach(() => {
     sut = new InMemoryFileRepository();
+  });
+
+  it('should delete only the requested UUID from both indexes', async () => {
+    const removed = FileMother.fromPartial({ path: '/documents/removed.txt' });
+    const kept = FileMother.fromPartial({ path: '/documents/kept.txt' });
+    await sut.upsert(removed);
+    await sut.upsert(kept);
+
+    await sut.delete(removed.uuid);
+
+    expect(await sut.searchByUuid(removed.uuid)).toBeUndefined();
+    expect(await sut.searchByContentsId(removed.contentsId)).toBeUndefined();
+    expect(await sut.searchByUuid(kept.uuid)).toStrictEqual(kept);
+    expect(await sut.searchByContentsId(kept.contentsId)).toStrictEqual(kept);
+  });
+
+  it('should report a missing UUID when deleting a file', () => {
+    const file = FileMother.any();
+
+    expect(() => sut.delete(file.uuid)).toThrow(FileNotFoundError);
   });
 
   it('should return an empty array if no contentsIds are provided', async () => {
