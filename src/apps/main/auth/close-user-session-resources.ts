@@ -11,6 +11,7 @@ import { remoteSyncManager, cancelPendingRemoteSync } from '../remote-sync/servi
 import { AntivirusScanService } from '../antivirus/AntivirusScanService';
 import { getAntivirusManager } from '../antivirus/antivirusManager';
 import { tryCatch } from '../../../shared/try-catch';
+import { clearMailBridgeIpc, stopMailBridge } from '../../../backend/features/mail-bridge';
 
 let closeUserSessionResourcesInFlight: Promise<void> | undefined;
 
@@ -29,8 +30,16 @@ async function executeCloseUserSessionResources() {
     (error) =>
       logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'hide-widget-and-tray', error }),
   );
-
   await Promise.all([
+    tryCatch(
+      async () => {
+        clearMailBridgeIpc();
+        const result = await stopMailBridge();
+        if (result.error) throw result.error;
+      },
+      (error) =>
+        logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'stop-mail-bridge', error }),
+    ),
     tryCatch(TokenScheduler.cancelAll, (error) =>
       logger.error({
         tag: 'AUTH',

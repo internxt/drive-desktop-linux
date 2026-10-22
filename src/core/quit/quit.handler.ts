@@ -1,6 +1,7 @@
 import { app, ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { stopVirtualDriveOnce } from '../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
+import { stopMailBridge } from '../../backend/features/mail-bridge';
 
 export function registerQuitHandler() {
   let isQuitting = false;
@@ -12,7 +13,7 @@ export function registerQuitHandler() {
 
     isQuitting = true;
     logger.debug({ msg: '[APP] quitting, stopping virtual drive...' });
-    await stopVirtualDriveOnce();
+    await Promise.all([stopMailBridge(), stopVirtualDriveOnce()]);
     logger.debug({ msg: '[APP] virtual drive stopped, quitting' });
     app.quit();
   };

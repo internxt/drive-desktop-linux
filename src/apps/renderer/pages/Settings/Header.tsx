@@ -1,4 +1,4 @@
-import { At, Gear, Icon, Shield, Sparkle } from '@phosphor-icons/react';
+import { At, Gear, Icon, Shield, Sparkle, Envelope } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 
 import { useTranslationContext } from '../../context/LocalContext';
@@ -20,11 +20,11 @@ function Item({
     <button
       onClick={onClick}
       type="button"
-      className={`relative flex w-20 cursor-pointer flex-col items-center rounded-lg px-4 py-1.5 transition-colors duration-100 ease-in-out outline-none ${
+      className={`relative flex w-20 cursor-pointer flex-col items-center rounded-lg px-1 py-1.5 transition-colors duration-100 ease-in-out outline-none ${
         isActive ? 'text-gray-100' : 'text-gray-50 hover:text-gray-60 active:text-gray-80'
       }`}>
       <Icon size={28} />
-      <p className="text-xs font-medium capitalize">{title.toLowerCase()}</p>
+      <p className="text-xs font-medium whitespace-nowrap capitalize">{title.toLowerCase()}</p>
     </button>
   );
 }
@@ -40,6 +40,7 @@ export default function Header({ onClick, active }: { onClick: (active: Section)
     { label: 'BACKUPS', icon: UilHistory },
     { label: 'ANTIVIRUS', icon: Shield },
     { label: 'CLEANER', icon: Sparkle },
+    { label: 'MAIL_BRIDGE', icon: Envelope },
   ];
 
   const animationVariants: Record<Section, { left: string }> = sectionValues.reduce(

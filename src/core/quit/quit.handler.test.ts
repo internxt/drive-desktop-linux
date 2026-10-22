@@ -51,7 +51,7 @@ describe('quit', () => {
 
     const preventDefault = vi.fn();
     beforeQuitHandler({ preventDefault } as unknown as Electron.Event);
-    await Promise.resolve();
+    await vi.waitFor(() => expect(appQuitMock).toBeCalled());
 
     expect(preventDefault).toBeCalled();
     expect(stopVirtualDriveMock).toBeCalled();
@@ -69,7 +69,7 @@ describe('quit', () => {
 
     const preventDefault = vi.fn();
     beforeQuitHandler({ preventDefault } as unknown as Electron.Event);
-    await Promise.resolve();
+    await vi.waitFor(() => expect(appQuitMock).toBeCalled());
 
     expect(stopVirtualDriveMock).toBeCalledTimes(1);
     expect(preventDefault).not.toBeCalled();

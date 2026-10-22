@@ -9,8 +9,8 @@
         "url": "https://github.com/internxt/drive-desktop-linux"
     },
     "scripts": {
-        "build": "concurrently \"npm run build:main\" \"npm run build:renderer\" \"npm run build:daemon\"",
-        "build:daemon": "make -C packages/fuse-daemon build",
+        "prebuild": "npm run build:mail-bridge && npm run build:daemon",
+        "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
         "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
         "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
         "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir .",
@@ -42,9 +42,13 @@
         "generate_schema": "openapi-typescript http://localhost:3005/api-json -o ./src/infra/schemas.d.ts",
         "generate_schema:prod": "openapi-typescript https://drive-server.internxt.com/api-json -o ./src/infra/schemas.d.ts",
         "find-deadcode": "knip --max-issues=95",
+        "========== Fuse Daemon ==========": "",
+        "build:daemon": "make -C packages/fuse-daemon build",
         "========== Core ==========": "",
         "build:core": "npm --prefix packages/core run build",
-        "core:bump": "node scripts/bump-core.js"
+        "core:bump": "node scripts/bump-core.js",
+        "========== Mail Bridge ==========": "",
+        "build:mail-bridge": "node scripts/download-mail-bridge.cjs"
     },
     "build": {
         "productName": "Internxt",
@@ -96,6 +100,10 @@
             "output": "build"
         },
         "extraResources": [
+            {
+                "from": ".mail-bridge/mail-bridge",
+                "to": "mail-bridge/mail-bridge"
+            },
             "./assets/**",
             "./clamAV/**",
             "./src/apps/nautilus-extension/internxt-virtual-drive.py",
@@ -228,7 +236,7 @@
         "webpack-merge": "^5.8.0"
     },
     "dependencies": {
-        "@internxt/drive-desktop-core": "file:packages/core/internxt-drive-desktop-core-1.4.5.tgz",
+        "@internxt/drive-desktop-core": "file:packages/core/internxt-drive-desktop-core-1.4.6.tgz",
         "@internxt/inxt-js": "^3.3.1",
         "@internxt/scan": "^1.0.7",
         "@internxt/sdk": "1.17.4",

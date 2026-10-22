@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,6 +13,8 @@ import (
 	"time"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
+
+	"github.com/hanwen/go-fuse/v2/fuse"
 )
 
 type releaseRequest struct {
@@ -266,6 +269,18 @@ func TestRead(t *testing.T) {
 		})
 
 		fileName := fmt.Sprintf("file-%d.txt", time.Now().UnixNano())
+		daemonFile := NewInternxtFile(
+			fileName, 0, "test", slog.Default(),
+			client.NewClient(sharedMount.mockServer.socket.Addr().String()),
+		)
+		result, status := daemonFile.Read(make([]byte, 1024), 0)
+		if status != fuse.ENOENT {
+			t.Fatalf("expected daemon Read to return ENOENT, got %v", status)
+		}
+		if result != nil {
+			t.Fatal("expected no read result for ENOENT")
+		}
+
 		_, err := os.ReadFile(filepath.Join(sharedMount.mountPoint, fileName))
 		if err == nil {
 			t.Fatal("expected error, got nil")
