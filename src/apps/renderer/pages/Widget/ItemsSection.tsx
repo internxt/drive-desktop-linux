@@ -1,5 +1,6 @@
 import { FolderSimple, Gear, Globe } from '@phosphor-icons/react';
 import { Menu, Transition } from '@headlessui/react';
+import { NewBadge } from '@internxt/drive-desktop-core/build/frontend';
 
 import { useTranslationContext } from '../../context/LocalContext';
 import { useSyncContext } from '../../context/SyncContext';
@@ -112,6 +113,21 @@ export function ItemsSection({ numberOfIssues, numberOfIssuesDisplay, onQuitClic
                         onClick={() => window.electron.openSettingsWindow('CLEANER')}
                         data-automation-id="menuItemCleaner">
                         <span>{translate('widget.header.dropdown.cleaner')}</span>
+                      </DropdownItem>
+                    </div>
+                  )}
+                </Menu.Item>
+                <Menu.Item>
+                  {({ active }) => (
+                    <div>
+                      <DropdownItem
+                        active={active}
+                        onClick={() => window.electron.openSettingsWindow('MAIL_BRIDGE')}
+                        data-automation-id="menuItemMailBridge">
+                        <div className="flex flex-row items-center justify-end gap-4">
+                          <span>{translate('widget.header.dropdown.mailBridge')}</span>
+                          <NewBadge label={translate('widget.header.dropdown.new')} />
+                        </div>
                       </DropdownItem>
                     </div>
                   )}

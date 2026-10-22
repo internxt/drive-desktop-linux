@@ -3,7 +3,10 @@ const colors = require('tailwindcss/colors');
 
 module.exports = {
   darkMode: 'class',
-  content: ['./src/**/*.tsx'],
+  content: [
+    './src/**/*.tsx',
+    './node_modules/@internxt/drive-desktop-core/build/frontend/**/*.{js,jsx}',
+  ],
   theme: {
     colors: {
       debug: 'green',
