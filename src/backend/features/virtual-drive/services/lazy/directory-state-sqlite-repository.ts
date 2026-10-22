@@ -3,7 +3,6 @@ import { DIRECTORY_STATE_TTL_MS } from './constants';
 import type {
   DirectoryStateFreshnessProps,
   DirectoryStateErrorProps,
-  DirectoryStateInvalidationProps,
   DirectoryStateOperationProps,
   DirectoryStateRepositoryProps,
 } from './types';
