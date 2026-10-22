@@ -2,6 +2,8 @@ import { safeStorage } from 'electron';
 
 import ConfigStore from '../config';
 import { User } from '../types';
+import { updateMailBridgeAccessToken } from '../../../backend/features/mail-bridge/services/mail-bridge.service';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 const TOKEN_ENCODING = 'latin1';
 
@@ -37,4 +39,9 @@ export async function updateCredentials({ newToken, mnemonic, userData }: Props)
   ConfigStore.set('mnemonic', mnemonicString);
   ConfigStore.set('mnemonicEncrypted', isSafeStorageAvailable);
   if (userData) ConfigStore.set('userData', userData);
+
+  const bridgeUpdate = await updateMailBridgeAccessToken({ token: newToken });
+  if (bridgeUpdate.error) {
+    logger.warn({ tag: 'AUTH', msg: 'Could not refresh Mail Bridge access token', error: bridgeUpdate.error });
+  }
 }

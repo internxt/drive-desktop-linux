@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,6 +13,8 @@ import (
 	"time"
 
 	"internxt/drive-desktop-linux/fuse-daemon/internal/client"
+
+	"github.com/hanwen/go-fuse/v2/fuse"
 )
 
 type releaseRequest struct {
@@ -250,7 +253,7 @@ func TestRead(t *testing.T) {
 		}
 	})
 
-	t.Run("returns ENOENT when errno is 2", func(t *testing.T) {
+	t.Run("preserves backend ENOENT and fails the mounted read", func(t *testing.T) {
 		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
 			client.OperationGetAttr: nonEmptyFileAttrHandler(1024),
 			client.OperationOpen: func(w http.ResponseWriter, r *http.Request) {
@@ -264,6 +267,18 @@ func TestRead(t *testing.T) {
 		})
 
 		fileName := fmt.Sprintf("file-%d.txt", time.Now().UnixNano())
+		daemonFile := NewInternxtFile(
+			fileName, 0, "test", slog.Default(),
+			client.NewClient(sharedMount.mockServer.socket.Addr().String()),
+		)
+		result, status := daemonFile.Read(make([]byte, 1024), 0)
+		if status != fuse.ENOENT {
+			t.Fatalf("expected daemon Read to return ENOENT, got %v", status)
+		}
+		if result != nil {
+			t.Fatal("expected no read result for ENOENT")
+		}
+
 		_, err := os.ReadFile(filepath.Join(sharedMount.mountPoint, fileName))
 		if err == nil {
 			t.Fatal("expected error, got nil")
@@ -274,8 +289,10 @@ func TestRead(t *testing.T) {
 			t.Fatalf("expected *os.PathError, got %T", err)
 		}
 
-		if pathErr.Err != syscall.ENOENT {
-			t.Errorf("expected ENOENT, got %v", pathErr.Err)
+		// Buffered FUSE reads can surface the backend error as EIO. The direct
+		// Read assertion above verifies that the daemon preserves ENOENT.
+		if pathErr.Err != syscall.ENOENT && pathErr.Err != syscall.EIO {
+			t.Errorf("expected ENOENT or buffered-read EIO, got %v", pathErr.Err)
 		}
 	})
 }
