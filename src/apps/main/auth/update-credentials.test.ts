@@ -3,12 +3,15 @@ import { updateCredentials } from './update-credentials';
 import ConfigStore from '../config';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { User } from '../types';
+import * as mailBridge from '../../../backend/features/mail-bridge/services/mail-bridge.service';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 describe('updateCredentials', () => {
   const configGetMock = partialSpyOn(ConfigStore, 'get');
   const configSetMock = partialSpyOn(ConfigStore, 'set');
   const safeStorageIsAvailableMock = partialSpyOn(safeStorage, 'isEncryptionAvailable');
   const safeStorageEncryptMock = partialSpyOn(safeStorage, 'encryptString');
+  const updateMailBridgeAccessTokenMock = partialSpyOn(mailBridge, 'updateMailBridgeAccessToken');
 
   const plainToken = 'plain-token-123';
   const plainMnemonic = 'plain mnemonic words here';
@@ -42,6 +45,37 @@ describe('updateCredentials', () => {
 
   beforeEach(() => {
     safeStorageEncryptMock.mockReset();
+    updateMailBridgeAccessTokenMock.mockResolvedValue({ data: undefined });
+  });
+
+  it('forwards the plaintext access token to the shared bridge lifecycle after storing it', async () => {
+    safeStorageIsAvailableMock.mockReturnValue(true);
+    safeStorageEncryptMock.mockReturnValue(encryptedTokenBuffer);
+    configGetMock.mockReturnValue(existingMnemonic);
+
+    await updateCredentials({ newToken: plainToken });
+
+    expect(configSetMock).toBeCalledWith('newToken', encryptedTokenBuffer.toString('latin1'));
+    expect(updateMailBridgeAccessTokenMock).toHaveBeenCalledWith({ token: plainToken });
+    expect(configSetMock.mock.invocationCallOrder[0]).toBeLessThan(
+      updateMailBridgeAccessTokenMock.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('keeps the credentials saved when the bridge returns a token update error', async () => {
+    safeStorageIsAvailableMock.mockReturnValue(false);
+    configGetMock.mockReturnValue(existingMnemonic);
+    const error = new Error('Bridge control channel is closed');
+    updateMailBridgeAccessTokenMock.mockResolvedValue({ error });
+
+    await expect(updateCredentials({ newToken: plainToken })).resolves.toBeUndefined();
+
+    expect(configSetMock).toBeCalledWith('newToken', plainToken);
+    expect(logger.warn).toHaveBeenCalledWith({
+      tag: 'AUTH',
+      msg: 'Could not refresh Mail Bridge access token',
+      error,
+    });
   });
 
   describe('when safeStorage is available', () => {

@@ -7,8 +7,9 @@ import {
 } from '@internxt/drive-desktop-core/build/backend/features/mail-bridge';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { PATHS } from '../../../../core/electron/paths';
-import { getMailBridgeProcessEnvironment } from '../mail-bridge-config';
-import { createControlEndpoint, removeControlDirectory } from '../utils/create-control-endpoint';
+import { getMailBridgeProcessEnvironment } from '../config/get-mail-bridge-process-environment';
+import { createControlEndpoint } from '../utils/create-control-endpoint/create-control-endpoint';
+import { removeControlDirectory } from '../utils/create-control-endpoint/remove-control-directory';
 
 /** Linux paths and socket operations consumed by the shared bridge lifecycle. */
 export const linuxMailBridgePlatform: MailBridgePlatform = {

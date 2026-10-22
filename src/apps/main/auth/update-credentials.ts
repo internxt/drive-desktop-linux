@@ -2,7 +2,6 @@ import { safeStorage } from 'electron';
 
 import ConfigStore from '../config';
 import { User } from '../types';
-
 import { updateMailBridgeAccessToken } from '../../../backend/features/mail-bridge/services/mail-bridge.service';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
