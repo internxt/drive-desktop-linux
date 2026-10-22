@@ -111,6 +111,7 @@ describe('RemoteSyncManager', () => {
         fetchFoldersLimitPerRequest: 2,
         syncFiles: true,
         syncFolders: true,
+        retryDelayMs: 0,
       },
       errorHandler,
     );
@@ -333,6 +334,68 @@ describe('RemoteSyncManager', () => {
 
       expect(errorHandlerSpy).toHaveBeenCalled();
       expect(errorHandlerSpy.mock.calls[0][1]).toBe('folders');
+    });
+
+    it('should synchronize folders before files sequentially', async () => {
+      const callOrder: string[] = [];
+      mockedGet.mockImplementation(async (endpoint: unknown) => {
+        if (endpoint === '/folders/sync') {
+          callOrder.push('folders');
+          return { data: { folders: [], nextCursor: null } };
+        }
+        if (endpoint === '/files/sync') {
+          callOrder.push('files');
+          return { data: { files: [], nextCursor: null } };
+        }
+        return { data: [] };
+      });
+
+      await sut.startRemoteSync();
+
+      expect(callOrder).toStrictEqual(['folders', 'files']);
+      expect(sut.getSyncStatus()).toBe('SYNCED');
+    });
+
+    it('should query status EXISTS for folders during bootstrap without checkpoint', async () => {
+      inMemorySyncedFoldersCollection.getLastUpdated = () => Promise.resolve({ success: false, result: null });
+
+      const folderQueries: Array<{ status?: string } | undefined> = [];
+      mockedGet.mockImplementation(async (endpoint: unknown, config: unknown) => {
+        if (endpoint === '/folders/sync') {
+          folderQueries.push((config as { query?: { status?: string } } | undefined)?.query);
+          return { data: { folders: [], nextCursor: null } };
+        }
+        return { data: { files: [], nextCursor: null } };
+      });
+
+      await sut.startRemoteSync();
+
+      expect(folderQueries).toHaveLength(1);
+      expect(folderQueries[0]?.status).toBe('EXISTS');
+      expect(sut.getSyncStatus()).toBe('SYNCED');
+    });
+
+    it('should omit status for folders during incremental sync with checkpoint', async () => {
+      inMemorySyncedFoldersCollection.getLastUpdated = () =>
+        Promise.resolve({
+          success: true,
+          result: { updatedAt: new Date('2026-01-01T12:00:00Z').toISOString() } as DriveFolder,
+        });
+
+      const folderQueries: Array<{ status?: string } | undefined> = [];
+      mockedGet.mockImplementation(async (endpoint: unknown, config: unknown) => {
+        if (endpoint === '/folders/sync') {
+          folderQueries.push((config as { query?: { status?: string } } | undefined)?.query);
+          return { data: { folders: [], nextCursor: null } };
+        }
+        return { data: { files: [], nextCursor: null } };
+      });
+
+      await sut.startRemoteSync();
+
+      expect(folderQueries).toHaveLength(1);
+      expect(folderQueries[0]?.status).toBeUndefined();
+      expect(sut.getSyncStatus()).toBe('SYNCED');
     });
   });
 });

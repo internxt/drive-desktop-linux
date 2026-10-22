@@ -5,6 +5,7 @@ import type {
   DirectoryStateErrorProps,
   DirectoryStateOperationProps,
   DirectoryStateRepositoryProps,
+  SqliteQueryExecutor,
 } from './types';
 
 async function getState({ dataSource = AppDataSource, folderId, statusScope }: DirectoryStateOperationProps) {
@@ -59,6 +60,34 @@ async function markError({
   );
 }
 
+async function getFreshDirectoryStates({
+  dataSource = AppDataSource,
+  statusScope = 'EXISTS',
+  ttlMs = DIRECTORY_STATE_TTL_MS,
+}: {
+  dataSource?: SqliteQueryExecutor;
+  statusScope?: string;
+  ttlMs?: number;
+} = {}): Promise<Map<number, Date>> {
+  if (!dataSource.isInitialized) {
+    return new Map();
+  }
+
+  const cutoff = new Date(Date.now() - ttlMs).toISOString();
+  const rows = await dataSource.query(
+    'SELECT folder_id, children_loaded_at FROM drive_directory_state WHERE status_scope = ? AND children_loaded_at > ?',
+    [statusScope, cutoff],
+  );
+
+  const states = new Map<number, Date>();
+  for (const row of rows) {
+    if (row.folder_id === undefined || row.children_loaded_at === null) continue;
+    states.set(row.folder_id, new Date(row.children_loaded_at));
+  }
+
+  return states;
+}
+
 async function invalidate({ dataSource = AppDataSource, folderId, statusScope }: DirectoryStateOperationProps) {
   await dataSource.query('DELETE FROM drive_directory_state WHERE folder_id = ? AND status_scope = ?', [
     folderId,
@@ -73,6 +102,7 @@ async function clear({ dataSource = AppDataSource }: DirectoryStateRepositoryPro
 export const DirectoryStateRepository = {
   getState,
   isFresh,
+  getFreshDirectoryStates,
   markLoaded,
   markError,
   invalidate,

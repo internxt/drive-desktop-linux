@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
-import { RemoteSyncedFile } from '../../../../../apps/main/remote-sync/helpers';
+import { RemoteSyncedFile, RemoteSyncedFolder } from '../../../../../apps/main/remote-sync/helpers';
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
@@ -13,6 +13,7 @@ import { mapFile } from '../../../remote-sync/map-file';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
 import { recordSynchronizationFailure } from './record-synchronization-failure';
 import { removeStaleChildren } from './remove-stale-children';
+import { runWithDirectoryMetadataWriteLock } from './run-with-directory-metadata-write-lock';
 
 type Props = {
   folder: Folder;
@@ -20,18 +21,20 @@ type Props = {
   fileRepository: FileRepository;
 };
 
-export async function synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository }: Props) {
+type WriteFetchedDirectoryProps = Props & {
+  remoteFolders: RemoteSyncedFolder[];
+  remoteFiles: RemoteSyncedFile[];
+};
+
+async function writeFetchedDirectory({
+  folder,
+  folderRepository,
+  fileRepository,
+  remoteFolders,
+  remoteFiles,
+}: WriteFetchedDirectoryProps) {
   let localMutationStarted = false;
   try {
-    const response = await fetchFolder(folder.uuid);
-
-    if (response.error) {
-      return recordSynchronizationFailure({ folder, error: response.error, localMutationStarted });
-    }
-
-    const remoteFolders = response.data.children.filter(isExistingFolder);
-    const remoteFiles = response.data.files.filter(isExistingFile).map(mapFile);
-
     // better-sqlite3 has one writer connection, so these batches must remain sequential.
     localMutationStarted = true;
     // A partial refresh must not leave a previous successful load eligible for fallback.
@@ -73,6 +76,32 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
   } catch (error) {
     // Repository and sqlite operations still reject. Fold those failures into the same Result.
     return recordSynchronizationFailure({ folder, error, localMutationStarted });
+  }
+}
+
+export async function synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository }: Props) {
+  try {
+    const response = await fetchFolder(folder.uuid);
+
+    if (response.error) {
+      return recordSynchronizationFailure({ folder, error: response.error, localMutationStarted: false });
+    }
+
+    const remoteFolders = response.data.children.filter(isExistingFolder);
+    const remoteFiles = response.data.files.filter(isExistingFile).map(mapFile);
+
+    return await runWithDirectoryMetadataWriteLock({
+      operation: () =>
+        writeFetchedDirectory({
+          folder,
+          folderRepository,
+          fileRepository,
+          remoteFolders,
+          remoteFiles,
+        }),
+    });
+  } catch (error) {
+    return recordSynchronizationFailure({ folder, error, localMutationStarted: false });
   }
 }
 

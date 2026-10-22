@@ -5,7 +5,7 @@ import { DirectoryStateRow } from './types';
 describe('directory-state-sqlite-repository', () => {
   const queryMock = vi.fn<(statement: string, parameters?: Array<unknown>) => Promise<Array<DirectoryStateRow>>>();
   const stateProps = { folderId: 42, statusScope: 'EXISTS' as const };
-  const dataSource = { query: queryMock };
+  const dataSource = { isInitialized: true, query: queryMock };
 
   beforeEach(() => {
     queryMock.mockResolvedValue([]);
@@ -93,15 +93,6 @@ describe('directory-state-sqlite-repository', () => {
       ]);
     },
   );
-
-  it('should invalidate a directory state', async () => {
-    await DirectoryStateRepository.invalidate({ dataSource, ...stateProps });
-
-    call(queryMock).toStrictEqual([
-      'DELETE FROM drive_directory_state WHERE folder_id = ? AND status_scope = ?',
-      [42, 'EXISTS'],
-    ]);
-  });
 
   it('should invalidate a directory state', async () => {
     await DirectoryStateRepository.invalidate({ dataSource, ...stateProps });
