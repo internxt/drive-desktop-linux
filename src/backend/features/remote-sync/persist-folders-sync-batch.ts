@@ -1,6 +1,7 @@
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { createOrUpdateFolderByBatch } from '../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
 import { DirectoryStateRepository } from '../virtual-drive/services/lazy/directory-state-sqlite-repository';
+import { runWithDirectoryMetadataWriteLock } from '../virtual-drive/services/lazy/run-with-directory-metadata-write-lock';
 import { filterStaleRemoteFolders } from './filter-stale-remote-items';
 import { mapFolder } from './map-folder';
 import type { FolderSyncDto } from './types';
@@ -9,7 +10,7 @@ type Props = {
   items: FolderSyncDto[];
 };
 
-export async function persistFoldersSyncBatch({ items }: Props) {
+async function writeFoldersFromFreshSnapshot({ items }: Props) {
   const freshDirectoryStates = await DirectoryStateRepository.getFreshDirectoryStates();
   const { foldersToPersist, foldersToInvalidate } = filterStaleRemoteFolders({
     folders: items.map(mapFolder),
@@ -26,4 +27,10 @@ export async function persistFoldersSyncBatch({ items }: Props) {
   );
 
   return Result.ok(undefined);
+}
+
+export function persistFoldersSyncBatch({ items }: Props) {
+  return runWithDirectoryMetadataWriteLock({
+    operation: () => writeFoldersFromFreshSnapshot({ items }),
+  });
 }

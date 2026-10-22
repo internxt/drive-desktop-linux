@@ -359,16 +359,20 @@ describe('RemoteSyncManager', () => {
     it('should query status EXISTS for folders during bootstrap without checkpoint', async () => {
       inMemorySyncedFoldersCollection.getLastUpdated = () => Promise.resolve({ success: false, result: null });
 
+      const folderQueries: Array<{ status?: string } | undefined> = [];
       mockedGet.mockImplementation(async (endpoint: unknown, config: unknown) => {
         if (endpoint === '/folders/sync') {
-          const query = (config as { query: { status: string } })?.query;
-          expect(query.status).toBe('EXISTS');
+          folderQueries.push((config as { query?: { status?: string } } | undefined)?.query);
           return { data: { folders: [], nextCursor: null } };
         }
         return { data: { files: [], nextCursor: null } };
       });
 
       await sut.startRemoteSync();
+
+      expect(folderQueries).toHaveLength(1);
+      expect(folderQueries[0]?.status).toBe('EXISTS');
+      expect(sut.getSyncStatus()).toBe('SYNCED');
     });
 
     it('should omit status for folders during incremental sync with checkpoint', async () => {
@@ -378,16 +382,20 @@ describe('RemoteSyncManager', () => {
           result: { updatedAt: new Date('2026-01-01T12:00:00Z').toISOString() } as DriveFolder,
         });
 
+      const folderQueries: Array<{ status?: string } | undefined> = [];
       mockedGet.mockImplementation(async (endpoint: unknown, config: unknown) => {
         if (endpoint === '/folders/sync') {
-          const query = (config as { query: { status?: string } })?.query;
-          expect(query.status).toBeUndefined();
+          folderQueries.push((config as { query?: { status?: string } } | undefined)?.query);
           return { data: { folders: [], nextCursor: null } };
         }
         return { data: { files: [], nextCursor: null } };
       });
 
       await sut.startRemoteSync();
+
+      expect(folderQueries).toHaveLength(1);
+      expect(folderQueries[0]?.status).toBeUndefined();
+      expect(sut.getSyncStatus()).toBe('SYNCED');
     });
   });
 });
