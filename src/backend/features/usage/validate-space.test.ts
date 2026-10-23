@@ -1,14 +1,14 @@
 import { vi } from 'vitest';
 import { validateSpace } from './validate-space';
-import { getRawUsageAndLimit } from './get-raw-usage-and-limit';
+import { getCachedRawUsageAndLimit } from './get-cached-raw-usage-and-limit';
 import { Result } from '../../../context/shared/domain/Result';
 import { RawUsage } from './usage.types';
 
-vi.mock('./get-raw-usage-and-limit', () => ({
-  getRawUsageAndLimit: vi.fn(),
+vi.mock('./get-cached-raw-usage-and-limit', () => ({
+  getCachedRawUsageAndLimit: vi.fn(),
 }));
 
-const mockGetRawUsageAndLimit = vi.mocked(getRawUsageAndLimit);
+const mockGetCachedRawUsageAndLimit = vi.mocked(getCachedRawUsageAndLimit);
 
 describe('validateSpace', () => {
   beforeEach(() => {
@@ -21,13 +21,13 @@ describe('validateSpace', () => {
       limitInBytes: 5120,
     };
     const mockResult: Result<RawUsage, Error> = { data: mockUsageData };
-    mockGetRawUsageAndLimit.mockResolvedValue(mockResult);
+    mockGetCachedRawUsageAndLimit.mockResolvedValue(mockResult);
 
     const result = await validateSpace(2048); // Requesting 2048 bytes when 4096 available
 
     expect(result.data).toEqual({ hasSpace: true });
     expect(result.error).toBeUndefined();
-    expect(mockGetRawUsageAndLimit).toHaveBeenCalledTimes(1);
+    expect(mockGetCachedRawUsageAndLimit).toHaveBeenCalledTimes(1);
   });
 
   it('should return hasSpace as false when not enough space is available', async () => {
@@ -36,13 +36,13 @@ describe('validateSpace', () => {
       limitInBytes: 5120,
     };
     const mockResult: Result<RawUsage, Error> = { data: mockUsageData };
-    mockGetRawUsageAndLimit.mockResolvedValue(mockResult);
+    mockGetCachedRawUsageAndLimit.mockResolvedValue(mockResult);
 
     const result = await validateSpace(4096); // Requesting 4096 bytes when only 2048 available
 
     expect(result.data).toEqual({ hasSpace: false });
     expect(result.error).toBeUndefined();
-    expect(mockGetRawUsageAndLimit).toHaveBeenCalledTimes(1);
+    expect(mockGetCachedRawUsageAndLimit).toHaveBeenCalledTimes(1);
   });
 
   it('should return hasSpace as true when requested space equals available space', async () => {
@@ -51,7 +51,7 @@ describe('validateSpace', () => {
       limitInBytes: 5120,
     };
     const mockResult: Result<RawUsage, Error> = { data: mockUsageData };
-    mockGetRawUsageAndLimit.mockResolvedValue(mockResult);
+    mockGetCachedRawUsageAndLimit.mockResolvedValue(mockResult);
 
     const result = await validateSpace(3072); // Requesting exactly what's available
 
@@ -65,7 +65,7 @@ describe('validateSpace', () => {
       limitInBytes: 5120,
     };
     const mockResult: Result<RawUsage, Error> = { data: mockUsageData };
-    mockGetRawUsageAndLimit.mockResolvedValue(mockResult);
+    mockGetCachedRawUsageAndLimit.mockResolvedValue(mockResult);
 
     const result = await validateSpace(10240); // Requesting more than total limit
 
@@ -79,7 +79,7 @@ describe('validateSpace', () => {
       limitInBytes: 5120,
     };
     const mockResult: Result<RawUsage, Error> = { data: mockUsageData };
-    mockGetRawUsageAndLimit.mockResolvedValue(mockResult);
+    mockGetCachedRawUsageAndLimit.mockResolvedValue(mockResult);
 
     const result = await validateSpace(0); // Requesting 0 bytes
 
@@ -93,23 +93,23 @@ describe('validateSpace', () => {
     expect(result.error).toBeInstanceOf(Error);
     expect(result.error?.message).toBe('Desired space to use must be a finite non-negative number');
     expect(result.data).toBeUndefined();
-    expect(mockGetRawUsageAndLimit).not.toHaveBeenCalled();
+    expect(mockGetCachedRawUsageAndLimit).not.toHaveBeenCalled();
   });
 
-  it('should return error when getRawUsageAndLimit returns an error', async () => {
+  it('should return error when the usage reading returns an error', async () => {
     const mockError = new Error('Failed to get usage');
     const mockResult: Result<RawUsage, Error> = { error: mockError };
-    mockGetRawUsageAndLimit.mockResolvedValue(mockResult);
+    mockGetCachedRawUsageAndLimit.mockResolvedValue(mockResult);
 
     const result = await validateSpace(1024);
 
     expect(result.error).toBe(mockError);
     expect(result.data).toBeUndefined();
-    expect(mockGetRawUsageAndLimit).toHaveBeenCalledTimes(1);
+    expect(mockGetCachedRawUsageAndLimit).toHaveBeenCalledTimes(1);
   });
 
   it('should return error when an unexpected error occurs', async () => {
-    mockGetRawUsageAndLimit.mockRejectedValue(new Error('IPC error'));
+    mockGetCachedRawUsageAndLimit.mockRejectedValue(new Error('IPC error'));
 
     const result = await validateSpace(1024);
 
@@ -119,7 +119,7 @@ describe('validateSpace', () => {
   });
 
   it('should return error when a non-Error exception is thrown', async () => {
-    mockGetRawUsageAndLimit.mockRejectedValue('String error');
+    mockGetCachedRawUsageAndLimit.mockRejectedValue('String error');
 
     const result = await validateSpace(1024);
 
@@ -134,7 +134,7 @@ describe('validateSpace', () => {
       limitInBytes: 10000,
     };
     const mockResult: Result<RawUsage, Error> = { data: mockUsageData };
-    mockGetRawUsageAndLimit.mockResolvedValue(mockResult);
+    mockGetCachedRawUsageAndLimit.mockResolvedValue(mockResult);
 
     // Available space = 10000 - 2000 = 8000
     const result1 = await validateSpace(8000);
