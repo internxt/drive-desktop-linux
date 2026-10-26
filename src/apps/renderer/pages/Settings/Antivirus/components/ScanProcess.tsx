@@ -27,7 +27,7 @@ export const ScanProcess = ({ currentScanPath, scannedProcess, stopScanProcess, 
           {isCountingFiles ? (
             <div
               data-testid="counting-progress"
-              className="h-full w-full rounded-full bg-primary [animation:antivirus-count-stripes_1s_infinite_linear]"
+              className="h-full w-full [animation:antivirus-count-stripes_1s_infinite_linear] rounded-full bg-primary"
               style={{
                 backgroundImage:
                   'linear-gradient(45deg, rgb(255 255 255 / 0.25) 25%, transparent 25%, transparent 50%, rgb(255 255 255 / 0.25) 50%, rgb(255 255 255 / 0.25) 75%, transparent 75%, transparent)',
