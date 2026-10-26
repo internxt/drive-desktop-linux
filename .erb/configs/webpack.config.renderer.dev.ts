@@ -237,4 +237,13 @@ const configuration: webpack.Configuration = {
   },
 };
 
-export default merge(baseConfig, configuration);
+const mergedConfiguration = merge(baseConfig, configuration);
+
+// A relative "node_modules" entry makes webpack walk every parent directory.
+// Watchpack then polls /home/dev and lstats each child, including the Internxt
+// Drive FUSE mount, which fails with EIO. Absolute paths stay inside the repo.
+if (mergedConfiguration.resolve) {
+  mergedConfiguration.resolve.modules = [webpackPaths.srcPath, webpackPaths.appNodeModulesPath];
+}
+
+export default mergedConfiguration;

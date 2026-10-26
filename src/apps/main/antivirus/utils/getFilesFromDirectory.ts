@@ -3,8 +3,21 @@ import { readdir } from 'fs/promises';
 import { resolve } from 'path';
 import { PathTypeChecker } from '../../../shared/fs/PathTypeChecker ';
 import { isPermissionError } from './isPermissionError';
+import { isInternxtDrivePath } from './isInternxtDrivePath';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { getErrorMessage } from './errorUtils';
+
+function isSkippedInternxtMount(pathName: string) {
+  if (!isInternxtDrivePath({ pathName })) return false;
+
+  logger.debug({
+    tag: 'ANTIVIRUS',
+    msg: 'Skipping Internxt Drive mount',
+    pathName,
+  });
+
+  return true;
+}
 
 const isNonTempItem = (item: Dirent, dir: string): boolean => {
   const fullPath = resolve(dir, item.name);
@@ -27,6 +40,10 @@ export async function getFilesFromDirectory({ dir, cb, signal }: Props): Promise
       tag: 'ANTIVIRUS',
       msg: `Directory traversal cancelled at ${dir}`,
     });
+    return;
+  }
+
+  if (isSkippedInternxtMount(dir)) {
     return;
   }
 
@@ -79,6 +96,10 @@ export async function getFilesFromDirectory({ dir, cb, signal }: Props): Promise
 
     const fullPath = resolve(dir, item.name);
     if (item.isDirectory()) {
+      if (isSkippedInternxtMount(fullPath)) {
+        continue;
+      }
+
       try {
         const subitems = await readdir(fullPath, { withFileTypes: true });
         if (subitems.length > 0) {
@@ -112,49 +133,132 @@ export async function getFilesFromDirectory({ dir, cb, signal }: Props): Promise
   }
 }
 
-export async function countSystemFiles(folder: string) {
-  if (await PathTypeChecker.isFile(folder)) {
-    return 1;
-  }
+const DIRECTORY_READ_CONCURRENCY = 8;
+const DIRECTORIES_BEFORE_YIELD = 40;
 
-  let items;
+async function readDirectoryForCount(folder: string) {
   try {
-    items = await readdir(folder, { withFileTypes: true });
-  } catch (err) {
-    if (isPermissionError(err)) {
+    const items = await readdir(folder, { withFileTypes: true });
+    let fileCount = 0;
+    const directories: string[] = [];
+
+    for (const item of items) {
+      if (!isNonTempItem(item, folder)) {
+        continue;
+      }
+
+      const fullPath = resolve(folder, item.name);
+      if (!item.isDirectory()) {
+        fileCount += 1;
+        continue;
+      }
+
+      if (!isSkippedInternxtMount(fullPath)) {
+        directories.push(fullPath);
+      }
+    }
+
+    return { fileCount, directories };
+  } catch (error) {
+    if (isPermissionError(error)) {
       logger.warn({
         tag: 'ANTIVIRUS',
         msg: `Skipping directory "${folder}" due to permission error.`,
       });
-      return 0;
+      return { fileCount: 0, directories: [] };
     }
-    throw err;
+
+    // Callers already treat an unexpected read failure as a failed count.
+    throw error;
+  }
+}
+
+/**
+ * Opening every subdirectory at once saturates the filesystem thread pool and
+ * stops the main process from answering, which freezes the window on top of
+ * the counting animation. The cap keeps several reads in flight, and the yield
+ * gives that animation a turn to paint.
+ */
+export async function countSystemFiles(folder: string) {
+  if (isSkippedInternxtMount(folder)) {
+    return 0;
   }
 
-  const nonTempItems = items.filter((item) => isNonTempItem(item, folder));
+  if (await PathTypeChecker.isFile(folder)) {
+    return 1;
+  }
 
   let total = 0;
+  let completedDirectories = 0;
+  let activeReads = 0;
+  let settled = false;
+  const pending = [folder];
 
-  const counts = await Promise.all(
-    nonTempItems.map(async (item) => {
-      const fullPath = resolve(folder, item.name);
-      if (item.isDirectory()) {
-        try {
-          return await countSystemFiles(fullPath);
-        } catch (err) {
-          if (!isPermissionError(err)) throw err;
-          logger.warn({
-            tag: 'ANTIVIRUS',
-            msg: `Skipping subdirectory "${fullPath}" due to permission error.`,
-          });
-          return 0;
-        }
-      } else {
-        return 1;
+  await new Promise<void>((resolve, reject) => {
+    function finish() {
+      if (settled) {
+        return;
       }
-    }),
-  );
-  total += counts.reduce((sum, c) => sum + c, 0);
+      settled = true;
+      resolve();
+    }
+
+    function fail(error: unknown) {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      reject(error);
+    }
+
+    function pump() {
+      if (settled) {
+        return;
+      }
+
+      if (pending.length === 0 && activeReads === 0) {
+        finish();
+        return;
+      }
+
+      while (activeReads < DIRECTORY_READ_CONCURRENCY && pending.length > 0) {
+        const current = pending.pop();
+        if (!current) {
+          break;
+        }
+
+        activeReads += 1;
+        void readDirectoryForCount(current)
+          .then(async (counted) => {
+            if (settled) {
+              return;
+            }
+
+            total += counted.fileCount;
+            for (const directory of counted.directories) {
+              pending.push(directory);
+            }
+            completedDirectories += 1;
+
+            if (completedDirectories % DIRECTORIES_BEFORE_YIELD === 0) {
+              await new Promise((done) => {
+                setImmediate(done);
+              });
+            }
+          })
+          .then(() => {
+            activeReads -= 1;
+            pump();
+          })
+          .catch((error: unknown) => {
+            activeReads -= 1;
+            fail(error);
+          });
+      }
+    }
+
+    pump();
+  });
 
   return total;
 }
