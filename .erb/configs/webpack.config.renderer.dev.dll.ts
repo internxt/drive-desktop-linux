@@ -16,9 +16,10 @@ const dist = webpackPaths.dllPath;
 
 /**
  * Main-process packages. Their transitive deps stay nested under
- * node_modules/<package>/node_modules, and this DLL build does not resolve them.
+ * node_modules/<package>/node_modules, and this DLL build only resolves the
+ * top-level node_modules directory. typeorm's browser build requires "buffer/".
  */
-const mainProcessOnlyDependencies = ['electron-updater', 'archiver'];
+const mainProcessOnlyDependencies = ['electron-updater', 'archiver', 'typeorm'];
 
 function isRendererDependency(dependency: string) {
   return !mainProcessOnlyDependencies.includes(dependency);
