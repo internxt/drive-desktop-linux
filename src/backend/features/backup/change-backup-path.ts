@@ -1,7 +1,6 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { basename } from 'node:path';
 import configStore from '../../../apps/main/config';
-import { getBackupFolderUuid } from '../../../infra/drive-server/services/folder/services/fetch-backup-folder-uuid';
 import { renameFolder } from '../../../infra/drive-server/services/folder/services/rename-folder';
 import { migrateBackupEntryIfNeeded } from './migrate-backup-entry-if-needed';
 import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
@@ -29,13 +28,7 @@ export async function changeBackupPath({ currentPath, newPath }: Props): Promise
   if (oldFolderName !== newFolderName) {
     logger.debug({ tag: 'BACKUPS', msg: 'Renaming backup', existingBackup });
 
-    const getFolderUuidResponse = await getBackupFolderUuid({ folderId: String(existingBackup.folderId) });
-    if (getFolderUuidResponse.error) {
-      return { error: getFolderUuidResponse.error };
-    }
-    const { data: folderUuid } = getFolderUuidResponse;
-
-    const res = await renameFolder({ uuid: folderUuid, plainName: newFolderName });
+    const res = await renameFolder({ uuid: existingBackup.folderUuid, plainName: newFolderName });
     if (res.error) {
       return { error: new Error('Error in the request to rename a backup') };
     }
