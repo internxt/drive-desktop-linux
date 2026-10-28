@@ -1,5 +1,5 @@
 import { Result } from '../../../context/shared/domain/Result';
-import { getRawUsageAndLimit } from './get-raw-usage-and-limit';
+import { getCachedRawUsageAndLimit } from './get-cached-raw-usage-and-limit';
 
 /**
  * Validates if there's enough drive space available to reserve the requested amount.
@@ -10,7 +10,7 @@ export async function validateSpace(desiredSpaceToUse: number): Promise<Result<{
       return { error: new Error('Desired space to use must be a finite non-negative number') };
     }
 
-    const usageResult = await getRawUsageAndLimit();
+    const usageResult = await getCachedRawUsageAndLimit();
 
     if (usageResult.error) {
       return usageResult;
