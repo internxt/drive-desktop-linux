@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { getUpdatedRemoteItems, startRemoteSync } from '../../../../apps/main/remote-sync/service';
-import { ServerFile, ServerFileStatus } from '../../../shared/domain/ServerFile';
-import { ServerFolder, ServerFolderStatus } from '../../../shared/domain/ServerFolder';
+import { ServerFile } from '../../../shared/domain/ServerFile';
+import { ServerFolder } from '../../../shared/domain/ServerFolder';
 import { RemoteItemsGenerator } from '../domain/RemoteItemsGenerator';
 
 @Service()
@@ -24,7 +24,7 @@ export class SQLiteRemoteItemsGenerator implements RemoteItemsGenerator {
         type: updatedFile.type ?? null,
         updatedAt: updatedFile.updatedAt,
         userId: updatedFile.userId,
-        status: updatedFile.status as ServerFileStatus,
+        status: updatedFile.status,
         uuid: updatedFile.uuid,
       };
     });
@@ -38,7 +38,7 @@ export class SQLiteRemoteItemsGenerator implements RemoteItemsGenerator {
         parentId: updatedFolder.parentId ?? null,
         updatedAt: updatedFolder.updatedAt,
         plain_name: updatedFolder.plainName ?? null,
-        status: updatedFolder.status as ServerFolderStatus,
+        status: updatedFolder.status,
         uuid: updatedFolder.uuid,
       };
     });

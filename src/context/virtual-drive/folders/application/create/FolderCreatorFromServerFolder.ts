@@ -1,9 +1,7 @@
 import { ServerFolder } from '../../../../shared/domain/ServerFolder';
 import { Folder } from '../../domain/Folder';
 
-type Props = Pick<ServerFolder, 'id' | 'uuid' | 'parentId' | 'updatedAt' | 'createdAt'> & {
-  status: string;
-};
+type Props = Pick<ServerFolder, 'id' | 'uuid' | 'parentId' | 'updatedAt' | 'createdAt' | 'status'>;
 
 export function createFolderFromServerFolder(server: Props, relativePath: string): Folder {
   const path = relativePath.replaceAll('//', '/');
