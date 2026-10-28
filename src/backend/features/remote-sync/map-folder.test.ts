@@ -34,20 +34,20 @@ describe('map-folder', () => {
       expect(result).toBe('TRASHED');
     });
 
-    it('should return REMOVED when removed is true and status is empty', () => {
+    it('should return DELETED when removed is true and status is empty', () => {
       // When
       const result = resolveFolderStatus({ removed: true });
 
       // Then
-      expect(result).toBe('REMOVED');
+      expect(result).toBe('DELETED');
     });
 
-    it('should return DELETED when deleted is true and status is empty', () => {
+    it('should return TRASHED when deleted is true and status is empty', () => {
       // When
       const result = resolveFolderStatus({ deleted: true });
 
       // Then
-      expect(result).toBe('DELETED');
+      expect(result).toBe('TRASHED');
     });
 
     it('should default to EXISTS when no status, removed or deleted flags are present', () => {
