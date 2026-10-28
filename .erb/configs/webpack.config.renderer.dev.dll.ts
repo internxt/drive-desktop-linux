@@ -14,6 +14,19 @@ checkNodeEnv('development');
 
 const dist = webpackPaths.dllPath;
 
+/**
+ * Main-process packages. Their transitive deps stay nested under
+ * node_modules/<package>/node_modules, and this DLL build only resolves the
+ * top-level node_modules directory. typeorm's browser build requires "buffer/".
+ */
+const mainProcessOnlyDependencies = ['electron-updater', 'archiver', 'typeorm'];
+
+function isRendererDependency(dependency: string) {
+  return !mainProcessOnlyDependencies.includes(dependency);
+}
+
+const rendererDependencies = Object.keys(dependencies || {}).filter(isRendererDependency);
+
 const configuration: webpack.Configuration = {
   context: webpackPaths.rootPath,
 
@@ -31,7 +44,7 @@ const configuration: webpack.Configuration = {
   module: require('./webpack.config.renderer.dev').default.module,
 
   entry: {
-    renderer: Object.keys(dependencies || {}),
+    renderer: rendererDependencies,
   },
 
   output: {

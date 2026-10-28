@@ -18,7 +18,7 @@ vi.mock('@internxt/drive-desktop-core/build/backend', () => ({
   },
 }));
 
-import { getFilesFromDirectory } from './getFilesFromDirectory';
+import { countSystemFiles, getFilesFromDirectory } from './getFilesFromDirectory';
 
 describe('getFilesFromDirectory', () => {
   const mockReaddir = vi.mocked(readdir);
@@ -182,5 +182,76 @@ describe('getFilesFromDirectory', () => {
         msg: expect.stringContaining('Skipping subdirectory'),
       }),
     );
+  });
+
+  it('should skip the Internxt Drive mount without reading it', async () => {
+    const testDir = '/mock/home';
+    const mockCallback = vi.fn().mockResolvedValue(undefined);
+    const abortController = new AbortController();
+    const mockItems = [
+      { name: 'notes.txt', isDirectory: () => false },
+      { name: 'Internxt Drive', isDirectory: () => true },
+    ];
+
+    mockPathTypeChecker.isFile.mockResolvedValue(false);
+    mockReaddir.mockResolvedValue(mockItems as unknown as Awaited<ReturnType<typeof readdir>>);
+
+    await getFilesFromDirectory({ dir: testDir, cb: mockCallback, signal: abortController.signal });
+
+    expect(mockReaddir).toHaveBeenCalledTimes(1);
+    expect(mockReaddir).toHaveBeenCalledWith(testDir, { withFileTypes: true });
+    expect(mockCallback).toHaveBeenCalledTimes(1);
+    expect(mockCallback).toHaveBeenCalledWith('/mock/home/notes.txt');
+    expect(mockPathTypeChecker.isFile).not.toHaveBeenCalledWith('/mock/home/Internxt Drive');
+    expect(mockLogger.debug).toHaveBeenCalledWith({
+      tag: 'ANTIVIRUS',
+      msg: 'Skipping Internxt Drive mount',
+      pathName: '/mock/home/Internxt Drive',
+    });
+  });
+
+  it('should not count files inside the Internxt Drive mount', async () => {
+    mockPathTypeChecker.isFile.mockResolvedValue(false);
+    mockReaddir.mockResolvedValue([
+      { name: 'notes.txt', isDirectory: () => false },
+      { name: 'Internxt Drive', isDirectory: () => true },
+    ] as unknown as Awaited<ReturnType<typeof readdir>>);
+
+    const total = await countSystemFiles('/mock/home');
+
+    expect(total).toBe(1);
+    expect(mockReaddir).toHaveBeenCalledTimes(1);
+    expect(mockPathTypeChecker.isFile).not.toHaveBeenCalledWith('/mock/home/Internxt Drive');
+  });
+
+  it('should count sibling directories in parallel without reading all of them at once', async () => {
+    const directoryCount = 12;
+    let inFlight = 0;
+    let maxInFlight = 0;
+
+    mockPathTypeChecker.isFile.mockResolvedValue(false);
+    mockReaddir.mockImplementation(async (dir) => {
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((resolve) => {
+        setTimeout(resolve, 15);
+      });
+      inFlight -= 1;
+
+      if (dir === '/mock/home') {
+        return Array.from({ length: directoryCount }, (_, index) => ({
+          name: `dir-${index}`,
+          isDirectory: () => true,
+        })) as unknown as Awaited<ReturnType<typeof readdir>>;
+      }
+
+      return [{ name: 'file.txt', isDirectory: () => false }] as unknown as Awaited<ReturnType<typeof readdir>>;
+    });
+
+    const total = await countSystemFiles('/mock/home');
+
+    expect(total).toBe(directoryCount);
+    expect(maxInFlight).toBeGreaterThan(1);
+    expect(maxInFlight).toBeLessThan(directoryCount);
   });
 });

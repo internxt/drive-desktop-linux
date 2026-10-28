@@ -61,10 +61,15 @@ describe('ScanProcess', () => {
     expect(updatedProgressBar).toHaveStyle('width: 75%');
   });
 
-  it('handles undefined currentScanPath gracefully', () => {
-    render(<ScanProcess {...mockProps} currentScanPath={undefined} />);
+  it('shows a counting message before a file path is available', () => {
+    render(<ScanProcess {...mockProps} currentScanPath={undefined} scannedProcess={0} />);
 
-    expect(screen.getByText('settings.antivirus.scanProcess.scanning')).toBeInTheDocument();
+    expect(screen.getByText('settings.antivirus.scanProcess.counting')).toBeInTheDocument();
+    expect(screen.getByText('settings.antivirus.scanProcess.countingDetail')).toBeInTheDocument();
+    expect(screen.queryByText('0%')).not.toBeInTheDocument();
+    const countingProgress = screen.getByTestId('counting-progress');
+    expect(countingProgress).toHaveClass('w-full', 'bg-primary');
+    expect(countingProgress).toHaveStyle({ backgroundSize: '1rem 1rem' });
   });
 
   it('applies the correct styling', () => {
@@ -77,6 +82,6 @@ describe('ScanProcess', () => {
     expect(progressContainer).toHaveClass('flex w-full flex-col items-center gap-1');
 
     const progressBarBg = domContainer.querySelector('.bg-primary\\/10');
-    expect(progressBarBg).toHaveClass('flex h-1.5 w-full flex-col rounded-full bg-primary/10');
+    expect(progressBarBg).toHaveClass('relative h-1.5 w-full overflow-hidden rounded-full bg-primary/10');
   });
 });

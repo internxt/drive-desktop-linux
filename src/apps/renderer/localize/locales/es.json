@@ -304,6 +304,8 @@
       },
       "scanProcess": {
         "scanning": "Escaneando...",
+        "counting": "Contando archivos...",
+        "countingDetail": "Esto puede tardar unos minutos antes de que empiece el escaneo.",
         "scannedFiles": "Archivos escaneados",
         "detectedFiles": "Archivos detectados",
         "noFilesFound": {

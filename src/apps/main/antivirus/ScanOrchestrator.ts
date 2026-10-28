@@ -61,6 +61,10 @@ export class ScanOrchestrator {
 
       await this.queueFilesForScanning(paths);
 
+      if (this.abortController.signal.aborted || !this.scanQueue) {
+        return;
+      }
+
       logger.debug({
         tag: 'ANTIVIRUS',
         msg: `All files queued (${this.scanQueue.length()} in queue, ${this.scanQueue.running()} running). Waiting for completion...`,
@@ -183,7 +187,9 @@ export class ScanOrchestrator {
   }
 
   private async scanFile(filePath: string) {
-    if (this.abortController.signal.aborted || !this.antivirus || !this.progressReporter) {
+    const antivirus = this.antivirus;
+
+    if (this.abortController.signal.aborted || !antivirus || !this.progressReporter) {
       return;
     }
 
@@ -192,14 +198,17 @@ export class ScanOrchestrator {
 
       const cachedItem = await this.dbConnection.getItemFromDatabase(scannedItem.pathName);
 
-      if (cachedItem && this.isFileUnchanged(scannedItem, cachedItem)) {
-        if (!this.progressReporter) return;
+      // cancel() clears this.antivirus while transformItem or the database read is in flight.
+      if (this.abortController.signal.aborted || this.antivirus !== antivirus || !this.progressReporter) {
+        return;
+      }
 
+      if (cachedItem && this.isFileUnchanged(scannedItem, cachedItem)) {
         this.progressReporter.reportFileScanned(filePath, cachedItem.isInfected);
         return;
       }
 
-      const scanResult = await this.antivirus.scanFileWithRetry(scannedItem.pathName, this.abortController.signal);
+      const scanResult = await antivirus.scanFileWithRetry(scannedItem.pathName, this.abortController.signal);
 
       if (scanResult) {
         const isInfected = scanResult.isInfected;
