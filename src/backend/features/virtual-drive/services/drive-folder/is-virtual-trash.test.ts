@@ -1,4 +1,3 @@
-import { TRASH_FOLDER_ID, TRASH_UID_FOLDER_ID } from './constants';
 import { isVirtualTrashFolder, isVirtualTrashPath } from './is-virtual-trash';
 
 describe('is-virtual-trash', () => {
@@ -20,20 +19,15 @@ describe('is-virtual-trash', () => {
 
   describe('isVirtualTrashFolder', () => {
     it('should return true for /.Trash and /.Trash-* paths', () => {
-      expect(isVirtualTrashFolder({ path: '/.Trash', id: 1 })).toBe(true);
-      expect(isVirtualTrashFolder({ path: '/.Trash-1000', id: 2 })).toBe(true);
-      expect(isVirtualTrashFolder({ path: '/.Trash-1000/info', id: 3 })).toBe(true);
-    });
-
-    it('should return true for TRASH_FOLDER_ID and TRASH_UID_FOLDER_ID', () => {
-      expect(isVirtualTrashFolder({ path: '/some-path', id: TRASH_FOLDER_ID })).toBe(true);
-      expect(isVirtualTrashFolder({ path: '/some-path', id: TRASH_UID_FOLDER_ID })).toBe(true);
+      expect(isVirtualTrashFolder({ path: '/.Trash' })).toBe(true);
+      expect(isVirtualTrashFolder({ path: '/.Trash-1000' })).toBe(true);
+      expect(isVirtualTrashFolder({ path: '/.Trash-1000/info' })).toBe(true);
     });
 
     it('should return false for normal folders', () => {
-      expect(isVirtualTrashFolder({ path: '/', id: 100 })).toBe(false);
-      expect(isVirtualTrashFolder({ path: '/Documents', id: 101 })).toBe(false);
-      expect(isVirtualTrashFolder({ path: '/Photos', id: 102 })).toBe(false);
+      expect(isVirtualTrashFolder({ path: '/' })).toBe(false);
+      expect(isVirtualTrashFolder({ path: '/Documents' })).toBe(false);
+      expect(isVirtualTrashFolder({ path: '/Photos' })).toBe(false);
     });
   });
 });

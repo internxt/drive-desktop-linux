@@ -54,15 +54,12 @@ const inMemorySyncedFoldersCollection: DatabaseCollectionAdapter<DriveFolder> = 
 const createRemoteSyncedFileFixture = (payload: Partial<RemoteSyncedFile>): RemoteSyncedFile => {
   const result: RemoteSyncedFile = {
     status: DriveItemStatus.EXISTS,
-    name: `name_${uuid.v4()}`,
     plainName: `plainname_${Date.now()}`,
-    id: Date.now(),
     uuid: uuid.v4(),
     fileId: Date.now().toString(),
     type: 'jpg',
     size: 999,
     bucket: `bucket_${Date.now()}`,
-    folderId: 555,
     folderUuid: uuid.v4(),
     userId: 567,
     modificationTime: new Date().toISOString(),
@@ -76,15 +73,12 @@ const createRemoteSyncedFileFixture = (payload: Partial<RemoteSyncedFile>): Remo
 
 const createRemoteSyncedFolderFixture = (payload: Partial<RemoteSyncedFolder>): RemoteSyncedFolder => {
   const result: RemoteSyncedFolder = {
-    name: `name_${uuid.v4()}`,
     plainName: `folder_${Date.now()}`,
-    id: Date.now(),
     type: 'folder',
     bucket: `bucket_${Date.now()}`,
     userId: 567,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    parentId: null,
     uuid: uuid.v4(),
     status: DriveItemStatus.EXISTS,
     ...payload,
@@ -234,7 +228,37 @@ describe('RemoteSyncManager', () => {
 
       expect(mockedGet).toHaveBeenCalledTimes(1);
       expect(sut.getSyncStatus()).toBe('SYNCED');
-      expect(mockedCreateOrUpdateFileByBatch).toBeCalledWith({ files: [file1, file2] });
+      expect(mockedCreateOrUpdateFileByBatch).toBeCalledWith({
+        files: [file1, file2].map(
+          ({
+            uuid,
+            fileId,
+            type,
+            size,
+            bucket,
+            folderUuid,
+            userId,
+            modificationTime,
+            createdAt,
+            updatedAt,
+            plainName,
+            status,
+          }) => ({
+            uuid,
+            fileId,
+            type,
+            size,
+            bucket,
+            folderUuid,
+            userId,
+            modificationTime,
+            createdAt,
+            updatedAt,
+            plainName,
+            status,
+          }),
+        ),
+      });
     });
 
     it('Should save the folders in the database', async () => {
@@ -265,7 +289,21 @@ describe('RemoteSyncManager', () => {
 
       expect(mockedGet).toHaveBeenCalledTimes(1);
       expect(sut.getSyncStatus()).toBe('SYNCED');
-      expect(mockedCreateOrUpdateFolderByBatch).toBeCalledWith({ folders: [folder1, folder2] });
+      expect(mockedCreateOrUpdateFolderByBatch).toBeCalledWith({
+        folders: [folder1, folder2].map(
+          ({ type, bucket, userId, createdAt, updatedAt, uuid, plainName, parentUuid, status }) => ({
+            type,
+            bucket,
+            userId,
+            createdAt,
+            updatedAt,
+            uuid,
+            plainName,
+            parentUuid,
+            status,
+          }),
+        ),
+      });
     });
   });
 

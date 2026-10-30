@@ -17,14 +17,14 @@ export class MakeFolderAvaliableOffline {
 
   private async makeFolderAvaliableOffline(folder: Folder): Promise<void> {
     const files = await this.filesByPartialSearcher.run({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
       status: DriveItemStatus.EXISTS,
     });
 
     const filesMadeAvaliable = files.map((file) => this.makeStorageFileAvaliableOffline.run(file.path));
 
     const subfolders = await this.foldersSearcherByPartial.run({
-      parentId: folder.id,
+      parentUuid: folder.uuid,
       status: DriveItemStatus.EXISTS,
     });
 

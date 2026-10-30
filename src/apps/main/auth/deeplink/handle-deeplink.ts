@@ -11,6 +11,7 @@ import configStore from '../../config';
 import { PATHS } from '../../../../core/electron/paths';
 import { isClientUnsupported } from '../../../../backend/features/client-compatibility';
 import { showClientCompatibilityWidget } from '../../../../backend/features/client-compatibility/services/show-client-compatibility-widget';
+import { bootstrapAppDataSource } from '../../database/bootstrap-app-data-source';
 
 type Props = {
   url: string;
@@ -54,6 +55,7 @@ export async function handleDeeplink({ url }: Props) {
       return true;
     }
 
+    await bootstrapAppDataSource();
     eventBus.emit('USER_LOGGED_IN');
 
     logger.debug({ tag: 'AUTH', msg: 'Deeplink login completed successfully' });

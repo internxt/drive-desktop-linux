@@ -66,7 +66,7 @@ describe('createBackupUpdateExecutor', () => {
 
     expect(result.data).toBeUndefined();
     expect(result.error).toBeUndefined();
-    expect(backupErrorsTrackerAddMock).toHaveBeenCalledWith(remoteFile.folderId, {
+    expect(backupErrorsTrackerAddMock).toHaveBeenCalledWith(remoteFile.folderUuid, {
       name: localFile.nameWithExtension(),
       error: nonFatalError.cause,
     });

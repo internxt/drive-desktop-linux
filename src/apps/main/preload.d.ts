@@ -95,7 +95,7 @@ declare interface Window {
 
     getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
 
-    getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
+    getBackupErrorByFolder(folderUuid: string): Promise<BackupErrorRecord | undefined>;
 
     getVirtualDriveRoot(): Promise<string>;
 
@@ -140,7 +140,7 @@ declare interface Window {
 
     getLastBackupHadIssues: () => Promise<boolean>;
 
-    deleteBackupError(folderId: number): Promise<void>;
+    deleteBackupError(folderUuid: string): Promise<void>;
 
     onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
 

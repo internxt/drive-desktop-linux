@@ -24,11 +24,9 @@ export class Traverser {
     return new Traverser([DriveItemStatus.EXISTS], [DriveItemStatus.EXISTS]);
   }
 
-  private createRootFolder(id: number, rootFolderUuid: string): Folder {
+  private createRootFolder(rootFolderUuid: string): Folder {
     return Folder.from({
-      id,
       uuid: rootFolderUuid,
-      parentId: null,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       path: '/',
@@ -39,11 +37,9 @@ export class Traverser {
   private traverse(tree: RemoteTree, items: Items, currentFolder: Folder) {
     if (!items) return;
 
-    const filesInThisFolder = items.files.filter((file) => file.folderId === currentFolder.id);
+    const filesInThisFolder = items.files.filter((file) => file.folderUuid === currentFolder.uuid);
 
-    const foldersInThisFolder = items.folders.filter((folder) => {
-      return folder.parentId === currentFolder.id;
-    });
+    const foldersInThisFolder = items.folders.filter((folder) => folder.parentUuid === currentFolder.uuid);
 
     filesInThisFolder.forEach((serverFile) => {
       if (!this.fileStatusesToFilter.includes(serverFile.status)) {
@@ -74,7 +70,10 @@ export class Traverser {
 
     foldersInThisFolder.forEach((serverFolder: ServerFolder) => {
       if (!serverFolder.plain_name) {
-        logger.warn({ tag: 'SYNC-ENGINE', msg: `[Traverser] Folder ${serverFolder.id} has no plain_name, skipping` });
+        logger.warn({
+          tag: 'SYNC-ENGINE',
+          msg: `[Traverser] Folder ${serverFolder.uuid} has no plain_name, skipping`,
+        });
         return;
       }
 
@@ -109,8 +108,8 @@ export class Traverser {
     });
   }
 
-  public run(rootFolderId: number, rootFolderUuid: string, items: Items): RemoteTree {
-    const rootFolder = this.createRootFolder(rootFolderId, rootFolderUuid);
+  public run(rootFolderUuid: string, items: Items): RemoteTree {
+    const rootFolder = this.createRootFolder(rootFolderUuid);
 
     const tree = new RemoteTree(rootFolder);
 
