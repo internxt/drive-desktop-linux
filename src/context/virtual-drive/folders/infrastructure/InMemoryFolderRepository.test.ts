@@ -10,9 +10,7 @@ describe('InMemoryFolderRepository', () => {
   });
 
   const createFolderAttributes = (overrides: Partial<FolderAttributes> = {}): FolderAttributes => ({
-    id: 1,
     uuid: '550e8400-e29b-41d4-a716-446655440000',
-    parentId: null,
     path: '/documents',
     createdAt: '2025-01-01T00:00:00.000Z',
     updatedAt: '2025-01-01T00:00:00.000Z',
@@ -23,19 +21,16 @@ describe('InMemoryFolderRepository', () => {
   describe('searchByPathPrefix', () => {
     it('should return folders that start with the given path prefix', async () => {
       const folderAttributes1 = createFolderAttributes({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         path: '/documents/work',
       });
 
       const folderAttributes2 = createFolderAttributes({
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         path: '/documents/personal',
       });
 
       const folderAttributes3 = createFolderAttributes({
-        id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         path: '/images',
       });
@@ -67,21 +62,18 @@ describe('InMemoryFolderRepository', () => {
 
     it('should filter by status when provided', async () => {
       const folderAttributes1 = createFolderAttributes({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         path: '/documents/folder1',
         status: FolderStatuses.EXISTS,
       });
 
       const folderAttributes2 = createFolderAttributes({
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         path: '/documents/folder2',
         status: FolderStatuses.TRASHED,
       });
 
       const folderAttributes3 = createFolderAttributes({
-        id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         path: '/documents/folder3',
         status: FolderStatuses.EXISTS,
@@ -102,21 +94,18 @@ describe('InMemoryFolderRepository', () => {
 
     it('should return all matching folders when no status filter is provided', async () => {
       const folderAttributes1 = createFolderAttributes({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         path: '/documents/folder1',
         status: FolderStatuses.EXISTS,
       });
 
       const folderAttributes2 = createFolderAttributes({
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         path: '/documents/folder2',
         status: FolderStatuses.TRASHED,
       });
 
       const folderAttributes3 = createFolderAttributes({
-        id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         path: '/documents/folder3',
         status: FolderStatuses.DELETED,
@@ -136,13 +125,11 @@ describe('InMemoryFolderRepository', () => {
 
     it('should not match folders that contain the prefix but do not start with it', async () => {
       const folderAttributes1 = createFolderAttributes({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         path: '/documents/work',
       });
 
       const folderAttributes2 = createFolderAttributes({
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         path: '/backup/documents',
       });
@@ -159,19 +146,16 @@ describe('InMemoryFolderRepository', () => {
 
     it('should return multiple folders at different nesting levels', async () => {
       const folderAttributes1 = createFolderAttributes({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         path: '/documents',
       });
 
       const folderAttributes2 = createFolderAttributes({
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         path: '/documents/work',
       });
 
       const folderAttributes3 = createFolderAttributes({
-        id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         path: '/documents/work/projects',
       });

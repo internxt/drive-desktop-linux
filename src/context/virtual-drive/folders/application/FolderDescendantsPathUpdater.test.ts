@@ -18,23 +18,18 @@ describe('FolderDescendantsPathUpdater', () => {
 
   it('updates paths of all descendant folders when a folder is renamed', async () => {
     const parentFolder = FolderMother.fromPartial({
-      id: 1,
       uuid: '550e8400-e29b-41d4-a716-446655440000',
       path: '/parentA',
     });
 
     const childFolder = FolderMother.fromPartial({
-      id: 2,
       uuid: '550e8400-e29b-41d4-a716-446655440001',
       path: '/parentA/childA',
-      parentId: 1,
     });
 
     const grandchildFolder = FolderMother.fromPartial({
-      id: 3,
       uuid: '550e8400-e29b-41d4-a716-446655440002',
       path: '/parentA/childA/grandchildA',
-      parentId: 2,
     });
 
     folderRepository.searchByPathPrefixMock.mockReturnValue([childFolder, grandchildFolder]);
@@ -62,30 +57,23 @@ describe('FolderDescendantsPathUpdater', () => {
 
   it('updates paths of all files in descendant folders when a folder is renamed', async () => {
     const parentFolder = FolderMother.fromPartial({
-      id: 1,
       uuid: '550e8400-e29b-41d4-a716-446655440010',
       path: '/folderA',
     });
 
     const file1 = FileMother.fromPartial({
-      id: 1,
       uuid: '650e8400-e29b-41d4-a716-446655440011',
       path: '/folderA/file1.txt',
-      folderId: 1,
     });
 
     const childFolder = FolderMother.fromPartial({
-      id: 2,
       uuid: '550e8400-e29b-41d4-a716-446655440012',
       path: '/folderA/subfolder',
-      parentId: 1,
     });
 
     const file2 = FileMother.fromPartial({
-      id: 2,
       uuid: '650e8400-e29b-41d4-a716-446655440013',
       path: '/folderA/subfolder/file2.txt',
-      folderId: 2,
     });
 
     folderRepository.searchByPathPrefixMock.mockReturnValue([childFolder]);
@@ -113,7 +101,6 @@ describe('FolderDescendantsPathUpdater', () => {
 
   it('does not update folders that are not descendants', async () => {
     const folderA = FolderMother.fromPartial({
-      id: 1,
       uuid: '550e8400-e29b-41d4-a716-446655440020',
       path: '/folderA',
     });
@@ -137,30 +124,23 @@ describe('FolderDescendantsPathUpdater', () => {
 
   it('handles deeply nested folder structures correctly', async () => {
     const level1 = FolderMother.fromPartial({
-      id: 1,
       uuid: '550e8400-e29b-41d4-a716-446655440030',
       path: '/level1',
     });
 
     const level2 = FolderMother.fromPartial({
-      id: 2,
       uuid: '550e8400-e29b-41d4-a716-446655440031',
       path: '/level1/level2',
-      parentId: 1,
     });
 
     const level3 = FolderMother.fromPartial({
-      id: 3,
       uuid: '550e8400-e29b-41d4-a716-446655440032',
       path: '/level1/level2/level3',
-      parentId: 2,
     });
 
     const level4 = FolderMother.fromPartial({
-      id: 4,
       uuid: '550e8400-e29b-41d4-a716-446655440033',
       path: '/level1/level2/level3/level4',
-      parentId: 3,
     });
 
     folderRepository.searchByPathPrefixMock.mockReturnValue([level2, level3, level4]);

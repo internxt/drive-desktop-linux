@@ -5,6 +5,7 @@ import { ScannedItem } from './entities/ScannedItem';
 import { TypeOrmStorageFile } from '../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/entities/TypeOrmStorageFile';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../core/electron/paths';
+import { resetAppDataSourceBootstrapState } from './app-data-source-bootstrap-state';
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
@@ -32,4 +33,6 @@ export async function resetAppDataSourceOnLogout() {
   } catch (error) {
     logger.error({ msg: 'Error destroying database connection on user logout', error });
   }
+
+  resetAppDataSourceBootstrapState();
 }

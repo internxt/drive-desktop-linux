@@ -42,10 +42,9 @@ describe('InMemoryFileRepository', () => {
     const fileUUID1 = 'f654a669-094f-43cc-9b6a-a819cfeee74c';
     const fileUUID2 = 'b72c61b5-427b-4dca-ae9a-4fd57294c1eb';
     const fileAttributes1: FileAttributes = {
-      id: 1,
       uuid: fileUUID1,
       contentsId: contentsId1,
-      folderId: 234,
+      folderUuid: '11111111-2222-4333-8444-555555555555',
       createdAt: '10-03-2025',
       modificationTime: '10-03-2025',
       path: '/valid/path/to/file.txt',
@@ -55,10 +54,9 @@ describe('InMemoryFileRepository', () => {
     };
 
     const fileAttributes2: FileAttributes = {
-      id: 1,
       uuid: fileUUID2,
       contentsId: contentsId2,
-      folderId: 235,
+      folderUuid: '11111111-2222-4333-8444-555555555555',
       createdAt: '10-03-2025',
       modificationTime: '10-03-2025',
       path: '/another-valid/path/to/file.txt',
@@ -85,10 +83,9 @@ describe('InMemoryFileRepository', () => {
     const contentsId2 = 'non-existent-id';
     const fileUUID1 = 'f654a669-094f-43cc-9b6a-a819cfeee74c';
     const fileAttributes1: FileAttributes = {
-      id: 1,
       uuid: fileUUID1,
       contentsId: contentsId1,
-      folderId: 234,
+      folderUuid: '11111111-2222-4333-8444-555555555555',
       createdAt: '10-03-2025',
       modificationTime: '10-03-2025',
       path: '/valid/path/to/file.txt',
@@ -110,10 +107,9 @@ describe('InMemoryFileRepository', () => {
   describe('searchByPathPrefix', () => {
     it('should return files that start with the given path prefix', () => {
       const fileAttributes1: FileAttributes = {
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         contentsId: '21e5ac20-4d87-4458-9cb5-',
-        folderId: 100,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/work/report.txt',
@@ -123,10 +119,9 @@ describe('InMemoryFileRepository', () => {
       };
 
       const fileAttributes2: FileAttributes = {
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         contentsId: 'e3103fa4-cb14-426f-9be2-',
-        folderId: 101,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/personal/notes.txt',
@@ -136,10 +131,9 @@ describe('InMemoryFileRepository', () => {
       };
 
       const fileAttributes3: FileAttributes = {
-        id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         contentsId: 'a1b2c3d4-e5f6-7890-1234-',
-        folderId: 102,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/images/photo.jpg',
@@ -162,10 +156,9 @@ describe('InMemoryFileRepository', () => {
 
     it('should return an empty array when no files match the prefix', () => {
       const fileAttributes: FileAttributes = {
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         contentsId: '21e5ac20-4d87-4458-9cb5-',
-        folderId: 100,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/file.txt',
@@ -184,10 +177,9 @@ describe('InMemoryFileRepository', () => {
 
     it('should filter by status when provided', () => {
       const fileAttributes1: FileAttributes = {
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         contentsId: '21e5ac20-4d87-4458-9cb5-',
-        folderId: 100,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/file1.txt',
@@ -197,10 +189,9 @@ describe('InMemoryFileRepository', () => {
       };
 
       const fileAttributes2: FileAttributes = {
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         contentsId: 'e3103fa4-cb14-426f-9be2-',
-        folderId: 101,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/file2.txt',
@@ -210,10 +201,9 @@ describe('InMemoryFileRepository', () => {
       };
 
       const fileAttributes3: FileAttributes = {
-        id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         contentsId: 'a1b2c3d4-e5f6-7890-1234-',
-        folderId: 102,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/file3.txt',
@@ -237,10 +227,9 @@ describe('InMemoryFileRepository', () => {
 
     it('should return all matching files when no status filter is provided', () => {
       const fileAttributes1: FileAttributes = {
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         contentsId: '21e5ac20-4d87-4458-9cb5-',
-        folderId: 100,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/file1.txt',
@@ -250,10 +239,9 @@ describe('InMemoryFileRepository', () => {
       };
 
       const fileAttributes2: FileAttributes = {
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         contentsId: 'e3103fa4-cb14-426f-9be2-',
-        folderId: 101,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/file2.txt',
@@ -263,10 +251,9 @@ describe('InMemoryFileRepository', () => {
       };
 
       const fileAttributes3: FileAttributes = {
-        id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         contentsId: 'a1b2c3d4-e5f6-7890-1234-',
-        folderId: 102,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/file3.txt',
@@ -289,10 +276,9 @@ describe('InMemoryFileRepository', () => {
 
     it('should not match files that contain the prefix but do not start with it', () => {
       const fileAttributes1: FileAttributes = {
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         contentsId: '21e5ac20-4d87-4458-9cb5-',
-        folderId: 100,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/work/file.txt',
@@ -302,10 +288,9 @@ describe('InMemoryFileRepository', () => {
       };
 
       const fileAttributes2: FileAttributes = {
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         contentsId: 'e3103fa4-cb14-426f-9be2-',
-        folderId: 101,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/backup/documents/file.txt',
@@ -333,10 +318,9 @@ describe('InMemoryFileRepository', () => {
 
     it('should handle exact path matches', () => {
       const fileAttributes: FileAttributes = {
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         contentsId: '21e5ac20-4d87-4458-9cb5-',
-        folderId: 100,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/documents/file.txt',
@@ -355,10 +339,9 @@ describe('InMemoryFileRepository', () => {
 
     it('should work with nested paths', () => {
       const fileAttributes1: FileAttributes = {
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         contentsId: '21e5ac20-4d87-4458-9cb5-',
-        folderId: 100,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/a/b/c/file1.txt',
@@ -368,10 +351,9 @@ describe('InMemoryFileRepository', () => {
       };
 
       const fileAttributes2: FileAttributes = {
-        id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         contentsId: 'e3103fa4-cb14-426f-9be2-',
-        folderId: 101,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/a/b/d/file2.txt',
@@ -381,10 +363,9 @@ describe('InMemoryFileRepository', () => {
       };
 
       const fileAttributes3: FileAttributes = {
-        id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         contentsId: 'a1b2c3d4-e5f6-7890-1234-',
-        folderId: 102,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path: '/a/b/c/d/file3.txt',
@@ -409,10 +390,9 @@ describe('InMemoryFileRepository', () => {
   describe('deleteByFolderPath', () => {
     const makeFile = (uuid: string, contentsId: string, path: string) =>
       File.from({
-        id: 1,
         uuid,
         contentsId,
-        folderId: 100,
+        folderUuid: '11111111-2222-4333-8444-555555555555',
         createdAt: '10-03-2025',
         modificationTime: '10-03-2025',
         path,

@@ -2,12 +2,12 @@ import { RemoteSyncedFile, RemoteSyncedFolder } from '../../../apps/main/remote-
 
 type FilterFilesProps = {
   files: RemoteSyncedFile[];
-  freshDirectoryStates: Map<number, Date>;
+  freshDirectoryStates: Map<string, Date>;
 };
 
 type FilterFoldersProps = {
   folders: RemoteSyncedFolder[];
-  freshDirectoryStates: Map<number, Date>;
+  freshDirectoryStates: Map<string, Date>;
 };
 
 /**
@@ -19,10 +19,10 @@ type FilterFoldersProps = {
  */
 export function filterStaleRemoteFiles({ files, freshDirectoryStates }: FilterFilesProps) {
   const filesToPersist: RemoteSyncedFile[] = [];
-  const foldersToInvalidate = new Set<number>();
+  const foldersToInvalidate = new Set<string>();
 
   for (const file of files) {
-    const loadedAt = freshDirectoryStates.get(file.folderId);
+    const loadedAt = freshDirectoryStates.get(file.folderUuid);
     if (!loadedAt) {
       filesToPersist.push(file);
       continue;
@@ -30,14 +30,11 @@ export function filterStaleRemoteFiles({ files, freshDirectoryStates }: FilterFi
 
     const fileUpdatedAt = new Date(file.updatedAt).getTime();
     if (fileUpdatedAt <= loadedAt.getTime()) {
-      // Incoming file is older than or concurrent with the fresh lazy directory snapshot.
-      // Skip it to avoid overwriting newer or cleanly verified metadata.
       continue;
     }
 
-    // Incoming file is genuinely newer than the last directory sync.
     filesToPersist.push(file);
-    foldersToInvalidate.add(file.folderId);
+    foldersToInvalidate.add(file.folderUuid);
   }
 
   return { filesToPersist, foldersToInvalidate };
@@ -50,15 +47,15 @@ export function filterStaleRemoteFiles({ files, freshDirectoryStates }: FilterFi
  */
 export function filterStaleRemoteFolders({ folders, freshDirectoryStates }: FilterFoldersProps) {
   const foldersToPersist: RemoteSyncedFolder[] = [];
-  const foldersToInvalidate = new Set<number>();
+  const foldersToInvalidate = new Set<string>();
 
   for (const folder of folders) {
-    if (folder.parentId === null) {
+    if (!folder.parentUuid) {
       foldersToPersist.push(folder);
       continue;
     }
 
-    const parentLoadedAt = freshDirectoryStates.get(folder.parentId);
+    const parentLoadedAt = freshDirectoryStates.get(folder.parentUuid);
     if (!parentLoadedAt) {
       foldersToPersist.push(folder);
       continue;
@@ -66,12 +63,11 @@ export function filterStaleRemoteFolders({ folders, freshDirectoryStates }: Filt
 
     const folderUpdatedAt = new Date(folder.updatedAt).getTime();
     if (folderUpdatedAt <= parentLoadedAt.getTime()) {
-      // Incoming folder was already indexed in the parent folder's fresh snapshot.
       continue;
     }
 
     foldersToPersist.push(folder);
-    foldersToInvalidate.add(folder.parentId);
+    foldersToInvalidate.add(folder.parentUuid);
   }
 
   return { foldersToPersist, foldersToInvalidate };

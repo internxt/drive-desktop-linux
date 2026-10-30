@@ -11,9 +11,7 @@ import { trashFolder } from './trash-folder';
 import { call } from '../../../../../../../tests/vitest/utils.helper';
 
 const folderAttrs: FolderAttributes = {
-  id: 1,
   uuid: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-  parentId: 0,
   path: '/folder',
   updatedAt: new Date().toISOString(),
   createdAt: new Date().toISOString(),
