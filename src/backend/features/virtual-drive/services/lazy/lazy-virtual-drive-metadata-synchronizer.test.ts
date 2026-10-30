@@ -29,10 +29,13 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
   });
 
   it('should list locally cached children when the directory state is fresh', async () => {
-    const childFolder = FolderMother.fromPartial({ id: 99, parentId: rootFolder.id, path: '/documents' });
+    const childFolder = FolderMother.fromPartial({
+      parentUuid: rootFolder.uuid,
+      path: '/documents',
+    });
     folderRepository.matchingPartial.mockImplementation((partial) => {
       if (partial.path === '/') return [rootFolder];
-      if (partial.parentId === rootFolder.id) return [childFolder];
+      if (partial.parentUuid === rootFolder.uuid) return [childFolder];
       return [];
     });
 
@@ -75,9 +78,12 @@ describe('lazy-virtual-drive-metadata-synchronizer', () => {
   });
 
   it('should return cached children after a failed refresh before local mutation', async () => {
-    const child = FolderMother.fromPartial({ id: 99, parentId: rootFolder.id, path: '/documents' });
+    const child = FolderMother.fromPartial({
+      parentUuid: rootFolder.uuid,
+      path: '/documents',
+    });
     folderRepository.matchingPartial.mockImplementation((partial) =>
-      partial.path === '/' ? [rootFolder] : partial.parentId === rootFolder.id ? [child] : [],
+      partial.path === '/' ? [rootFolder] : partial.parentUuid === rootFolder.uuid ? [child] : [],
     );
     isFreshMock.mockResolvedValue(false);
     getStateMock.mockResolvedValue({ children_loaded_at: new Date(0).toISOString() });

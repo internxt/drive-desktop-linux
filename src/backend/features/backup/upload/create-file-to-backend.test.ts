@@ -13,7 +13,6 @@ describe('createFileToBackend', () => {
     contentsId: BucketEntryIdMother.primitive(),
     filePath: '/backup/my-file.txt',
     size: 1024,
-    folderId: 123,
     folderUuid: UuidMother.primitive(),
     bucket: 'bucket',
   };

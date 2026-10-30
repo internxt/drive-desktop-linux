@@ -3,34 +3,29 @@ import type { DriveItemStatus } from '../../../context/shared/domain/DriveItemSt
 export const SIX_HOURS_IN_MILLISECONDS = 6 * 60 * 60 * 1000;
 
 export type RemoteSyncedFile = {
-  id: number;
   uuid: string;
   fileId: string;
   type: string;
   size: number;
   bucket: string;
-  folderId: number;
-  folderUuid?: string;
+  folderUuid: string;
   userId: number;
   modificationTime: string;
   createdAt: string;
   updatedAt: string;
   plainName: string;
-  name?: string;
   status: DriveItemStatus;
 };
 
 export type RemoteSyncedFolder = {
   type: string;
-  id: number;
-  parentId: number | null;
   bucket: string | null;
   userId: number;
   createdAt: string;
   updatedAt: string;
   uuid: string;
   plainName: string;
-  name?: string;
+  parentUuid?: string;
   status: DriveItemStatus;
 };
 

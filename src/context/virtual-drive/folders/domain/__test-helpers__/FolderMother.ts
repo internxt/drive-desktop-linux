@@ -4,8 +4,8 @@ import { Folder, FolderAttributes } from '../Folder';
 import { FolderPath } from '../FolderPath';
 import { FolderStatuses } from '../FolderStatus';
 import { FolderUuid } from '../FolderUuid';
-import { FolderIdMother } from './FolderIdMother';
 import { FolderPathMother } from './FolderPathMother';
+import { UuidMother } from '../../../../shared/domain/__test-helpers__/UuidMother';
 
 const chance = new Chance();
 
@@ -14,10 +14,9 @@ export class FolderMother {
 
   static containing(file: File) {
     return Folder.from({
-      id: file.folderId,
       uuid: FolderUuid.random().value,
       path: file.dirname,
-      parentId: 58601041,
+      parentUuid: file.folderUuid,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       status: FolderStatuses.EXISTS,
@@ -26,22 +25,19 @@ export class FolderMother {
 
   static any() {
     return Folder.from({
-      id: FolderIdMother.any().value,
       uuid: FolderUuid.random().value,
       path: FolderPathMother.any().value,
-      parentId: null,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       status: FolderStatuses.EXISTS,
     });
   }
 
-  static withId(folderId: number) {
+  static withUuid(folderUuid: string) {
     return Folder.from({
-      id: folderId,
-      uuid: FolderUuid.random().value,
+      uuid: folderUuid,
       path: '/Zodseve',
-      parentId: 437296692845,
+      parentUuid: UuidMother.primitive(),
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       status: FolderStatuses.EXISTS,
@@ -50,10 +46,9 @@ export class FolderMother {
 
   static exists() {
     return Folder.from({
-      id: 2048,
       uuid: FolderUuid.random().value,
       path: '/Zodseve',
-      parentId: chance.integer({ min: 1 }),
+      parentUuid: UuidMother.primitive(),
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       status: FolderStatuses.EXISTS,
@@ -62,10 +57,8 @@ export class FolderMother {
 
   static trashed() {
     return Folder.from({
-      id: 2048,
       uuid: FolderUuid.random().value,
       path: '/Zodseve',
-      parentId: null,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       status: FolderStatuses.TRASHED,
@@ -74,10 +67,8 @@ export class FolderMother {
 
   static root() {
     return Folder.from({
-      id: 2048,
       uuid: FolderUuid.random().value,
       path: '/',
-      parentId: null,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       status: FolderStatuses.EXISTS,
@@ -92,7 +83,7 @@ export class FolderMother {
   static createChildForm(root: Folder) {
     return FolderMother.fromPartial({
       path: FolderPathMother.onFolder(new FolderPath(root.path)).value,
-      parentId: root.id as number,
+      parentUuid: root.uuid,
     });
   }
 

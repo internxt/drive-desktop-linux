@@ -5,16 +5,14 @@ import { FolderUuid } from './FolderUuid';
 import { FolderCreatedDomainEvent } from './events/FolderCreatedDomainEvent';
 import { FolderRenamedDomainEvent } from './events/FolderRenamedDomainEvent';
 import { createFolderPlaceholderId } from './FolderPlaceholderId';
-import { FolderId } from './FolderId';
 import { FolderCreatedAt } from './FolderCreatedAt';
 import { FolderUpdatedAt } from './FolderUpdatedAt';
 import { FolderMovedDomainEvent } from './events/FolderMovedDomainEvent';
 import { FolderAlreadyTrashed } from './errors/FolderAlreadyTrashed';
 
 export type FolderAttributes = {
-  id: number;
   uuid: string;
-  parentId: null | number;
+  parentUuid?: string;
   path: string;
   updatedAt: string;
   createdAt: string;
@@ -23,19 +21,14 @@ export type FolderAttributes = {
 
 export class Folder extends AggregateRoot {
   private constructor(
-    private _id: FolderId,
     private _uuid: FolderUuid,
     private _path: FolderPath,
-    private _parentId: null | FolderId,
+    private _parentUuid: FolderUuid | null,
     public _createdAt: FolderCreatedAt,
     public _updatedAt: FolderUpdatedAt,
     private _status: FolderStatus,
   ) {
     super();
-  }
-
-  public get id(): number {
-    return this._id.value;
   }
 
   public get uuid(): string {
@@ -54,8 +47,8 @@ export class Folder extends AggregateRoot {
     return new FolderPath('/' + this._path.dirname());
   }
 
-  public get parentId(): number | undefined {
-    return this._parentId?.value;
+  public get parentUuid(): string | undefined {
+    return this._parentUuid?.value;
   }
 
   public get status(): string {
@@ -63,7 +56,6 @@ export class Folder extends AggregateRoot {
   }
 
   public get size() {
-    // Currently we cannot acquire the folder size.
     return 0;
   }
 
@@ -92,12 +84,8 @@ export class Folder extends AggregateRoot {
       this._updatedAt = FolderUpdatedAt.fromString(attributes.updatedAt);
     }
 
-    if (attributes.id) {
-      this._id = new FolderId(attributes.id);
-    }
-
-    if (attributes.parentId) {
-      this._parentId = new FolderId(attributes.parentId);
+    if (attributes.parentUuid !== undefined) {
+      this._parentUuid = attributes.parentUuid ? new FolderUuid(attributes.parentUuid) : null;
     }
 
     if (attributes.status) {
@@ -109,36 +97,29 @@ export class Folder extends AggregateRoot {
 
   static from(attributes: FolderAttributes): Folder {
     return new Folder(
-      new FolderId(attributes.id),
       new FolderUuid(attributes.uuid),
       new FolderPath(attributes.path),
-      attributes.parentId ? new FolderId(attributes.parentId) : null,
-      FolderUpdatedAt.fromString(attributes.updatedAt),
+      attributes.parentUuid ? new FolderUuid(attributes.parentUuid) : null,
       FolderCreatedAt.fromString(attributes.createdAt),
+      FolderUpdatedAt.fromString(attributes.updatedAt),
       FolderStatus.fromValue(attributes.status),
     );
   }
 
-  static create(
-    id: FolderId,
-    uuid: FolderUuid,
-    path: FolderPath,
-    parentId: FolderId,
-    createdAt: FolderCreatedAt,
-    updatedAt: FolderUpdatedAt,
-  ): Folder {
-    const folder = new Folder(id, uuid, path, parentId, createdAt, updatedAt, FolderStatus.Exists);
+  static create(attributes: Omit<FolderAttributes, 'status'>): Folder {
+    const folder = Folder.from({ ...attributes, status: FolderStatuses.EXISTS });
 
-    const folderCreatedEvent = new FolderCreatedDomainEvent({
-      aggregateId: folder.uuid,
-    });
-    folder.record(folderCreatedEvent);
+    folder.record(
+      new FolderCreatedDomainEvent({
+        aggregateId: folder.uuid,
+      }),
+    );
 
     return folder;
   }
 
   moveTo(folder: Folder) {
-    if (!this._parentId) {
+    if (this.isRoot()) {
       throw new Error('Root folder cannot be moved');
     }
 
@@ -149,7 +130,7 @@ export class Folder extends AggregateRoot {
     const before = this.path;
 
     this._path = this._path.changeFolder(folder.path);
-    this._parentId = new FolderId(folder.id);
+    this._parentUuid = new FolderUuid(folder.uuid);
 
     this.record(
       new FolderMovedDomainEvent({
@@ -168,13 +149,13 @@ export class Folder extends AggregateRoot {
     this._path = this._path.updateName(newPath.name());
     this._updatedAt = FolderUpdatedAt.now();
 
-    const event = new FolderRenamedDomainEvent({
-      aggregateId: this.uuid,
-      previousPath: oldPath.name(),
-      nextPath: this._path.name(),
-    });
-
-    this.record(event);
+    this.record(
+      new FolderRenamedDomainEvent({
+        aggregateId: this.uuid,
+        previousPath: oldPath.name(),
+        nextPath: this._path.name(),
+      }),
+    );
   }
 
   trash() {
@@ -184,12 +165,10 @@ export class Folder extends AggregateRoot {
 
     this._status = this._status.changeTo(FolderStatuses.TRASHED);
     this._updatedAt = FolderUpdatedAt.now();
-
-    // TODO: record trashed event
   }
 
   isIn(folder: Folder): boolean {
-    return this.parentId === folder.id;
+    return this.parentUuid === folder.uuid;
   }
 
   isFolder(): this is Folder {
@@ -201,18 +180,17 @@ export class Folder extends AggregateRoot {
   }
 
   isRoot(): boolean {
-    return !this._parentId;
+    return !this._parentUuid;
   }
 
   hasStatus(status: FolderStatuses): boolean {
     return this._status.value === status;
   }
 
-  attributes() {
+  attributes(): FolderAttributes {
     return {
-      id: this.id,
       uuid: this.uuid,
-      parentId: this.parentId || 0,
+      parentUuid: this.parentUuid ?? undefined,
       path: this.path,
       updatedAt: this.updatedAt.toISOString(),
       createdAt: this.createdAt.toISOString(),

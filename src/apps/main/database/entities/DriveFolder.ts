@@ -6,7 +6,7 @@ export type FolderUuid = Brand<string, 'FolderUuid'>;
 export type SimpleDriveFolder = {
   uuid: FolderUuid;
   name: string;
-  parentId: number | undefined;
+  parentUuid: string | undefined;
   createdAt: string;
   updatedAt: string;
   status: DriveItemStatus;
@@ -23,11 +23,8 @@ export class DriveFolder {
   @Column({ type: 'varchar', nullable: false })
   type!: string;
 
-  @Column({ type: 'integer', nullable: false, unique: true })
-  id!: number;
-
-  @Column({ type: 'integer', nullable: true })
-  parentId?: number | null;
+  @Column({ type: 'varchar', nullable: true })
+  parentUuid?: string | null;
 
   @Column({ type: 'varchar', nullable: true })
   bucket?: string | null;
@@ -43,9 +40,6 @@ export class DriveFolder {
 
   @Column({ type: 'varchar', nullable: false })
   plainName!: string;
-
-  @Column({ type: 'varchar', nullable: true })
-  name?: string;
 
   @Column({ type: 'varchar', nullable: false })
   status!: DriveItemStatus;

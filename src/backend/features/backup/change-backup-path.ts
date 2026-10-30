@@ -28,7 +28,15 @@ export async function changeBackupPath({ currentPath, newPath }: Props): Promise
   if (oldFolderName !== newFolderName) {
     logger.debug({ tag: 'BACKUPS', msg: 'Renaming backup', existingBackup });
 
-    const res = await renameFolder({ uuid: existingBackup.folderUuid, plainName: newFolderName });
+    const { data: backupWithUuid, error: migrateBeforeRenameError } = await migrateBackupEntryIfNeeded({
+      pathname: currentPath,
+      backup: existingBackup,
+    });
+    if (migrateBeforeRenameError) {
+      return { error: migrateBeforeRenameError };
+    }
+
+    const res = await renameFolder({ uuid: backupWithUuid.folderUuid, plainName: newFolderName });
     if (res.error) {
       return { error: new Error('Error in the request to rename a backup') };
     }
@@ -37,7 +45,7 @@ export async function changeBackupPath({ currentPath, newPath }: Props): Promise
 
     const { data: migratedExistingBackup, error } = await migrateBackupEntryIfNeeded({
       pathname: newPath,
-      backup: existingBackup,
+      backup: backupWithUuid,
     });
     if (error) return { error };
 

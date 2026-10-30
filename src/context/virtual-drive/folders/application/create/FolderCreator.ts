@@ -2,13 +2,9 @@ import { Service } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { EventBus } from '../../../shared/domain/EventBus';
 import { Folder } from '../../domain/Folder';
-import { FolderCreatedAt } from '../../domain/FolderCreatedAt';
-import { FolderId } from '../../domain/FolderId';
 import { FolderPath } from '../../domain/FolderPath';
 import { FolderRepository } from '../../domain/FolderRepository';
 import { FolderStatuses } from '../../domain/FolderStatus';
-import { FolderUpdatedAt } from '../../domain/FolderUpdatedAt';
-import { FolderUuid } from '../../domain/FolderUuid';
 import { FolderInPathAlreadyExistsError } from '../../domain/errors/FolderInPathAlreadyExistsError';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { ParentFolderFinder } from '../ParentFolderFinder';
@@ -48,7 +44,6 @@ export class FolderCreator {
     await this.ensureItDoesNotExists(folderPath);
 
     const parent = await this.parentFolderFinder.run(folderPath);
-    const parentId = new FolderId(parent.id);
 
     const { data: dto, error } = await persistFolderWithRetry({
       remoteFileSystem: this.remote,
@@ -62,7 +57,7 @@ export class FolderCreator {
       logger.error({ msg: 'Error creating folder:', error });
 
       if (error.cause === 'FILE_ALREADY_EXISTS') {
-        const existingFolder = await this.remote.searchWith(parentId, folderPath);
+        const existingFolder = await this.remote.searchWith(parent.uuid, folderPath);
 
         if (existingFolder) {
           await this.repository.add(existingFolder);
@@ -73,14 +68,13 @@ export class FolderCreator {
       throw new Error(`Could not create folder ${folderPath.value}: ${error.cause}`);
     }
 
-    const folder = Folder.create(
-      new FolderId(dto.id),
-      new FolderUuid(dto.uuid),
-      folderPath,
-      parentId,
-      FolderCreatedAt.fromString(dto.createdAt),
-      FolderUpdatedAt.fromString(dto.updatedAt),
-    );
+    const folder = Folder.create({
+      uuid: dto.uuid,
+      path: folderPath.value,
+      parentUuid: parent.uuid,
+      createdAt: dto.createdAt,
+      updatedAt: dto.updatedAt,
+    });
 
     await this.repository.add(folder);
     this.eventBus.publish(folder.pullDomainEvents());

@@ -82,7 +82,7 @@ describe('synchronize-directory-metadata', () => {
     expect(createOrUpdateFolderByBatchMock).toHaveBeenCalledWith({ folders: [] });
     expect(createOrUpdateFileByBatchMock).toHaveBeenCalledWith({ files: [] });
     expect(fileRepository.deleteByFolderPath).not.toHaveBeenCalled();
-    expect(markLoadedMock).toHaveBeenCalledWith({ folderId: folder.id, statusScope: 'EXISTS' });
+    expect(markLoadedMock).toHaveBeenCalledWith({ folderUuid: folder.uuid, statusScope: 'EXISTS' });
     expect(markErrorMock).not.toHaveBeenCalled();
   });
 
@@ -96,7 +96,7 @@ describe('synchronize-directory-metadata', () => {
     });
 
     expect(markErrorMock).toHaveBeenCalledWith({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
       statusScope: 'EXISTS',
       failureState: 'error_before_mutation',
     });
@@ -114,7 +114,7 @@ describe('synchronize-directory-metadata', () => {
     });
 
     expect(markErrorMock).toHaveBeenCalledWith({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
       statusScope: 'EXISTS',
       failureState: 'error_not_found',
     });
@@ -132,29 +132,54 @@ describe('synchronize-directory-metadata', () => {
       fileRepository: inMemoryFileRepository,
     });
 
-    expect(await inMemoryFolderRepository.searchById(rootFolder.id)).toMatchObject({
-      id: rootFolder.id,
+    expect(await inMemoryFolderRepository.searchByUuid(rootFolder.uuid)).toMatchObject({
+      uuid: rootFolder.uuid,
       path: '/',
     });
   });
 
   it.each(['/', '/documents'])('should retain valid descendants and only remove stale children of %s', async (path) => {
-    const parent = FolderMother.fromPartial({ id: 1, path, parentId: null });
+    const parent = FolderMother.fromPartial({ path });
     const prefix = path === '/' ? '' : path;
-    const kept = FolderMother.fromPartial({ id: 2, parentId: parent.id, path: `${prefix}/kept` });
-    const descendant = FolderMother.fromPartial({ id: 3, parentId: kept.id, path: `${kept.path}/nested` });
-    const removed = FolderMother.fromPartial({ id: 4, parentId: parent.id, path: `${prefix}/gone` });
-    const removedDescendant = FolderMother.fromPartial({ id: 5, parentId: removed.id, path: `${removed.path}/nested` });
-    const sibling = FolderMother.fromPartial({ id: 6, parentId: parent.id, path: `${prefix}/gone-too` });
-    const directFile = FileMother.fromPartial({ folderId: parent.id, path: `${prefix}/keep.txt`, size: 1 });
-    const staleFile = FileMother.fromPartial({ folderId: parent.id, path: `${prefix}/stale.txt` });
-    const nestedFile = FileMother.fromPartial({ folderId: descendant.id, path: `${descendant.path}/keep.txt` });
-    const removedFile = FileMother.fromPartial({ folderId: removed.id, path: `${removed.path}/remove.txt` });
+    const kept = FolderMother.fromPartial({ parentUuid: parent.uuid, path: `${prefix}/kept` });
+    const descendant = FolderMother.fromPartial({
+      parentUuid: kept.uuid,
+      path: `${kept.path}/nested`,
+    });
+    const removed = FolderMother.fromPartial({
+      parentUuid: parent.uuid,
+      path: `${prefix}/gone`,
+    });
+    const removedDescendant = FolderMother.fromPartial({
+      parentUuid: removed.uuid,
+      path: `${removed.path}/nested`,
+    });
+    const sibling = FolderMother.fromPartial({
+      parentUuid: parent.uuid,
+      path: `${prefix}/gone-too`,
+    });
+    const directFile = FileMother.fromPartial({
+      folderUuid: parent.uuid,
+      path: `${prefix}/keep.txt`,
+      size: 1,
+    });
+    const staleFile = FileMother.fromPartial({ folderUuid: parent.uuid, path: `${prefix}/stale.txt` });
+    const nestedFile = FileMother.fromPartial({
+      folderUuid: descendant.uuid,
+      path: `${descendant.path}/keep.txt`,
+    });
+    const removedFile = FileMother.fromPartial({
+      folderUuid: removed.uuid,
+      path: `${removed.path}/remove.txt`,
+    });
     const removedNestedFile = FileMother.fromPartial({
-      folderId: removedDescendant.id,
+      folderUuid: removedDescendant.uuid,
       path: `${removedDescendant.path}/remove.txt`,
     });
-    const siblingFile = FileMother.fromPartial({ folderId: sibling.id, path: `${sibling.path}/keep.txt` });
+    const siblingFile = FileMother.fromPartial({
+      folderUuid: sibling.uuid,
+      path: `${sibling.path}/keep.txt`,
+    });
     const folders = new InMemoryFolderRepository();
     const files = new InMemoryFileRepository();
     for (const entry of [parent, kept, descendant, removed, removedDescendant, sibling]) await folders.add(entry);
@@ -183,8 +208,11 @@ describe('synchronize-directory-metadata', () => {
 
     await synchronizeDirectoryMetadata({ folder: parent, folderRepository: folders, fileRepository: files });
 
-    expect((await folders.all()).map((entry) => entry.id).sort()).toStrictEqual([1, 2, 3, 6]);
-    expect((await folders.searchById(kept.id))?.attributes()).toMatchObject({
+    expect((await folders.all()).map((entry) => entry.uuid).sort()).toStrictEqual(
+      [parent, kept, descendant, sibling].map((entry) => entry.uuid).sort(),
+    );
+    expect((await folders.searchByUuid(sibling.uuid))?.attributes()).toMatchObject({
+      uuid: sibling.uuid,
       updatedAt: '2026-01-01T00:00:00.000Z',
     });
     expect((await files.all()).map((entry) => entry.uuid).sort()).toStrictEqual(
@@ -193,14 +221,25 @@ describe('synchronize-directory-metadata', () => {
     expect(await files.searchByUuid(directFile.uuid)).toMatchObject({ size: 42 });
     expect(await files.searchByContentsId(staleFile.contentsId)).toBeUndefined();
     expect(await files.searchByContentsId(removedNestedFile.contentsId)).toBeUndefined();
-    expect(invalidateMock.mock.calls.map(([props]) => props.folderId).sort()).toStrictEqual([1, 4, 5]);
+    expect(invalidateMock.mock.calls.map(([props]) => props.folderUuid).sort()).toStrictEqual(
+      [parent.uuid, removed.uuid, removedDescendant.uuid].sort(),
+    );
   });
 
   it('should drop cached descendants when a remote folder keeps its uuid and changes path', async () => {
-    const parent = FolderMother.fromPartial({ id: 1, path: '/documents', parentId: null });
-    const renamed = FolderMother.fromPartial({ id: 2, parentId: parent.id, path: '/documents/old' });
-    const descendant = FolderMother.fromPartial({ id: 3, parentId: renamed.id, path: '/documents/old/nested' });
-    const nestedFile = FileMother.fromPartial({ folderId: descendant.id, path: '/documents/old/nested/keep.txt' });
+    const parent = FolderMother.fromPartial({ path: '/documents' });
+    const renamed = FolderMother.fromPartial({
+      parentUuid: parent.uuid,
+      path: '/documents/old',
+    });
+    const descendant = FolderMother.fromPartial({
+      parentUuid: renamed.uuid,
+      path: '/documents/old/nested',
+    });
+    const nestedFile = FileMother.fromPartial({
+      folderUuid: descendant.uuid,
+      path: '/documents/old/nested/keep.txt',
+    });
     const folders = new InMemoryFolderRepository();
     const files = new InMemoryFileRepository();
     for (const entry of [parent, renamed, descendant]) await folders.add(entry);
@@ -222,22 +261,19 @@ describe('synchronize-directory-metadata', () => {
 
     await synchronizeDirectoryMetadata({ folder: parent, folderRepository: folders, fileRepository: files });
 
-    expect((await folders.searchById(renamed.id))?.path).toBe('/documents/new');
-    expect(await folders.searchById(descendant.id)).toBeUndefined();
+    expect((await folders.searchByUuid(renamed.uuid))?.path).toBe('/documents/new');
+    expect(await folders.searchByUuid(descendant.uuid)).toBeUndefined();
     expect(await files.searchByUuid(nestedFile.uuid)).toBeUndefined();
-    expect(invalidateMock.mock.calls.map(([props]) => props.folderId).sort()).toStrictEqual([
-      parent.id,
-      renamed.id,
-      descendant.id,
-    ]);
+    expect(invalidateMock.mock.calls.map(([props]) => props.folderUuid).sort()).toStrictEqual(
+      [parent.uuid, renamed.uuid, descendant.uuid].sort(),
+    );
   });
 
   it('should preserve /.Trash folder when refreshing root children', async () => {
     const rootFolder = FolderMother.root();
     const trashFolder = FolderMother.fromPartial({
-      id: Number.MAX_SAFE_INTEGER,
       path: '/.Trash',
-      parentId: rootFolder.id,
+      parentUuid: rootFolder.uuid,
     });
     const inMemoryFolderRepository = new InMemoryFolderRepository();
     const inMemoryFileRepository = new InMemoryFileRepository();
@@ -250,7 +286,7 @@ describe('synchronize-directory-metadata', () => {
       fileRepository: inMemoryFileRepository,
     });
 
-    expect(await inMemoryFolderRepository.searchById(trashFolder.id)).toBeDefined();
+    expect(await inMemoryFolderRepository.searchByUuid(trashFolder.uuid)).toBeDefined();
   });
 
   it('should mark the directory as errored without mutating cached children when folder persistence fails', async () => {
@@ -265,7 +301,11 @@ describe('synchronize-directory-metadata', () => {
     expect(createOrUpdateFileByBatchMock).not.toHaveBeenCalled();
     expect(fileRepository.deleteByFolderPath).not.toHaveBeenCalled();
     expect(markLoadedMock).not.toHaveBeenCalled();
-    expect(markErrorMock).toHaveBeenCalledWith({ folderId: folder.id, statusScope: 'EXISTS', failureState: 'error' });
+    expect(markErrorMock).toHaveBeenCalledWith({
+      folderUuid: folder.uuid,
+      statusScope: 'EXISTS',
+      failureState: 'error',
+    });
   });
 
   it('should mark the directory as errored without mutating cached children when file persistence fails', async () => {
@@ -279,7 +319,11 @@ describe('synchronize-directory-metadata', () => {
 
     expect(fileRepository.deleteByFolderPath).not.toHaveBeenCalled();
     expect(markLoadedMock).not.toHaveBeenCalled();
-    expect(markErrorMock).toHaveBeenCalledWith({ folderId: folder.id, statusScope: 'EXISTS', failureState: 'error' });
+    expect(markErrorMock).toHaveBeenCalledWith({
+      folderUuid: folder.uuid,
+      statusScope: 'EXISTS',
+      failureState: 'error',
+    });
   });
 
   it.each(['folder', 'file', 'deletion', 'markLoaded'] as const)(
@@ -289,7 +333,7 @@ describe('synchronize-directory-metadata', () => {
         createOrUpdateFolderByBatchMock.mockResolvedValue({ error: new Error('folder persistence') });
       if (stage === 'file') createOrUpdateFileByBatchMock.mockResolvedValue({ error: new Error('file persistence') });
       if (stage === 'deletion') {
-        fileRepository.matchingPartial.mockReturnValue([FileMother.fromPartial({ folderId: folder.id })]);
+        fileRepository.matchingPartial.mockReturnValue([FileMother.fromPartial({ folderUuid: folder.uuid })]);
         fileRepository.delete.mockRejectedValue(new Error('deletion'));
       }
       if (stage === 'markLoaded') markLoadedMock.mockRejectedValue(new Error('state persistence'));
@@ -300,7 +344,7 @@ describe('synchronize-directory-metadata', () => {
         code: FuseCodes.EIO,
         canUseCachedChildren: false,
       });
-      expect(invalidateMock).toHaveBeenCalledWith({ folderId: folder.id, statusScope: 'EXISTS' });
+      expect(invalidateMock).toHaveBeenCalledWith({ folderUuid: folder.uuid, statusScope: 'EXISTS' });
       expect(invalidateMock.mock.invocationCallOrder[0]).toBeLessThan(
         createOrUpdateFolderByBatchMock.mock.invocationCallOrder[0],
       );
@@ -321,9 +365,12 @@ describe('synchronize-directory-metadata', () => {
         state.children_last_error_at = new Date().toISOString();
         state.fetch_state = failureState;
       });
-      const child = FolderMother.fromPartial({ id: 99, parentId: folder.id, path: '/documents' });
+      const child = FolderMother.fromPartial({
+        parentUuid: folder.uuid,
+        path: '/documents',
+      });
       folderRepository.matchingPartial.mockImplementation((partial) =>
-        partial.path === '/' ? [folder] : partial.parentId === folder.id && !empty ? [child] : [],
+        partial.path === '/' ? [folder] : partial.parentUuid === folder.uuid && !empty ? [child] : [],
       );
       fileRepository.matchingPartial.mockReturnValue([]);
       fetchFolderMock.mockRejectedValue(new Error('network failure'));

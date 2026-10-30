@@ -9,6 +9,7 @@ import { processDeeplink } from './proccess-deeplink';
 import { initializeCurrentUser } from './initialize-current-user';
 import configStore from '../../config';
 import { PATHS } from '../../../../core/electron/paths';
+import { bootstrapAppDataSource } from '../../database/bootstrap-app-data-source';
 
 type Props = {
   url: string;
@@ -41,6 +42,7 @@ export async function handleDeeplink({ url }: Props) {
 
     app.focus();
 
+    await bootstrapAppDataSource();
     eventBus.emit('USER_LOGGED_IN');
 
     logger.debug({ tag: 'AUTH', msg: 'Deeplink login completed successfully' });

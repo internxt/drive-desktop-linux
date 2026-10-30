@@ -1,20 +1,13 @@
-import { DriveItemStatus } from '../../../../../context/shared/domain/DriveItemStatus';
+import type { SynchronizationPageRequest } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { components } from '../../../../schemas';
 
-export type FetchFilesSyncQuery = {
-  limit: number;
-  status?: DriveItemStatus;
-  updatedAt?: string;
-  cursor?: string;
-};
-
 export type FetchFilesSyncResult = components['schemas']['GetFilesSyncResponseDto'];
 
 export async function fetchFilesSync(
-  query: FetchFilesSyncQuery,
+  query: SynchronizationPageRequest,
 ): Promise<Result<FetchFilesSyncResult, DriveServerError>> {
   const { data, error } = await driveServerClient.GET('/files/sync', { query });
 

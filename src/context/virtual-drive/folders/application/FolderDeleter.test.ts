@@ -38,7 +38,7 @@ describe('Folder deleter', () => {
     await SUT.run(folder.uuid);
 
     call(addFolderToTrashMock).toBe(folder.uuid);
-    expect(repository.deleteMock).toHaveBeenCalledWith(folder.id);
+    expect(repository.deleteMock).toHaveBeenCalledWith(folder.uuid);
   });
 
   it('throws an error when trashing a folder already trashed', async () => {

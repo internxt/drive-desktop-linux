@@ -34,10 +34,9 @@ describe('unlink', () => {
   it('should trash file when file exists', async () => {
     fileSearcher.run.mockResolvedValue(
       File.from({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         contentsId: 'aabbccddeeff001122334455',
-        folderId: 1,
+        folderUuid: '22222222-2222-4333-8444-555555555555',
         createdAt: new Date().toISOString(),
         modificationTime: new Date().toISOString(),
         path: '/some/file.txt',
@@ -89,10 +88,9 @@ describe('unlink', () => {
   it('should return EIO when file trash fails', async () => {
     fileSearcher.run.mockResolvedValue(
       File.from({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         contentsId: 'ffeeddccbbaa001122334455',
-        folderId: 1,
+        folderUuid: '22222222-2222-4333-8444-555555555555',
         createdAt: new Date().toISOString(),
         modificationTime: new Date().toISOString(),
         path: '/some/file.txt',
