@@ -8,7 +8,7 @@ import { FolderMetadataProps } from './types';
 
 export async function refreshChildren({ folder, folderRepository, fileRepository }: FolderMetadataProps) {
   const statusScope = 'EXISTS' as const;
-  const state = await DirectoryStateRepository.getState({ folderId: folder.id, statusScope });
+  const state = await DirectoryStateRepository.getState({ folderUuid: folder.uuid, statusScope });
   const isInErrorCooldown =
     state?.children_last_error_at &&
     Date.now() - new Date(state.children_last_error_at).getTime() < DIRECTORY_STATE_ERROR_COOLDOWN_MS;
@@ -22,6 +22,6 @@ export async function refreshChildren({ folder, folderRepository, fileRepository
       }),
     );
   }
-  if (await DirectoryStateRepository.isFresh({ folderId: folder.id, statusScope })) return Result.ok(undefined);
+  if (await DirectoryStateRepository.isFresh({ folderUuid: folder.uuid, statusScope })) return Result.ok(undefined);
   return synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository });
 }

@@ -64,7 +64,7 @@ export async function launchBackupProcesses(
       });
 
       if (error instanceof DriveDesktopError && 'cause' in error && error.cause && isSyncError(error.cause)) {
-        errors.add(backupInfo.folderId, {
+        errors.add(backupInfo.folderUuid, {
           name: backupInfo.name,
           error: error.cause,
         });

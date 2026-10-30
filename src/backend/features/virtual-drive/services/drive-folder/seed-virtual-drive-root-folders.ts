@@ -2,7 +2,7 @@ import { Folder } from '../../../../../context/virtual-drive/folders/domain/Fold
 import { FolderStatuses } from '../../../../../context/virtual-drive/folders/domain/FolderStatus';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import { User } from '../../../../../apps/main/types';
-import { TRASH_FOLDER_ID, TRASH_FOLDER_UUID, TRASH_UID_FOLDER_ID, TRASH_UID_FOLDER_UUID } from './constants';
+import { TRASH_FOLDER_UUID, TRASH_UID_FOLDER_UUID } from './constants';
 
 type Props = {
   folderRepository: FolderRepository;
@@ -19,9 +19,7 @@ export async function seedVirtualDriveRootFolders({ folderRepository, user }: Pr
   const now = new Date().toISOString();
 
   const rootFolder = Folder.from({
-    id: user.root_folder_id,
     uuid: user.rootFolderId,
-    parentId: null,
     path: '/',
     updatedAt: now,
     createdAt: now,
@@ -29,9 +27,8 @@ export async function seedVirtualDriveRootFolders({ folderRepository, user }: Pr
   });
 
   const trashFolder = Folder.from({
-    id: TRASH_FOLDER_ID,
     uuid: TRASH_FOLDER_UUID,
-    parentId: user.root_folder_id,
+    parentUuid: user.rootFolderId,
     path: '/.Trash',
     updatedAt: now,
     createdAt: now,
@@ -44,9 +41,8 @@ export async function seedVirtualDriveRootFolders({ folderRepository, user }: Pr
   const uid = process.getuid?.();
   if (uid !== undefined) {
     const trashUidFolder = Folder.from({
-      id: TRASH_UID_FOLDER_ID,
       uuid: TRASH_UID_FOLDER_UUID,
-      parentId: user.root_folder_id,
+      parentUuid: user.rootFolderId,
       path: `/.Trash-${uid}`,
       updatedAt: now,
       createdAt: now,

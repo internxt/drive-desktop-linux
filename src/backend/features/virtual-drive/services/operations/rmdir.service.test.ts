@@ -28,9 +28,7 @@ describe('rmdir', () => {
   it('should trash folder when folder exists', async () => {
     folderFinder.run.mockResolvedValue(
       Folder.from({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440010',
-        parentId: 2,
         path: '/some/folder',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -63,9 +61,7 @@ describe('rmdir', () => {
   it('should return EIO when trash fails', async () => {
     folderFinder.run.mockResolvedValue(
       Folder.from({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440011',
-        parentId: 2,
         path: '/some/folder',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

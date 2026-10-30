@@ -11,16 +11,11 @@ export class FolderRepositoryMock implements FolderRepository {
   public readonly addMock = vi.fn();
   public readonly deleteMock = vi.fn();
   public readonly updateMock = vi.fn();
-  public readonly searchByIdMock = vi.fn();
   public readonly searchByUuidMock = vi.fn();
   public readonly clearMock = vi.fn();
 
   all(): Promise<Folder[]> {
     return this.allMock();
-  }
-
-  searchById(id: number): Promise<Folder | undefined> {
-    return this.searchByIdMock(id);
   }
 
   searchByUuid(id: string): Promise<Folder | undefined> {
@@ -43,8 +38,8 @@ export class FolderRepositoryMock implements FolderRepository {
     return this.addMock(folder);
   }
 
-  delete(id: number): Promise<void> {
-    return this.deleteMock(id);
+  delete(uuid: string): Promise<void> {
+    return this.deleteMock(uuid);
   }
 
   update(folder: Folder): Promise<void> {

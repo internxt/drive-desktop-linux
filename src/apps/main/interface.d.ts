@@ -155,7 +155,7 @@ export interface IElectronAPI {
   };
   getVirtualDriveRoot(): Promise<string>;
   chooseSyncRootWithDialog(): Promise<ChooseSyncRootResult>;
-  getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
+  getBackupErrorByFolder(folderUuid: string): Promise<BackupErrorRecord | undefined>;
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   onMarketingNotifications(fn: (notifications: Array<UserNotification>) => void): () => void;
@@ -201,7 +201,7 @@ export interface IElectronAPI {
     discoveredBackups: () => Promise<void>;
   };
   onBackupFailed: (callback: (error: { message: string; cause: string }) => void) => () => void;
-  deleteBackupError: (folderId: number) => Promise<void>;
+  deleteBackupError: (folderUuid: string) => Promise<void>;
 }
 
 declare global {

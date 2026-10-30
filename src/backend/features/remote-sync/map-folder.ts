@@ -9,10 +9,10 @@ export function resolveFolderStatus(
     return toDriveItemStatus(dto.status);
   }
   if (dto.removed) {
-    return DriveItemStatus.DELETED;
+    return DriveItemStatus.TRASHED;
   }
   if (dto.deleted) {
-    return DriveItemStatus.TRASHED;
+    return DriveItemStatus.DELETED;
   }
   return DriveItemStatus.EXISTS;
 }
@@ -20,15 +20,13 @@ export function resolveFolderStatus(
 export function mapFolder(dto: FolderSyncDto): RemoteSyncedFolder {
   return {
     type: dto.type,
-    id: dto.id,
-    parentId: dto.parentId ?? null,
     bucket: dto.bucket ?? null,
     userId: dto.userId,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
     uuid: dto.uuid,
     plainName: dto.plainName,
-    name: dto.name || undefined,
+    parentUuid: dto.parentUuid || undefined,
     status: resolveFolderStatus(dto),
   };
 }

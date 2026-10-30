@@ -46,9 +46,8 @@ describe('persist-folders-sync-batch', () => {
     call(createOrUpdateMock).toMatchObject({
       folders: [
         expect.objectContaining({
-          id: 1,
           uuid: 'f1',
-          name: 'Folder 1',
+          plainName: 'Folder 1',
           status: 'EXISTS',
         }),
       ],

@@ -2,13 +2,14 @@ import { partialSpyOn } from '../../../../../tests/vitest/utils.helper';
 import * as createFolderModule from '../../../../infra/drive-server/services/folder/services/create-folder';
 import * as searchFolderModule from '../../../../infra/drive-server/services/folder/services/search-folder';
 import { DriveServerError } from '../../../../infra/drive-server/drive-server.error';
-import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
 import { HttpRemoteFileSystem } from './HttpRemoteFileSystem';
 
 describe('HttpRemoteFileSystem', () => {
   const createFolderMock = partialSpyOn(createFolderModule, 'createFolder');
   const searchFolderMock = partialSpyOn(searchFolderModule, 'searchFolder');
+
+  const parentFolderUuid = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 
   beforeEach(() => {
     createFolderMock.mockReset();
@@ -23,7 +24,7 @@ describe('HttpRemoteFileSystem', () => {
       error: new DriveServerError('NOT_FOUND', 404, 'Any not found message'),
     });
 
-    const result = await sut.persist('child', 'parent-uuid');
+    const result = await sut.persist('child', parentFolderUuid);
 
     expect(result.isLeft()).toBe(true);
     expect(result.getLeft()).toMatchObject({
@@ -40,7 +41,7 @@ describe('HttpRemoteFileSystem', () => {
       error: new DriveServerError('BAD_REQUEST', 400, 'Invalid request'),
     });
 
-    const result = await sut.persist('child', 'parent-uuid');
+    const result = await sut.persist('child', parentFolderUuid);
 
     expect(result.isLeft()).toBe(true);
     expect(result.getLeft().cause).toBe('BAD_REQUEST');
@@ -55,7 +56,7 @@ describe('HttpRemoteFileSystem', () => {
       error: new DriveServerError('CONFLICT', 409, 'Folder already exists'),
     });
 
-    const result = await sut.persist('child', 'parent-uuid');
+    const result = await sut.persist('child', parentFolderUuid);
 
     expect(result.isLeft()).toBe(true);
     expect(result.getLeft().cause).toBe('FILE_ALREADY_EXISTS');
@@ -70,7 +71,7 @@ describe('HttpRemoteFileSystem', () => {
       error: new DriveServerError('TOO_MANY_REQUESTS', 429, JSON.stringify({ retry_after: 7 })),
     });
 
-    const result = await sut.persist('child', 'parent-uuid');
+    const result = await sut.persist('child', parentFolderUuid);
 
     expect(result.isLeft()).toBe(true);
     expect(result.getLeft()).toMatchObject({
@@ -87,7 +88,7 @@ describe('HttpRemoteFileSystem', () => {
       error: new DriveServerError(cause, 500, 'Remote service failed'),
     });
 
-    const result = await sut.persist('child', 'parent-uuid');
+    const result = await sut.persist('child', parentFolderUuid);
 
     expect(result.isLeft()).toBe(true);
     expect(result.getLeft().cause).toBe('INTERNAL_SERVER_ERROR');
@@ -102,7 +103,7 @@ describe('HttpRemoteFileSystem', () => {
       error: new DriveServerError('UNAUTHORIZED', 401, 'Not allowed'),
     });
 
-    const result = await sut.persist('child', 'parent-uuid');
+    const result = await sut.persist('child', parentFolderUuid);
 
     expect(result.isLeft()).toBe(true);
     expect(result.getLeft()).toMatchObject({
@@ -116,7 +117,7 @@ describe('HttpRemoteFileSystem', () => {
 
     createFolderMock.mockResolvedValue({ data: undefined, error: undefined });
 
-    const result = await sut.persist('child', 'parent-uuid');
+    const result = await sut.persist('child', parentFolderUuid);
 
     expect(result.isLeft()).toBe(true);
     expect(result.getLeft().cause).toBe('UNKNOWN');
@@ -137,19 +138,17 @@ describe('HttpRemoteFileSystem', () => {
       error: undefined,
     });
 
-    const result = await sut.persist('child', 'parent-uuid');
+    const result = await sut.persist('child', parentFolderUuid);
 
     expect(result.isRight()).toBe(true);
     expect(result.getRight()).toStrictEqual({
-      id: 12,
       uuid: 'folder-12',
-      parentId: 7,
       updatedAt: '2025-01-03T00:00:00.000Z',
       createdAt: '2025-01-02T00:00:00.000Z',
     });
   });
 
-  it('returns undefined if a search request fails', async () => {
+  it('returns undefined if searchFolder fails', async () => {
     const sut = new HttpRemoteFileSystem();
 
     searchFolderMock.mockResolvedValue({
@@ -157,35 +156,12 @@ describe('HttpRemoteFileSystem', () => {
       error: new DriveServerError('SERVER_ERROR', 500, 'Search failed'),
     });
 
-    const result = await sut.searchWith(new FolderId(10), new FolderPath('/root/child'));
+    const result = await sut.searchWith(parentFolderUuid, new FolderPath('/root/child'));
 
     expect(result).toBeUndefined();
   });
 
-  it('returns undefined when the searched folder name is not present', async () => {
-    const sut = new HttpRemoteFileSystem();
-
-    searchFolderMock.mockResolvedValue({
-      data: [
-        {
-          id: 1,
-          uuid: 'folder-1',
-          parentId: 10,
-          plainName: 'other-folder',
-          updatedAt: '2025-01-01T00:00:00.000Z',
-          createdAt: '2025-01-01T00:00:00.000Z',
-          status: 'EXISTS',
-        },
-      ],
-      error: undefined,
-    });
-
-    const result = await sut.searchWith(new FolderId(10), new FolderPath('/root/child'));
-
-    expect(result).toBeUndefined();
-  });
-
-  it('returns the matching folder from the search result', async () => {
+  it('maps a matching subfolder to domain Folder attributes', async () => {
     const sut = new HttpRemoteFileSystem();
 
     searchFolderMock.mockResolvedValue({
@@ -194,6 +170,7 @@ describe('HttpRemoteFileSystem', () => {
           id: 1,
           uuid: '123e4567-e89b-12d3-a456-426614174000',
           parentId: 10,
+          parentUuid: parentFolderUuid,
           plainName: 'child',
           updatedAt: '2025-01-01T00:00:00.000Z',
           createdAt: '2025-01-01T00:00:00.000Z',
@@ -203,57 +180,18 @@ describe('HttpRemoteFileSystem', () => {
       error: undefined,
     });
 
-    const result = await sut.searchWith(new FolderId(10), new FolderPath('/root/child'));
+    const result = await sut.searchWith(parentFolderUuid, new FolderPath('/root/child'));
 
-    expect(result).toBeDefined();
     expect(result).toMatchObject({
       uuid: '123e4567-e89b-12d3-a456-426614174000',
       path: '/root/child',
       name: 'child',
+      parentUuid: parentFolderUuid,
     });
-  });
-
-  it('searches across pages until the folder is found', async () => {
-    const sut = new HttpRemoteFileSystem();
-
-    const firstPage = Array.from({ length: 50 }, (_, index) => ({
-      id: index + 1,
-      uuid: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
-      parentId: 10,
-      plainName: index === 0 ? 'other' : `other-${index}`,
-      updatedAt: '2025-01-01T00:00:00.000Z',
-      createdAt: '2025-01-01T00:00:00.000Z',
-      status: 'EXISTS' as const,
-    }));
-
-    searchFolderMock.mockResolvedValueOnce({
-      data: firstPage,
-      error: undefined,
+    expect(searchFolderMock).toHaveBeenCalledWith({
+      parentFolderUuid,
+      offset: 0,
+      limit: 50,
     });
-
-    searchFolderMock.mockResolvedValueOnce({
-      data: [
-        {
-          id: 51,
-          uuid: '22222222-2222-4222-8222-222222222222',
-          parentId: 10,
-          plainName: 'child',
-          updatedAt: '2025-01-02T00:00:00.000Z',
-          createdAt: '2025-01-02T00:00:00.000Z',
-          status: 'EXISTS' as const,
-        },
-      ],
-      error: undefined,
-    });
-
-    const result = await sut.searchWith(new FolderId(10), new FolderPath('/root/child'));
-
-    expect(result).toBeDefined();
-    expect(result).toMatchObject({
-      uuid: '22222222-2222-4222-8222-222222222222',
-      path: '/root/child',
-      name: 'child',
-    });
-    expect(searchFolderMock).toHaveBeenCalledTimes(2);
   });
 });

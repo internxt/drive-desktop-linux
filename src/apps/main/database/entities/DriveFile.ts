@@ -9,8 +9,7 @@ export type SimpleDriveFile = {
   name: string;
   nameWithExtension: string;
   extension: string;
-  parentId: number;
-  parentUuid: string | undefined;
+  parentUuid: string;
   contentsId: ContentsId;
   size: number;
   createdAt: string;
@@ -23,9 +22,6 @@ export type SimpleDriveFile = {
 export class DriveFile {
   @Column({ type: 'varchar', nullable: false })
   fileId!: string;
-
-  @Column({ type: 'integer', nullable: false })
-  id!: number;
 
   @PrimaryColumn({
     type: 'varchar',
@@ -43,11 +39,8 @@ export class DriveFile {
   @Column({ type: 'varchar', nullable: false })
   bucket!: string;
 
-  @Column({ type: 'integer', nullable: false })
-  folderId!: number;
-
-  @Column({ type: 'varchar', nullable: true })
-  folderUuid?: string;
+  @Column({ type: 'varchar', nullable: false })
+  folderUuid!: string;
 
   @Column({ type: 'integer', nullable: false })
   userId!: number;
@@ -63,9 +56,6 @@ export class DriveFile {
 
   @Column({ type: 'varchar', nullable: false })
   plainName!: string;
-
-  @Column({ type: 'varchar', nullable: true })
-  name?: string;
 
   @Column({ type: 'varchar', nullable: false })
   status!: DriveItemStatus;

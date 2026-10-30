@@ -3,14 +3,13 @@ import { File } from '../../files/domain/File';
 
 type Props = Pick<
   ServerFile,
-  'id' | 'uuid' | 'folderId' | 'fileId' | 'modificationTime' | 'size' | 'createdAt' | 'updatedAt' | 'status'
+  'uuid' | 'folderUuid' | 'fileId' | 'modificationTime' | 'size' | 'createdAt' | 'updatedAt' | 'status'
 >;
 
 export function createFileFromServerFile(server: Props, relativePath: string): File {
   return File.from({
-    id: server.id,
     uuid: server.uuid,
-    folderId: server.folderId,
+    folderUuid: server.folderUuid,
     contentsId: server.fileId,
     modificationTime: server.modificationTime,
     size: server.size,

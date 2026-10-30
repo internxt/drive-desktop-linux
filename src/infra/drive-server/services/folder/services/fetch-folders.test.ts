@@ -8,6 +8,7 @@ describe('fetch-folders', () => {
 
   const defaultQuery = {
     limit: 50,
+    updatedAt: '1970-01-01T00:00:00.000Z',
   };
 
   it('should return folders and nextCursor when response is valid', async () => {
@@ -46,7 +47,7 @@ describe('fetch-folders', () => {
   it('should pass cursor to the query when provided', async () => {
     driveServerGetMock.mockResolvedValue({ data: { folders: [], nextCursor: null } } as object);
 
-    const query = { ...defaultQuery, cursor: 'cursor-abc' };
+    const query = { limit: defaultQuery.limit, cursor: 'cursor-abc' };
     await fetchFoldersSync(query);
 
     expect(driveServerGetMock).toHaveBeenCalledWith('/folders/sync', { query });

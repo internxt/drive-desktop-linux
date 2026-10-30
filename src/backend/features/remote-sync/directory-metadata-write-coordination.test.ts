@@ -61,7 +61,7 @@ describe('directory-metadata-write-coordination', () => {
     getFreshDirectoryStatesMock.mockImplementation(async () => {
       events.push('snapshot');
       if (!events.includes('mark-loaded')) return new Map();
-      return new Map([[folder.id, loadedAt]]);
+      return new Map([[folder.uuid, loadedAt]]);
     });
     createOrUpdateFileMock.mockImplementation(async ({ files }) => {
       events.push(files?.some((file) => file?.uuid === 'stale-file') ? 'write-stale-file' : 'write-files');
@@ -72,7 +72,7 @@ describe('directory-metadata-write-coordination', () => {
     await vi.waitFor(() => {
       expect(events).toContain('mark-loaded');
     });
-    const persist = persistFilesSyncBatch({ items: [staleFile({ folderId: folder.id })] });
+    const persist = persistFilesSyncBatch({ items: [staleFile({ folderUuid: folder.uuid })] });
     await Promise.resolve();
 
     expect(events).toStrictEqual(['write-files', 'mark-loaded']);
@@ -93,7 +93,7 @@ describe('directory-metadata-write-coordination', () => {
     getFreshDirectoryStatesMock.mockImplementation(async () => {
       events.push('snapshot');
       if (!events.includes('mark-loaded')) return new Map();
-      return new Map([[folder.id, loadedAt]]);
+      return new Map([[folder.uuid, loadedAt]]);
     });
     createOrUpdateFolderMock.mockImplementation(async ({ folders }) => {
       events.push(folders?.some((entry) => entry?.uuid === 'stale-folder') ? 'write-stale-folder' : 'write-folders');
@@ -104,7 +104,7 @@ describe('directory-metadata-write-coordination', () => {
     await vi.waitFor(() => {
       expect(events).toContain('mark-loaded');
     });
-    const persist = persistFoldersSyncBatch({ items: [staleFolder({ parentId: folder.id })] });
+    const persist = persistFoldersSyncBatch({ items: [staleFolder({ parentUuid: folder.uuid })] });
     await Promise.resolve();
 
     expect(events).toStrictEqual(['write-folders', 'mark-loaded']);
@@ -116,7 +116,7 @@ describe('directory-metadata-write-coordination', () => {
   });
 });
 
-function staleFile({ folderId }: { folderId: number }): FileSyncDto {
+function staleFile({ folderUuid }: { folderUuid: string }): FileSyncDto {
   return {
     id: 1,
     uuid: 'stale-file',
@@ -125,8 +125,8 @@ function staleFile({ folderId }: { folderId: number }): FileSyncDto {
     size: '10',
     bucket: 'bucket',
     fileId: 'file-id',
-    folderId,
-    folderUuid: 'folder-uuid',
+    folderId: 0,
+    folderUuid,
     encryptVersion: '',
     userId: 1,
     creationTime: '',
@@ -138,7 +138,7 @@ function staleFile({ folderId }: { folderId: number }): FileSyncDto {
   };
 }
 
-function staleFolder({ parentId }: { parentId: number }): FolderSyncDto {
+function staleFolder({ parentUuid }: { parentUuid: string }): FolderSyncDto {
   return {
     id: 9,
     uuid: 'stale-folder',
@@ -154,8 +154,8 @@ function staleFolder({ parentId }: { parentId: number }): FolderSyncDto {
     status: 'EXISTS',
     removed: false,
     deleted: false,
-    parentId,
-    parentUuid: 'parent-uuid',
+    parentId: 0,
+    parentUuid,
     parent: {},
     userId: 1,
     encryptVersion: '',

@@ -11,7 +11,6 @@ export type CreateFileToBackendParams = {
   contentsId: string;
   filePath: string;
   size: number;
-  folderId: number;
   folderUuid: string;
   bucket: string;
 };
@@ -31,7 +30,6 @@ export async function createFileToBackend({
   contentsId,
   filePath,
   size,
-  folderId,
   folderUuid,
   bucket,
 }: CreateFileToBackendParams): Promise<Result<File, DriveDesktopError>> {
@@ -56,10 +54,9 @@ export async function createFileToBackend({
 
   if (response.data) {
     const file = File.create({
-      id: response.data.id,
       uuid: response.data.uuid,
+      folderUuid,
       contentsId,
-      folderId,
       createdAt: response.data.createdAt,
       modificationTime: response.data.modificationTime,
       path: filePath,

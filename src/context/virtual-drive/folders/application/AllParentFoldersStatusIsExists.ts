@@ -7,8 +7,8 @@ import { FolderStatuses } from '../domain/FolderStatus';
 export class AllParentFoldersStatusIsExists {
   constructor(private readonly repository: FolderRepository) {}
 
-  async run(id: Folder['id']): Promise<boolean> {
-    const folder = await this.repository.searchById(id);
+  async run(folderUuid: Folder['uuid']): Promise<boolean> {
+    const folder = await this.repository.searchByUuid(folderUuid);
 
     if (!folder) {
       // TODO: investigate why when uploading a file in a path than previously existed returns undefined
@@ -19,10 +19,10 @@ export class AllParentFoldersStatusIsExists {
       return false;
     }
 
-    if (!folder.parentId) {
+    if (folder.isRoot() || !folder.parentUuid) {
       return true;
     }
 
-    return this.run(folder.parentId);
+    return this.run(folder.parentUuid);
   }
 }

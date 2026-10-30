@@ -24,7 +24,7 @@ export async function precalculateBackupItemCount(
 
   let remote;
   try {
-    remote = await remoteTreeBuilder.run(backupInfo.folderId, backupInfo.folderUuid, true);
+    remote = await remoteTreeBuilder.run(backupInfo.folderUuid, true);
   } catch (error) {
     return { error: error instanceof Error ? error : new Error(String(error)) };
   }

@@ -59,11 +59,11 @@ describe('Folder Creator', () => {
     const parent = FolderMother.fromPartial({ path: path.dirname() });
     const createdFolder = FolderMother.fromPartial({
       path: path.value,
-      parentId: parent.id,
-      uuid: parent.uuid, // The mock expects the parent's UUID in this case
+      parentUuid: parent.uuid,
+      uuid: parent.uuid,
     });
 
-    remote.shouldPersists(createdFolder, true); // Pass parent's UUID
+    remote.shouldPersists(createdFolder, true);
 
     repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parent]).mockReturnValueOnce([parent]);
 
@@ -75,7 +75,7 @@ describe('Folder Creator', () => {
     const parent = FolderMother.fromPartial({ path: path.dirname() });
     const createdFolder = FolderMother.fromPartial({
       path: path.value,
-      parentId: parent.id,
+      parentUuid: parent.uuid,
       uuid: parent.uuid,
     });
 
@@ -85,7 +85,12 @@ describe('Folder Creator', () => {
 
     await SUT.run(path.value);
 
-    expect(repository.addMock).toBeCalledWith(expect.objectContaining(createdFolder));
+    expect(repository.addMock).toBeCalledWith(
+      expect.objectContaining({
+        uuid: createdFolder.uuid,
+        path: createdFolder.path,
+      }),
+    );
   });
 
   it('publishes folder created event', async () => {
@@ -93,7 +98,7 @@ describe('Folder Creator', () => {
     const parent = FolderMother.fromPartial({ path: path.dirname() });
     const createdFolder = FolderMother.fromPartial({
       path: path.value,
-      parentId: parent.id,
+      parentUuid: parent.uuid,
       uuid: parent.uuid,
     });
 
@@ -118,12 +123,23 @@ describe('Folder Creator', () => {
     await expect(SUT.run(path.value)).rejects.toThrow(`Could not create folder ${path.value}: UNKNOWN`);
   });
 
-  it('recovers from ALREADY_EXISTS by finding the folder remotely', async () => {
+  it('throws when remote reports FILE_ALREADY_EXISTS and folder is not found remotely', async () => {
+    const path = FolderPathMother.any();
+    const parent = FolderMother.fromPartial({ path: path.dirname() });
+
+    remote.shouldFailPersistWith(path.name(), parent.uuid, new DriveDesktopError('FILE_ALREADY_EXISTS'));
+    remote.shouldFindFolder(undefined);
+    repository.matchingPartialMock.mockReturnValueOnce([]).mockReturnValueOnce([parent]).mockReturnValueOnce([parent]);
+
+    await expect(SUT.run(path.value)).rejects.toThrow(`Could not create folder ${path.value}: FILE_ALREADY_EXISTS`);
+  });
+
+  it('recovers from FILE_ALREADY_EXISTS by finding the folder remotely', async () => {
     const path = FolderPathMother.any();
     const parent = FolderMother.fromPartial({ path: path.dirname() });
     const existingFolder = FolderMother.fromPartial({
       path: path.value,
-      parentId: parent.id,
+      parentUuid: parent.uuid,
     });
 
     remote.shouldFailPersistWith(path.name(), parent.uuid, new DriveDesktopError('FILE_ALREADY_EXISTS'));
@@ -141,16 +157,14 @@ describe('Folder Creator', () => {
     vi.useFakeTimers();
     const path = FolderPathMother.any();
     const parent = FolderMother.fromPartial({ path: path.dirname() });
-    const createdFolder = FolderMother.fromPartial({ path: path.value, parentId: parent.id, uuid: parent.uuid });
+    const createdFolder = FolderMother.fromPartial({ path: path.value, parentUuid: parent.uuid, uuid: parent.uuid });
 
     remote.persistMock
       .mockResolvedValueOnce({ isLeft: () => true, getLeft: () => new DriveDesktopError('RATE_LIMITED', '1000') })
       .mockResolvedValueOnce({
         isLeft: () => false,
         getRight: () => ({
-          id: createdFolder.id,
           uuid: createdFolder.uuid,
-          parentId: createdFolder.parentId,
           createdAt: createdFolder.createdAt.toISOString(),
           updatedAt: createdFolder.updatedAt.toISOString(),
         }),
@@ -170,16 +184,14 @@ describe('Folder Creator', () => {
     vi.useFakeTimers();
     const path = FolderPathMother.any();
     const parent = FolderMother.fromPartial({ path: path.dirname() });
-    const createdFolder = FolderMother.fromPartial({ path: path.value, parentId: parent.id, uuid: parent.uuid });
+    const createdFolder = FolderMother.fromPartial({ path: path.value, parentUuid: parent.uuid, uuid: parent.uuid });
 
     remote.persistMock
       .mockResolvedValueOnce({ isLeft: () => true, getLeft: () => new DriveDesktopError('INTERNAL_SERVER_ERROR') })
       .mockResolvedValueOnce({
         isLeft: () => false,
         getRight: () => ({
-          id: createdFolder.id,
           uuid: createdFolder.uuid,
-          parentId: createdFolder.parentId,
           createdAt: createdFolder.createdAt.toISOString(),
           updatedAt: createdFolder.updatedAt.toISOString(),
         }),

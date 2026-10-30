@@ -44,10 +44,10 @@ describe('persist-files-sync-batch', () => {
     call(createOrUpdateMock).toMatchObject({
       files: [
         expect.objectContaining({
-          id: 1,
           uuid: 'file-1',
           size: 1024,
           fileId: 'fid-1',
+          folderUuid: 'folder-1',
         }),
       ],
     });

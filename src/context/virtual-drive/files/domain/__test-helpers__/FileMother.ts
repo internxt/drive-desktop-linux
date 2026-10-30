@@ -13,10 +13,9 @@ export class FileMother {
 
   static any() {
     return File.from({
-      id: chance.integer({ min: 1000 }),
       uuid: UuidMother.primitive(),
       contentsId: BucketEntryIdMother.primitive(),
-      folderId: 3972960,
+      folderUuid: UuidMother.primitive(),
       createdAt: new Date().toISOString(),
       modificationTime: new Date().toISOString(),
       path: FilePathMother.random(2).value,
@@ -29,10 +28,9 @@ export class FileMother {
   static fromPartial(partial: Partial<FileAttributes>) {
     return File.from({
       ...{
-        id: chance.integer({ min: 1000 }),
         uuid: UuidMother.primitive(),
         contentsId: BucketEntryIdMother.primitive(),
-        folderId: 3972960,
+        folderUuid: UuidMother.primitive(),
         createdAt: new Date().toISOString(),
         modificationTime: new Date().toISOString(),
         path: FilePathMother.random().value,

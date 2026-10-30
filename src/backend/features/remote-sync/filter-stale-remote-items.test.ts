@@ -1,26 +1,27 @@
+import { DriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
 import { filterStaleRemoteFiles, filterStaleRemoteFolders } from './filter-stale-remote-items';
 import { RemoteSyncedFile, RemoteSyncedFolder } from '../../../apps/main/remote-sync/helpers';
 
 describe('filter-stale-remote-items', () => {
   const loadedAt = new Date('2026-01-01T12:00:00.000Z');
-  const freshDirectoryStates = new Map<number, Date>([[10, loadedAt]]);
+  const parentFolderUuid = 'parent-folder-uuid';
+  const freshDirectoryStates = new Map<string, Date>([[parentFolderUuid, loadedAt]]);
 
   describe('filterStaleRemoteFiles', () => {
     it('persists files whose parent directory is not in freshDirectoryStates', () => {
       const file: RemoteSyncedFile = {
-        id: 1,
         uuid: 'uuid-1',
         fileId: 'fid-1',
         type: 'txt',
         size: 100,
         bucket: 'b',
-        folderId: 99,
+        folderUuid: 'unmanaged-folder-uuid',
         userId: 1,
         modificationTime: '2026-01-01T10:00:00.000Z',
         createdAt: '2026-01-01T10:00:00.000Z',
         updatedAt: '2026-01-01T10:00:00.000Z',
         plainName: 'test',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
 
       const { filesToPersist, foldersToInvalidate } = filterStaleRemoteFiles({
@@ -34,23 +35,21 @@ describe('filter-stale-remote-items', () => {
 
     it('skips files whose updatedAt is older than or equal to children_loaded_at', () => {
       const olderFile: RemoteSyncedFile = {
-        id: 1,
         uuid: 'uuid-1',
         fileId: 'fid-1',
         type: 'txt',
         size: 100,
         bucket: 'b',
-        folderId: 10,
+        folderUuid: parentFolderUuid,
         userId: 1,
         modificationTime: '2026-01-01T11:00:00.000Z',
         createdAt: '2026-01-01T11:00:00.000Z',
         updatedAt: '2026-01-01T11:00:00.000Z',
         plainName: 'older',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
       const equalFile: RemoteSyncedFile = {
         ...olderFile,
-        id: 2,
         uuid: 'uuid-2',
         updatedAt: '2026-01-01T12:00:00.000Z',
         plainName: 'equal',
@@ -67,19 +66,18 @@ describe('filter-stale-remote-items', () => {
 
     it('keeps files updated after children_loaded_at and marks folder for invalidation', () => {
       const newerFile: RemoteSyncedFile = {
-        id: 3,
         uuid: 'uuid-3',
         fileId: 'fid-3',
         type: 'txt',
         size: 100,
         bucket: 'b',
-        folderId: 10,
+        folderUuid: parentFolderUuid,
         userId: 1,
         modificationTime: '2026-01-01T13:00:00.000Z',
         createdAt: '2026-01-01T10:00:00.000Z',
         updatedAt: '2026-01-01T13:00:00.000Z',
         plainName: 'newer',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
 
       const { filesToPersist, foldersToInvalidate } = filterStaleRemoteFiles({
@@ -88,15 +86,13 @@ describe('filter-stale-remote-items', () => {
       });
 
       expect(filesToPersist).toStrictEqual([newerFile]);
-      expect(foldersToInvalidate.has(10)).toBe(true);
+      expect(foldersToInvalidate.has(parentFolderUuid)).toBe(true);
     });
   });
 
   describe('filterStaleRemoteFolders', () => {
     it('persists root folders and folders whose parent is not in freshDirectoryStates', () => {
       const rootFolder: RemoteSyncedFolder = {
-        id: 1,
-        parentId: null,
         type: 'folder',
         bucket: 'b',
         userId: 1,
@@ -104,12 +100,12 @@ describe('filter-stale-remote-items', () => {
         updatedAt: '2026-01-01T10:00:00.000Z',
         uuid: 'root-uuid',
         plainName: 'root',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
       const unmanagedFolder: RemoteSyncedFolder = {
         ...rootFolder,
-        id: 2,
-        parentId: 99,
+        uuid: 'unmanaged-uuid',
+        parentUuid: 'other-parent-uuid',
         plainName: 'unmanaged',
       };
 
@@ -124,8 +120,7 @@ describe('filter-stale-remote-items', () => {
 
     it('skips folders whose updatedAt is older than or equal to parent loaded_at', () => {
       const staleFolder: RemoteSyncedFolder = {
-        id: 20,
-        parentId: 10,
+        parentUuid: parentFolderUuid,
         type: 'folder',
         bucket: 'b',
         userId: 1,
@@ -133,7 +128,7 @@ describe('filter-stale-remote-items', () => {
         updatedAt: '2026-01-01T11:00:00.000Z',
         uuid: 'sub-uuid',
         plainName: 'sub',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
 
       const { foldersToPersist, foldersToInvalidate } = filterStaleRemoteFolders({
@@ -147,8 +142,7 @@ describe('filter-stale-remote-items', () => {
 
     it('keeps folders updated after parent loaded_at and marks parent for invalidation', () => {
       const newerFolder: RemoteSyncedFolder = {
-        id: 21,
-        parentId: 10,
+        parentUuid: parentFolderUuid,
         type: 'folder',
         bucket: 'b',
         userId: 1,
@@ -156,7 +150,7 @@ describe('filter-stale-remote-items', () => {
         updatedAt: '2026-01-01T14:00:00.000Z',
         uuid: 'newer-uuid',
         plainName: 'newer-folder',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
 
       const { foldersToPersist, foldersToInvalidate } = filterStaleRemoteFolders({
@@ -165,7 +159,7 @@ describe('filter-stale-remote-items', () => {
       });
 
       expect(foldersToPersist).toStrictEqual([newerFolder]);
-      expect(foldersToInvalidate.has(10)).toBe(true);
+      expect(foldersToInvalidate.has(parentFolderUuid)).toBe(true);
     });
   });
 });
