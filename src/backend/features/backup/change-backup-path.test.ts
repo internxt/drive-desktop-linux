@@ -1,16 +1,14 @@
-import * as getBackupFolderUuidModule from '../../../infra/drive-server/services/folder/services/fetch-backup-folder-uuid';
 import * as renameFolderModule from '../../../infra/drive-server/services/folder/services/rename-folder';
 import * as migrateBackupEntryIfNeededModule from './migrate-backup-entry-if-needed';
 import configStoreModule from '../../../apps/main/config';
-import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { changeBackupPath } from './change-backup-path';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
+import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 
 describe('change-backup-path', () => {
   const mockedConfigStoreGet = partialSpyOn(configStoreModule, 'get');
   const mockedConfigStoreSet = partialSpyOn(configStoreModule, 'set');
-  const mockedGetBackupFolderUuid = partialSpyOn(getBackupFolderUuidModule, 'getBackupFolderUuid');
   const mockedRenameFolder = partialSpyOn(renameFolderModule, 'renameFolder');
   const mockedMigrateBackupEntryIfNeeded = partialSpyOn(migrateBackupEntryIfNeededModule, 'migrateBackupEntryIfNeeded');
 
@@ -36,7 +34,6 @@ describe('change-backup-path', () => {
     const result = await changeBackupPath({ currentPath, newPath });
 
     expect(result).toMatchObject({ error: new Error('A backup with this path already exists') });
-    expect(mockedGetBackupFolderUuid).not.toBeCalled();
     expect(mockedRenameFolder).not.toBeCalled();
     expect(mockedConfigStoreSet).not.toBeCalled();
   });
@@ -52,7 +49,6 @@ describe('change-backup-path', () => {
     const result = await changeBackupPath({ currentPath: currentPathWithSameName, newPath: newPathWithSameName });
 
     expect(result).toStrictEqual({ data: false });
-    expect(mockedGetBackupFolderUuid).not.toBeCalled();
     expect(mockedRenameFolder).not.toBeCalled();
     expect(mockedConfigStoreSet).not.toBeCalled();
   });
@@ -65,16 +61,14 @@ describe('change-backup-path', () => {
     };
 
     mockedConfigStoreGet.mockReturnValue(backupList);
-    mockedGetBackupFolderUuid.mockResolvedValue({ data: 'remote-folder-uuid' });
     mockedRenameFolder.mockResolvedValue({ data: {} });
     mockedMigrateBackupEntryIfNeeded.mockResolvedValue({ data: migratedBackup });
 
     const result = await changeBackupPath({ currentPath, newPath });
 
     expect(result).toStrictEqual({ data: true });
-    call(mockedGetBackupFolderUuid).toStrictEqual({ folderId: '12' });
     call(mockedRenameFolder).toStrictEqual({
-      uuid: 'remote-folder-uuid',
+      uuid: 'folder-uuid',
       plainName: 'new-backup',
     });
     call(mockedMigrateBackupEntryIfNeeded).toStrictEqual({ pathname: newPath, backup: existingBackup });
@@ -86,23 +80,10 @@ describe('change-backup-path', () => {
     ]);
   });
 
-  it('should return error when resolving remote backup folder uuid fails', async () => {
-    const existingBackup = { folderId: 12, folderUuid: 'folder-uuid', enabled: true };
-    const error = new DriveServerError('UNKNOWN', undefined, 'uuid lookup failed');
-
-    mockedConfigStoreGet.mockReturnValue({ [currentPath]: existingBackup });
-    mockedGetBackupFolderUuid.mockResolvedValue({ error });
-
-    const result = await changeBackupPath({ currentPath, newPath });
-
-    expect(result).toStrictEqual({ error });
-  });
-
   it('should return error when rename request fails', async () => {
     const existingBackup = { folderId: 12, folderUuid: 'folder-uuid', enabled: true };
 
     mockedConfigStoreGet.mockReturnValue({ [currentPath]: existingBackup });
-    mockedGetBackupFolderUuid.mockResolvedValue({ data: 'remote-folder-uuid' });
     mockedRenameFolder.mockResolvedValue({ error: new DriveServerError('UNKNOWN', undefined, 'rename failed') });
 
     const result = await changeBackupPath({ currentPath, newPath });

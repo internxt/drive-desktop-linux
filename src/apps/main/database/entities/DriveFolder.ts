@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { Brand } from '../../../../context/shared/domain/Brand';
+import type { DriveItemStatus } from '../../../../context/shared/domain/DriveItemStatus';
 
 export type FolderUuid = Brand<string, 'FolderUuid'>;
 export type SimpleDriveFolder = {
@@ -8,7 +9,7 @@ export type SimpleDriveFolder = {
   parentId: number | undefined;
   createdAt: string;
   updatedAt: string;
-  status: string;
+  status: DriveItemStatus;
 };
 
 @Entity('drive_folder')
@@ -47,5 +48,5 @@ export class DriveFolder {
   name?: string;
 
   @Column({ type: 'varchar', nullable: false })
-  status!: string;
+  status!: DriveItemStatus;
 }

@@ -1,8 +1,6 @@
-export enum ServerFileStatus {
-  EXISTS = 'EXISTS',
-  TRASHED = 'TRASHED',
-  REMOVED = 'REMOVED',
-}
+import type { DriveItemStatus } from './DriveItemStatus';
+
+export { DriveItemStatus as ServerFileStatus } from './DriveItemStatus';
 
 export type ServerFile = {
   bucket: string;
@@ -17,7 +15,7 @@ export type ServerFile = {
   type: string;
   updatedAt: string;
   userId: number;
-  status: ServerFileStatus;
+  status: DriveItemStatus;
   plainName?: string;
   uuid: string;
 };
