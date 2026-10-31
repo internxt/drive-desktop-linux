@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import bytes from 'bytes';
 
-import { User } from '../../../main/types';
+import { UserDto } from '../../../../infra/drive-server/out/dto';
 import { useTranslationContext } from '../../context/LocalContext';
 import { useUsage } from '../../context/UsageContext/useUsage';
 
 export function AccountSection() {
   const { translate } = useTranslationContext();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserDto | null>(null);
 
   useEffect(() => {
     window.electron.getUser().then(setUser);
