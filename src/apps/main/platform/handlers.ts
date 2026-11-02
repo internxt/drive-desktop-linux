@@ -1,5 +1,6 @@
-import { ipcMain, shell } from 'electron';
+import { ipcMain } from 'electron';
+import { openHttpsUrl } from './open-https-url';
 
 ipcMain.handle('open-url', (_, url: string) => {
-  return shell.openExternal(url);
+  return openHttpsUrl({ url });
 });
