@@ -36,7 +36,7 @@ describe('SimpleFolderCreator', () => {
 
     expect(folder.uuid).toBe(folderDto.uuid);
     expect(remoteFileSystem.persist).toHaveBeenCalledTimes(2);
-    expect(remoteFileSystem.persist).toHaveBeenCalledWith('child', 'parent-uuid');
+    expect(remoteFileSystem.persist).toHaveBeenCalledWith('child', 'parent-uuid', undefined);
 
     vi.useRealTimers();
   });

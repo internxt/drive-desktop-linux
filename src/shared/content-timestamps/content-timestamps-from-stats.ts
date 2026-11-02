@@ -13,7 +13,7 @@ export function contentTimestampsFromStats(stats: Stats): ContentTimestamps {
   const modificationTime = stats.mtime;
   const birthMs = stats.birthtimeMs;
   const hasBirthtime = birthMs > 0 && !Number.isNaN(birthMs);
-  const creationTime = hasBirthtime ? stats.birthtime : stats.ctime;
+  const creationTime = hasBirthtime ? stats.birthtime : (stats.ctime ?? stats.mtime);
 
   return { modificationTime, creationTime };
 }

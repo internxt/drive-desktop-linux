@@ -61,6 +61,7 @@ describe('File Overrider', () => {
       fileUuid: file.uuid,
       fileContentsId: updatedContentsId.value,
       fileSize: updatedSize.value,
+      modificationTime: undefined,
     });
   });
 

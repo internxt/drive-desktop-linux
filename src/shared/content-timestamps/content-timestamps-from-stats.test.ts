@@ -18,6 +18,18 @@ describe('contentTimestampsFromStats', () => {
     expect(result.creationTime).toEqual(birthtime);
   });
 
+  it('falls back to mtime for creationTime when birthtime and ctime are not set', () => {
+    const mtime = new Date('2024-01-02T03:04:05.000Z');
+
+    const result = contentTimestampsFromStats({
+      mtime,
+      birthtime: new Date(0),
+      birthtimeMs: 0,
+    } as import('node:fs').Stats);
+
+    expect(result.creationTime).toEqual(mtime);
+  });
+
   it('falls back to ctime for creationTime when birthtime is not set', () => {
     const mtime = new Date('2024-01-02T03:04:05.000Z');
     const ctime = new Date('2024-01-01T00:00:00.000Z');

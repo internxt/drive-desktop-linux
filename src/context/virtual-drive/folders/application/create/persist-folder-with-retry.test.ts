@@ -38,7 +38,7 @@ describe('persist-folder-with-retry', () => {
 
     expect(result).toStrictEqual({ data: folderDto });
     expect(remoteFileSystem.persist).toHaveBeenCalledTimes(1);
-    expect(remoteFileSystem.persist).toHaveBeenCalledWith('child', 'parent-uuid');
+    expect(remoteFileSystem.persist).toHaveBeenCalledWith('child', 'parent-uuid', undefined);
   });
 
   it('retries when parent folder is not found and eventually succeeds', async () => {
