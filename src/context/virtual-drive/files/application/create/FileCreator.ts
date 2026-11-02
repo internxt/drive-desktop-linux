@@ -84,8 +84,8 @@ export class FileCreator {
 
     // utimensat may have asked for a time while this file was still staged, in
     // which case it is carried into the CREATE call rather than applied after.
-    const requestedModificationTime =
-      this.pendingModificationTimes.take(filePath.value) ?? contentTimestamps?.modificationTime;
+    const pendingModificationTime = this.pendingModificationTimes.take(filePath.value);
+    const requestedModificationTime = pendingModificationTime ?? contentTimestamps?.modificationTime;
     const creationTime = contentTimestamps?.creationTime;
 
     const { data: persistedFile, error } = await this.persistWithRetry({
@@ -99,13 +99,8 @@ export class FileCreator {
     });
 
     if (error) {
-      // The time was taken before the call, so that every retry inside
-      // persistWithRetry sends the same value. If the create did not happen at
-      // all, put it back: the staged copy survives a failed upload and the next
-      // release will create the file, which should still carry the time the user
-      // asked for rather than the moment that retry happened to succeed.
-      if (requestedModificationTime) {
-        this.pendingModificationTimes.set(filePath.value, requestedModificationTime);
+      if (pendingModificationTime) {
+        this.pendingModificationTimes.set(filePath.value, pendingModificationTime);
       }
 
       throw error;

@@ -114,7 +114,6 @@ export class FileOverrider {
     if (contentTimestamps?.modificationTime) {
       file.update({
         modificationTime: contentTimestamps.modificationTime.toISOString(),
-        updatedAt: contentTimestamps.modificationTime.toISOString(),
       });
     }
 

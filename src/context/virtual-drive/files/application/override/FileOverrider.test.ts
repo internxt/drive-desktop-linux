@@ -65,6 +65,28 @@ describe('File Overrider', () => {
     });
   });
 
+  it('updates only modificationTime locally when content mtime is supplied', async () => {
+    const repository = new FileRepositoryMock();
+    const eventBus = new EventBusMock();
+    const overrider = new FileOverrider(repository, eventBus);
+
+    const rowUpdatedAt = new Date('2026-06-15T12:00:00.000Z');
+    const contentMtime = new Date('2020-01-01T08:00:00.000Z');
+    const file = FileMother.fromPartial({ updatedAt: rowUpdatedAt.toISOString() });
+    const updatedContentsId = BucketEntryIdMother.random();
+    const updatedSize = FileSizeMother.random();
+
+    repository.searchByContentsIdMock.mockReturnValueOnce(file);
+
+    await overrider.run(file.contentsId, updatedContentsId.value, updatedSize.value, {
+      modificationTime: contentMtime,
+    });
+
+    expect(file.modificationTime).toEqual(contentMtime);
+    expect(file.updatedAt).toEqual(rowUpdatedAt);
+    expect(repository.updateMock).toHaveBeenCalledWith(file);
+  });
+
   it('throws FILE_TOO_BIG when backend rejects the override size', async () => {
     const repository = new FileRepositoryMock();
     const eventBus = new EventBusMock();
