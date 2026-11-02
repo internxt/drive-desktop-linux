@@ -3,9 +3,7 @@ import { contentTimestampsFromStats, type ContentTimestamps } from './content-ti
 
 type Props = { absolutePath: string };
 
-export async function readContentTimestampsFromPath({
-  absolutePath,
-}: Props): Promise<ContentTimestamps | undefined> {
+export async function readContentTimestampsFromPath({ absolutePath }: Props): Promise<ContentTimestamps | undefined> {
   const { data, error } = await safeStat(absolutePath);
   if (error || (!data.isFile() && !data.isDirectory())) {
     return undefined;

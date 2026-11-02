@@ -3,7 +3,11 @@ import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
 import { Result } from '../../../../shared/domain/Result';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { FolderPath } from '../../domain/FolderPath';
-import { FolderPersistedDto, RemoteFileSystem, FolderContentTimestamps } from '../../domain/file-systems/RemoteFileSystem';
+import {
+  FolderPersistedDto,
+  RemoteFileSystem,
+  FolderContentTimestamps,
+} from '../../domain/file-systems/RemoteFileSystem';
 
 type Props = {
   remoteFileSystem: RemoteFileSystem;
