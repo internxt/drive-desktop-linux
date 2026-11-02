@@ -3,7 +3,8 @@ import { LocalFolder, LocalFolderAttributes } from '../LocalFolder';
 import Chance from '../../../../../context/shared/infrastructure/__test-helpers__/Chance';
 export class LocalFolderMother {
   static any(): LocalFolder {
-    return LocalFolder.from(AbsolutePathMother.anyFolder(), Chance.integer({ min: 1 }));
+    const time = Chance.integer({ min: 1 });
+    return LocalFolder.from(AbsolutePathMother.anyFolder(), time, time);
   }
 
   static fromPartial(partial: Partial<LocalFolderAttributes>): LocalFolder {
@@ -11,6 +12,6 @@ export class LocalFolderMother {
       ...LocalFolderMother.any().attributes(),
       ...partial,
     };
-    return LocalFolder.from(attributes.path, attributes.modificationTime);
+    return LocalFolder.from(attributes.path, attributes.modificationTime, attributes.creationTime);
   }
 }

@@ -17,6 +17,9 @@ import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
 import { createTransientErrorHandler } from '../../../../../backend/common/rate-limit/transient-error-handler';
 import { Result } from '../../../../shared/domain/Result';
 import { PendingModificationTimes } from '../utimens/PendingModificationTimes';
+import type { ContentTimestamps } from '../../../../../shared/content-timestamps/content-timestamps-from-stats';
+
+type FileCreateContentTimestamps = Partial<ContentTimestamps>;
 
 @Service()
 export class FileCreator {
@@ -29,11 +32,16 @@ export class FileCreator {
     private readonly pendingModificationTimes: PendingModificationTimes,
   ) {}
 
-  async run(path: string, contentsId: string, size: number): Promise<File> {
+  async run(
+    path: string,
+    contentsId: string,
+    size: number,
+    contentTimestamps?: FileCreateContentTimestamps,
+  ): Promise<File> {
     try {
       const file = await runAfterParentCreations({
         path,
-        action: () => this.createFile({ path, contentsId, size }),
+        action: () => this.createFile({ path, contentsId, size, contentTimestamps }),
       });
 
       await this.repository.upsert(file);
@@ -60,10 +68,12 @@ export class FileCreator {
     path,
     contentsId,
     size,
+    contentTimestamps,
   }: {
     path: string;
     contentsId: string;
     size: number;
+    contentTimestamps?: FileCreateContentTimestamps;
   }): Promise<File> {
     const filePath = new FilePath(path);
     const fileContentsId = new FileContentsId(contentsId);
@@ -74,7 +84,9 @@ export class FileCreator {
 
     // utimensat may have asked for a time while this file was still staged, in
     // which case it is carried into the CREATE call rather than applied after.
-    const requestedModificationTime = this.pendingModificationTimes.take(filePath.value);
+    const requestedModificationTime =
+      this.pendingModificationTimes.take(filePath.value) ?? contentTimestamps?.modificationTime;
+    const creationTime = contentTimestamps?.creationTime;
 
     const { data: persistedFile, error } = await this.persistWithRetry({
       filePath,
@@ -83,6 +95,7 @@ export class FileCreator {
       fileFolderId,
       folderUuid: folder.uuid,
       requestedModificationTime,
+      creationTime,
     });
 
     if (error) {
@@ -120,6 +133,7 @@ export class FileCreator {
     fileFolderId,
     folderUuid,
     requestedModificationTime,
+    creationTime,
   }: {
     filePath: FilePath;
     fileContentsId: FileContentsId;
@@ -127,6 +141,7 @@ export class FileCreator {
     fileFolderId: FileFolderId;
     folderUuid: string;
     requestedModificationTime?: Date;
+    creationTime?: Date;
   }): Promise<Result<PersistedFileData, DriveDesktopError>> {
     return retryWithBackoff(
       async () => {
@@ -137,6 +152,7 @@ export class FileCreator {
           folderId: fileFolderId,
           folderUuid,
           modificationTime: requestedModificationTime,
+          creationTime,
         });
 
         if (either.isLeft()) {

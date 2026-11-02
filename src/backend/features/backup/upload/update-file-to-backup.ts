@@ -17,6 +17,7 @@ export type UpdateFileParams = {
   fileUuid: string;
   environment: Environment;
   signal: AbortSignal;
+  modificationTime?: Date;
 };
 
 async function updateFile(file: UpdateFileParams): Promise<Result<void, DriveDesktopError>> {
@@ -68,6 +69,7 @@ async function updateFile(file: UpdateFileParams): Promise<Result<void, DriveDes
         fileUuid: file.fileUuid,
         fileContentsId: contentsId,
         fileSize: file.size,
+        modificationTime: file.modificationTime,
       }),
     createTransientErrorHandler({ tag: 'BACKUPS', context: 'BACKUP UPLOAD RETRY', path: file.path }),
     file.signal,

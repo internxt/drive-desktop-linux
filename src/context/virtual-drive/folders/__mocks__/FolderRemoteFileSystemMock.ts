@@ -3,7 +3,7 @@ import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopErr
 import { Folder } from '../domain/Folder';
 import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
-import { FolderPersistedDto, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
+import { FolderPersistedDto, FolderContentTimestamps, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 
 export class FolderRemoteFileSystemMock implements RemoteFileSystem {
   readonly persistMock = vi.fn();
@@ -16,8 +16,12 @@ export class FolderRemoteFileSystemMock implements RemoteFileSystem {
     return this.searchWithMock(parentId, folderPath);
   }
 
-  persist(plainName: string, parentFolderUuid: string): Promise<Either<DriveDesktopError, FolderPersistedDto>> {
-    return this.persistMock(plainName, parentFolderUuid);
+  persist(
+    plainName: string,
+    parentFolderUuid: string,
+    contentTimestamps?: FolderContentTimestamps,
+  ): Promise<Either<DriveDesktopError, FolderPersistedDto>> {
+    return this.persistMock(plainName, parentFolderUuid, contentTimestamps);
   }
 
   shouldPersists(folder: Folder, includeUuid: boolean) {

@@ -3,7 +3,7 @@ import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
 import { Result } from '../../../../shared/domain/Result';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { FolderPath } from '../../domain/FolderPath';
-import { FolderPersistedDto, RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
+import { FolderPersistedDto, RemoteFileSystem, FolderContentTimestamps } from '../../domain/file-systems/RemoteFileSystem';
 
 type Props = {
   remoteFileSystem: RemoteFileSystem;
@@ -12,6 +12,7 @@ type Props = {
   tag: 'BACKUPS' | 'SYNC-ENGINE';
   context: string;
   signal?: AbortSignal;
+  contentTimestamps?: FolderContentTimestamps;
 };
 
 export function persistFolderWithRetry({
@@ -21,10 +22,11 @@ export function persistFolderWithRetry({
   tag,
   context,
   signal,
+  contentTimestamps,
 }: Props): Promise<Result<FolderPersistedDto, DriveDesktopError>> {
   return retryWithBackoff(
     async () => {
-      const result = await remoteFileSystem.persist(folderPath.name(), parentUuid);
+      const result = await remoteFileSystem.persist(folderPath.name(), parentUuid, contentTimestamps);
       if (result.isLeft()) {
         return { error: result.getLeft() };
       }

@@ -33,6 +33,8 @@ export function createBackupUploadExecutor(
       folderUuid: parent.uuid,
       environment,
       signal,
+      modificationTime: new Date(localFile.modificationTime),
+      creationTime: new Date(localFile.creationTime),
     });
 
     tracker.incrementProcessed(1);
