@@ -253,7 +253,9 @@ func TestRead(t *testing.T) {
 		}
 	})
 
-	t.Run("preserves backend ENOENT and fails the mounted read", func(t *testing.T) {
+	// Buffered reads go through the page cache. A synchronous read keeps ENOENT.
+	// Asynchronous readahead drops that errno and filemap_read_folio reports EIO.
+	t.Run("fails when the read errno is 2", func(t *testing.T) {
 		sharedMount.mockServer.setHandlers(map[client.OperationPath]http.HandlerFunc{
 			client.OperationGetAttr: nonEmptyFileAttrHandler(1024),
 			client.OperationOpen: func(w http.ResponseWriter, r *http.Request) {
@@ -289,10 +291,8 @@ func TestRead(t *testing.T) {
 			t.Fatalf("expected *os.PathError, got %T", err)
 		}
 
-		// Buffered FUSE reads can surface the backend error as EIO. The direct
-		// Read assertion above verifies that the daemon preserves ENOENT.
 		if pathErr.Err != syscall.ENOENT && pathErr.Err != syscall.EIO {
-			t.Errorf("expected ENOENT or buffered-read EIO, got %v", pathErr.Err)
+			t.Errorf("expected ENOENT or EIO, got %v", pathErr.Err)
 		}
 	})
 }
