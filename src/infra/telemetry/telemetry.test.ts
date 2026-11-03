@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EventEmitter } from 'node:events';
 import type { Request, Response, NextFunction } from 'express';
-
 import { createFuseTelemetryMiddleware } from './fuse-telemetry.middleware';
 
 describe('fuse-telemetry.middleware', () => {
