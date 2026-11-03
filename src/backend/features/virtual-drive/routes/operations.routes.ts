@@ -15,7 +15,7 @@ import { unlinkController } from '../controllers/operations/unlink.controller';
 import { rmdirController } from '../controllers/operations/rmdir.controller';
 import { statfsController } from '../controllers/operations/statfs.controller';
 import { utimensController } from '../controllers/operations/utimens.controller';
-import { fuseTelemetryMiddleware } from '../../../../infra/telemetry';
+import { fuseTelemetryMiddleware } from '../../../../infra/telemetry/fuse-telemetry.middleware';
 
 // Routes for FUSE operation endpoints (POST /op/<name>).
 // Each operation will be registered here as it is implemented in PB-6161.
