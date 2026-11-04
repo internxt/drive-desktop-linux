@@ -7,6 +7,7 @@ import { UpgradePlanList } from './upgrade-plan-list';
 
 async function onUpgradePlan() {
   await globalThis.window.electron.openUrl(PLANS_URL);
+  await globalThis.window.electron.watchFileSizeLimitAfterUpgrade();
   window.close();
 }
 

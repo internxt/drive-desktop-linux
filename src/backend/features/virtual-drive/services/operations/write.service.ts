@@ -1,18 +1,15 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { FileSizeLimitModule, logger } from '@internxt/drive-desktop-core/build/backend';
 import { Container } from 'diod';
-import configStore from '../../../../../apps/main/config';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFileWriter } from '../../../../../context/storage/TemporalFiles/application/write/TemporalFileWriter';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
-import {
-  addMaxFileSizeRejection,
-  isUploadSizeLimitBlockedPath,
-} from '../../../user/file-size-limit/add-max-file-size-rejection';
+import { isUploadSizeLimitBlockedPath } from '../../../user/file-size-limit/add-max-file-size-rejection';
 import { calculateProjectedWriteSize } from '../../../user/file-size-limit/calculate-projected-write-size';
-import { validateUploadFileSize } from '../../../user/file-size-limit/validate-upload-file-size';
+import { getFileSizeLimitAdapter } from '../../../user/file-size-limit/get-file-size-limit-adapter';
+import { handleUploadFileSizeLimitExceeded } from '../../../user/file-size-limit/handle-upload-file-size-limit-exceeded';
 import { ensureTemporalFileExistsForAuxiliaryPath } from './ensure-temporal-file-exists-for-auxiliary-path';
 
 type WritePops = {
@@ -38,13 +35,18 @@ export async function write({ path, content, offset, container }: WritePops): Pr
           offset,
           incomingBytes: content.length,
         });
-        const validation = validateUploadFileSize({
+        const validation = await FileSizeLimitModule.checkUploadFileSize({
           size: projectedSize,
-          maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
+          ...getFileSizeLimitAdapter(),
         });
 
         if (!validation.allowed) {
-          addMaxFileSizeRejection({ validation, fileSize: projectedSize, path });
+          handleUploadFileSizeLimitExceeded({
+            path,
+            fileSize: projectedSize,
+            kind: 'virtual-drive',
+            validation,
+          });
           logger.warn({
             tag: 'SYNC-ENGINE',
             msg: 'File size exceeds upload limit',

@@ -4,11 +4,11 @@ import { Result } from '../../../../context/shared/domain/Result';
 import { uploadContentToEnvironment } from './upload-content-to-environment';
 import { retryWithBackoff } from '../../../../shared/retry-with-backoff';
 import { createTransientErrorHandler } from '../../../../backend/common/rate-limit/transient-error-handler';
+import { FileSizeLimitModule, logger } from '@internxt/drive-desktop-core/build/backend';
 import { overrideFileToBackend } from './override-file-to-backend';
-import configStore from '../../../../apps/main/config';
-import { addMaxFileSizeRejection } from '../../user/file-size-limit/add-max-file-size-rejection';
-import { validateUploadFileSize } from '../../user/file-size-limit/validate-upload-file-size';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { getFileSizeLimitAdapter } from '../../user/file-size-limit/get-file-size-limit-adapter';
+import { handleUploadFileSizeLimitExceeded } from '../../user/file-size-limit/handle-upload-file-size-limit-exceeded';
+import { unregisterRejectedUploadForSize } from '../../user/file-size-limit/unregister-rejected-upload-for-size';
 
 export type UpdateFileParams = {
   path: string;
@@ -20,24 +20,29 @@ export type UpdateFileParams = {
 };
 
 async function updateFile(file: UpdateFileParams): Promise<Result<void, DriveDesktopError>> {
-  const validation = validateUploadFileSize({
+  if (file.size <= 0) {
+    logger.warn({
+      tag: 'BACKUPS',
+      msg: 'Skipping backup file update because it is empty',
+      path: file.path,
+      size: file.size,
+    });
+    return { data: undefined };
+  }
+
+  const validation = await FileSizeLimitModule.checkUploadFileSize({
     size: file.size,
-    maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
-    allowEmptyFile: false,
+    ...getFileSizeLimitAdapter(),
   });
 
   if (!validation.allowed) {
-    if (validation.reason === 'EMPTY_FILE') {
-      logger.warn({
-        tag: 'BACKUPS',
-        msg: 'Skipping backup file update because it is empty',
-        path: file.path,
-        size: file.size,
-      });
-      return { data: undefined };
-    }
-
-    addMaxFileSizeRejection({ path: file.path, fileSize: file.size, validation, blockUploadPath: false });
+    handleUploadFileSizeLimitExceeded({
+      path: file.path,
+      fileSize: file.size,
+      kind: 'backup',
+      validation,
+      blockUploadPath: false,
+    });
     return { data: undefined };
   }
 
@@ -75,12 +80,19 @@ async function updateFile(file: UpdateFileParams): Promise<Result<void, DriveDes
 
   if (overrideResult.error) {
     if (overrideResult.error.cause === 'FILE_TOO_BIG') {
-      addMaxFileSizeRejection({ path: file.path, fileSize: file.size, blockUploadPath: false });
+      handleUploadFileSizeLimitExceeded({
+        path: file.path,
+        fileSize: file.size,
+        kind: 'backup',
+        blockUploadPath: false,
+      });
       return { data: undefined };
     }
 
     return { error: overrideResult.error };
   }
+
+  unregisterRejectedUploadForSize({ path: file.path });
 
   return { data: undefined };
 }

@@ -26,6 +26,7 @@ import './fordwardToWindows';
 import './analytics/handlers';
 import './platform/handlers';
 import './config/handlers';
+import './file-size-limit/handlers';
 import './app-info/handlers';
 import './remote-sync/handlers';
 import './../../backend/features/cleaner/ipc/handlers';

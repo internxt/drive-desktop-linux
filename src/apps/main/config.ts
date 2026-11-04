@@ -40,6 +40,7 @@ const schema: Schema<AppStore> = {
   discoveredBackup: { type: 'number' },
   availableUserProducts: { type: 'object' },
   maxUploadFileSizeInBytes: { type: 'number' },
+  fileSizeLimitRevalidatedAt: { type: 'number' },
 } as const;
 
 const configStore = new Store<AppStore>({

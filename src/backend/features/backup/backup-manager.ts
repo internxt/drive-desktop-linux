@@ -8,7 +8,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { BackupsStatus } from '../../../apps/main/background-processes/backups/BackupsProcessStatus/BackupsStatus';
 
 export class BackupManager {
-  private scheduler: BackupScheduler;
+  private scheduler: BackupScheduler | undefined;
   private abortController = new AbortController();
 
   constructor(
@@ -16,12 +16,21 @@ export class BackupManager {
     private tracker: BackupProgressTracker,
     private errors: BackupErrorsTracker,
     private config: BackupConfiguration,
-  ) {
-    this.scheduler = new BackupScheduler(
-      () => config.lastBackup,
-      () => config.backupInterval,
+  ) {}
+
+  /**
+   * v2.7.0 Esteban
+   * Created on first use. Building it in the constructor runs while BackupScheduler is still loading,
+   * because the file-size retry imports this manager during that load.
+   */
+  private schedulerForBackups() {
+    this.scheduler ??= new BackupScheduler(
+      () => this.config.lastBackup,
+      () => this.config.backupInterval,
       () => this.startBackup(),
     );
+
+    return this.scheduler;
   }
 
   public async startBackup(): Promise<void> {
@@ -57,19 +66,19 @@ export class BackupManager {
   }
 
   public startScheduler(): Promise<void> {
-    return this.scheduler.start();
+    return this.schedulerForBackups().start();
   }
 
   public stopScheduler(): void {
-    this.scheduler.stop();
+    this.scheduler?.stop();
   }
 
   public rescheduleBackups(): void {
-    this.scheduler.reschedule();
+    this.schedulerForBackups().reschedule();
   }
 
   public stopAndClearBackups() {
-    if (this.scheduler) this.scheduler.stop();
+    this.scheduler?.stop();
     this.errors.clear();
     this.tracker.reset();
     this.abortController = new AbortController();
@@ -77,7 +86,7 @@ export class BackupManager {
   }
 
   public isScheduled(): boolean {
-    return this.scheduler.isScheduled();
+    return this.scheduler?.isScheduled() ?? false;
   }
 
   public isBackupRunning(): boolean {
