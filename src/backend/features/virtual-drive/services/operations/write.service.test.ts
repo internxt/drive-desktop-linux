@@ -1,8 +1,8 @@
+import { FileSizeLimitModule } from '@internxt/drive-desktop-core/build/backend';
 import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { loggerMock } from '../../../../../../tests/vitest/mocks.helper';
 import { partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
-import configStore from '../../../../../apps/main/config';
 import { clearMaxFileSizeRejectionModal } from '../../../user/file-size-limit/add-max-file-size-rejection';
 import { ABSOLUTE_UPLOAD_FILE_SIZE_LIMIT } from '../../../user/file-size-limit/constants';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
@@ -20,14 +20,14 @@ import {
 import { write } from './write.service';
 
 describe('write', () => {
-  const configGetMock = partialSpyOn(configStore, 'get');
+  const checkUploadFileSizeMock = partialSpyOn(FileSizeLimitModule, 'checkUploadFileSize');
   let container: ReturnType<typeof mockDeep<Container>>;
   const temporalFileWriter = mockDeep<TemporalFileWriter>();
   const temporalFileByPathFinder = mockDeep<TemporalFileByPathFinder>();
   const temporalFileCreator = mockDeep<TemporalFileCreator>();
 
   beforeEach(() => {
-    configGetMock.mockReturnValue(100);
+    checkUploadFileSizeMock.mockResolvedValue({ allowed: true });
     container = mockDeep<Container>();
     container.get.calledWith(TemporalFileWriter).mockReturnValue(temporalFileWriter);
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(temporalFileByPathFinder);
@@ -65,6 +65,12 @@ describe('write', () => {
     temporalFileByPathFinder.run.mockResolvedValue(
       TemporalFile.create(new TemporalFilePath('/some/file.txt'), new TemporalFileSize(10)),
     );
+    checkUploadFileSizeMock.mockResolvedValue({
+      allowed: false,
+      reason: 'PLAN_LIMIT_EXCEEDED',
+      maxFileSize: 100,
+      showUpgradeCta: true,
+    });
 
     const { data, error } = await write({
       path: '/some/file.txt',
@@ -110,12 +116,17 @@ describe('write', () => {
   });
 
   it('should reject writes over the absolute cap when max upload file size is unavailable', async () => {
-    configGetMock.mockReturnValue(undefined);
     const content = Buffer.alloc(5);
     vi.spyOn(TemporalFile, 'isTemporaryPath').mockReturnValue(false);
     temporalFileByPathFinder.run.mockResolvedValue(
       TemporalFile.create(new TemporalFilePath('/some/file.txt'), new TemporalFileSize(10)),
     );
+    checkUploadFileSizeMock.mockResolvedValue({
+      allowed: false,
+      reason: 'ABSOLUTE_CAP_EXCEEDED',
+      maxFileSize: ABSOLUTE_UPLOAD_FILE_SIZE_LIMIT,
+      showUpgradeCta: false,
+    });
 
     const { data, error } = await write({
       path: '/some/file.txt',
@@ -141,9 +152,9 @@ describe('write', () => {
   });
 
   it('should allow writes when max upload file size is unavailable', async () => {
-    configGetMock.mockReturnValue(undefined);
     const content = Buffer.alloc(5);
     vi.spyOn(TemporalFile, 'isTemporaryPath').mockReturnValue(false);
+    checkUploadFileSizeMock.mockResolvedValue({ allowed: true });
 
     const { data, error } = await write({
       path: '/some/file.txt',

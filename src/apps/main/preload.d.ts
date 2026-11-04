@@ -160,6 +160,7 @@ declare interface Window {
     ): () => void;
     startRemoteSync: () => Promise<void>;
     openUrl: (url: string) => Promise<void>;
+    watchFileSizeLimitAfterUpgrade: () => Promise<void>;
     getPreferredAppLanguage: () => Promise<Array<string>>;
     user: {
       hasDiscoveredBackups: () => Promise<boolean>;
