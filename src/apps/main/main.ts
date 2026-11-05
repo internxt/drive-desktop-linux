@@ -5,11 +5,12 @@ import 'regenerator-runtime/runtime';
 import 'dotenv/config';
 
 import { PATHS } from '../../core/electron/paths';
-import { setupElectronLog } from '@internxt/drive-desktop-core/build/backend';
+import { setupElectronLog, setupHttpTelemetry } from '@internxt/drive-desktop-core/build/backend';
 import { setupAppLogRouting } from './logging/setup-app-log-routing';
 
 setupElectronLog({ logsPath: PATHS.LOGS });
 setupAppLogRouting({ logsPath: PATHS.LOGS });
+setupHttpTelemetry({ logsPath: PATHS.LOGS });
 
 // Side-effect handlers registration.
 import './virtual-root-folder/handlers';
