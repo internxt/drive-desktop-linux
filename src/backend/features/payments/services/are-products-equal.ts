@@ -11,6 +11,7 @@ export function areProductsEqual({ stored, fetched }: Props) {
   return !!(
     stored.antivirus === fetched.antivirus &&
     stored.backups === fetched.backups &&
-    stored.cleaner === fetched.cleaner
+    stored.cleaner === fetched.cleaner &&
+    stored.mail === fetched.mail
   );
 }

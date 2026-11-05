@@ -47,6 +47,15 @@ describe('areProductsEqual', () => {
     expect(result).toBe(false);
   });
 
+  it('should return false when mail differs', () => {
+    const stored = { backups: true, antivirus: false, cleaner: true, mail: false };
+    const fetched = { backups: true, antivirus: false, cleaner: true, mail: true };
+
+    const result = areProductsEqual({ stored, fetched });
+
+    expect(result).toBe(false);
+  });
+
   it('should return false when multiple products differ', () => {
     const stored = { backups: true, antivirus: false, cleaner: true, mail: true };
     const fetched = { backups: false, antivirus: true, cleaner: false, mail: true };
