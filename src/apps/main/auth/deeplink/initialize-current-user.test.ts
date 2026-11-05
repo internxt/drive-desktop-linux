@@ -1,4 +1,4 @@
-import { User } from '../../types';
+import { UserDto } from '../../../../infra/drive-server/out/dto';
 import { loggerMock } from 'tests/vitest/mocks.helper';
 
 const { refreshMock, updateCredentialsMock, configGetMock, updateUserMock } = vi.hoisted(() => ({
@@ -48,7 +48,7 @@ describe('initializeCurrentUser', () => {
       uuid: 'user-1',
       email: 'user@example.com',
       mnemonic: 'stored-mnemonic',
-    } as User;
+    } as UserDto;
 
     const refreshData = {
       newToken: 'new-token',
@@ -75,6 +75,9 @@ describe('initializeCurrentUser', () => {
         ...currentUser,
         ...refreshData.user,
         mnemonic: currentUser.mnemonic,
+        privateKey: currentUser.privateKey,
+        publicKey: currentUser.publicKey,
+        revocateKey: currentUser.revocateKey,
       },
     });
     expect(loggerMock.debug).toHaveBeenCalledWith({

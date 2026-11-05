@@ -1,12 +1,12 @@
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import { FolderStatuses } from '../../../../../context/virtual-drive/folders/domain/FolderStatus';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
-import { User } from '../../../../../apps/main/types';
+import { UserDto } from '../../../../../infra/drive-server/out/dto';
 import { TRASH_FOLDER_ID, TRASH_FOLDER_UUID, TRASH_UID_FOLDER_ID, TRASH_UID_FOLDER_UUID } from './constants';
 
 type Props = {
   folderRepository: FolderRepository;
-  user: User;
+  user: UserDto;
 };
 
 /**
