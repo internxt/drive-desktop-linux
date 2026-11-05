@@ -236,7 +236,7 @@
         "webpack-merge": "^5.8.0"
     },
     "dependencies": {
-        "@internxt/drive-desktop-core": "file:packages/core/internxt-drive-desktop-core-1.5.1.tgz",
+        "@internxt/drive-desktop-core": "file:packages/core/internxt-drive-desktop-core-1.5.2.tgz",
         "@internxt/inxt-js": "^3.3.1",
         "@internxt/scan": "^1.0.7",
         "@internxt/sdk": "1.17.4",
@@ -252,17 +252,12 @@
         "form-data": "^4.0.6",
         "node-schedule": "^2.1.0",
         "reflect-metadata": "^0.2.2",
-        "typeorm": "^0.3.31",
+        "typeorm": "^1.1.2",
         "uuid": "^14.0.0"
     },
     "overrides": {
         "@typescript-eslint/typescript-estree": {
             "minimatch": "9.0.6"
-        },
-        "typeorm": {
-            "glob": {
-                "minimatch": "9.0.6"
-            }
         }
     },
     "engines": {
