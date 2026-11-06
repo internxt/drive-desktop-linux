@@ -14,18 +14,13 @@ import { FileRenamedDomainEvent } from './events/FileRenamedDomainEvent';
 import { FileOverriddenDomainEvent } from './events/FileOverriddenDomainEvent';
 import { FileUuid } from './FileUuid';
 import { FileContentsId } from './FileContentsId';
-import { FileFolderId } from './FileFolderId';
+import { FolderUuid } from '../../folders/domain/FolderUuid';
 
 export type FileAttributes = {
-  id: number;
   uuid: string;
   contentsId: string;
-  folderId: number;
+  folderUuid: string;
   createdAt: string;
-  // Absent for a record whose content time is genuinely unknown, which is every
-  // record written before the field was kept. Read it through File's getter,
-  // which falls back to updatedAt; do not read it raw and treat undefined as an
-  // error.
   modificationTime?: string;
   path: string;
   size: number;
@@ -35,37 +30,21 @@ export type FileAttributes = {
 
 export class File extends AggregateRoot {
   private constructor(
-    private _id: number,
     private _uuid: FileUuid,
     private _contentsId: FileContentsId,
-    private _folderId: FileFolderId,
+    private _folderUuid: FolderUuid,
     private _path: FilePath,
     private _size: FileSize,
     public createdAt: Date,
     public updatedAt: Date,
     private _status: FileStatus,
-    // The time the file's CONTENTS were last modified, as opposed to updatedAt,
-    // which is when the drive row last changed. Undefined for a record that
-    // predates the field or carries an unparseable one; the getter falls back.
     private _modificationTime?: Date,
   ) {
     super();
   }
 
-  /**
-   * The modification time to report to the filesystem.
-   *
-   * Falls back to updatedAt when the real value is unknown, which is what the
-   * macOS/Windows client does with the same field
-   * (`remote.modificationTime ?? remote.updatedAt`). Without the fallback a file
-   * stored before this field was kept would report an invalid date to stat.
-   */
   public get modificationTime(): Date {
     return this._modificationTime ?? this.updatedAt;
-  }
-
-  public get id(): number {
-    return this._id;
   }
 
   public get uuid(): string {
@@ -76,8 +55,8 @@ export class File extends AggregateRoot {
     return this._contentsId.value;
   }
 
-  public get folderId() {
-    return this._folderId.value;
+  public get folderUuid(): string {
+    return this._folderUuid.value;
   }
 
   public get path(): string {
@@ -110,10 +89,9 @@ export class File extends AggregateRoot {
 
   static from(attributes: FileAttributes): File {
     return new File(
-      attributes.id,
       new FileUuid(attributes.uuid),
       new FileContentsId(attributes.contentsId),
-      new FileFolderId(attributes.folderId),
+      new FolderUuid(attributes.folderUuid),
       new FilePath(attributes.path),
       new FileSize(attributes.size),
       new Date(attributes.createdAt),
@@ -125,10 +103,9 @@ export class File extends AggregateRoot {
 
   static create(attributes: Omit<FileAttributes, 'status'>): File {
     const file = new File(
-      attributes.id,
       new FileUuid(attributes.uuid),
       new FileContentsId(attributes.contentsId),
-      new FileFolderId(attributes.folderId),
+      new FolderUuid(attributes.folderUuid),
       new FilePath(attributes.path),
       new FileSize(attributes.size),
       new Date(attributes.createdAt),
@@ -162,11 +139,11 @@ export class File extends AggregateRoot {
   }
 
   moveTo(folder: Folder): void {
-    if (this.folderId === folder.id) {
+    if (this.folderUuid === folder.uuid) {
       throw new FileCannotBeMovedToTheOriginalFolderError(this.path);
     }
 
-    this._folderId = new FileFolderId(folder.id);
+    this._folderUuid = new FolderUuid(folder.uuid);
     this._path = this._path.changeFolder(folder.path);
 
     this.record(
@@ -224,8 +201,8 @@ export class File extends AggregateRoot {
       this._path = new FilePath(attributes.path);
     }
 
-    if (attributes.folderId) {
-      this._folderId = new FileFolderId(attributes.folderId);
+    if (attributes.folderUuid) {
+      this._folderUuid = new FolderUuid(attributes.folderUuid);
     }
 
     if (attributes.size !== undefined) {
@@ -244,9 +221,6 @@ export class File extends AggregateRoot {
       this.updatedAt = new Date(attributes.updatedAt);
     }
 
-    // Presence, not truthiness: an empty string is the server saying it has no
-    // content time for this file, and a truthy check could never carry that
-    // back to "unknown" once a value had been loaded.
     if (attributes.modificationTime !== undefined) {
       this._modificationTime = parseModificationTime(attributes.modificationTime);
     }
@@ -266,29 +240,19 @@ export class File extends AggregateRoot {
 
   attributes(): FileAttributes {
     return {
-      id: this.id,
       uuid: this.uuid,
       contentsId: this.contentsId,
-      folderId: this.folderId,
+      folderUuid: this.folderUuid,
       createdAt: this.createdAt.toISOString(),
       path: this.path,
       size: this.size,
       updatedAt: this.updatedAt.toISOString(),
       status: this.status.value,
-      // The raw value, NOT the getter. The getter's fallback to updatedAt is
-      // for reporting to stat; writing it back here would record a guess as
-      // though the server had told us, and "unknown" would be destroyed on the
-      // first save a legacy record survived.
       modificationTime: this._modificationTime?.toISOString(),
     };
   }
 }
 
-/**
- * Turns a stored modification time into a Date, or undefined when it cannot be
- * one. Records written before the field was kept carry an empty or absent
- * value, and `new Date('')` is an Invalid Date that would reach stat as NaN.
- */
 function parseModificationTime(value: string | undefined): Date | undefined {
   if (!value) return undefined;
 

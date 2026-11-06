@@ -21,8 +21,8 @@ async function writeFilesFromFreshSnapshot({ items }: Props) {
   if (persistResult.error) return Result.err(persistResult.error);
 
   await Promise.all(
-    [...foldersToInvalidate].map((folderId) =>
-      DirectoryStateRepository.invalidate({ folderId, statusScope: 'EXISTS' }),
+    [...foldersToInvalidate].map((folderUuid) =>
+      DirectoryStateRepository.invalidate({ folderUuid, statusScope: 'EXISTS' }),
     ),
   );
 

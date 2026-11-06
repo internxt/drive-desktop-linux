@@ -33,7 +33,7 @@ export class FileTrasher {
       return;
     }
 
-    const allParentsExists = await this.allParentFoldersStatusIsExists.run(file.folderId);
+    const allParentsExists = await this.allParentFoldersStatusIsExists.run(file.folderUuid);
 
     if (!allParentsExists) {
       logger.warn({

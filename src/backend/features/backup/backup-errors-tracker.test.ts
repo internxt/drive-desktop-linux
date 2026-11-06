@@ -20,8 +20,8 @@ describe('BackupErrorsTracker', () => {
 
   describe('clear', () => {
     it('should create a new empty errors map and broadcast it', () => {
-      tracker.add(1, { name: 'folder1', error: 'BAD_RESPONSE' });
-      tracker.add(2, { name: 'folder2', error: 'EMPTY_FILE' });
+      tracker.add('uuid-1', { name: 'folder1', error: 'BAD_RESPONSE' });
+      tracker.add('uuid-2', { name: 'folder2', error: 'EMPTY_FILE' });
 
       tracker.clear();
 
@@ -34,36 +34,36 @@ describe('BackupErrorsTracker', () => {
     it('should add the error to the map and broadcast it', () => {
       const error = { name: 'test-folder', error: 'BAD_RESPONSE' as const };
 
-      tracker.add(123, error);
+      tracker.add('folder-uuid-123', error);
 
-      expect(tracker.get(123)).toEqual(error);
+      expect(tracker.get('folder-uuid-123')).toEqual(error);
       expect(broadcastToWindows).toHaveBeenCalledWith('backup-fatal-errors-changed', [error]);
     });
 
-    it('should not set duplicate errors for the same folderId', () => {
+    it('should not set duplicate errors for the same folderUuid', () => {
       const firstError = { name: 'folder1', error: 'BAD_RESPONSE' as const };
       const secondError = { name: 'folder1-updated', error: 'EMPTY_FILE' as const };
 
-      tracker.add(1, firstError);
-      tracker.add(1, secondError);
+      tracker.add('folder-uuid-1', firstError);
+      tracker.add('folder-uuid-1', secondError);
 
       expect(tracker.getAll()).toHaveLength(1);
-      expect(tracker.get(1)).toEqual(secondError);
+      expect(tracker.get('folder-uuid-1')).toEqual(secondError);
     });
   });
 
   describe('get', () => {
-    it('should return the error for the given folderId', () => {
+    it('should return the error for the given folderUuid', () => {
       const error = { name: 'test-folder', error: 'BAD_RESPONSE' as const };
-      tracker.add(42, error);
+      tracker.add('folder-uuid-42', error);
 
-      const result = tracker.get(42);
+      const result = tracker.get('folder-uuid-42');
 
       expect(result).toEqual(error);
     });
 
-    it('should return undefined if there is no error for the given folderId', () => {
-      const result = tracker.get(999);
+    it('should return undefined if there is no error for the given folderUuid', () => {
+      const result = tracker.get('missing-uuid');
 
       expect(result).toBeUndefined();
     });
@@ -75,9 +75,9 @@ describe('BackupErrorsTracker', () => {
       const error2 = { name: 'folder2', error: 'EMPTY_FILE' as const };
       const error3 = { name: 'folder3', error: 'NO_INTERNET' as const };
 
-      tracker.add(1, error1);
-      tracker.add(2, error2);
-      tracker.add(3, error3);
+      tracker.add('uuid-1', error1);
+      tracker.add('uuid-2', error2);
+      tracker.add('uuid-3', error3);
 
       const result = tracker.getAll();
 
@@ -93,8 +93,8 @@ describe('BackupErrorsTracker', () => {
 
   describe('lastBackupHadFatalIssue', () => {
     it('should return true if the last error is fatal', () => {
-      tracker.add(1, { name: 'folder1', error: 'BAD_RESPONSE' });
-      tracker.add(2, { name: 'folder2', error: 'NO_INTERNET' });
+      tracker.add('uuid-1', { name: 'folder1', error: 'BAD_RESPONSE' });
+      tracker.add('uuid-2', { name: 'folder2', error: 'NO_INTERNET' });
 
       const result = tracker.lastBackupHadFatalIssue();
 
@@ -102,8 +102,8 @@ describe('BackupErrorsTracker', () => {
     });
 
     it('should return false if the last error is not fatal', () => {
-      tracker.add(1, { name: 'folder1', error: 'NO_INTERNET' });
-      tracker.add(2, { name: 'folder2', error: 'BAD_RESPONSE' });
+      tracker.add('uuid-1', { name: 'folder1', error: 'NO_INTERNET' });
+      tracker.add('uuid-2', { name: 'folder2', error: 'BAD_RESPONSE' });
 
       const result = tracker.lastBackupHadFatalIssue();
 

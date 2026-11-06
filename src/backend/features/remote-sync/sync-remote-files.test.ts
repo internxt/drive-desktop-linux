@@ -58,10 +58,32 @@ describe('sync-remote-files', () => {
     ]);
   });
 
+  const syncFileDto = (uuid: string) => ({
+    id: 1,
+    uuid,
+    fileId: `fid-${uuid}`,
+    name: `${uuid}.txt`,
+    type: 'txt',
+    size: '100',
+    bucket: 'bucket',
+    folderId: 0,
+    folderUuid: 'folder-uuid',
+    encryptVersion: '1',
+    userId: 1,
+    creationTime: '2026-01-01T00:00:00.000Z',
+    modificationTime: '2026-01-01T00:00:00.000Z',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    plainName: uuid,
+    status: 'EXISTS' as const,
+  });
+
   it('should accumulate totalSynced across pages', async () => {
     fetchFilesSyncMock
-      .mockResolvedValueOnce({ data: { files: [{ id: 1 }, { id: 2 }], nextCursor: 'cursor-1' } })
-      .mockResolvedValueOnce({ data: { files: [{ id: 3 }], nextCursor: null } });
+      .mockResolvedValueOnce({
+        data: { files: [syncFileDto('file-1'), syncFileDto('file-2')], nextCursor: 'cursor-1' },
+      })
+      .mockResolvedValueOnce({ data: { files: [syncFileDto('file-3')], nextCursor: null } });
 
     const result = await syncRemoteFiles(defaultProps);
 
@@ -89,7 +111,7 @@ describe('sync-remote-files', () => {
   });
 
   it('should persist files to the database once per page', async () => {
-    const files = [{ id: 1, fileId: 'fid', size: '100', name: 'a.txt' }];
+    const files = [syncFileDto('page-file')];
     fetchFilesSyncMock
       .mockResolvedValueOnce({ data: { files, nextCursor: 'cursor-1' } })
       .mockResolvedValueOnce({ data: { files, nextCursor: null } });

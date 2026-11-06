@@ -24,9 +24,10 @@ describe('FolderRepositorySynchronizer', () => {
     vi.clearAllMocks();
   });
 
-  const mockFolder = (id: number | string, path: string, isRoot = false): Folder =>
+  const mockFolder = (id: number | string, path: string, isRoot = false, folderUuid?: string): Folder =>
     ({
       id,
+      uuid: folderUuid ?? String(id),
       path,
       isRoot: () => isRoot,
     }) as unknown as Folder;
@@ -47,15 +48,16 @@ describe('FolderRepositorySynchronizer', () => {
   it('should delete folders the server has marked as deleted, except root', async () => {
     const remoteFolders = [mockFolder('root', '/', true), mockFolder(1, '/documents'), mockFolder(2, '/projects')];
 
-    const localFolders = [mockFolder('root', '/', true), mockFolder(1, '/documents'), mockFolder(3, '/old-folder')];
+    const deletedFolder = mockFolder(3, '/old-folder', false, 'deleted-folder-uuid');
+    const localFolders = [mockFolder('root', '/', true), mockFolder(1, '/documents'), deletedFolder];
 
     folderRepositoryMock.all.mockResolvedValue(localFolders);
 
-    await sut.run(remoteFolders, new Set([3]));
+    await sut.run(remoteFolders, new Set(['deleted-folder-uuid']));
 
     expect(folderRepositoryMock.add).toHaveBeenCalledTimes(3);
     expect(folderRepositoryMock.delete).toHaveBeenCalledTimes(1);
-    expect(folderRepositoryMock.delete).toHaveBeenCalledWith(3);
+    expect(folderRepositoryMock.delete).toHaveBeenCalledWith('deleted-folder-uuid');
     expect(folderRepositoryMock.delete).not.toHaveBeenCalledWith('root');
   });
 
@@ -71,11 +73,11 @@ describe('FolderRepositorySynchronizer', () => {
 
     folderRepositoryMock.all.mockResolvedValue(localFolders);
 
-    await sut.run(remoteFolders, new Set([2, 3]));
+    await sut.run(remoteFolders, new Set(['2', '3']));
 
     expect(folderRepositoryMock.delete).toHaveBeenCalledTimes(2);
-    expect(folderRepositoryMock.delete).toHaveBeenCalledWith(2);
-    expect(folderRepositoryMock.delete).toHaveBeenCalledWith(3);
+    expect(folderRepositoryMock.delete).toHaveBeenCalledWith('2');
+    expect(folderRepositoryMock.delete).toHaveBeenCalledWith('3');
     expect(folderRepositoryMock.delete).not.toHaveBeenCalledWith('root');
   });
 

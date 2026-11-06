@@ -15,7 +15,7 @@ export class FilesByFolderPathSearcher {
     const folder = await this.singleFolderMatchingFinder.run({ path });
 
     const files = this.repository.matchingPartial({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
       status: FileStatuses.EXISTS,
     });
 

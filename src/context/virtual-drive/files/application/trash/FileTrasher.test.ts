@@ -75,7 +75,7 @@ describe('FileTrasher', () => {
 
       await sut.run(file.contentsId);
 
-      expect(allParentFoldersStatusIsExistsMock.run).toBeCalledWith(file.folderId);
+      expect(allParentFoldersStatusIsExistsMock.run).toBeCalledWith(file.folderUuid);
       expect(addFileToTrashMock).not.toBeCalled();
       expect(fileRepositoryMock.update).not.toBeCalled();
       expect(syncFileMessengerMock.trashing).not.toBeCalled();

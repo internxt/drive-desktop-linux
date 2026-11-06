@@ -20,7 +20,7 @@ export async function recordSynchronizationFailure({ folder, error, localMutatio
   const failureState =
     code === FuseCodes.ENOENT ? 'error_not_found' : canUseCachedChildren ? 'error_before_mutation' : 'error';
   await DirectoryStateRepository.markError({
-    folderId: folder.id,
+    folderUuid: folder.uuid,
     statusScope: 'EXISTS',
     failureState,
   });

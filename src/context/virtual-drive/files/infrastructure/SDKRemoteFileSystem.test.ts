@@ -112,7 +112,6 @@ describe('SDKRemoteFileSystem', () => {
 
     expect(result.isRight()).toBe(true);
     expect(result.getRight()).toMatchObject({
-      id: fileResponse.id,
       uuid: fileResponse.uuid,
       createdAt: fileResponse.createdAt,
       modificationTime: fileResponse.updatedAt,

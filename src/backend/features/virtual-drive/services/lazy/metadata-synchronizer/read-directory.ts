@@ -14,23 +14,23 @@ export async function readDirectory({ path, folderRepository, fileRepository }: 
 
   const folder = folderResult.data;
   const refresh = await synchronizeChildrenIfStale({ folder, folderRepository, fileRepository });
-  if (refresh.error && !(await canServeCachedChildren({ folderId: folder.id, error: refresh.error }))) {
+  if (refresh.error && !(await canServeCachedChildren({ folderUuid: folder.uuid, error: refresh.error }))) {
     return refresh;
   }
 
   return Result.ok({
     folders: folderRepository
-      .matchingPartial({ parentId: folder.id, status: FolderStatuses.EXISTS })
+      .matchingPartial({ parentUuid: folder.uuid, status: FolderStatuses.EXISTS })
       .filter((child) => !isVirtualTrashFolder(child))
       .map((child) => child.name),
     files: fileRepository
-      .matchingPartial({ folderId: folder.id, status: FileStatuses.EXISTS })
+      .matchingPartial({ folderUuid: folder.uuid, status: FileStatuses.EXISTS })
       .map((child) => child.nameWithExtension),
   });
 }
 
-async function canServeCachedChildren({ folderId, error }: { folderId: number; error: Error }) {
+async function canServeCachedChildren({ folderUuid, error }: { folderUuid: string; error: Error }) {
   if (!(error instanceof DirectoryMetadataSyncError) || !error.canUseCachedChildren) return false;
-  const state = await DirectoryStateRepository.getState({ folderId, statusScope: 'EXISTS' });
+  const state = await DirectoryStateRepository.getState({ folderUuid, statusScope: 'EXISTS' });
   return Boolean(state?.children_loaded_at);
 }

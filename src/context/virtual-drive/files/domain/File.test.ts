@@ -3,10 +3,9 @@ import { FileStatuses } from './FileStatus';
 
 describe('File', () => {
   const fileMock = {
-    id: 1,
     uuid: 'f654a669-094f-43cc-9b6a-a819cfeee74c',
     contentsId: '21e5ac20-4d87-4458-9cb5-',
-    folderId: 100,
+    folderUuid: 'a654a669-094f-43cc-9b6a-a819cfeee74d',
     createdAt: '2025-01-01T00:00:00.000Z',
     modificationTime: '2025-01-01T00:00:00.000Z',
     path: '/documents/file.txt',
@@ -87,13 +86,13 @@ describe('File', () => {
       expect(file.path).toBe(newPath);
     });
 
-    it('should update the folderId when provided', () => {
+    it('should update the folderUuid when provided', () => {
       const file = File.from(fileMock);
-      const newFolderId = 200;
+      const newFolderUuid = 'b754a669-094f-43cc-9b6a-a819cfeee74e';
 
-      file.update({ folderId: newFolderId });
+      file.update({ folderUuid: newFolderUuid });
 
-      expect(file.folderId).toBe(newFolderId);
+      expect(file.folderUuid).toBe(newFolderUuid);
     });
 
     it('should update the size when provided', () => {
@@ -144,7 +143,7 @@ describe('File', () => {
       const file = File.from(fileMock);
       const updates = {
         path: '/new/path/file.txt',
-        folderId: 300,
+        folderUuid: 'c854a669-094f-43cc-9b6a-a819cfeee74f',
         size: 3000,
         contentsId: 'new-contents-id-12345678',
         status: FileStatuses.TRASHED,
@@ -153,7 +152,7 @@ describe('File', () => {
       file.update(updates);
 
       expect(file.path).toBe(updates.path);
-      expect(file.folderId).toBe(updates.folderId);
+      expect(file.folderUuid).toBe(updates.folderUuid);
       expect(file.size).toBe(updates.size);
       expect(file.contentsId).toBe(updates.contentsId);
       expect(file.status.value).toBe(updates.status);

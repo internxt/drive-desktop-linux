@@ -20,22 +20,46 @@ describe('remove-stale-children', () => {
   });
 
   it.each(['/', '/documents'])('should remove only stale children of %s', async (path) => {
-    const parent = FolderMother.fromPartial({ id: 1, path, parentId: null });
+    const parent = FolderMother.fromPartial({ path });
     const prefix = path === '/' ? '' : path;
-    const kept = FolderMother.fromPartial({ id: 2, parentId: parent.id, path: `${prefix}/kept` });
-    const descendant = FolderMother.fromPartial({ id: 3, parentId: kept.id, path: `${kept.path}/nested` });
-    const removed = FolderMother.fromPartial({ id: 4, parentId: parent.id, path: `${prefix}/gone` });
-    const removedDescendant = FolderMother.fromPartial({ id: 5, parentId: removed.id, path: `${removed.path}/nested` });
-    const sibling = FolderMother.fromPartial({ id: 6, parentId: parent.id, path: `${prefix}/gone-too` });
-    const directFile = FileMother.fromPartial({ folderId: parent.id, path: `${prefix}/keep.txt` });
-    const staleFile = FileMother.fromPartial({ folderId: parent.id, path: `${prefix}/stale.txt` });
-    const nestedFile = FileMother.fromPartial({ folderId: descendant.id, path: `${descendant.path}/keep.txt` });
-    const removedFile = FileMother.fromPartial({ folderId: removed.id, path: `${removed.path}/remove.txt` });
+    const kept = FolderMother.fromPartial({
+      parentUuid: parent.uuid,
+      path: `${prefix}/kept`,
+    });
+    const descendant = FolderMother.fromPartial({
+      parentUuid: kept.uuid,
+      path: `${kept.path}/nested`,
+    });
+    const removed = FolderMother.fromPartial({
+      parentUuid: parent.uuid,
+      path: `${prefix}/gone`,
+    });
+    const removedDescendant = FolderMother.fromPartial({
+      parentUuid: removed.uuid,
+      path: `${removed.path}/nested`,
+    });
+    const sibling = FolderMother.fromPartial({
+      parentUuid: parent.uuid,
+      path: `${prefix}/gone-too`,
+    });
+    const directFile = FileMother.fromPartial({ folderUuid: parent.uuid, path: `${prefix}/keep.txt` });
+    const staleFile = FileMother.fromPartial({ folderUuid: parent.uuid, path: `${prefix}/stale.txt` });
+    const nestedFile = FileMother.fromPartial({
+      folderUuid: descendant.uuid,
+      path: `${descendant.path}/keep.txt`,
+    });
+    const removedFile = FileMother.fromPartial({
+      folderUuid: removed.uuid,
+      path: `${removed.path}/remove.txt`,
+    });
     const removedNestedFile = FileMother.fromPartial({
-      folderId: removedDescendant.id,
+      folderUuid: removedDescendant.uuid,
       path: `${removedDescendant.path}/remove.txt`,
     });
-    const siblingFile = FileMother.fromPartial({ folderId: sibling.id, path: `${sibling.path}/keep.txt` });
+    const siblingFile = FileMother.fromPartial({
+      folderUuid: sibling.uuid,
+      path: `${sibling.path}/keep.txt`,
+    });
     const folders = new InMemoryFolderRepository();
     const files = new InMemoryFileRepository();
     for (const entry of [parent, kept, descendant, removed, removedDescendant, sibling]) await folders.add(entry);
@@ -55,18 +79,31 @@ describe('remove-stale-children', () => {
       ]),
     });
 
-    expect((await folders.all()).map((entry) => entry.id).sort()).toStrictEqual([1, 2, 3, 6]);
+    expect((await folders.all()).map((entry) => entry.uuid).sort()).toStrictEqual(
+      [parent, kept, descendant, sibling].map((entry) => entry.uuid).sort(),
+    );
     expect((await files.all()).map((entry) => entry.uuid).sort()).toStrictEqual(
       [directFile, nestedFile, siblingFile].map((entry) => entry.uuid).sort(),
     );
-    expect(invalidateMock.mock.calls.map(([props]) => props.folderId).sort()).toStrictEqual([4, 5]);
+    expect(invalidateMock.mock.calls.map(([props]) => props.folderUuid).sort()).toStrictEqual(
+      [removed.uuid, removedDescendant.uuid].sort(),
+    );
   });
 
   it('should drop a renamed folder and its cached descendants', async () => {
-    const parent = FolderMother.fromPartial({ id: 1, path: '/documents', parentId: null });
-    const renamed = FolderMother.fromPartial({ id: 2, parentId: parent.id, path: '/documents/old' });
-    const descendant = FolderMother.fromPartial({ id: 3, parentId: renamed.id, path: '/documents/old/nested' });
-    const nestedFile = FileMother.fromPartial({ folderId: descendant.id, path: '/documents/old/nested/keep.txt' });
+    const parent = FolderMother.fromPartial({ path: '/documents' });
+    const renamed = FolderMother.fromPartial({
+      parentUuid: parent.uuid,
+      path: '/documents/old',
+    });
+    const descendant = FolderMother.fromPartial({
+      parentUuid: renamed.uuid,
+      path: '/documents/old/nested',
+    });
+    const nestedFile = FileMother.fromPartial({
+      folderUuid: descendant.uuid,
+      path: '/documents/old/nested/keep.txt',
+    });
     const folders = new InMemoryFolderRepository();
     const files = new InMemoryFileRepository();
     for (const entry of [parent, renamed, descendant]) await folders.add(entry);
@@ -81,17 +118,19 @@ describe('remove-stale-children', () => {
       remoteFolderPaths: new Map([[renamed.uuid, '/documents/new']]),
     });
 
-    expect((await folders.all()).map((entry) => entry.id)).toStrictEqual([parent.id]);
+    expect((await folders.all()).map((entry) => entry.uuid)).toStrictEqual([parent.uuid]);
     expect(await files.all()).toHaveLength(0);
-    expect(invalidateMock.mock.calls.map(([props]) => props.folderId).sort()).toStrictEqual([
-      renamed.id,
-      descendant.id,
-    ]);
+    expect(invalidateMock.mock.calls.map(([props]) => props.folderUuid).sort()).toStrictEqual(
+      [renamed.uuid, descendant.uuid].sort(),
+    );
   });
 
   it('should keep the local virtual trash folder', async () => {
-    const parent = FolderMother.fromPartial({ id: 1, path: '/', parentId: null });
-    const trash = FolderMother.fromPartial({ id: Number.MAX_SAFE_INTEGER, parentId: parent.id, path: '/.Trash' });
+    const parent = FolderMother.fromPartial({ path: '/' });
+    const trash = FolderMother.fromPartial({
+      parentUuid: parent.uuid,
+      path: '/.Trash',
+    });
     const folders = new InMemoryFolderRepository();
     const files = new InMemoryFileRepository();
     await folders.add(parent);
@@ -106,7 +145,7 @@ describe('remove-stale-children', () => {
       remoteFolderPaths: new Map(),
     });
 
-    expect((await folders.all()).map((entry) => entry.id).sort()).toStrictEqual([parent.id, trash.id].sort());
+    expect((await folders.all()).map((entry) => entry.uuid).sort()).toStrictEqual([parent.uuid, trash.uuid].sort());
     expect(invalidateMock).not.toHaveBeenCalled();
   });
 });

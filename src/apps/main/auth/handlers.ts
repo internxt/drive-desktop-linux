@@ -6,6 +6,7 @@ import { createTokenScheduleWithRetry } from './refresh-token/create-token-sched
 import { getNewApiHeaders, logout } from '../../../backend/features/auth';
 import { getUser } from '../../../backend/features/auth/user-session';
 import { getCredentials } from './get-credentials';
+import { bootstrapAppDataSource } from '../database/bootstrap-app-data-source';
 
 let isLoggedIn = false;
 
@@ -43,6 +44,7 @@ eventBus.on('APP_IS_READY', async (): Promise<void> => {
 
   if (isLoggedIn) {
     await createTokenScheduleWithRetry();
+    await bootstrapAppDataSource();
     eventBus.emit('USER_LOGGED_IN');
   }
 });

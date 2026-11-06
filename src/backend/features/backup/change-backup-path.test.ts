@@ -71,13 +71,46 @@ describe('change-backup-path', () => {
       uuid: 'folder-uuid',
       plainName: 'new-backup',
     });
-    call(mockedMigrateBackupEntryIfNeeded).toStrictEqual({ pathname: newPath, backup: existingBackup });
+    expect(mockedMigrateBackupEntryIfNeeded).toHaveBeenNthCalledWith(1, {
+      pathname: currentPath,
+      backup: existingBackup,
+    });
+    expect(mockedMigrateBackupEntryIfNeeded).toHaveBeenNthCalledWith(2, {
+      pathname: newPath,
+      backup: existingBackup,
+    });
     call(mockedConfigStoreSet).toStrictEqual([
       'backupList',
       {
         [newPath]: migratedBackup,
       },
     ]);
+  });
+
+  it('should resolve folderUuid before renaming legacy backups', async () => {
+    const legacyBackup = { folderId: 12, folderUuid: '', enabled: true };
+    const migratedBackup = { folderId: 12, folderUuid: 'resolved-uuid', enabled: true };
+    const backupList = {
+      [currentPath]: legacyBackup,
+    };
+
+    mockedConfigStoreGet.mockReturnValue(backupList);
+    mockedMigrateBackupEntryIfNeeded
+      .mockResolvedValueOnce({ data: migratedBackup })
+      .mockResolvedValueOnce({ data: migratedBackup });
+    mockedRenameFolder.mockResolvedValue({ data: {} });
+
+    const result = await changeBackupPath({ currentPath, newPath });
+
+    expect(result).toStrictEqual({ data: true });
+    call(mockedRenameFolder).toStrictEqual({
+      uuid: 'resolved-uuid',
+      plainName: 'new-backup',
+    });
+    expect(mockedMigrateBackupEntryIfNeeded).toHaveBeenNthCalledWith(1, {
+      pathname: currentPath,
+      backup: legacyBackup,
+    });
   });
 
   it('should return error when rename request fails', async () => {

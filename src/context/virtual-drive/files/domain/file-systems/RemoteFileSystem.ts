@@ -1,7 +1,6 @@
 import { Either } from '../../../../shared/domain/Either';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { FileContentsId } from '../FileContentsId';
-import { FileFolderId } from '../FileFolderId';
 import { FilePath } from '../FilePath';
 import { FileSize } from '../FileSize';
 
@@ -9,15 +8,12 @@ export type FileDataToPersist = {
   contentsId: FileContentsId;
   path: FilePath;
   size: FileSize;
-  folderId: FileFolderId;
   folderUuid: string;
-  // Set only when utimensat asked for a time while the file was still staged.
   modificationTime?: Date;
 };
 
 export type PersistedFileData = {
   modificationTime: string;
-  id: number;
   uuid: string;
   createdAt: string;
 };
