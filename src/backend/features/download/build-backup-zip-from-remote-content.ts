@@ -62,7 +62,11 @@ export async function buildBackupZipFromRemoteContent({
 
   const sizeResult = await fetchTotalSize(rootFolderUuid);
   if (sizeResult.error) {
-    throw logger.error({ tag: 'BACKUPS', msg: 'Failed to fetch backup folder size for zip progress', error: sizeResult.error });
+    throw logger.error({
+      tag: 'BACKUPS',
+      msg: 'Failed to fetch backup folder size for zip progress',
+      error: sizeResult.error,
+    });
   }
 
   const progress = createBackupZipProgressEmitter({
