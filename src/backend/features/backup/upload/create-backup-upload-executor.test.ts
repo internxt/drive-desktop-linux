@@ -100,6 +100,8 @@ describe('createBackupUploadExecutor', () => {
       folderUuid: remoteTree.root.uuid,
       environment: {} as Environment,
       signal: abortController.signal,
+      modificationTime: new Date(localFile.modificationTime),
+      creationTime: new Date(localFile.creationTime),
     });
   });
   it('should return success without uploading when signal is already aborted', async () => {

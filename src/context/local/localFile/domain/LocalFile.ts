@@ -6,6 +6,7 @@ import { LocalFileSize } from './LocalFileSize';
 export type LocalFileAttributes = {
   path: AbsolutePath;
   modificationTime: number;
+  creationTime: number;
   size: number;
 };
 
@@ -13,6 +14,7 @@ export class LocalFile extends AggregateRoot {
   private constructor(
     private _path: AbsolutePath,
     private _modificationTime: number,
+    private _creationTime: number,
     private _size: LocalFileSize,
   ) {
     super();
@@ -24,6 +26,10 @@ export class LocalFile extends AggregateRoot {
 
   get modificationTime(): number {
     return this._modificationTime;
+  }
+
+  get creationTime(): number {
+    return this._creationTime;
   }
 
   get size(): number {
@@ -53,13 +59,19 @@ export class LocalFile extends AggregateRoot {
   }
 
   static from(attributes: LocalFileAttributes): LocalFile {
-    return new LocalFile(attributes.path, attributes.modificationTime, new LocalFileSize(attributes.size));
+    return new LocalFile(
+      attributes.path,
+      attributes.modificationTime,
+      attributes.creationTime,
+      new LocalFileSize(attributes.size),
+    );
   }
 
   attributes(): LocalFileAttributes {
     return {
       path: this.path,
       modificationTime: this.modificationTime,
+      creationTime: this.creationTime,
       size: this.size,
     };
   }

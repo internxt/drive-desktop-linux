@@ -6,6 +6,7 @@ import { FileDataToPersist, PersistedFileData, RemoteFileSystem } from '../domai
 import { CreateFileDto } from '../../../../infra/drive-server/out/dto';
 import { createFile } from '../../../../infra/drive-server/services/files/services/create-file';
 import { parseRetryAfterMs } from '../../../../backend/common/rate-limit/transient-error-handler';
+import { contentTimestampsToRequestFields } from '../../../../shared/content-timestamps/content-timestamps-to-request-fields';
 
 @Service()
 export class SDKRemoteFileSystem implements RemoteFileSystem {
@@ -21,17 +22,14 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
       size: dataToPersists.size.value,
       plainName,
       type: dataToPersists.path.extension(),
+      ...contentTimestampsToRequestFields({
+        modificationTime: dataToPersists.modificationTime,
+        creationTime: dataToPersists.creationTime,
+      }),
     };
 
     if (dataToPersists.size.value > 0) {
       body.fileId = dataToPersists.contentsId.value;
-    }
-
-    // Sent at creation rather than through a later content-replace: the replace
-    // endpoint would mean re-declaring this file's contents to carry a
-    // timestamp, which is not what happened.
-    if (dataToPersists.modificationTime) {
-      body.modificationTime = dataToPersists.modificationTime.toISOString();
     }
 
     const { data, error } = await createFile(body);

@@ -6,6 +6,7 @@ import { Result } from '../../../../context/shared/domain/Result';
 import { File } from '../../../../context/virtual-drive/files/domain/File';
 import { CreateFileDto } from '../../../../infra/drive-server/out/dto';
 import { createFile } from '../../../../infra/drive-server/services/files/services/create-file';
+import { contentTimestampsToRequestFields } from '../../../../shared/content-timestamps/content-timestamps-to-request-fields';
 
 export type CreateFileToBackendParams = {
   contentsId: string;
@@ -14,6 +15,8 @@ export type CreateFileToBackendParams = {
   folderId: number;
   folderUuid: string;
   bucket: string;
+  modificationTime?: Date;
+  creationTime?: Date;
 };
 
 function extractName(filePath: string): string {
@@ -34,6 +37,8 @@ export async function createFileToBackend({
   folderId,
   folderUuid,
   bucket,
+  modificationTime,
+  creationTime,
 }: CreateFileToBackendParams): Promise<Result<File, DriveDesktopError>> {
   const plainName = extractName(filePath);
   const extension = extractExtension(filePath);
@@ -46,6 +51,7 @@ export async function createFileToBackend({
     size,
     plainName,
     type: extension,
+    ...contentTimestampsToRequestFields({ modificationTime, creationTime }),
   };
 
   if (size > 0) {

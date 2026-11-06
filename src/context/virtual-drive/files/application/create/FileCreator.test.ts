@@ -138,6 +138,24 @@ describe('File Creator', () => {
     expect(pendingModificationTimes.take(path.value)).toEqual(requested);
   });
 
+  it('does not store content mtime in pending times when create failed without utimens', async () => {
+    const path = new FilePath('/bird.png');
+    const contentsId = BucketEntryIdMother.random();
+    const size = FileSizeMother.random();
+    const contentMtime = new Date('2024-01-02T03:04:05.000Z');
+
+    remoteFileSystemMock.persistMock.mockResolvedValueOnce(left(new DriveDesktopError('UNKNOWN')));
+
+    await expect(
+      SUT.run(path.value, contentsId.value, size.value, { modificationTime: contentMtime }),
+    ).rejects.toThrow();
+
+    expect(pendingModificationTimes.take(path.value)).toBeUndefined();
+    expect(remoteFileSystemMock.persistMock).toHaveBeenCalledWith(
+      expect.objectContaining({ modificationTime: contentMtime }),
+    );
+  });
+
   it('spends a requested modification time exactly once on a create that lands', async () => {
     const path = new FilePath('/cat.png');
     const contentsId = BucketEntryIdMother.random();

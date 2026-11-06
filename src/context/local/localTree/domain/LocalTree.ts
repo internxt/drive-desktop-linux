@@ -9,8 +9,8 @@ export class LocalTree {
   private tree: Map<string, Node>;
   public readonly root: LocalFolder;
 
-  constructor(path: AbsolutePath, modificationTime: number) {
-    const localFolder = LocalFolder.from(path, modificationTime);
+  constructor(path: AbsolutePath, modificationTime: number, creationTime: number = modificationTime) {
+    const localFolder = LocalFolder.from(path, modificationTime, creationTime);
     const node = LocalFolderNode.from(localFolder);
     this.root = localFolder;
 
