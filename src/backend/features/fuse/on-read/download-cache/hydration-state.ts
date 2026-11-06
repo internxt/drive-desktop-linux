@@ -41,6 +41,10 @@ export function getExistingHydrationState(contentsId: string): FileHydrationStat
   return hydrationState.get(contentsId);
 }
 
+export function clearHydrationStateForFile({ contentsId }: { readonly contentsId: string }): void {
+  hydrationState.delete(contentsId);
+}
+
 export function getOrCreateHydrationState(contentsId: string, fileSize: number): FileHydrationState {
   const existing = getExistingHydrationState(contentsId);
   if (existing) return existing;

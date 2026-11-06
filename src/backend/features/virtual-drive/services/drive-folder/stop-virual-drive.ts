@@ -5,9 +5,11 @@ import { abortAllHydrations, clearHydrationState } from '../../../fuse/on-read/d
 import { StorageFilesRepository } from '../../../../../context/storage/StorageFiles/domain/StorageFilesRepository';
 import { Container } from 'diod';
 import { stopHydrationApi } from '../hydration-api.service';
+import { stopThumbnailQueue } from '../../../thumbnails/queue/thumbnail-queue';
 
 export async function stopVirtualDrive({ container }: { container?: Container }) {
   logger.debug({ msg: '[VIRTUAL DRIVE] stopping daemon...' });
+  stopThumbnailQueue();
   abortAllHydrations();
   await stopDaemon();
   logger.debug({ msg: '[VIRTUAL DRIVE] clearing storage cache...' });
