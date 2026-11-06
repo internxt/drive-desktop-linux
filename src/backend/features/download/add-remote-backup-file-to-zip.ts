@@ -19,7 +19,6 @@ type Props = {
   encryptionKey: string;
   abortController?: AbortController;
   onFileDownloadProgress: (fileId: string, readBytes: number) => void;
-  /** Called after each file handling; pass storageFileId when a download map entry should be cleared */
   onAfterFileAttempt: (clearedStorageFileId?: string) => void;
 };
 
