@@ -38,21 +38,21 @@ export async function downloadDeviceBackupZip({
   const bridgePass = user.userId;
   const { mnemonic } = getCredentials();
 
-  await downloadFolderAsZip(
-    device.name,
+  await downloadFolderAsZip({
+    deviceName: device.name,
     networkApiUrl,
-    folder.uuid,
-    path,
-    {
+    rootFolderUuid: folder.uuid,
+    fullPath: path,
+    environment: {
       bridgeUser,
       bridgePass,
       encryptionKey: mnemonic,
     },
-    {
+    opts: {
       abortController,
       updateProgress,
     },
-  );
+  });
 
   return { data: true };
 }

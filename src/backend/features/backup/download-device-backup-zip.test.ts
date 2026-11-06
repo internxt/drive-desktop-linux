@@ -33,26 +33,26 @@ describe('download-device-backup-zip', () => {
 
   it('should download backup zip with credentials and progress hooks', async () => {
     process.env.BRIDGE_URL = 'https://bridge.local';
-    fetchFolderMock.mockResolvedValue({ data: { uuid: 'folder-uuid' } } as never);
+    fetchFolderMock.mockResolvedValue({ data: { id: 42, uuid: 'folder-uuid' } } as never);
     getCredentialsMock.mockReturnValue({ mnemonic: 'mnemonic' } as never);
     downloadFolderAsZipMock.mockResolvedValue(undefined as never);
 
     await downloadDeviceBackupZip({ user, device, path: '/tmp/backup.zip', updateProgress, abortController });
 
-    call(downloadFolderAsZipMock).toStrictEqual([
-      'Laptop',
-      'https://bridge.local',
-      'folder-uuid',
-      '/tmp/backup.zip',
-      {
+    call(downloadFolderAsZipMock).toStrictEqual({
+      deviceName: 'Laptop',
+      networkApiUrl: 'https://bridge.local',
+      rootFolderUuid: 'folder-uuid',
+      fullPath: '/tmp/backup.zip',
+      environment: {
         bridgeUser: 'bridge-user',
         bridgePass: 'user-id',
         encryptionKey: 'mnemonic',
       },
-      {
+      opts: {
         abortController,
         updateProgress,
       },
-    ]);
+    });
   });
 });
