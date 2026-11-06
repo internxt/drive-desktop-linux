@@ -1,13 +1,10 @@
 import { ServerFile } from '../../../shared/domain/ServerFile';
 import { File } from '../../files/domain/File';
-import { FileStatuses } from '../../files/domain/FileStatus';
 
 type Props = Pick<
   ServerFile,
-  'id' | 'uuid' | 'folderId' | 'fileId' | 'modificationTime' | 'size' | 'createdAt' | 'updatedAt'
-> & {
-  status: string;
-};
+  'id' | 'uuid' | 'folderId' | 'fileId' | 'modificationTime' | 'size' | 'createdAt' | 'updatedAt' | 'status'
+>;
 
 export function createFileFromServerFile(server: Props, relativePath: string): File {
   return File.from({
@@ -20,6 +17,6 @@ export function createFileFromServerFile(server: Props, relativePath: string): F
     createdAt: server.createdAt,
     updatedAt: server.updatedAt,
     path: relativePath,
-    status: FileStatuses[server.status as 'EXISTS' | 'TRASHED' | 'DELETED'],
+    status: server.status,
   });
 }

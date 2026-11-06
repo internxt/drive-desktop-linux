@@ -10,6 +10,16 @@ describe('migrate-backup-entry-if-needed', () => {
   const configStoreSetMock = partialSpyOn(configStoreModule, 'set');
   const loggerErrorMock = partialSpyOn(logger, 'error');
 
+  it('should return backup unchanged when folder uuid is already set', async () => {
+    const backup = { folderId: 1, folderUuid: 'existing-uuid', enabled: true };
+
+    const result = await migrateBackupEntryIfNeeded({ pathname: '/home/dev/Documents', backup });
+
+    expect(result).toStrictEqual({ data: backup });
+    expect(getBackupFolderUuidMock).not.toBeCalled();
+    expect(configStoreSetMock).not.toBeCalled();
+  });
+
   it('should migrate backup by fetching folder uuid and persisting it', async () => {
     const pathname = '/home/dev/Documents';
     const backup = { folderId: 1, folderUuid: '', enabled: true };

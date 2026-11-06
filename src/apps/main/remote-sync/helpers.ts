@@ -1,3 +1,5 @@
+import type { DriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
+
 export const SIX_HOURS_IN_MILLISECONDS = 6 * 60 * 60 * 1000;
 
 export type RemoteSyncedFile = {
@@ -15,7 +17,7 @@ export type RemoteSyncedFile = {
   updatedAt: string;
   plainName: string;
   name?: string;
-  status: 'EXISTS' | 'TRASHED' | 'DELETED';
+  status: DriveItemStatus;
 };
 
 export type RemoteSyncedFolder = {
@@ -29,7 +31,7 @@ export type RemoteSyncedFolder = {
   uuid: string;
   plainName: string;
   name?: string;
-  status: string;
+  status: DriveItemStatus;
 };
 
 export type RemoteSyncStatus = 'IDLE' | 'SYNCED' | 'SYNCING' | 'SYNC_FAILED';

@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { Brand } from '../../../../context/shared/domain/Brand';
+import type { DriveItemStatus } from '../../../../context/shared/domain/DriveItemStatus';
 
 export type FileUuid = Brand<string, 'FileUuid'>;
 export type ContentsId = Brand<string, 'ContentsId'>;
@@ -15,7 +16,7 @@ export type SimpleDriveFile = {
   createdAt: string;
   updatedAt: string;
   modificationTime: string;
-  status: string;
+  status: DriveItemStatus;
 };
 
 @Entity('drive_file')
@@ -67,5 +68,5 @@ export class DriveFile {
   name?: string;
 
   @Column({ type: 'varchar', nullable: false })
-  status!: string;
+  status!: DriveItemStatus;
 }

@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '../../../../../context/shared/domain/DriveItemStatus';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
@@ -5,7 +6,7 @@ import { components } from '../../../../schemas';
 
 export type FetchFilesSyncQuery = {
   limit: number;
-  status?: 'EXISTS' | 'TRASHED' | 'DELETED';
+  status?: DriveItemStatus;
   updatedAt?: string;
   cursor?: string;
 };
