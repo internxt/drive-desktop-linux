@@ -1,4 +1,6 @@
-import { call, calls } from 'tests/vitest/utils.helper';
+import { FileSizeLimitModule } from '@internxt/drive-desktop-core/build/backend';
+import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
+import * as clearRejectedUploadsForSizeModule from '../user/file-size-limit/clear-rejected-uploads-for-size';
 
 const {
   closeUserSessionResourcesMock,
@@ -63,6 +65,11 @@ vi.mock('../../../apps/main/config', () => ({
 }));
 
 describe('logout', () => {
+  const stopWatchingFileSizeLimitMock = partialSpyOn(FileSizeLimitModule, 'stopWatchingFileSizeLimit');
+  const clearRejectedUploadsForSizeMock = partialSpyOn(
+    clearRejectedUploadsForSizeModule,
+    'clearRejectedUploadsForSize',
+  );
   let logout: typeof import('./logout').logout;
 
   beforeAll(async () => {
@@ -80,5 +87,17 @@ describe('logout', () => {
     call(configDeleteMock).toBe('availableUserProducts');
     calls(eventBusEmitMock).toContainEqual(['USER_AVAILABLE_PRODUCTS_UPDATED', undefined]);
     calls(eventBusEmitMock).toContainEqual('USER_LOGGED_OUT');
+  });
+
+  it('should stop the file size limit watch and clear rejected uploads before closing the session', async () => {
+    // When
+    await logout();
+
+    // Then
+    calls(stopWatchingFileSizeLimitMock).toHaveLength(1);
+    calls(clearRejectedUploadsForSizeMock).toHaveLength(1);
+    expect(stopWatchingFileSizeLimitMock.mock.invocationCallOrder[0]).toBeLessThan(
+      closeUserSessionResourcesMock.mock.invocationCallOrder[0],
+    );
   });
 });

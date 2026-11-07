@@ -90,6 +90,7 @@ type RequestOptions<T, P extends keyof T, M extends HTTPMethod> = {
   headers?: Record<string, string>;
   query?: OperationQuery<T, P, M>;
   body?: OperationRequestBody<T, P, M>;
+  signal?: AbortSignal;
 };
 
 /**
@@ -145,6 +146,7 @@ export function createClient<T>(opts: ClientOptions) {
         headers: o?.headers,
         params: o?.query,
         data: o?.body,
+        signal: o?.signal,
       });
       return { data };
     } catch (error) {

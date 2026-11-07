@@ -73,6 +73,7 @@ export interface IElectronAPI {
   onDeviceCreated: (callback: (device: Device) => void) => () => void;
 
   openUrl: (url: string) => Promise<void>;
+  watchFileSizeLimitAfterUpgrade: () => Promise<void>;
 
   checkInternetConnection(): Promise<boolean>;
 

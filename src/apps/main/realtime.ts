@@ -114,7 +114,7 @@ function cleanAndStartRemoteNotifications() {
 
     if (eventPayload.eventName === 'PLAN_UPDATED') {
       void getUserAvailableProductsAndStore();
-      void resolveUserFileSizeLimit();
+      void resolveUserFileSizeLimit({ signal: AbortSignal.timeout(10_000) });
     }
 
     broadcastToWindows('remote-changes', eventPayload);

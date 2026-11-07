@@ -13,7 +13,7 @@ describe('getUserFileSizeLimit', () => {
 
     await getUserFileSizeLimit();
 
-    expect(driveServerGetMock).toHaveBeenCalledWith('/files/limits');
+    expect(driveServerGetMock).toHaveBeenCalledWith('/files/limits', {});
   });
 
   it('should return only maxUploadFileSize when the request is successful', async () => {
@@ -42,5 +42,13 @@ describe('getUserFileSizeLimit', () => {
 
     expect(result.error).toBe(error);
     expect(result.data).toBeUndefined();
+  });
+
+  it('should forward an abort signal to the client', async () => {
+    driveServerGetMock.mockResolvedValue({ data: { maxUploadFileSize: 1024, versioning: {} } } as object);
+
+    await getUserFileSizeLimit({ signal: AbortSignal.timeout(100) });
+
+    expect(driveServerGetMock).toHaveBeenCalledWith('/files/limits', { signal: expect.any(AbortSignal) });
   });
 });

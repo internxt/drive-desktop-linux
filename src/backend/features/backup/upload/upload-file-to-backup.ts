@@ -2,15 +2,15 @@ import { Environment } from '@internxt/inxt-js';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
 import { File } from '../../../../context/virtual-drive/files/domain/File';
 import { createFileToBackend } from './create-file-to-backend';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { FileSizeLimitModule, logger } from '@internxt/drive-desktop-core/build/backend';
 import { uploadContentToEnvironment } from './upload-content-to-environment';
 import { Result } from '../../../../context/shared/domain/Result';
 import { deleteFileFromStorageByFileId } from '../../../../infra/drive-server/services/files/services/delete-file-content-from-bucket';
 import { retryWithBackoff } from '../../../../shared/retry-with-backoff';
 import { createTransientErrorHandler } from '../../../../backend/common/rate-limit/transient-error-handler';
-import configStore from '../../../../apps/main/config';
-import { addMaxFileSizeRejection } from '../../user/file-size-limit/add-max-file-size-rejection';
-import { validateUploadFileSize } from '../../user/file-size-limit/validate-upload-file-size';
+import { getFileSizeLimitAdapter } from '../../user/file-size-limit/get-file-size-limit-adapter';
+import { handleUploadFileSizeLimitExceeded } from '../../user/file-size-limit/handle-upload-file-size-limit-exceeded';
+import { unregisterRejectedUploadForSize } from '../../user/file-size-limit/unregister-rejected-upload-for-size';
 
 export type UploadFileParams = {
   path: string;
@@ -23,24 +23,29 @@ export type UploadFileParams = {
 };
 
 async function uploadFile(file: UploadFileParams): Promise<Result<File | null, DriveDesktopError>> {
-  const validation = validateUploadFileSize({
+  if (file.size <= 0) {
+    logger.warn({
+      tag: 'BACKUPS',
+      msg: 'Skipping backup file because it is empty',
+      path: file.path,
+      size: file.size,
+    });
+    return { data: null };
+  }
+
+  const validation = await FileSizeLimitModule.checkUploadFileSize({
     size: file.size,
-    maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
-    allowEmptyFile: false,
+    ...getFileSizeLimitAdapter(),
   });
 
   if (!validation.allowed) {
-    if (validation.reason === 'EMPTY_FILE') {
-      logger.warn({
-        tag: 'BACKUPS',
-        msg: 'Skipping backup file because it is empty',
-        path: file.path,
-        size: file.size,
-      });
-      return { data: null };
-    }
-
-    addMaxFileSizeRejection({ path: file.path, fileSize: file.size, validation, blockUploadPath: false });
+    handleUploadFileSizeLimitExceeded({
+      path: file.path,
+      fileSize: file.size,
+      kind: 'backup',
+      validation,
+      blockUploadPath: false,
+    });
     logger.warn({
       tag: 'BACKUPS',
       msg: 'Skipping backup file because it exceeds upload size limit',
@@ -92,7 +97,12 @@ async function uploadFile(file: UploadFileParams): Promise<Result<File | null, D
     await deleteFileFromStorageByFileId({ bucketId: file.bucket, fileId: contentsId });
 
     if (metadataResult.error.cause === 'FILE_TOO_BIG') {
-      addMaxFileSizeRejection({ path: file.path, fileSize: file.size, blockUploadPath: false });
+      handleUploadFileSizeLimitExceeded({
+        path: file.path,
+        fileSize: file.size,
+        kind: 'backup',
+        blockUploadPath: false,
+      });
       logger.warn({
         tag: 'BACKUPS',
         msg: 'Skipping backup file because backend rejected it by upload size limit',
@@ -104,6 +114,8 @@ async function uploadFile(file: UploadFileParams): Promise<Result<File | null, D
 
     return { error: metadataResult.error };
   }
+
+  unregisterRejectedUploadForSize({ path: file.path });
 
   return { data: metadataResult.data };
 }

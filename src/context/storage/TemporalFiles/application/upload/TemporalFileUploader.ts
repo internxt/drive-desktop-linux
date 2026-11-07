@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import { extname } from 'node:path';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { FileSizeLimitModule, logger } from '@internxt/drive-desktop-core/build/backend';
 import { canGenerateThumbnail } from '../../../../../backend/features/thumbnails/thumbnail.extensions';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
 import { TemporalFileUploaderFactory } from '../../domain/upload/TemporalFileUploaderFactory';
@@ -17,10 +17,10 @@ import {
 import { ContentsId } from '../../../../../apps/main/database/entities/DriveFile';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { Result } from '../../../../shared/domain/Result';
-import configStore from '../../../../../apps/main/config';
-import { addMaxFileSizeRejection } from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
+import { getFileSizeLimitAdapter } from '../../../../../backend/features/user/file-size-limit/get-file-size-limit-adapter';
+import { handleUploadFileSizeLimitExceeded } from '../../../../../backend/features/user/file-size-limit/handle-upload-file-size-limit-exceeded';
 import { UploadSizeLimitError } from '../../../../../backend/features/user/file-size-limit/upload-size-limit-error';
-import { validateUploadFileSize } from '../../../../../backend/features/user/file-size-limit/validate-upload-file-size';
+import { unregisterRejectedUploadForSize } from '../../../../../backend/features/user/file-size-limit/unregister-rejected-upload-for-size';
 import { validateSpace } from '../../../../../backend/features/usage/validate-space';
 
 @Service()
@@ -105,6 +105,8 @@ export class TemporalFileUploader {
 
       await this.publishUploadEvent(contentsId, temporalFile, snapshot.size, replaces, revision);
 
+      unregisterRejectedUploadForSize({ path: temporalFile.path.value });
+
       return contentsId;
     } finally {
       // Neither of these may replace what the upload itself produced: a failed
@@ -123,15 +125,16 @@ export class TemporalFileUploader {
    * @throws DriveDesktopError NOT_ENOUGH_SPACE, or BAD_RESPONSE if the check itself failed.
    */
   private async validateLimits(temporalFile: TemporalFile, size: number): Promise<void> {
-    const sizeValidation = validateUploadFileSize({
+    const sizeValidation = await FileSizeLimitModule.checkUploadFileSize({
       size,
-      maxUploadFileSize: configStore.get('maxUploadFileSizeInBytes'),
+      ...getFileSizeLimitAdapter(),
     });
 
     if (!sizeValidation.allowed) {
-      addMaxFileSizeRejection({
+      handleUploadFileSizeLimitExceeded({
         path: temporalFile.path.value,
         fileSize: size,
+        kind: 'virtual-drive',
         validation: sizeValidation,
       });
 

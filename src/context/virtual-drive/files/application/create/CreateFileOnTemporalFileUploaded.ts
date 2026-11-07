@@ -2,9 +2,11 @@ import { Environment } from '@internxt/inxt-js';
 import { Service } from 'diod';
 import { basename } from 'node:path';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { addMaxFileSizeRejection } from '../../../../../backend/features/user/file-size-limit/add-max-file-size-rejection';
 import { generateThumbnail } from '../../../../../backend/features/thumbnails/generate-thumbnail';
 import { uploadAndCreateThumbnail } from '../../../../../backend/features/thumbnails/upload-and-create-thumbnail';
+import { handleUploadFileSizeLimitExceeded } from '../../../../../backend/features/user/file-size-limit/handle-upload-file-size-limit-exceeded';
+import { preserveRejectedFileSizeTooBig } from '../../../../../backend/features/user/file-size-limit';
+import { unregisterRejectedUploadForSize } from '../../../../../backend/features/user/file-size-limit/unregister-rejected-upload-for-size';
 import { TemporalFileUploadedDomainEvent } from '../../../../storage/TemporalFiles/domain/upload/TemporalFileUploadedDomainEvent';
 import { DomainEventClass } from '../../../../shared/domain/DomainEvent';
 import { DomainEventSubscriber } from '../../../../shared/domain/DomainEventSubscriber';
@@ -12,7 +14,6 @@ import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktop
 import { FileCreator } from './FileCreator';
 import { FileOverrider } from '../override/FileOverrider';
 import { DeleteTemporalFileIfUnchanged } from '../../../../storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
-import { preserveRejectedFileSizeTooBig } from '../../../../../backend/features/user/file-size-limit';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 
 @Service()
@@ -35,39 +36,8 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
       ? await this.fileOverrider.run(event.replaces, event.aggregateId, event.size)
       : await this.creator.run(event.path, event.aggregateId, event.size);
 
-    // Both halves of an upload reap through here, and both reap under the
-    // revision guard.
-    //
-    // The create half used to reap from a subscriber on FileCreatedDomainEvent
-    // (DeleteTemporalFileOnFileCreated), which deleted unconditionally because
-    // that event cannot carry a staging revision: it is a virtual-drive event
-    // and the revision is a storage-layer fact. Deleting unconditionally loses
-    // data. retryWithBackoff returns a successful attempt without re-checking
-    // the abort signal, so an upload that commits the old bytes just before a
-    // write lands still reports success, and the reap then removed the staged
-    // copy holding the newer write. Those bytes never reached the cloud and
-    // nothing re-drives the upload.
-    //
-    // This is the only place that knows both facts the reaping needs: that the
-    // upload landed, and the path the staged copy is filed under.
-    //
-    // The old subscriber had a second problem, for contrast: FileCreatedDomainEvent
-    // carries the VIRTUAL file's path, a different string on the
-    // write-to-temporary-then-rename flow where the staged copy is filed under
-    // the source path, so it could not find the entry it was trying to reap.
-    //
-    // TemporalFileUploadedDomainEvent, which is what this subscribes to, carries
-    // `temporalFile.path.value` (TemporalFileUploader.publishUploadEvent): the
-    // same key the uploader used to find the staged copy, and the same key
-    // DeleteTemporalFileIfUnchanged looks it up with. event.path here is the
-    // STAGING path, on every flow.
-    //
-    // The upload has already committed at this point, so a failure to reap must
-    // not be reported as an upload failure: on the override half the catch in
-    // on() raises an UPLOAD_ERROR issue to the user, which would be untrue and
-    // alarming, and on either half an uncaught throw would skip the thumbnail
-    // below. A failed reap costs one leaked staged copy and some repeated
-    // uploads.
+    unregisterRejectedUploadForSize({ path: event.path });
+
     try {
       await this.deleteTemporalFileIfUnchanged.run(event.path, event.uploadedRevision);
     } catch (cleanupError) {
@@ -119,9 +89,10 @@ export class CreateFileOnTemporalFileUploaded implements DomainEventSubscriber<T
           return;
         }
 
-        addMaxFileSizeRejection({
+        handleUploadFileSizeLimitExceeded({
           path: event.path,
           fileSize: event.size,
+          kind: 'virtual-drive',
           blockUploadPath: false,
         });
         return;

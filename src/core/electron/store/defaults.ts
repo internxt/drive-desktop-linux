@@ -38,6 +38,7 @@ export const defaults: AppStore = {
   // Drive
   availableUserProducts: undefined,
   maxUploadFileSizeInBytes: 0,
+  fileSizeLimitRevalidatedAt: 0,
 
   // Mail Bridge
   mailBridgeCredentials: '',
@@ -59,6 +60,7 @@ export const fieldsToSave: Array<keyof AppStore> = [
   'fileManagerExtensionVersion',
   'discoveredBackup',
   'maxUploadFileSizeInBytes',
+  'fileSizeLimitRevalidatedAt',
   'mailBridgeCredentials',
   'mailBridgeStartOnLogin',
 ];
