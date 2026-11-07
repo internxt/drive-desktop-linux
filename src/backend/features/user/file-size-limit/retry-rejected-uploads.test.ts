@@ -15,7 +15,10 @@ const BACKUP_PATH = '/home/dev/Documents/large.bin';
 describe('retry-rejected-uploads', () => {
   const getVirtualDriveContainerMock = partialSpyOn(virtualDriveServiceModule, 'getVirtualDriveContainer');
   const releaseMock = partialSpyOn(releaseModule, 'release');
-  const clearUploadSizeLimitBlockedPathMock = partialSpyOn(addMaxFileSizeRejectionModule, 'clearUploadSizeLimitBlockedPath');
+  const clearUploadSizeLimitBlockedPathMock = partialSpyOn(
+    addMaxFileSizeRejectionModule,
+    'clearUploadSizeLimitBlockedPath',
+  );
   const startBackupMock = partialSpyOn(backupManager, 'startBackup');
   const finder = { run: vi.fn() };
   const container = { get: () => finder } as unknown as Container;

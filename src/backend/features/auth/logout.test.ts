@@ -66,7 +66,10 @@ vi.mock('../../../apps/main/config', () => ({
 
 describe('logout', () => {
   const stopWatchingFileSizeLimitMock = partialSpyOn(FileSizeLimitModule, 'stopWatchingFileSizeLimit');
-  const clearRejectedUploadsForSizeMock = partialSpyOn(clearRejectedUploadsForSizeModule, 'clearRejectedUploadsForSize');
+  const clearRejectedUploadsForSizeMock = partialSpyOn(
+    clearRejectedUploadsForSizeModule,
+    'clearRejectedUploadsForSize',
+  );
   let logout: typeof import('./logout').logout;
 
   beforeAll(async () => {
