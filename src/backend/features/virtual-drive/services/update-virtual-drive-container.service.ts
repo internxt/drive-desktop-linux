@@ -3,8 +3,7 @@ import { RemoteItemsGenerator } from '../../../../context/virtual-drive/remoteTr
 import { FolderRepositorySynchronizer } from '../../../../context/virtual-drive/folders/application/FolderRepositorySynchronizer/FolderRepositorySynchronizer';
 import { FileRepositorySynchronizer } from '../../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
 import { StorageRemoteChangesSyncher } from '../../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
-import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
-import { UserDto } from '../../../../infra/drive-server/out/dto';
+import { logger, DriveItemStatus, UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { Container } from 'diod';
 
 // This is the old src/apps/drive/fuse/FuseApp.update

@@ -1,4 +1,4 @@
-import { UserDto } from '../../../../infra/drive-server/out/dto';
+import { UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { loggerMock } from 'tests/vitest/mocks.helper';
 
 const { refreshMock, updateCredentialsMock, configGetMock, updateUserMock } = vi.hoisted(() => ({

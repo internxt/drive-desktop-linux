@@ -8,7 +8,7 @@ import * as getUserModule from '../../../../backend/features/auth/get-user';
 import { registerVirtualDriveHandlers } from './handlers';
 import { partialSpyOn, calls } from '../../../../../tests/vitest/utils.helper';
 import type { Container } from 'diod';
-import type { UserDto } from '../../../../infra/drive-server/out/dto';
+import type { UserDto } from '@internxt/drive-desktop-core/build/backend';
 
 describe('virtual-drive handlers', () => {
   const startVirtualDriveSpy = partialSpyOn(virtualDriveServiceModule, 'startVirtualDrive');

@@ -3,7 +3,7 @@ import * as getCredentialsModule from '../../../apps/main/auth/get-credentials';
 import * as downloadModule from '../download/download-folder-as-zip';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { downloadDeviceBackupZip } from './download-device-backup-zip';
-import { UserDto } from '../../../infra/drive-server/out/dto';
+import { UserDto } from '@internxt/drive-desktop-core/build/backend';
 
 describe('download-device-backup-zip', () => {
   const fetchFolderMock = partialSpyOn(fetchFolderModule, 'fetchFolder');

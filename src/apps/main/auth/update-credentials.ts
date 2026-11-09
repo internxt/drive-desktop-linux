@@ -1,7 +1,7 @@
 import { safeStorage } from 'electron';
 
 import ConfigStore from '../config';
-import { UserDto } from '../../../infra/drive-server/out/dto';
+import { UserDto } from '@internxt/drive-desktop-core/build/backend';
 
 import { updateMailBridgeAccessToken } from '../../../backend/features/mail-bridge';
 import { logger } from '@internxt/drive-desktop-core/build/backend';

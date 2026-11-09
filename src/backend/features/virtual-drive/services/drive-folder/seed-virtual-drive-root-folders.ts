@@ -1,7 +1,6 @@
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
+import { DriveItemStatus, UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
-import { UserDto } from '../../../../../infra/drive-server/out/dto';
 import { TRASH_FOLDER_UUID, TRASH_UID_FOLDER_UUID } from './constants';
 
 type Props = {
