@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { UserDto } from '../../../../../infra/drive-server/out/dto';
+import { UserDto } from '@internxt/drive-desktop-core/build/backend';
 import Spinner from '../../../assets/spinner.svg';
 import Usage from './Usage';
 import UserInfo from './UserInfo';

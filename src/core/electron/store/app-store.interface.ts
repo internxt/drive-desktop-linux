@@ -1,5 +1,4 @@
-import { UserDto } from '../../../infra/drive-server/out/dto';
-import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
+import { UserAvailableProducts, UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { Language } from '../../../apps/shared/Locale/Language';
 import { ConfigTheme } from '../../../apps/shared/types/Theme';
 

@@ -14,4 +14,3 @@ export type UserFileSizeLimit = components['schemas']['GetFileLimitsDto']['maxUp
 
 export type CreateSharingPayload = components['schemas']['CreateSharingDto'];
 export type UserNotification = components['schemas']['NotificationWithStatusDto'];
-export type UserDto = components['schemas']['UserDto'];

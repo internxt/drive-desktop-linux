@@ -1,4 +1,4 @@
-import { UserDto } from '../../../infra/drive-server/out/dto';
+import { UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { AppStore } from './app-store.interface';
 import { DEFAULT_LANGUAGE } from '../../../apps/shared/Locale/Language';
 

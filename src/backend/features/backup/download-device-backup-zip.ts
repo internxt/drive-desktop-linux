@@ -1,6 +1,6 @@
 import { PathLike } from 'node:fs';
 import type { Device } from './types/Device';
-import { UserDto } from '../../../infra/drive-server/out/dto';
+import { UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import { getCredentials } from '../../../apps/main/auth/get-credentials';
 import { downloadFolderAsZip } from '../download/download-folder-as-zip';

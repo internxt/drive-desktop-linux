@@ -3,7 +3,7 @@ import { FolderRepository } from '../../../../../context/virtual-drive/folders/d
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
 import { TRASH_FOLDER_ID, TRASH_FOLDER_UUID, TRASH_UID_FOLDER_ID, TRASH_UID_FOLDER_UUID } from './constants';
 import { seedVirtualDriveRootFolders } from './seed-virtual-drive-root-folders';
-import { UserDto } from '../../../../../infra/drive-server/out/dto';
+import { UserDto } from '@internxt/drive-desktop-core/build/backend';
 
 describe('seed-virtual-drive-root-folders', () => {
   const folderRepository = mockDeep<FolderRepository>();

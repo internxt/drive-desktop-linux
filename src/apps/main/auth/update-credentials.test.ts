@@ -2,7 +2,7 @@ import { safeStorage } from 'electron';
 import { updateCredentials } from './update-credentials';
 import ConfigStore from '../config';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
-import { UserDto } from '../../../infra/drive-server/out/dto';
+import { UserDto } from '@internxt/drive-desktop-core/build/backend';
 import * as mailBridge from '../../../backend/features/mail-bridge/services/mail-bridge.service';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 

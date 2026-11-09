@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import bytes from 'bytes';
 
-import { UserDto } from '../../../../infra/drive-server/out/dto';
+import { UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { useTranslationContext } from '../../context/LocalContext';
 import { useUsage } from '../../context/UsageContext/useUsage';
 

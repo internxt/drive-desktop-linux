@@ -3,7 +3,7 @@ import { type Mock } from 'vitest';
 import { useTranslationContext } from '../../context/LocalContext';
 import { useUsage } from '../../context/UsageContext/useUsage';
 import { AccountSection } from './AccountSection';
-import { type UserDto } from '../../../../infra/drive-server/out/dto';
+import { type UserDto } from '@internxt/drive-desktop-core/build/backend';
 
 vi.mock('../../context/LocalContext');
 vi.mock('../../context/UsageContext/useUsage');

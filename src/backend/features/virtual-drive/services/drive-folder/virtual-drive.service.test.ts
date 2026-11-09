@@ -1,7 +1,7 @@
 import type { Container } from 'diod';
 import { mockDeep } from 'vitest-mock-extended';
 import { DriveDependencyContainerFactory } from '../../../../../apps/drive/dependency-injection/DriveDependencyContainerFactory';
-import type { UserDto } from '../../../../../infra/drive-server/out/dto';
+import type { UserDto } from '@internxt/drive-desktop-core/build/backend';
 import * as getUserModule from '../../../auth/get-user';
 import * as stopVirtualDriveModule from './stop-virual-drive';
 import * as remountVirtualDriveModule from './remount-virtual-drive';
