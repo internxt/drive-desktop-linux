@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import BetterSqlite3 from 'better-sqlite3';
 import { DriveFile } from './entities/DriveFile';
 import { DriveFolder } from './entities/DriveFolder';
 import { ScannedItem } from './entities/ScannedItem';
@@ -8,6 +9,7 @@ import { PATHS } from '../../../core/electron/paths';
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
+  driver: BetterSqlite3,
   database: PATHS.DATABASE,
   logging: false,
   synchronize: true,

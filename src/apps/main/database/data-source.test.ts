@@ -1,4 +1,11 @@
 import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
+
+vi.mock('better-sqlite3', () => ({
+  default: function BetterSqlite3() {
+    return {};
+  },
+}));
+
 import { AppDataSource, resetAppDataSourceOnLogout } from './data-source';
 
 describe('data-source', () => {
