@@ -14,7 +14,6 @@ import * as onboardingModule from '../../apps/main/windows/onboarding';
 import * as themeModule from '../theme';
 import * as antivirusModule from '../../apps/main/background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
 import * as paymentsModule from '../../backend/features/payments/services/get-user-available-products-and-store';
-import * as backupModule from '../../backend/features/backup/register-backup-handlers';
 import * as backupStartModule from '../../backend/features/backup/start-backups-if-available';
 import * as fileSizeLimitModule from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
 import * as marketingModule from '../../backend/features/marketing';
@@ -74,10 +73,6 @@ vi.mock('../../backend/features/payments/services/get-user-available-products-an
   getUserAvailableProductsAndStore: vi.fn(),
 }));
 
-vi.mock('../../backend/features/backup/register-backup-handlers', () => ({
-  registerBackupHandlers: vi.fn(),
-}));
-
 vi.mock('../../backend/features/backup/start-backups-if-available', () => ({
   startBackupsIfAvailable: vi.fn(),
 }));
@@ -107,7 +102,6 @@ describe('register-session-event-handlers', () => {
   const getThemeSpy = partialSpyOn(themeModule, 'getTheme');
   const trySetupAntivirusSpy = partialSpyOn(antivirusModule, 'trySetupAntivirusIpcAndInitialize');
   const getUserAvailableProductsAndStoreSpy = partialSpyOn(paymentsModule, 'getUserAvailableProductsAndStore');
-  const registerBackupHandlersSpy = partialSpyOn(backupModule, 'registerBackupHandlers');
   const startBackupsIfAvailableSpy = partialSpyOn(backupStartModule, 'startBackupsIfAvailable');
   const resolveUserFileSizeLimitSpy = partialSpyOn(fileSizeLimitModule, 'resolveUserFileSizeLimit');
   const showMarketingNotificationsSpy = partialSpyOn(marketingModule, 'showMarketingNotifications');
@@ -126,7 +120,6 @@ describe('register-session-event-handlers', () => {
     getThemeSpy.mockImplementation(() => ({}) as never);
     trySetupAntivirusSpy.mockResolvedValue(undefined);
     getUserAvailableProductsAndStoreSpy.mockResolvedValue(undefined);
-    registerBackupHandlersSpy.mockImplementation(() => undefined);
     startBackupsIfAvailableSpy.mockResolvedValue(undefined);
     resolveUserFileSizeLimitSpy.mockResolvedValue({} as never);
     showMarketingNotificationsSpy.mockResolvedValue(undefined);

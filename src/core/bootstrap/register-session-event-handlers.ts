@@ -10,7 +10,6 @@ import { openOnboardingWindow } from '../../apps/main/windows/onboarding';
 import { getTheme } from '../theme';
 import { trySetupAntivirusIpcAndInitialize } from '../../apps/main/background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
 import { getUserAvailableProductsAndStore } from '../../backend/features/payments/services/get-user-available-products-and-store';
-import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
 import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
 import { showMarketingNotifications } from '../../backend/features/marketing';
@@ -19,7 +18,6 @@ import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/featur
 let isVirtualDriveSqliteInitialized = false;
 
 function onWidgetIsReady() {
-  registerBackupHandlers();
   startBackupsIfAvailable();
 }
 
