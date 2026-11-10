@@ -8,6 +8,8 @@ const {
   mockToggleWidgetVisibility,
   mockShowAuthWindow,
   mockGetAuthWindow,
+  mockIsClientUnsupported,
+  mockUpdateApp,
   trayMenuInstance,
   TrayMenuMock,
 } = vi.hoisted(() => {
@@ -22,6 +24,8 @@ const {
   const mockToggleWidgetVisibility = vi.fn();
   const mockShowAuthWindow = vi.fn();
   const mockGetAuthWindow = vi.fn(() => ({ show: mockShowAuthWindow }));
+  const mockIsClientUnsupported = vi.fn(() => false);
+  const mockUpdateApp = vi.fn();
 
   const trayMenuInstance = {
     setState: vi.fn(),
@@ -40,6 +44,8 @@ const {
     mockToggleWidgetVisibility,
     mockShowAuthWindow,
     mockGetAuthWindow,
+    mockIsClientUnsupported,
+    mockUpdateApp,
     trayMenuInstance,
     TrayMenuMock,
   };
@@ -63,11 +69,17 @@ vi.mock('../windows/auth', () => ({
   getAuthWindow: mockGetAuthWindow,
 }));
 
+vi.mock('../../../backend/features/client-compatibility', () => ({
+  isClientUnsupported: mockIsClientUnsupported,
+  updateApp: mockUpdateApp,
+}));
+
 describe('tray-setup', () => {
   beforeEach(() => {
     vi.resetModules();
     mockApp.isPackaged = false;
     mockGetAuthWindow.mockReturnValue({ show: mockShowAuthWindow });
+    mockIsClientUnsupported.mockReturnValue(false);
   });
 
   async function importTraySetup() {
@@ -222,5 +234,47 @@ describe('tray-setup', () => {
     // Then
     call(mockSetBoundsOfWidgetByPath).toStrictEqual([widgetWindow, tray]);
     calls(mockToggleWidgetVisibility).toHaveLength(1);
+  });
+
+  it('should show the alert as soon as the tray is created when the version is unsupported', async () => {
+    // Given
+    mockIsClientUnsupported.mockReturnValue(true);
+    const traySetup = await importTraySetup();
+
+    // When
+    traySetup.setupTrayIcon();
+
+    // Then
+    call(trayMenuInstance.setState).toBe('ALERT');
+  });
+
+  it('should keep the alert when other statuses are set while the version is unsupported', async () => {
+    // Given
+    const traySetup = await importTraySetup();
+    traySetup.setupTrayIcon();
+    mockIsClientUnsupported.mockReturnValue(true);
+
+    // When
+    traySetup.setTrayStatus('SYNCING');
+    traySetup.resetTrayStatus('IDLE');
+
+    // Then
+    calls(trayMenuInstance.setState).toStrictEqual(['ALERT', 'ALERT']);
+  });
+
+  it('should start the update when clicking the tray while logged out on an unsupported version', async () => {
+    // Given
+    mockGetIsLoggedIn.mockReturnValue(false);
+    mockIsClientUnsupported.mockReturnValue(true);
+    const traySetup = await importTraySetup();
+    traySetup.setupTrayIcon();
+    const onClick = getTrayClickHandler();
+
+    // When
+    await onClick();
+
+    // Then
+    calls(mockUpdateApp).toHaveLength(1);
+    calls(mockShowAuthWindow).toHaveLength(0);
   });
 });

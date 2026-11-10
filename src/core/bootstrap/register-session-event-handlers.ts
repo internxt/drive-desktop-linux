@@ -15,10 +15,15 @@ import { startBackupsIfAvailable } from '../../backend/features/backup/start-bac
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
 import { showMarketingNotifications } from '../../backend/features/marketing';
 import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/features/mail-bridge';
+import { isClientUnsupported } from '../../backend/features/client-compatibility';
 
 let isVirtualDriveSqliteInitialized = false;
 
 function onWidgetIsReady() {
+  // v2.7.1 Alexis Mora: the widget still opens on an unsupported version to show the update banner,
+  // but backups must not start.
+  if (isClientUnsupported()) return;
+
   registerBackupHandlers();
   startBackupsIfAvailable();
 }

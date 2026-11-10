@@ -14,11 +14,18 @@ import { setPendingUpdateInfo } from './bootstrap-runtime-state';
 import { installFileManagerExtension } from '../../backend/features/file-manager-extension/install';
 import { setupMainI18n } from '../../apps/main/localize/i18n.service';
 import { getLanguage } from '../../apps/main/config/language';
+import { checkClientCompatibility, isClientUnsupported } from '../../backend/features/client-compatibility';
 
 export function registerAppReadyFlow() {
   app
     .whenReady()
     .then(async () => {
+      /**
+       * v2.7.1 Alexis Mora
+       * Checked before anything else starts so an unsupported version never fires up sync, backups or any request.
+       */
+      await checkClientCompatibility();
+
       /**
        * v.2.5.1
        * Esteban Galvis Triana
@@ -35,7 +42,12 @@ export function registerAppReadyFlow() {
       eventBus.emit('APP_IS_READY');
       const isLoggedIn = getIsLoggedIn();
 
-      if (!isLoggedIn) {
+      /**
+       * v2.7.1 Alexis Mora
+       * An unsupported version does not open the login: logging in needs the backend, which rejects this version.
+       * The tray click and the notification start the update instead.
+       */
+      if (!isLoggedIn && !isClientUnsupported()) {
         await createAuthWindow();
         resetTrayStatus('IDLE');
       }

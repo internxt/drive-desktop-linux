@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { ProgressData } from './antivirus/types';
-import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
+import { ClientCompatibilityState, UserAvailableProducts } from '@internxt/drive-desktop-core/build/backend';
 
 interface Events {
   APP_IS_READY: () => void;
@@ -33,6 +33,8 @@ interface Events {
   GET_USER_AVAILABLE_PRODUCTS: () => void;
 
   USER_AVAILABLE_PRODUCTS_UPDATED: (products: UserAvailableProducts | undefined) => void;
+
+  CLIENT_COMPATIBILITY_CHANGED: (state: ClientCompatibilityState) => void;
 }
 
 class EventBus extends EventEmitter {
