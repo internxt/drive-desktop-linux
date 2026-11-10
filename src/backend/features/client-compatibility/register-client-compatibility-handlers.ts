@@ -1,8 +1,11 @@
 import { ClientCompatibilityState } from '@internxt/drive-desktop-core/build/backend';
+import { ipcMain } from 'electron';
 import eventBus from '../../../apps/main/event-bus';
 import { broadcastToWindows } from '../../../apps/main/windows';
 import { haltFeatures } from './services/halt-features';
 import { showClientCompatibilityNotification } from './services/show-client-compatibility-notification';
+import { getClientCompatibility } from './services/client-compatibility-state';
+import { updateApp } from './services/update-app';
 
 let isNotificationShown = false;
 
@@ -23,4 +26,6 @@ function onClientCompatibilityChanged(state: ClientCompatibilityState) {
 
 export function registerClientCompatibilityHandlers() {
   eventBus.on('CLIENT_COMPATIBILITY_CHANGED', onClientCompatibilityChanged);
+  ipcMain.handle('get-client-compatibility', getClientCompatibility);
+  ipcMain.handle('update-app', updateApp);
 }
