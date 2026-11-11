@@ -449,4 +449,16 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.on(eventName, callbackWrapper);
     return () => ipcRenderer.removeListener(eventName, callbackWrapper);
   },
+  getClientCompatibility() {
+    return ipcRenderer.invoke('get-client-compatibility');
+  },
+  onClientCompatibilityChange(callback) {
+    const eventName = 'client-compatibility-changed';
+    const callbackWrapper = (_, state) => callback(state);
+    ipcRenderer.on(eventName, callbackWrapper);
+    return () => ipcRenderer.removeListener(eventName, callbackWrapper);
+  },
+  updateApp() {
+    return ipcRenderer.invoke('update-app');
+  },
 });

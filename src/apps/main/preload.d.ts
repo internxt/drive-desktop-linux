@@ -226,5 +226,10 @@ declare interface Window {
     getUpdateStatus(): Promise<{ version: string } | null>;
     getFileManagerAvailability(): Promise<boolean>;
     onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
+    getClientCompatibility(): Promise<import('@internxt/drive-desktop-core/build/backend').ClientCompatibilityState>;
+    onClientCompatibilityChange(
+      callback: (state: import('@internxt/drive-desktop-core/build/backend').ClientCompatibilityState) => void,
+    ): () => void;
+    updateApp(): Promise<void>;
   };
 }

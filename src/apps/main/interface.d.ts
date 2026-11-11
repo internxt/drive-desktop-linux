@@ -166,6 +166,11 @@ export interface IElectronAPI {
   getUpdateStatus(): Promise<{ version: string } | null>;
   getFileManagerAvailability(): Promise<boolean>;
   onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
+  getClientCompatibility(): Promise<import('@internxt/drive-desktop-core/build/backend').ClientCompatibilityState>;
+  onClientCompatibilityChange(
+    callback: (state: import('@internxt/drive-desktop-core/build/backend').ClientCompatibilityState) => void,
+  ): () => void;
+  updateApp(): Promise<void>;
   getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
   onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
   getVirtualDriveStatus(): Promise<import('../../backend/features/virtual-drive').FuseDriveStatus>;

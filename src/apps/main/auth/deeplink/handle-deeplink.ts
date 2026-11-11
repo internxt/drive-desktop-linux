@@ -9,6 +9,8 @@ import { processDeeplink } from './proccess-deeplink';
 import { initializeCurrentUser } from './initialize-current-user';
 import configStore from '../../config';
 import { PATHS } from '../../../../core/electron/paths';
+import { isClientUnsupported } from '../../../../backend/features/client-compatibility';
+import { showClientCompatibilityWidget } from '../../../../backend/features/client-compatibility/services/show-client-compatibility-widget';
 
 type Props = {
   url: string;
@@ -40,6 +42,17 @@ export async function handleDeeplink({ url }: Props) {
     setIsLoggedIn(true);
 
     app.focus();
+
+    /**
+     * v2.7.1 Alexis Mora
+     * The backend can reject this version while logging in. The login completes so the widget shows the update
+     * banner, but the features must not start, so USER_LOGGED_IN is not emitted.
+     */
+    if (isClientUnsupported()) {
+      logger.warn({ tag: 'AUTH', msg: 'Features not started because this client version is no longer supported' });
+      await showClientCompatibilityWidget();
+      return true;
+    }
 
     eventBus.emit('USER_LOGGED_IN');
 
