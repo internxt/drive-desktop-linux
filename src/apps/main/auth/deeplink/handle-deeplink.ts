@@ -10,6 +10,7 @@ import { initializeCurrentUser } from './initialize-current-user';
 import configStore from '../../config';
 import { PATHS } from '../../../../core/electron/paths';
 import { isClientUnsupported } from '../../../../backend/features/client-compatibility';
+import { showClientCompatibilityWidget } from '../../../../backend/features/client-compatibility/services/show-client-compatibility-widget';
 
 type Props = {
   url: string;
@@ -38,16 +39,20 @@ export async function handleDeeplink({ url }: Props) {
 
     setupRootFolder(PATHS.ROOT_DRIVE_FOLDER);
 
-    /**
-     * v2.7.1 Alexis Mora
-     * The backend can reject this version while logging in, so the features must not start. The login is still
-     * saved with its restored config, so the first launch after updating starts logged in with the user's settings.
-     */
-    if (isClientUnsupported()) return false;
-
     setIsLoggedIn(true);
 
     app.focus();
+
+    /**
+     * v2.7.1 Alexis Mora
+     * The backend can reject this version while logging in. The login completes so the widget shows the update
+     * banner, but the features must not start, so USER_LOGGED_IN is not emitted.
+     */
+    if (isClientUnsupported()) {
+      logger.warn({ tag: 'AUTH', msg: 'Features not started because this client version is no longer supported' });
+      await showClientCompatibilityWidget();
+      return true;
+    }
 
     eventBus.emit('USER_LOGGED_IN');
 

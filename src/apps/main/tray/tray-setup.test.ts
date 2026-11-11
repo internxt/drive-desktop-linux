@@ -9,7 +9,6 @@ const {
   mockShowAuthWindow,
   mockGetAuthWindow,
   mockIsClientUnsupported,
-  mockUpdateApp,
   trayMenuInstance,
   TrayMenuMock,
 } = vi.hoisted(() => {
@@ -25,7 +24,6 @@ const {
   const mockShowAuthWindow = vi.fn();
   const mockGetAuthWindow = vi.fn(() => ({ show: mockShowAuthWindow }));
   const mockIsClientUnsupported = vi.fn(() => false);
-  const mockUpdateApp = vi.fn();
 
   const trayMenuInstance = {
     setState: vi.fn(),
@@ -45,7 +43,6 @@ const {
     mockShowAuthWindow,
     mockGetAuthWindow,
     mockIsClientUnsupported,
-    mockUpdateApp,
     trayMenuInstance,
     TrayMenuMock,
   };
@@ -71,7 +68,6 @@ vi.mock('../windows/auth', () => ({
 
 vi.mock('../../../backend/features/client-compatibility', () => ({
   isClientUnsupported: mockIsClientUnsupported,
-  updateApp: mockUpdateApp,
 }));
 
 describe('tray-setup', () => {
@@ -260,21 +256,5 @@ describe('tray-setup', () => {
 
     // Then
     calls(trayMenuInstance.setState).toStrictEqual(['ALERT', 'ALERT']);
-  });
-
-  it('should start the update when clicking the tray while logged out on an unsupported version', async () => {
-    // Given
-    mockGetIsLoggedIn.mockReturnValue(false);
-    mockIsClientUnsupported.mockReturnValue(true);
-    const traySetup = await importTraySetup();
-    traySetup.setupTrayIcon();
-    const onClick = getTrayClickHandler();
-
-    // When
-    await onClick();
-
-    // Then
-    calls(mockUpdateApp).toHaveLength(1);
-    calls(mockShowAuthWindow).toHaveLength(0);
   });
 });

@@ -8,6 +8,7 @@ import { getUser } from '../../../backend/features/auth/user-session';
 import { getCredentials } from './get-credentials';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { isClientUnsupported } from '../../../backend/features/client-compatibility';
+import { showClientCompatibilityWidget } from '../../../backend/features/client-compatibility/services/show-client-compatibility-widget';
 
 let isLoggedIn = false;
 
@@ -50,6 +51,7 @@ eventBus.on('APP_IS_READY', async (): Promise<void> => {
    */
   if (isLoggedIn && isClientUnsupported()) {
     logger.warn({ tag: 'AUTH', msg: 'Features not started because this client version is no longer supported' });
+    await showClientCompatibilityWidget();
     return;
   }
 

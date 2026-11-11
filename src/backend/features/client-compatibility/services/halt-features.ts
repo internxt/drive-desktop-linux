@@ -6,7 +6,6 @@ import { AntivirusScanService } from '../../../../apps/main/antivirus/AntivirusS
 import { getAntivirusManager } from '../../../../apps/main/antivirus/antivirusManager';
 import { stopMailBridge } from '../../mail-bridge';
 import { resetTrayStatus } from '../../../../apps/main/tray/tray-setup';
-import { getAuthWindow } from '../../../../apps/main/windows/auth';
 import { tryCatch } from '../../../../shared/try-catch';
 
 /**
@@ -15,12 +14,10 @@ import { tryCatch } from '../../../../shared/try-catch';
  * so every step tolerates having nothing to stop. Cleaner, antivirus and settings are only reachable from the
  * widget, which shows the update banner instead. We do not run the logout teardown, so the session and the
  * local database stay as they are and the first launch after updating starts everything normally.
- * The login window is hidden because logging in needs the backend, which now rejects this version.
  */
 export async function haltFeatures() {
   logger.warn({ msg: 'Halting features because this client version is no longer supported' });
   resetTrayStatus('ALERT');
-  getAuthWindow()?.hide();
 
   const onError = (step: string) => (error: unknown) => logger.error({ msg: 'Failed to halt feature', step, error });
 

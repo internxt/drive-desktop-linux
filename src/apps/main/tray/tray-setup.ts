@@ -7,7 +7,7 @@ import { getAuthWindow } from '../windows/auth';
 import { TrayMenuState } from './types';
 import { PATHS } from '../../../core/electron/paths';
 import { onMainI18nLanguageChange } from '../localize/i18n.service';
-import { isClientUnsupported, updateApp } from '../../../backend/features/client-compatibility';
+import { isClientUnsupported } from '../../../backend/features/client-compatibility';
 
 let tray: TrayMenu | null = null;
 let removeMainI18nListener: (() => void) | null = null;
@@ -52,11 +52,6 @@ export function resetTrayStatus(status: TrayMenuState) {
 
 async function onTrayClick() {
   const isLoggedIn = getIsLoggedIn();
-  if (!isLoggedIn && isClientUnsupported()) {
-    await updateApp();
-    return;
-  }
-
   if (!isLoggedIn) {
     getAuthWindow()?.show();
     return;
