@@ -12,6 +12,14 @@ describe('client-compatibility-state', () => {
     vi.resetModules();
   });
 
+  it('should start as up to date', async () => {
+    // Given
+    const { getClientCompatibility, isClientUnsupported } = await importState();
+    // Then
+    expect(getClientCompatibility()).toStrictEqual({ status: 'up_to_date' });
+    expect(isClientUnsupported()).toBe(false);
+  });
+
   it('should not emit anything when the version is up to date', async () => {
     // Given
     const { setClientCompatibility, emitMock } = await importState();
