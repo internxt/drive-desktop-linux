@@ -56,7 +56,8 @@ export default function Widget() {
     <div className="flex h-screen flex-col overflow-hidden">
       <Header />
       {banner}
-      <InfoBanners />
+      {/* v2.7.1 Alexis Mora: the compatibility banner replaces the GitHub update banner so both do not show. */}
+      <InfoBanners showUpdateAvailable={clientCompatibility.state.status === 'up_to_date'} />
       {virtualDriveStatus === 'ERROR' ? (
         <VirtualDriveError />
       ) : (
