@@ -20,10 +20,7 @@ export function registerAppReadyFlow() {
   app
     .whenReady()
     .then(async () => {
-      /**
-       * v2.7.1 Alexis Mora
-       * Checked before anything else starts so an unsupported version never fires up sync, backups or any request.
-       */
+      // v2.7.1 Alexis Mora: checked first so an unsupported version never starts sync, backups or any request.
       await checkClientCompatibility();
 
       /**
@@ -42,11 +39,7 @@ export function registerAppReadyFlow() {
       eventBus.emit('APP_IS_READY');
       const isLoggedIn = getIsLoggedIn();
 
-      /**
-       * v2.7.1 Alexis Mora
-       * An unsupported version does not open the login: logging in needs the backend, which rejects this version.
-       * The tray click and the notification start the update instead.
-       */
+      // v2.7.1 Alexis Mora: no login on an unsupported version, the tray click and the notification update instead.
       if (!isLoggedIn && !isClientUnsupported()) {
         await createAuthWindow();
         resetTrayStatus('IDLE');

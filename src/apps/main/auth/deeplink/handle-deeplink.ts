@@ -9,6 +9,7 @@ import { processDeeplink } from './proccess-deeplink';
 import { initializeCurrentUser } from './initialize-current-user';
 import configStore from '../../config';
 import { PATHS } from '../../../../core/electron/paths';
+import { isClientUnsupported } from '../../../../backend/features/client-compatibility';
 
 type Props = {
   url: string;
@@ -28,6 +29,9 @@ export async function handleDeeplink({ url }: Props) {
     logger.debug({ tag: 'AUTH', msg: 'Auth details stored successfully from deeplink' });
 
     await initializeCurrentUser();
+
+    // v2.7.1 Alexis Mora: the backend can reject this version while logging in, so the features must not start.
+    if (isClientUnsupported()) return false;
 
     const userData = configStore.get('userData');
     if (userData?.uuid) {

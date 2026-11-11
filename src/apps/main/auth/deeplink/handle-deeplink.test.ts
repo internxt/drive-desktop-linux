@@ -12,6 +12,7 @@ const {
   initializeCurrentUserMock,
   configGetMock,
   waitForLogoutToFinishMock,
+  isClientUnsupportedMock,
 } = vi.hoisted(() => ({
   appFocusMock: vi.fn(),
   eventBusEmitMock: vi.fn(),
@@ -24,6 +25,7 @@ const {
   initializeCurrentUserMock: vi.fn(),
   configGetMock: vi.fn(),
   waitForLogoutToFinishMock: vi.fn(),
+  isClientUnsupportedMock: vi.fn(() => false),
 }));
 
 vi.mock('electron', () => ({
@@ -75,6 +77,8 @@ vi.mock('../../../../core/electron/paths', () => ({
   },
 }));
 
+vi.mock('../../../../backend/features/client-compatibility', () => ({ isClientUnsupported: isClientUnsupportedMock }));
+
 vi.mock('../logout', () => ({
   waitForLogoutToFinish: waitForLogoutToFinishMock,
 }));
@@ -114,5 +118,15 @@ describe('handle-deeplink', () => {
     call(eventBusEmitMock).toBe('USER_LOGGED_IN');
     expect(canHisConfigBeRestoredMock).toHaveBeenCalledWith({ uuid: 'user-a' });
     expect(appFocusMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not complete the login when the client version is unsupported', async () => {
+    isClientUnsupportedMock.mockReturnValueOnce(true);
+
+    const result = await handleDeeplink({ url: 'internxt://login?ok=true' });
+
+    expect(result).toBe(false);
+    expect(setIsLoggedInMock).not.toHaveBeenCalled();
+    expect(eventBusEmitMock).not.toHaveBeenCalled();
   });
 });
