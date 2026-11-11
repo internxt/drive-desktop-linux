@@ -126,6 +126,8 @@ describe('handle-deeplink', () => {
     const result = await handleDeeplink({ url: 'internxt://login?ok=true' });
 
     expect(result).toBe(false);
+    expect(canHisConfigBeRestoredMock).toHaveBeenCalledWith({ uuid: 'user-a' });
+    expect(setupRootFolderMock).toHaveBeenCalledWith('/tmp/internxt-drive');
     expect(setIsLoggedInMock).not.toHaveBeenCalled();
     expect(eventBusEmitMock).not.toHaveBeenCalled();
   });

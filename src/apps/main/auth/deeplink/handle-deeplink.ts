@@ -30,9 +30,6 @@ export async function handleDeeplink({ url }: Props) {
 
     await initializeCurrentUser();
 
-    // v2.7.1 Alexis Mora: the backend can reject this version while logging in, so the features must not start.
-    if (isClientUnsupported()) return false;
-
     const userData = configStore.get('userData');
     if (userData?.uuid) {
       const restored = canHisConfigBeRestored({ uuid: userData.uuid });
@@ -40,6 +37,13 @@ export async function handleDeeplink({ url }: Props) {
     }
 
     setupRootFolder(PATHS.ROOT_DRIVE_FOLDER);
+
+    /**
+     * v2.7.1 Alexis Mora
+     * The backend can reject this version while logging in, so the features must not start. The login is still
+     * saved with its restored config, so the first launch after updating starts logged in with the user's settings.
+     */
+    if (isClientUnsupported()) return false;
 
     setIsLoggedIn(true);
 
