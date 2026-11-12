@@ -1,5 +1,4 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { UserDto } from '@internxt/drive-desktop-core/build/backend';
+import { logger, UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { driveServerModule } from '../../../../infra/drive-server/drive-server.module';
 import ConfigStore from '../../config';
 import { updateCredentials } from '../update-credentials';
