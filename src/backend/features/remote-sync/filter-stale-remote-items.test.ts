@@ -1,5 +1,6 @@
 import { filterStaleRemoteFiles, filterStaleRemoteFolders } from './filter-stale-remote-items';
 import { RemoteSyncedFile, RemoteSyncedFolder } from '../../../apps/main/remote-sync/helpers';
+import { DriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
 
 describe('filter-stale-remote-items', () => {
   const loadedAt = new Date('2026-01-01T12:00:00.000Z');
@@ -20,7 +21,7 @@ describe('filter-stale-remote-items', () => {
         createdAt: '2026-01-01T10:00:00.000Z',
         updatedAt: '2026-01-01T10:00:00.000Z',
         plainName: 'test',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
 
       const { filesToPersist, foldersToInvalidate } = filterStaleRemoteFiles({
@@ -46,7 +47,7 @@ describe('filter-stale-remote-items', () => {
         createdAt: '2026-01-01T11:00:00.000Z',
         updatedAt: '2026-01-01T11:00:00.000Z',
         plainName: 'older',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
       const equalFile: RemoteSyncedFile = {
         ...olderFile,
@@ -79,7 +80,7 @@ describe('filter-stale-remote-items', () => {
         createdAt: '2026-01-01T10:00:00.000Z',
         updatedAt: '2026-01-01T13:00:00.000Z',
         plainName: 'newer',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
 
       const { filesToPersist, foldersToInvalidate } = filterStaleRemoteFiles({
@@ -104,7 +105,7 @@ describe('filter-stale-remote-items', () => {
         updatedAt: '2026-01-01T10:00:00.000Z',
         uuid: 'root-uuid',
         plainName: 'root',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
       const unmanagedFolder: RemoteSyncedFolder = {
         ...rootFolder,
@@ -133,7 +134,7 @@ describe('filter-stale-remote-items', () => {
         updatedAt: '2026-01-01T11:00:00.000Z',
         uuid: 'sub-uuid',
         plainName: 'sub',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
 
       const { foldersToPersist, foldersToInvalidate } = filterStaleRemoteFolders({
@@ -156,7 +157,7 @@ describe('filter-stale-remote-items', () => {
         updatedAt: '2026-01-01T14:00:00.000Z',
         uuid: 'newer-uuid',
         plainName: 'newer-folder',
-        status: 'EXISTS',
+        status: DriveItemStatus.EXISTS,
       };
 
       const { foldersToPersist, foldersToInvalidate } = filterStaleRemoteFolders({

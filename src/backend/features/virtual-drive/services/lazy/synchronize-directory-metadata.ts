@@ -10,6 +10,7 @@ import { fetchFolder } from '../../../../../infra/drive-server/services/folder/s
 import { createOrUpdateFileByBatch } from '../../../../../infra/sqlite/services/file/create-or-update-file-by-batch';
 import { createOrUpdateFolderByBatch } from '../../../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
 import { mapFile } from '../../../remote-sync/map-file';
+import { mapFolder } from '../../../remote-sync/map-folder';
 import { DirectoryStateRepository } from './directory-state-sqlite-repository';
 import { recordSynchronizationFailure } from './record-synchronization-failure';
 import { removeStaleChildren } from './remove-stale-children';
@@ -87,7 +88,7 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
       return recordSynchronizationFailure({ folder, error: response.error, localMutationStarted: false });
     }
 
-    const remoteFolders = response.data.children.filter(isExistingFolder);
+    const remoteFolders = response.data.children.filter(isExistingFolder).map(mapFolder);
     const remoteFiles = response.data.files.filter(isExistingFile).map(mapFile);
 
     return await runWithDirectoryMetadataWriteLock({

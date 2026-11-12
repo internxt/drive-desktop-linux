@@ -1,6 +1,7 @@
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
+import { DriveItemStatus } from '../../../../../context/shared/domain/DriveItemStatus';
 import { fetchFoldersSync } from './fetch-folders';
 
 describe('fetch-folders', () => {
@@ -37,7 +38,7 @@ describe('fetch-folders', () => {
   it('should pass status and updatedAt to the query when provided', async () => {
     driveServerGetMock.mockResolvedValue({ data: { folders: [], nextCursor: null } } as object);
 
-    const query = { ...defaultQuery, status: 'EXISTS' as const, updatedAt: '2026-01-01T00:00:00.000Z' };
+    const query = { ...defaultQuery, status: DriveItemStatus.EXISTS, updatedAt: '2026-01-01T00:00:00.000Z' };
     await fetchFoldersSync(query);
 
     expect(driveServerGetMock).toHaveBeenCalledWith('/folders/sync', { query });

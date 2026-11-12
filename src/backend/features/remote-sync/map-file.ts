@@ -1,4 +1,5 @@
 import type { RemoteSyncedFile } from '../../../apps/main/remote-sync/helpers';
+import { toDriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
 import type { FileSyncDto } from './types';
 
 export function mapFile(dto: FileSyncDto): RemoteSyncedFile {
@@ -17,6 +18,6 @@ export function mapFile(dto: FileSyncDto): RemoteSyncedFile {
     updatedAt: dto.updatedAt,
     plainName: dto.plainName,
     name: dto.name || undefined,
-    status: dto.status,
+    status: toDriveItemStatus(dto.status),
   };
 }

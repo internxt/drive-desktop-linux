@@ -18,6 +18,7 @@ vi.mock('../../../infra/sqlite/services/folder/create-or-update-folder-by-batch'
 }));
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { RemoteSyncManager } from './RemoteSyncManager';
+import { DriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
 import { RemoteSyncedFile, RemoteSyncedFolder } from './helpers';
 import * as uuid from 'uuid';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
@@ -52,7 +53,7 @@ const inMemorySyncedFoldersCollection: DatabaseCollectionAdapter<DriveFolder> = 
 
 const createRemoteSyncedFileFixture = (payload: Partial<RemoteSyncedFile>): RemoteSyncedFile => {
   const result: RemoteSyncedFile = {
-    status: 'EXISTS',
+    status: DriveItemStatus.EXISTS,
     name: `name_${uuid.v4()}`,
     plainName: `plainname_${Date.now()}`,
     id: Date.now(),
@@ -85,7 +86,7 @@ const createRemoteSyncedFolderFixture = (payload: Partial<RemoteSyncedFolder>): 
     updatedAt: new Date().toISOString(),
     parentId: null,
     uuid: uuid.v4(),
-    status: 'EXISTS',
+    status: DriveItemStatus.EXISTS,
     ...payload,
   };
 
