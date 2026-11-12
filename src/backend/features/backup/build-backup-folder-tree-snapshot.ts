@@ -2,46 +2,46 @@ import { FolderTree } from '@internxt/sdk/dist/drive/storage/types';
 import { BackupFolderTreeSnapshot } from './types/BackupFolderTreeSnapshot';
 
 type NodeSnapshot = {
-  folderId: number;
+  folderUuid: string;
   folderName: string;
-  fileNames: Record<number, string>;
+  fileNames: Record<string, string>;
   size: number;
 };
 
 type SnapshotProps = {
   node: FolderTree;
-  decryptFileName: (name: string, folderId: number) => string;
+  decryptFileName: (name: string, legacyEncryptionFolderId: number) => string;
 };
 
 function snapshotNode({ node, decryptFileName }: SnapshotProps): NodeSnapshot {
-  const fileNames: Record<number, string> = {};
+  const fileNames: Record<string, string> = {};
   let size = 0;
 
   for (const file of node.files) {
-    fileNames[file.id] = decryptFileName(file.name, file.folderId);
+    fileNames[file.uuid] = decryptFileName(file.name, file.folderId);
     size += Number(file.size);
   }
 
-  return { folderId: node.id, folderName: node.plainName, fileNames, size };
+  return { folderUuid: node.uuid, folderName: node.plainName, fileNames, size };
 }
 
 type Props = {
   tree: FolderTree;
-  decryptFileName: (name: string, folderId: number) => string;
+  decryptFileName: (name: string, legacyEncryptionFolderId: number) => string;
 };
 
 export function buildBackupFolderTreeSnapshot({ tree, decryptFileName }: Props): BackupFolderTreeSnapshot {
   let size = 0;
-  const folderDecryptedNames: Record<number, string> = {};
-  const fileDecryptedNames: Record<number, string> = {};
+  const folderDecryptedNames: Record<string, string> = {};
+  const fileDecryptedNames: Record<string, string> = {};
 
   const stack = [tree];
 
   while (stack.length > 0) {
     const currentNode = stack.pop()!;
-    const { folderId, folderName, fileNames, size: nodeSize } = snapshotNode({ node: currentNode, decryptFileName });
+    const { folderUuid, folderName, fileNames, size: nodeSize } = snapshotNode({ node: currentNode, decryptFileName });
 
-    folderDecryptedNames[folderId] = folderName;
+    folderDecryptedNames[folderUuid] = folderName;
     Object.assign(fileDecryptedNames, fileNames);
     size += nodeSize;
 

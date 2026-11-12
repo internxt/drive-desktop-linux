@@ -16,7 +16,6 @@ describe('delete-device-backups', () => {
   const addFolderToTrashMock = partialSpyOn(addFolderToTrashModule, 'addFolderToTrash');
 
   const device = {
-    id: 1,
     uuid: 'device-uuid',
     name: 'Desktop',
     bucket: 'bucket',
@@ -28,7 +27,6 @@ describe('delete-device-backups', () => {
     const backups = [
       {
         folderUuid: 'folder-uuid-1',
-        folderId: 10,
         tmpPath: '/tmp',
         backupsBucket: 'bucket',
         pathname: createAbsolutePath('/home/dev/Documents'),
@@ -60,7 +58,6 @@ describe('delete-device-backups', () => {
     const backups = [
       {
         folderUuid: 'folder-uuid-1',
-        folderId: 10,
         tmpPath: '/tmp',
         backupsBucket: 'bucket',
         pathname: createAbsolutePath('/home/dev/Documents'),

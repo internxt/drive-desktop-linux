@@ -129,7 +129,6 @@ describe('HttpRemoteFileSystem', () => {
 
     createFolderMock.mockResolvedValue({
       data: {
-        id: 12,
         uuid: 'folder-12',
         parentId: 7,
         updatedAt: '2025-01-03T00:00:00.000Z',
@@ -167,7 +166,6 @@ describe('HttpRemoteFileSystem', () => {
     searchFolderMock.mockResolvedValue({
       data: [
         {
-          id: 1,
           uuid: '123e4567-e89b-12d3-a456-426614174000',
           parentId: 10,
           parentUuid: parentFolderUuid,

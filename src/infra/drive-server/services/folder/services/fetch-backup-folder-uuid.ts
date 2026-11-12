@@ -3,12 +3,12 @@ import { DriveServerError } from '../../../drive-server.error';
 import { Result } from '../../../../../context/shared/domain/Result';
 
 export async function getBackupFolderUuid({
-  folderId,
+  legacyNumericFolderId,
 }: {
-  folderId: string;
+  legacyNumericFolderId: string;
 }): Promise<Result<string, DriveServerError>> {
   const { data, error } = await driveServerClient.GET('/folders/{id}/metadata', {
-    path: { id: folderId },
+    path: { id: legacyNumericFolderId },
   });
 
   if (error) return { error };

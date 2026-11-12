@@ -2,7 +2,6 @@ import { mapFile } from './map-file';
 import type { FileSyncDto } from './types';
 
 const createFileSyncDtoFixture = (payload: Partial<FileSyncDto> = {}): FileSyncDto => ({
-  id: 1,
   uuid: 'file-uuid-1',
   fileId: 'file-id-123',
   name: 'test.jpg',
@@ -26,7 +25,6 @@ describe('map-file', () => {
   it('should map all file properties with a parsed integer size', () => {
     // Given
     const file = createFileSyncDtoFixture({
-      id: 1,
       uuid: 'file-uuid-1',
       fileId: 'file-id-123',
       name: 'test.jpg',
@@ -57,7 +55,6 @@ describe('map-file', () => {
   it('should handle empty fileId when fileId is null', () => {
     // Given
     const file = createFileSyncDtoFixture({
-      id: 2,
       uuid: 'file-uuid-2',
       fileId: null,
       name: '',

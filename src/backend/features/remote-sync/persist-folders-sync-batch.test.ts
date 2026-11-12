@@ -16,7 +16,6 @@ describe('persist-folders-sync-batch', () => {
     createOrUpdateMock.mockResolvedValue({ data: [] });
     const items = [
       {
-        id: 1,
         uuid: 'f1',
         name: 'Folder 1',
         type: 'folder',

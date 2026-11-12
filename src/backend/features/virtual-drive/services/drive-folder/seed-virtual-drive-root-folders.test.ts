@@ -8,7 +8,6 @@ import { User } from '../../../../../apps/main/types';
 describe('seed-virtual-drive-root-folders', () => {
   const folderRepository = mockDeep<FolderRepository>();
   const mockUser: User = mockDeep<User>({
-    root_folder_id: 100,
     rootFolderId: '11111111-2222-4333-8444-555555555555',
   });
 

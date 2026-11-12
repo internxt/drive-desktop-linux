@@ -64,7 +64,6 @@ describe('sync-remote-folders', () => {
         data: {
           folders: [
             {
-              id: 1,
               uuid: 'f1',
               type: 'folder',
               bucket: 'b1',
@@ -85,7 +84,6 @@ describe('sync-remote-folders', () => {
               encryptVersion: '',
             },
             {
-              id: 2,
               uuid: 'f2',
               type: 'folder',
               bucket: 'b1',
@@ -113,7 +111,6 @@ describe('sync-remote-folders', () => {
         data: {
           folders: [
             {
-              id: 3,
               uuid: 'f3',
               type: 'folder',
               bucket: 'b1',
@@ -166,7 +163,6 @@ describe('sync-remote-folders', () => {
   it('should persist folders to the database once per page', async () => {
     const folders = [
       {
-        id: 1,
         uuid: 'f1',
         type: 'folder',
         bucket: 'b1',

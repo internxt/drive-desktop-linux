@@ -19,15 +19,15 @@ export function BackupsList({ backups, selected, setSelected }: BackupsListProps
           role="row"
           onKeyDown={() => setSelected(backup)}
           tabIndex={0}
-          key={backup.folderId}
+          key={backup.folderUuid}
           className={`flex w-full items-center overflow-hidden p-2 transition-colors duration-75 ${
-            selected?.folderId === backup.folderId
+            selected?.folderUuid === backup.folderUuid
               ? 'bg-primary text-white'
               : index % 2 !== 0
                 ? 'bg-alternate-1 dark:bg-alternate-1 text-highlight dark:text-gray-100'
                 : 'bg-alternate-2 dark:bg-alternate-2 text-highlight dark:text-gray-100'
           }`}>
-          <BackupListItem backup={backup} selected={selected?.folderId === backup.folderId} />
+          <BackupListItem backup={backup} selected={selected?.folderUuid === backup.folderUuid} />
         </li>
       ))}
     </ul>

@@ -41,14 +41,14 @@ describe('Traverser', () => {
           uuid: UuidMother.primitive(),
           folderUuid: childFolderUuid,
           size: 200,
-          status: 'EXISTS',
+          status: DriveItemStatus.EXISTS,
         } as ServerFile,
       ],
       folders: [
         {
           parentUuid: rootFolderUuid,
           plain_name: 'folder A',
-          status: 'EXISTS',
+          status: DriveItemStatus.EXISTS,
           uuid: childFolderUuid,
         } as ServerFolder,
       ],
@@ -72,19 +72,19 @@ describe('Traverser', () => {
           uuid: UuidMother.primitive(),
           folderUuid: childFolderUuid,
           size: 200,
-          status: 'EXISTS',
+          status: DriveItemStatus.EXISTS,
         } as ServerFile,
       ],
       folders: [
         {
           parentUuid: rootFolderUuid,
           plain_name: 'folder A',
-          status: 'EXISTS',
+          status: DriveItemStatus.EXISTS,
           uuid: childFolderUuid,
         } as ServerFolder,
       ],
     };
-    const SUT = new Traverser([ServerFileStatus.EXISTS, ServerFileStatus.TRASHED], [ServerFolderStatus.EXISTS]);
+    const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
 
     const tree = SUT.run(rootFolderUuid, rawTree);
 

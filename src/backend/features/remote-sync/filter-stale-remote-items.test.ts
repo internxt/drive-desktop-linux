@@ -1,4 +1,3 @@
-import { DriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
 import { filterStaleRemoteFiles, filterStaleRemoteFolders } from './filter-stale-remote-items';
 import { RemoteSyncedFile, RemoteSyncedFolder } from '../../../apps/main/remote-sync/helpers';
 import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';

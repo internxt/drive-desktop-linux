@@ -9,7 +9,6 @@ vi.mock('../../../../context/LocalContext', () => ({
 }));
 
 const mockDevice: Device = {
-  id: 1,
   uuid: 'uuid1',
   name: 'Device 1',
   bucket: 'bucket1',

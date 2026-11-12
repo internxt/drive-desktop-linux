@@ -16,7 +16,7 @@ export async function deleteBackup({ backup, isCurrent }: Props): Promise<Result
 
   if (isCurrent) {
     const backupsList = configStore.get('backupList');
-    const entriesFiltered = Object.entries(backupsList).filter(([, b]) => b.folderId !== backup.folderId);
+    const entriesFiltered = Object.entries(backupsList).filter(([, b]) => b.folderUuid !== backup.folderUuid);
     const backupListFiltered = Object.fromEntries(entriesFiltered);
 
     configStore.set('backupList', backupListFiltered);

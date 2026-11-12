@@ -39,7 +39,6 @@ describe('BackupService', () => {
 
   const info: BackupInfo = {
     pathname: '/path/to/backup' as AbsolutePath,
-    folderId: 123,
     folderUuid: 'uuid',
     tmpPath: '/tmp/path',
     backupsBucket: 'backups-bucket',

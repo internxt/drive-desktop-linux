@@ -32,7 +32,7 @@ describe('BackupService', () => {
   describe('getDevices', () => {
     it('should return a list of devices when the response is successful', async () => {
       const apiData = [{ id: 1, uuid: '123', plainName: 'Device 1' }];
-      const expectedData = [{ id: 1, uuid: '123', name: 'Device 1' }];
+      const expectedData = [{ uuid: '123', name: 'Device 1' }];
       driveServerGetMock.mockResolvedValue({ data: apiData } as object);
 
       const result = await sut.getDevices();
@@ -65,7 +65,7 @@ describe('BackupService', () => {
   describe('getDevice', () => {
     it('should return a device when the response is successful', async () => {
       const apiData = { id: 1, uuid: '123', plainName: 'Device A' };
-      const expectedData = { id: 1, uuid: '123', name: 'Device A' };
+      const expectedData = { uuid: '123', name: 'Device A' };
       driveServerGetMock.mockResolvedValue({ data: apiData } as object);
 
       const result = await sut.getDevice('123');
@@ -97,7 +97,7 @@ describe('BackupService', () => {
   describe('getDeviceById', () => {
     it('should get a device by id and return it when the response is successful', async () => {
       const apiData = { id: 2, uuid: 'id-123', plainName: 'Device B' };
-      const expectedData = { id: 2, uuid: 'id-123', name: 'Device B' };
+      const expectedData = { uuid: 'id-123', name: 'Device B' };
       driveServerGetMock.mockResolvedValue({ data: apiData } as object);
 
       const result = await sut.getDeviceById('id-123');
@@ -129,7 +129,7 @@ describe('BackupService', () => {
   describe('createDevice', () => {
     it('should create a device and return it when the response is successful', async () => {
       const apiData = { id: 3, uuid: 'new-123', plainName: 'New Device' };
-      const expectedData = { id: 3, uuid: 'new-123', name: 'New Device' };
+      const expectedData = { uuid: 'new-123', name: 'New Device' };
       driveServerPostMock.mockResolvedValue({ data: apiData } as object);
 
       const result = await sut.createDevice('New Device');
@@ -161,7 +161,7 @@ describe('BackupService', () => {
   describe('updateDevice', () => {
     it('should update a device and return it when the response is successful', async () => {
       const apiData = { id: 4, uuid: 'device-123', plainName: 'Updated Device' };
-      const expectedData = { id: 4, uuid: 'device-123', name: 'Updated Device' };
+      const expectedData = { uuid: 'device-123', name: 'Updated Device' };
       driveServerPatchMock.mockResolvedValue({ data: apiData } as object);
 
       const result = await sut.updateDevice('device-123', 'Updated Device');

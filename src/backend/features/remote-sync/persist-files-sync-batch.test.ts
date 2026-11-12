@@ -16,7 +16,6 @@ describe('persist-files-sync-batch', () => {
     createOrUpdateMock.mockResolvedValue({ data: [] });
     const items = [
       {
-        id: 1,
         uuid: 'file-1',
         name: 'File 1',
         type: 'pdf',

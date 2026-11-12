@@ -2,7 +2,6 @@ import { partialSpyOn } from '../../../../../tests/vitest/utils.helper';
 import { DriveServerError } from '../../../../infra/drive-server/drive-server.error';
 import * as createFileModule from '../../../../infra/drive-server/services/files/services/create-file';
 import { BucketEntryIdMother } from '../../shared/domain/__test-helpers__/BucketEntryIdMother';
-import { FileFolderId } from '../domain/FileFolderId';
 import { FilePath } from '../domain/FilePath';
 import { FileSize } from '../domain/FileSize';
 import { SDKRemoteFileSystem } from './SDKRemoteFileSystem';
@@ -14,12 +13,10 @@ describe('SDKRemoteFileSystem', () => {
     contentsId: BucketEntryIdMother.random(),
     path: new FilePath('/folder/pet.png'),
     size: new FileSize(100),
-    folderId: new FileFolderId(42),
     folderUuid: 'folder-uuid',
   };
 
   const fileResponse = {
-    id: 1,
     uuid: 'file-uuid',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

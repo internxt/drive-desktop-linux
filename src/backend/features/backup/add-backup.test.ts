@@ -55,7 +55,6 @@ describe('addBackup', () => {
     const chosenPath = createAbsolutePath('/path/to/backup');
     const mockBackupInfo = {
       folderUuid: 'folder-uuid',
-      folderId: 123,
       pathname: chosenPath,
       name: 'backup',
       tmpPath: '/tmp',
@@ -80,12 +79,10 @@ describe('addBackup', () => {
     const chosenPath = createAbsolutePath('/path/to/existing');
     const existingBackupData = {
       folderUuid: 'existing-uuid',
-      folderId: 456,
       enabled: false,
     };
     const mockBackupInfo = {
       folderUuid: 'existing-uuid',
-      folderId: 456,
       pathname: chosenPath,
       name: 'existing',
       tmpPath: '/tmp',

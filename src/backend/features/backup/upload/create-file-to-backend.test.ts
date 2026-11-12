@@ -18,7 +18,6 @@ describe('createFileToBackend', () => {
   };
 
   const fileResponse = {
-    id: 1,
     uuid: UuidMother.primitive(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

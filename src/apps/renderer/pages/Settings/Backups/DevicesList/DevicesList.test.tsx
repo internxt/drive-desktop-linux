@@ -24,7 +24,6 @@ vi.mock('./Help', () => ({
 
 const mockDevices: Array<Device> = [
   {
-    id: 1,
     uuid: 'uuid1',
     name: 'Device 1',
     bucket: 'bucket1',
@@ -32,7 +31,6 @@ const mockDevices: Array<Device> = [
     hasBackups: true,
   },
   {
-    id: 2,
     uuid: 'uuid2',
     name: 'Device 2',
     bucket: 'bucket2',

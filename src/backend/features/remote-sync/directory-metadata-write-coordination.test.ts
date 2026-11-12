@@ -118,7 +118,6 @@ describe('directory-metadata-write-coordination', () => {
 
 function staleFile({ folderUuid }: { folderUuid: string }): FileSyncDto {
   return {
-    id: 1,
     uuid: 'stale-file',
     name: 'Stale',
     type: 'txt',
@@ -140,7 +139,6 @@ function staleFile({ folderUuid }: { folderUuid: string }): FileSyncDto {
 
 function staleFolder({ parentUuid }: { parentUuid: string }): FolderSyncDto {
   return {
-    id: 9,
     uuid: 'stale-folder',
     name: 'Stale folder',
     type: 'folder',

@@ -11,7 +11,7 @@ describe('fetch-backup-folder-uuid', () => {
     const folderData = { uuid: 'folder-uuid' };
     driveServerGetMock.mockResolvedValue({ data: folderData } as object);
 
-    await getBackupFolderUuid({ folderId: '123' });
+    await getBackupFolderUuid({ legacyNumericFolderId: '123' });
 
     call(driveServerGetMock).toMatchObject([
       '/folders/{id}/metadata',
@@ -25,7 +25,7 @@ describe('fetch-backup-folder-uuid', () => {
     const folderData = { uuid: 'folder-uuid' };
     driveServerGetMock.mockResolvedValue({ data: folderData } as object);
 
-    const result = await getBackupFolderUuid({ folderId: '123' });
+    const result = await getBackupFolderUuid({ legacyNumericFolderId: '123' });
 
     expect(result.data).toBe('folder-uuid');
     expect(result.error).toBe(undefined);
@@ -35,7 +35,7 @@ describe('fetch-backup-folder-uuid', () => {
     const error = new DriveServerError('BAD_REQUEST', 400);
     driveServerGetMock.mockResolvedValue({ data: undefined, error } as object);
 
-    const result = await getBackupFolderUuid({ folderId: '123' });
+    const result = await getBackupFolderUuid({ legacyNumericFolderId: '123' });
 
     expect(result.error).toBe(error);
   });

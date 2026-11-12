@@ -2,7 +2,6 @@ import { resolveFolderStatus, mapFolder } from './map-folder';
 import type { FolderSyncDto } from './types';
 
 const createFolderSyncDtoFixture = (payload: Partial<FolderSyncDto> = {}): FolderSyncDto => ({
-  id: 1,
   uuid: 'folder-uuid',
   type: 'folder',
   bucket: 'bucket-1',
@@ -63,7 +62,6 @@ describe('map-folder', () => {
     it('should map all folder properties with resolved status', () => {
       // Given
       const folder = createFolderSyncDtoFixture({
-        id: 1,
         uuid: 'folder-uuid',
         name: 'My Folder',
         status: 'EXISTS',

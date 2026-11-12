@@ -55,7 +55,7 @@ describe('change-backup-path', () => {
 
   it('should rename backup folder and move backup entry to the new path', async () => {
     const existingBackup = { folderId: 12, folderUuid: 'folder-uuid', enabled: true };
-    const migratedBackup = { folderId: 12, folderUuid: 'folder-uuid', enabled: true };
+    const migratedBackup = { folderUuid: 'folder-uuid', enabled: true };
     const backupList = {
       [currentPath]: existingBackup,
     };
@@ -77,7 +77,7 @@ describe('change-backup-path', () => {
     });
     expect(mockedMigrateBackupEntryIfNeeded).toHaveBeenNthCalledWith(2, {
       pathname: newPath,
-      backup: existingBackup,
+      backup: migratedBackup,
     });
     call(mockedConfigStoreSet).toStrictEqual([
       'backupList',
@@ -89,7 +89,7 @@ describe('change-backup-path', () => {
 
   it('should resolve folderUuid before renaming legacy backups', async () => {
     const legacyBackup = { folderId: 12, folderUuid: '', enabled: true };
-    const migratedBackup = { folderId: 12, folderUuid: 'resolved-uuid', enabled: true };
+    const migratedBackup = { folderUuid: 'resolved-uuid', enabled: true };
     const backupList = {
       [currentPath]: legacyBackup,
     };

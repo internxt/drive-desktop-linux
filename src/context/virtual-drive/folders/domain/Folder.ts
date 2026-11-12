@@ -108,7 +108,7 @@ export class Folder extends AggregateRoot {
   }
 
   static create(attributes: Omit<FolderAttributes, 'status'>): Folder {
-    const folder = Folder.from({ ...attributes, status: FolderStatuses.EXISTS });
+    const folder = Folder.from({ ...attributes, status: DriveItemStatus.EXISTS });
 
     folder.record(
       new FolderCreatedDomainEvent({

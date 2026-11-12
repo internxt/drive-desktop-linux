@@ -20,7 +20,8 @@ export async function getBackupFolderTreeSnapshot({
   const { tree } = data;
   const backupFolderTreeSnapshot = buildBackupFolderTreeSnapshot({
     tree,
-    decryptFileName: (name, folderId) => aes.decrypt(name, `${process.env.NEW_CRYPTO_KEY}-${folderId}`),
+    decryptFileName: (name, legacyEncryptionFolderId) =>
+      aes.decrypt(name, `${process.env.NEW_CRYPTO_KEY}-${legacyEncryptionFolderId}`),
   });
 
   return { data: backupFolderTreeSnapshot };

@@ -13,7 +13,6 @@ vi.mock(import('./local-tree/'));
 describe('precalculateBackupItemCount', () => {
   const backupInfo = {
     folderUuid: 'folder-uuid',
-    folderId: 42,
     tmpPath: '/tmp/backup',
     backupsBucket: 'bucket',
     pathname: '/home/user/Documents' as AbsolutePath,

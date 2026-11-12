@@ -115,7 +115,6 @@ describe('remote-sync-race-conditions', () => {
             data: {
               files: [
                 {
-                  id: 1,
                   uuid: 'stale-uuid',
                   fileId: 'f-1',
                   type: 'txt',
@@ -130,7 +129,6 @@ describe('remote-sync-race-conditions', () => {
                   status: 'EXISTS',
                 },
                 {
-                  id: 2,
                   uuid: 'unmanaged-uuid',
                   fileId: 'f-2',
                   type: 'txt',
@@ -172,7 +170,6 @@ describe('remote-sync-race-conditions', () => {
             data: {
               files: [
                 {
-                  id: 3,
                   uuid: 'newer-uuid',
                   fileId: 'f-3',
                   type: 'txt',
