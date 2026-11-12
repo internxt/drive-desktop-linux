@@ -6,7 +6,7 @@ import { FolderCreatedAt } from '../../domain/FolderCreatedAt';
 import { FolderId } from '../../domain/FolderId';
 import { FolderPath } from '../../domain/FolderPath';
 import { FolderRepository } from '../../domain/FolderRepository';
-import { FolderStatuses } from '../../domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FolderUpdatedAt } from '../../domain/FolderUpdatedAt';
 import { FolderUuid } from '../../domain/FolderUuid';
 import { FolderInPathAlreadyExistsError } from '../../domain/errors/FolderInPathAlreadyExistsError';
@@ -27,7 +27,7 @@ export class FolderCreator {
   private async ensureItDoesNotExists(path: FolderPath): Promise<void> {
     const result = this.repository.matchingPartial({
       path: path.value,
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     if (result.length > 0) {

@@ -1,6 +1,5 @@
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
-import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
-import { FolderStatuses } from '../../../../../../context/virtual-drive/folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { DirectoryMetadataSyncError } from '../directory-metadata-sync.error';
 import { DirectoryStateRepository } from '../directory-state-sqlite-repository';
 import { isVirtualTrashFolder } from '../../drive-folder/is-virtual-trash';
@@ -20,11 +19,11 @@ export async function readDirectory({ path, folderRepository, fileRepository }: 
 
   return Result.ok({
     folders: folderRepository
-      .matchingPartial({ parentId: folder.id, status: FolderStatuses.EXISTS })
+      .matchingPartial({ parentId: folder.id, status: DriveItemStatus.EXISTS })
       .filter((child) => !isVirtualTrashFolder(child))
       .map((child) => child.name),
     files: fileRepository
-      .matchingPartial({ folderId: folder.id, status: FileStatuses.EXISTS })
+      .matchingPartial({ folderId: folder.id, status: DriveItemStatus.EXISTS })
       .map((child) => child.nameWithExtension),
   });
 }

@@ -1,5 +1,5 @@
 import { Folder, FolderAttributes } from './Folder';
-import { FolderStatuses } from './FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 export abstract class FolderRepository {
   abstract all(): Promise<Array<Folder>>;
@@ -10,7 +10,7 @@ export abstract class FolderRepository {
 
   abstract matchingPartial(partial: Partial<FolderAttributes>): Array<Folder>;
 
-  abstract searchByPathPrefix(pathPrefix: string, status?: FolderStatuses): Array<Folder>;
+  abstract searchByPathPrefix(pathPrefix: string, status?: DriveItemStatus): Array<Folder>;
 
   abstract add(folder: Folder): Promise<void>;
 

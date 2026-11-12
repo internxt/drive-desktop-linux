@@ -1,5 +1,5 @@
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
-import { DriveItemStatus } from '../../../../../context/shared/domain/DriveItemStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { components } from '../../../../schemas';

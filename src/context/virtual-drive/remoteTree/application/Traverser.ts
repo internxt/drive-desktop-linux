@@ -5,7 +5,8 @@ import { ServerFolder, ServerFolderStatus } from '../../../shared/domain/ServerF
 import { createFileFromServerFile } from './FileCreatorFromServerFile';
 import { createFolderFromServerFolder } from '../../folders/application/create/FolderCreatorFromServerFolder';
 import { Folder } from '../../folders/domain/Folder';
-import { FolderStatus, FolderStatuses } from '../../folders/domain/FolderStatus';
+import { FolderStatus } from '../../folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { EitherTransformer } from '../../shared/application/EitherTransformer';
 import { RemoteTree } from '../domain/RemoteTree';
 
@@ -97,7 +98,7 @@ export class Traverser {
           logger.warn({ msg: `[Traverser] Error adding folder:  ${error} ` });
         },
         (folder) => {
-          if (folder.hasStatus(FolderStatuses.EXISTS)) {
+          if (folder.hasStatus(DriveItemStatus.EXISTS)) {
             // The folders and the files inside trashed or deleted folders
             // will have the status "EXISTS", to avoid filtering witch folders and files
             // are in a deleted or trashed folder they not included on the collection.

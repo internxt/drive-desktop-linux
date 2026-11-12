@@ -3,7 +3,8 @@ import { FileRepository } from '../../domain/FileRepository';
 import { AllParentFoldersStatusIsExists } from '../../../folders/application/AllParentFoldersStatusIsExists';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 import { FileMother } from '../../domain/__test-helpers__/FileMother';
-import { FileStatus, FileStatuses } from '../../domain/FileStatus';
+import { FileStatus } from '../../domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { BucketEntryIdMother } from 'src/context/virtual-drive/shared/domain/__test-helpers__/BucketEntryIdMother';
 import { Mocked } from 'vitest';
 import * as addFileToTrashModule from '../../../../../infra/drive-server/services/files/services/add-file-to-trash';
@@ -58,7 +59,7 @@ describe('FileTrasher', () => {
     });
 
     it('should not trash a file if it is already trashed', async () => {
-      const file = FileMother.fromPartial({ status: FileStatuses.TRASHED });
+      const file = FileMother.fromPartial({ status: DriveItemStatus.TRASHED });
       fileRepositoryMock.matchingPartial.mockReturnValue([file]);
 
       await sut.run(file.contentsId);

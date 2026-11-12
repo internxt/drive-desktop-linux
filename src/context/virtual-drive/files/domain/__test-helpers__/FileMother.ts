@@ -1,5 +1,5 @@
 import { FileAttributes } from '../File';
-import { FileStatuses } from '../FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { File } from '../File';
 import { FilePathMother } from './FilePathMother';
 import Chance from 'chance';
@@ -22,7 +22,7 @@ export class FileMother {
       path: FilePathMother.random(2).value,
       size: 893924973,
       updatedAt: new Date().toISOString(),
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
   }
 
@@ -38,7 +38,7 @@ export class FileMother {
         path: FilePathMother.random().value,
         size: 893924973,
         updatedAt: new Date().toISOString(),
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       },
       ...partial,
     });

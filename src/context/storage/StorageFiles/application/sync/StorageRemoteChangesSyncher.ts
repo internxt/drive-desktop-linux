@@ -1,6 +1,6 @@
 import { Service } from 'diod';
 import { SingleFileMatchingSearcher } from '../../../../virtual-drive/files/application/search/SingleFileMatchingSearcher';
-import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { StorageFile } from '../../domain/StorageFile';
 import { StorageFilesRepository } from '../../domain/StorageFilesRepository';
 import { StorageFileDownloader } from '../download/StorageFileDownloader/StorageFileDownloader';
@@ -20,7 +20,7 @@ export class StorageRemoteChangesSyncher {
   private async sync(storage: StorageFile): Promise<void> {
     const virtualFile = await this.fileSearcher.run({
       uuid: storage.virtualId.value,
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     if (!virtualFile) {

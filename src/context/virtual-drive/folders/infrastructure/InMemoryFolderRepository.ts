@@ -1,6 +1,6 @@
 import { Folder, FolderAttributes } from '../domain/Folder';
 import { FolderRepository } from '../domain/FolderRepository';
-import { FolderStatuses } from '../domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Service } from 'diod';
 
 @Service()
@@ -51,7 +51,7 @@ export class InMemoryFolderRepository implements FolderRepository {
     return foldersAttributes.map((attributes) => Folder.from(attributes));
   }
 
-  searchByPathPrefix(pathPrefix: string, status?: FolderStatuses): Array<Folder> {
+  searchByPathPrefix(pathPrefix: string, status?: DriveItemStatus): Array<Folder> {
     const foldersAttributes = this.values.filter((attributes) => {
       const matchesPath = attributes.path.startsWith(pathPrefix);
       const matchesStatus = status === undefined || attributes.status === status;

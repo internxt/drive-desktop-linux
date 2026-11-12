@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { Brand } from '../../../../context/shared/domain/Brand';
-import type { DriveItemStatus } from '../../../../context/shared/domain/DriveItemStatus';
+import type { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 export type FileUuid = Brand<string, 'FileUuid'>;
 export type ContentsId = Brand<string, 'ContentsId'>;

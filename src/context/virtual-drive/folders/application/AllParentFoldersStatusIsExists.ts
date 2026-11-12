@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { Folder } from '../domain/Folder';
 import { FolderRepository } from '../domain/FolderRepository';
-import { FolderStatuses } from '../domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 @Service()
 export class AllParentFoldersStatusIsExists {
@@ -15,7 +15,7 @@ export class AllParentFoldersStatusIsExists {
       return true;
     }
 
-    if (!folder.hasStatus(FolderStatuses.EXISTS)) {
+    if (!folder.hasStatus(DriveItemStatus.EXISTS)) {
       return false;
     }
 

@@ -6,7 +6,7 @@ import { TemporalFileByPathFinder } from '../../../../../context/storage/Tempora
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FileTrasher } from '../../../../../context/virtual-drive/files/application/trash/FileTrasher';
-import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { File } from '../../../../../context/virtual-drive/files/domain/File';
 import { unlink } from './unlink.service';
 
@@ -43,7 +43,7 @@ describe('unlink', () => {
         path: '/some/file.txt',
         size: 1,
         updatedAt: new Date().toISOString(),
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       }),
     );
 
@@ -98,7 +98,7 @@ describe('unlink', () => {
         path: '/some/file.txt',
         size: 1,
         updatedAt: new Date().toISOString(),
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       }),
     );
     fileTrasher.run.mockRejectedValue(new Error('boom'));

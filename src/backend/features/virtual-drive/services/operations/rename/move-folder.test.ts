@@ -2,7 +2,7 @@ import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { FolderPathUpdater } from '../../../../../../context/virtual-drive/folders/application/FolderPathUpdater';
 import { Folder, FolderAttributes } from '../../../../../../context/virtual-drive/folders/domain/Folder';
-import { FolderStatuses } from '../../../../../../context/virtual-drive/folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { SyncFolderMessenger } from '../../../../../../context/virtual-drive/folders/domain/SyncFolderMessenger';
 import { FuseCodes } from '../../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
@@ -16,7 +16,7 @@ const folderAttrs: FolderAttributes = {
   path: '/old/folder',
   updatedAt: new Date().toISOString(),
   createdAt: new Date().toISOString(),
-  status: FolderStatuses.EXISTS,
+  status: DriveItemStatus.EXISTS,
 };
 
 describe('move-folder', () => {

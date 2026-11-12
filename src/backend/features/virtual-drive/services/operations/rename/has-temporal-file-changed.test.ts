@@ -1,7 +1,7 @@
 import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { File, FileAttributes } from '../../../../../../context/virtual-drive/files/domain/File';
-import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import {
   TemporalFile,
   TemporalFileAttributes,
@@ -22,7 +22,7 @@ const fileAttrs: FileAttributes = {
   path: '/folder/file.txt',
   size: 100,
   updatedAt: new Date().toISOString(),
-  status: FileStatuses.EXISTS,
+  status: DriveItemStatus.EXISTS,
 };
 
 const temporalAttrs: TemporalFileAttributes = {

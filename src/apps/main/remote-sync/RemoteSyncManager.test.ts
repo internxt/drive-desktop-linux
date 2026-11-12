@@ -18,7 +18,7 @@ vi.mock('../../../infra/sqlite/services/folder/create-or-update-folder-by-batch'
 }));
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { RemoteSyncManager } from './RemoteSyncManager';
-import { DriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { RemoteSyncedFile, RemoteSyncedFolder } from './helpers';
 import * as uuid from 'uuid';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';

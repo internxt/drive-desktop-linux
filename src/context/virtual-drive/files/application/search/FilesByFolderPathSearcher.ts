@@ -2,7 +2,7 @@ import { Service } from 'diod';
 import { SingleFolderMatchingFinder } from '../../../folders/application/SingleFolderMatchingFinder';
 import { File } from '../../domain/File';
 import { FileRepository } from '../../domain/FileRepository';
-import { FileStatuses } from '../../domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 @Service()
 export class FilesByFolderPathSearcher {
@@ -16,7 +16,7 @@ export class FilesByFolderPathSearcher {
 
     const files = this.repository.matchingPartial({
       folderId: folder.id,
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     return files.map((file) => file.nameWithExtension);

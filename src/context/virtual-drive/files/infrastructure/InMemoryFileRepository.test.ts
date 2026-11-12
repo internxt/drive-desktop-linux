@@ -1,6 +1,6 @@
 import { InMemoryFileRepository } from './InMemoryFileRepository';
 import { FileAttributes, File } from '../domain/File';
-import { FileStatuses } from '../domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FileMother } from '../domain/__test-helpers__/FileMother';
 import { FileNotFoundError } from '../domain/errors/FileNotFoundError';
 
@@ -51,7 +51,7 @@ describe('InMemoryFileRepository', () => {
       path: '/valid/path/to/file.txt',
       size: 1234,
       updatedAt: '10-03-2025',
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     };
 
     const fileAttributes2: FileAttributes = {
@@ -64,7 +64,7 @@ describe('InMemoryFileRepository', () => {
       path: '/another-valid/path/to/file.txt',
       size: 5678,
       updatedAt: '10-03-2025',
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     };
 
     const file1 = File.from(fileAttributes1);
@@ -94,7 +94,7 @@ describe('InMemoryFileRepository', () => {
       path: '/valid/path/to/file.txt',
       size: 1234,
       updatedAt: '10-03-2025',
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     };
 
     const file1 = File.from(fileAttributes1);
@@ -119,7 +119,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/work/report.txt',
         size: 1000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       const fileAttributes2: FileAttributes = {
@@ -132,7 +132,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/personal/notes.txt',
         size: 2000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       const fileAttributes3: FileAttributes = {
@@ -145,7 +145,7 @@ describe('InMemoryFileRepository', () => {
         path: '/images/photo.jpg',
         size: 3000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       sut.upsert(File.from(fileAttributes1));
@@ -171,7 +171,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/file.txt',
         size: 1000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       sut.upsert(File.from(fileAttributes));
@@ -193,7 +193,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/file1.txt',
         size: 1000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       const fileAttributes2: FileAttributes = {
@@ -206,7 +206,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/file2.txt',
         size: 2000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.TRASHED,
+        status: DriveItemStatus.TRASHED,
       };
 
       const fileAttributes3: FileAttributes = {
@@ -219,20 +219,20 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/file3.txt',
         size: 3000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       sut.upsert(File.from(fileAttributes1));
       sut.upsert(File.from(fileAttributes2));
       sut.upsert(File.from(fileAttributes3));
 
-      const result = sut.searchByPathPrefix('/documents', FileStatuses.EXISTS);
+      const result = sut.searchByPathPrefix('/documents', DriveItemStatus.EXISTS);
 
       expect(result).toHaveLength(2);
       expect(result.map((f) => f.uuid)).toContain('550e8400-e29b-41d4-a716-446655440001');
       expect(result.map((f) => f.uuid)).toContain('550e8400-e29b-41d4-a716-446655440003');
       expect(result.map((f) => f.uuid)).not.toContain('550e8400-e29b-41d4-a716-446655440002');
-      expect(result.every((f) => f.status.is(FileStatuses.EXISTS))).toBe(true);
+      expect(result.every((f) => f.status.is(DriveItemStatus.EXISTS))).toBe(true);
     });
 
     it('should return all matching files when no status filter is provided', () => {
@@ -246,7 +246,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/file1.txt',
         size: 1000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       const fileAttributes2: FileAttributes = {
@@ -259,7 +259,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/file2.txt',
         size: 2000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.TRASHED,
+        status: DriveItemStatus.TRASHED,
       };
 
       const fileAttributes3: FileAttributes = {
@@ -272,7 +272,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/file3.txt',
         size: 3000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.DELETED,
+        status: DriveItemStatus.DELETED,
       };
 
       sut.upsert(File.from(fileAttributes1));
@@ -298,7 +298,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/work/file.txt',
         size: 1000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       const fileAttributes2: FileAttributes = {
@@ -311,7 +311,7 @@ describe('InMemoryFileRepository', () => {
         path: '/backup/documents/file.txt',
         size: 2000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       sut.upsert(File.from(fileAttributes1));
@@ -342,7 +342,7 @@ describe('InMemoryFileRepository', () => {
         path: '/documents/file.txt',
         size: 1000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       sut.upsert(File.from(fileAttributes));
@@ -364,7 +364,7 @@ describe('InMemoryFileRepository', () => {
         path: '/a/b/c/file1.txt',
         size: 1000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       const fileAttributes2: FileAttributes = {
@@ -377,7 +377,7 @@ describe('InMemoryFileRepository', () => {
         path: '/a/b/d/file2.txt',
         size: 2000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       const fileAttributes3: FileAttributes = {
@@ -390,7 +390,7 @@ describe('InMemoryFileRepository', () => {
         path: '/a/b/c/d/file3.txt',
         size: 3000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       };
 
       sut.upsert(File.from(fileAttributes1));
@@ -418,7 +418,7 @@ describe('InMemoryFileRepository', () => {
         path,
         size: 1000,
         updatedAt: '10-03-2025',
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       });
 
     it('should remove direct children of the deleted folder', async () => {

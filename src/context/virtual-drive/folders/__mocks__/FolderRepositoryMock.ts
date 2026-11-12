@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import { Folder, FolderAttributes } from '../domain/Folder';
 import { FolderRepository } from '../domain/FolderRepository';
-import { FolderStatuses } from '../domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 export class FolderRepositoryMock implements FolderRepository {
   public readonly allMock = vi.fn();
@@ -31,7 +31,7 @@ export class FolderRepositoryMock implements FolderRepository {
     return this.matchingPartialMock(partial);
   }
 
-  searchByPathPrefix(pathPrefix: string, status?: FolderStatuses): Array<Folder> {
+  searchByPathPrefix(pathPrefix: string, status?: DriveItemStatus): Array<Folder> {
     return this.searchByPathPrefixMock(pathPrefix, status);
   }
 

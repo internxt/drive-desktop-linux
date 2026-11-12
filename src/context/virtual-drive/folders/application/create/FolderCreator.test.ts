@@ -3,7 +3,7 @@ import { InvalidArgumentError } from '../../../../shared/domain/errors/InvalidAr
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { FolderCreator } from './FolderCreator';
 import { ParentFolderFinder } from '../ParentFolderFinder';
-import { FolderStatuses } from '../../domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FolderInPathAlreadyExistsError } from '../../domain/errors/FolderInPathAlreadyExistsError';
 import { FolderNotFoundError } from '../../domain/errors/FolderNotFoundError';
 import { FolderRemoteFileSystemMock } from '../../__mocks__/FolderRemoteFileSystemMock';
@@ -38,7 +38,7 @@ describe('Folder Creator', () => {
     const path = FolderPathMother.any().value;
     const folder = FolderMother.fromPartial({
       path,
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     repository.matchingPartialMock.mockReturnValueOnce([folder]);

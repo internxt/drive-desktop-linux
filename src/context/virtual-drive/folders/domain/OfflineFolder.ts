@@ -1,6 +1,7 @@
 import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
 import { FolderPath } from './FolderPath';
-import { FolderStatus, FolderStatuses } from './FolderStatus';
+import { FolderStatus } from './FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FolderUuid } from './FolderUuid';
 import { Folder } from './Folder';
 import { FolderRenamedDomainEvent } from './events/FolderRenamedDomainEvent';
@@ -105,7 +106,7 @@ export class OfflineFolder extends AggregateRoot {
     return false;
   }
 
-  hasStatus(status: FolderStatuses): boolean {
+  hasStatus(status: DriveItemStatus): boolean {
     return this._status.value === status;
   }
 

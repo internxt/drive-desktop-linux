@@ -1,6 +1,6 @@
-import type { DriveItemStatus } from './DriveItemStatus';
+import type { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
-export { DriveItemStatus as ServerFileStatus } from './DriveItemStatus';
+export { DriveItemStatus as ServerFileStatus } from '@internxt/drive-desktop-core/build/backend';
 
 export type ServerFile = {
   bucket: string;

@@ -4,7 +4,7 @@ import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FolderDeleter } from '../../../../../context/virtual-drive/folders/application/FolderDeleter';
 import { SingleFolderMatchingFinder } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingFinder';
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
-import { FolderStatuses } from '../../../../../context/virtual-drive/folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { SyncFolderMessenger } from '../../../../../context/virtual-drive/folders/domain/SyncFolderMessenger';
 import { FolderNotFoundError } from '../../../../../context/virtual-drive/folders/domain/errors/FolderNotFoundError';
 import { rmdir } from './rmdir.service';
@@ -34,7 +34,7 @@ describe('rmdir', () => {
         path: '/some/folder',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: FolderStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       }),
     );
 
@@ -69,7 +69,7 @@ describe('rmdir', () => {
         path: '/some/folder',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: FolderStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       }),
     );
     folderDeleter.run.mockRejectedValue(new Error('boom'));

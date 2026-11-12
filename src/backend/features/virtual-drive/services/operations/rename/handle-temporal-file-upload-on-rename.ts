@@ -1,7 +1,7 @@
 import { Container } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { FirstsFileSearcher } from '../../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
-import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { TemporalFileByPathFinder } from '../../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../../context/shared/domain/Result';
@@ -20,7 +20,7 @@ export async function handleTemporalFileUploadOnRename({
 }: Props): Promise<Result<void, FuseError>> {
   const fileToOverride = await container.get(FirstsFileSearcher).run({
     path: dest,
-    status: FileStatuses.EXISTS,
+    status: DriveItemStatus.EXISTS,
   });
 
   if (!fileToOverride) {

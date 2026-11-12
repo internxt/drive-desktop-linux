@@ -2,7 +2,7 @@ import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { FirstsFileSearcher } from '../../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { File, FileAttributes } from '../../../../../../context/virtual-drive/files/domain/File';
-import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FuseCodes } from '../../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { handleFileRenameIntent } from './handle-file-rename-intent';
@@ -20,7 +20,7 @@ const fileAttrs: FileAttributes = {
   path: '/old/file.txt',
   size: 100,
   updatedAt: new Date().toISOString(),
-  status: FileStatuses.EXISTS,
+  status: DriveItemStatus.EXISTS,
 };
 
 describe('handle-file-rename-intent', () => {
@@ -134,6 +134,6 @@ describe('handle-file-rename-intent', () => {
     await handleFileRenameIntent(props);
 
     // Then
-    call(searcherMock.run).toStrictEqual({ path: props.src, status: FileStatuses.EXISTS });
+    call(searcherMock.run).toStrictEqual({ path: props.src, status: DriveItemStatus.EXISTS });
   });
 });

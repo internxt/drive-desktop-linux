@@ -1,5 +1,5 @@
 import type { RemoteSyncedFolder } from '../../../apps/main/remote-sync/helpers';
-import { DriveItemStatus, toDriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
+import { DriveItemStatus, toDriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import type { FolderSyncDto } from './types';
 
 export function resolveFolderStatus(
@@ -8,6 +8,7 @@ export function resolveFolderStatus(
   if (dto.status) {
     return toDriveItemStatus(dto.status);
   }
+  // TODO: remove this once the API is updated
   if (dto.removed) {
     return DriveItemStatus.DELETED;
   }

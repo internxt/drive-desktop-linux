@@ -1,6 +1,6 @@
 import { File, FileAttributes } from '../domain/File';
 import { FileRepository } from '../domain/FileRepository';
-import { FileStatuses } from '../domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 export class FileRepositoryMock implements FileRepository {
   public readonly allMock = vi.fn();
@@ -22,7 +22,7 @@ export class FileRepositoryMock implements FileRepository {
     return this.matchingPartialMock(partial);
   }
 
-  searchByPathPrefix(pathPrefix: string, status?: FileStatuses): Array<File> {
+  searchByPathPrefix(pathPrefix: string, status?: DriveItemStatus): Array<File> {
     return this.searchByPathPrefixMock(pathPrefix, status);
   }
 

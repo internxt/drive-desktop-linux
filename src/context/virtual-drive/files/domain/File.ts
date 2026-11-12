@@ -8,7 +8,8 @@ import { FileActionOnlyCanAffectOneLevelError } from './errors/FileActionOnlyCan
 import { FileNameShouldDifferFromOriginalError } from './errors/FileNameShouldDifferFromOriginalError';
 import { FileActionCannotModifyExtension } from './errors/FileActionCannotModifyExtension';
 import { FileDeletedDomainEvent } from './events/FileDeletedDomainEvent';
-import { FileStatus, FileStatuses } from './FileStatus';
+import { FileStatus } from './FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FileMovedDomainEvent } from './events/FileMovedDomainEvent';
 import { FileRenamedDomainEvent } from './events/FileRenamedDomainEvent';
 import { FileOverriddenDomainEvent } from './events/FileOverriddenDomainEvent';
@@ -30,7 +31,7 @@ export type FileAttributes = {
   path: string;
   size: number;
   updatedAt: string;
-  status: FileStatuses;
+  status: DriveItemStatus;
 };
 
 export class File extends AggregateRoot {
@@ -150,7 +151,7 @@ export class File extends AggregateRoot {
   }
 
   trash() {
-    this._status = this._status.changeTo(FileStatuses.TRASHED);
+    this._status = this._status.changeTo(DriveItemStatus.TRASHED);
     this.updatedAt = new Date();
 
     this.record(

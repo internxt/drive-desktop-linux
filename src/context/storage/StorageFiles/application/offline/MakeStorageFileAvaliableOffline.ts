@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { SingleFileMatchingFinder } from '../../../../virtual-drive/files/application/SingleFileMatchingFinder';
-import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { StorageFileId } from '../../domain/StorageFileId';
 import { StorageFilesRepository } from '../../domain/StorageFilesRepository';
 import { StorageFileDownloader } from '../download/StorageFileDownloader/StorageFileDownloader';
@@ -20,7 +20,7 @@ export class MakeStorageFileAvaliableOffline {
   async run(path: string) {
     const virtual = await this.virtualFileFinder.run({
       path,
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     const id = new StorageFileId(virtual.contentsId);

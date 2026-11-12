@@ -1,4 +1,4 @@
-import type { DriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
+import type { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 export const SIX_HOURS_IN_MILLISECONDS = 6 * 60 * 60 * 1000;
 

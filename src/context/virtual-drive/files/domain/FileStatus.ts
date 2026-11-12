@@ -1,9 +1,7 @@
-import { DriveItemStatus } from '../../../shared/domain/DriveItemStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { EnumValueObject } from '../../../shared/domain/value-objects/EnumValueObject';
 import { InvalidArgumentError } from '../../../shared/domain/errors/InvalidArgumentError';
 import { ActionNotPermittedError } from './errors/ActionNotPermittedError';
-
-export { DriveItemStatus as FileStatuses } from '../../../shared/domain/DriveItemStatus';
 
 export class FileStatus extends EnumValueObject<DriveItemStatus> {
   constructor(value: DriveItemStatus) {

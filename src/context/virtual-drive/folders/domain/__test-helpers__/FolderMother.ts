@@ -2,7 +2,7 @@ import Chance from 'chance';
 import { File } from '../../../files/domain/File';
 import { Folder, FolderAttributes } from '../Folder';
 import { FolderPath } from '../FolderPath';
-import { FolderStatuses } from '../FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FolderUuid } from '../FolderUuid';
 import { FolderIdMother } from './FolderIdMother';
 import { FolderPathMother } from './FolderPathMother';
@@ -20,7 +20,7 @@ export class FolderMother {
       parentId: 58601041,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
   }
 
@@ -32,7 +32,7 @@ export class FolderMother {
       parentId: null,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
   }
 
@@ -44,7 +44,7 @@ export class FolderMother {
       parentId: 437296692845,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
   }
 
@@ -56,7 +56,7 @@ export class FolderMother {
       parentId: chance.integer({ min: 1 }),
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
   }
 
@@ -68,7 +68,7 @@ export class FolderMother {
       parentId: null,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      status: FolderStatuses.TRASHED,
+      status: DriveItemStatus.TRASHED,
     });
   }
 
@@ -80,7 +80,7 @@ export class FolderMother {
       parentId: null,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
   }
 

@@ -2,7 +2,7 @@ import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { FileTrasher } from '../../../../../../context/virtual-drive/files/application/trash/FileTrasher';
 import { File, FileAttributes } from '../../../../../../context/virtual-drive/files/domain/File';
-import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { SyncFileMessenger } from '../../../../../../context/virtual-drive/files/domain/SyncFileMessenger';
 import { FuseCodes } from '../../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
@@ -20,7 +20,7 @@ const fileAttrs: FileAttributes = {
   path: '/folder/file.txt',
   size: 100,
   updatedAt: new Date().toISOString(),
-  status: FileStatuses.EXISTS,
+  status: DriveItemStatus.EXISTS,
 };
 
 describe('trash-file', () => {

@@ -1,6 +1,6 @@
 import { InMemoryFolderRepository } from './InMemoryFolderRepository';
 import { FolderAttributes, Folder } from '../domain/Folder';
-import { FolderStatuses } from '../domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 describe('InMemoryFolderRepository', () => {
   let sut: InMemoryFolderRepository;
@@ -16,7 +16,7 @@ describe('InMemoryFolderRepository', () => {
     path: '/documents',
     createdAt: '2025-01-01T00:00:00.000Z',
     updatedAt: '2025-01-01T00:00:00.000Z',
-    status: FolderStatuses.EXISTS,
+    status: DriveItemStatus.EXISTS,
     ...overrides,
   });
 
@@ -70,34 +70,34 @@ describe('InMemoryFolderRepository', () => {
         id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         path: '/documents/folder1',
-        status: FolderStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       });
 
       const folderAttributes2 = createFolderAttributes({
         id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         path: '/documents/folder2',
-        status: FolderStatuses.TRASHED,
+        status: DriveItemStatus.TRASHED,
       });
 
       const folderAttributes3 = createFolderAttributes({
         id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         path: '/documents/folder3',
-        status: FolderStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       });
 
       await sut.add(Folder.from(folderAttributes1));
       await sut.add(Folder.from(folderAttributes2));
       await sut.add(Folder.from(folderAttributes3));
 
-      const result = sut.searchByPathPrefix('/documents', FolderStatuses.EXISTS);
+      const result = sut.searchByPathPrefix('/documents', DriveItemStatus.EXISTS);
 
       expect(result).toHaveLength(2);
       expect(result.map((f) => f.uuid)).toContain('550e8400-e29b-41d4-a716-446655440001');
       expect(result.map((f) => f.uuid)).toContain('550e8400-e29b-41d4-a716-446655440003');
       expect(result.map((f) => f.uuid)).not.toContain('550e8400-e29b-41d4-a716-446655440002');
-      expect(result.every((f) => f.status === FolderStatuses.EXISTS)).toBe(true);
+      expect(result.every((f) => f.status === DriveItemStatus.EXISTS)).toBe(true);
     });
 
     it('should return all matching folders when no status filter is provided', async () => {
@@ -105,21 +105,21 @@ describe('InMemoryFolderRepository', () => {
         id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         path: '/documents/folder1',
-        status: FolderStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       });
 
       const folderAttributes2 = createFolderAttributes({
         id: 2,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         path: '/documents/folder2',
-        status: FolderStatuses.TRASHED,
+        status: DriveItemStatus.TRASHED,
       });
 
       const folderAttributes3 = createFolderAttributes({
         id: 3,
         uuid: '550e8400-e29b-41d4-a716-446655440003',
         path: '/documents/folder3',
-        status: FolderStatuses.DELETED,
+        status: DriveItemStatus.DELETED,
       });
 
       await sut.add(Folder.from(folderAttributes1));

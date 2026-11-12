@@ -3,7 +3,7 @@ import { SingleFileMatchingFinderTestClass } from '../../../../virtual-drive/fil
 import { StorageFilesRepositoryMock } from '../../__mocks__/StorageFilesRepositoryMock';
 import { FileMother } from '../../../../virtual-drive/files/domain/__test-helpers__/FileMother';
 import { StorageFileId } from '../../domain/StorageFileId';
-import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 describe('StorageFileIsAvailableOffline', () => {
   let sut: StorageFileIsAvailableOffline;
@@ -31,7 +31,7 @@ describe('StorageFileIsAvailableOffline', () => {
       expect(result).toBe(true);
       expect(virtualFileFinder['mock']).toBeCalledWith({
         path: file.path,
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       });
       expect(repository['existsMock']).not.toBeCalled();
     });
@@ -46,7 +46,7 @@ describe('StorageFileIsAvailableOffline', () => {
       expect(result).toBe(false);
       expect(virtualFileFinder['mock']).toBeCalledWith({
         path: file.path,
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       });
       expect(repository['existsMock']).toBeCalledWith(new StorageFileId(file.contentsId));
     });
@@ -61,7 +61,7 @@ describe('StorageFileIsAvailableOffline', () => {
       expect(result).toBe(true);
       expect(virtualFileFinder['mock']).toBeCalledWith({
         path: file.path,
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       });
       expect(repository['existsMock']).toBeCalledWith(new StorageFileId(file.contentsId));
     });

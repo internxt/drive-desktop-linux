@@ -8,7 +8,7 @@ import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domai
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { File, FileAttributes } from '../../../../../context/virtual-drive/files/domain/File';
 import { ContentsId } from '../../../../../apps/main/database/entities/DriveFile';
-import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { UploadSizeLimitError } from '../../../user/file-size-limit/upload-size-limit-error';
 import { DriveDesktopError } from '../../../../../context/shared/domain/errors/DriveDesktopError';
@@ -37,7 +37,7 @@ const fileAttrs: FileAttributes = {
   path: '/Documents/report.pdf',
   size: 100,
   updatedAt: new Date().toISOString(),
-  status: FileStatuses.EXISTS,
+  status: DriveItemStatus.EXISTS,
 };
 
 function createTemporalFile(path: string): TemporalFile {

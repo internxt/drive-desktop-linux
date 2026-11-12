@@ -5,7 +5,7 @@ import { EventBus } from '../../../shared/domain/EventBus';
 import { File } from '../../domain/File';
 import { FilePath } from '../../domain/FilePath';
 import { FileRepository } from '../../domain/FileRepository';
-import { FileStatuses } from '../../domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { ActionNotPermittedError } from '../../domain/errors/ActionNotPermittedError';
 import { FileAlreadyExistsError } from '../../domain/errors/FileAlreadyExistsError';
 import { FileNotFoundError } from '../../domain/errors/FileNotFoundError';
@@ -67,7 +67,7 @@ export class FilePathUpdater {
     const destination = new FilePath(posixRelativePath);
     const file = await this.singleFileMatching.run({
       contentsId,
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     if (!file) {
@@ -89,7 +89,7 @@ export class FilePathUpdater {
 
     const destinationFile = this.repository.matchingPartial({
       path: destination.value,
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     if (destinationFile.length > 0) {

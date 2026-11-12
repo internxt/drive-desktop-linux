@@ -1,5 +1,5 @@
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
-import { FolderStatuses } from '../../../../../context/virtual-drive/folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FolderRepository } from '../../../../../context/virtual-drive/folders/domain/FolderRepository';
 import { User } from '../../../../../apps/main/types';
 import { TRASH_FOLDER_ID, TRASH_FOLDER_UUID, TRASH_UID_FOLDER_ID, TRASH_UID_FOLDER_UUID } from './constants';
@@ -25,7 +25,7 @@ export async function seedVirtualDriveRootFolders({ folderRepository, user }: Pr
     path: '/',
     updatedAt: now,
     createdAt: now,
-    status: FolderStatuses.EXISTS,
+    status: DriveItemStatus.EXISTS,
   });
 
   const trashFolder = Folder.from({
@@ -35,7 +35,7 @@ export async function seedVirtualDriveRootFolders({ folderRepository, user }: Pr
     path: '/.Trash',
     updatedAt: now,
     createdAt: now,
-    status: FolderStatuses.EXISTS,
+    status: DriveItemStatus.EXISTS,
   });
 
   await folderRepository.add(rootFolder);
@@ -50,7 +50,7 @@ export async function seedVirtualDriveRootFolders({ folderRepository, user }: Pr
       path: `/.Trash-${uid}`,
       updatedAt: now,
       createdAt: now,
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
     await folderRepository.add(trashUidFolder);
   }

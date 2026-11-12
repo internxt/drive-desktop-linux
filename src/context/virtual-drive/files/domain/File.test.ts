@@ -1,5 +1,5 @@
 import { File } from './File';
-import { FileStatuses } from './FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 describe('File', () => {
   const fileMock = {
@@ -12,7 +12,7 @@ describe('File', () => {
     path: '/documents/file.txt',
     size: 1000,
     updatedAt: '2025-01-01T00:00:00.000Z',
-    status: FileStatuses.EXISTS,
+    status: DriveItemStatus.EXISTS,
   };
 
   describe('modificationTime', () => {
@@ -117,9 +117,9 @@ describe('File', () => {
     it('should update the status when provided', () => {
       const file = File.from(fileMock);
 
-      file.update({ status: FileStatuses.TRASHED });
+      file.update({ status: DriveItemStatus.TRASHED });
 
-      expect(file.status.value).toBe(FileStatuses.TRASHED);
+      expect(file.status.value).toBe(DriveItemStatus.TRASHED);
     });
 
     it('should update the updatedAt when provided', () => {
@@ -147,7 +147,7 @@ describe('File', () => {
         folderId: 300,
         size: 3000,
         contentsId: 'new-contents-id-12345678',
-        status: FileStatuses.TRASHED,
+        status: DriveItemStatus.TRASHED,
       };
 
       file.update(updates);

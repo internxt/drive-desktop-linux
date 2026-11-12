@@ -1,4 +1,4 @@
-import { FolderStatuses } from '../FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FolderUuid } from '../FolderUuid';
 import { OfflineFolder, OfflineFolderAttributes } from '../OfflineFolder';
 
@@ -13,7 +13,7 @@ export class OfflineFolderMother {
       path: `/${chance.name()}`,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
   }
 

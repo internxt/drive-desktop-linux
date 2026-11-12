@@ -1,6 +1,7 @@
 import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
 import { FolderPath } from './FolderPath';
-import { FolderStatus, FolderStatuses } from './FolderStatus';
+import { FolderStatus } from './FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FolderUuid } from './FolderUuid';
 import { FolderCreatedDomainEvent } from './events/FolderCreatedDomainEvent';
 import { FolderRenamedDomainEvent } from './events/FolderRenamedDomainEvent';
@@ -178,11 +179,11 @@ export class Folder extends AggregateRoot {
   }
 
   trash() {
-    if (!this._status.is(FolderStatuses.EXISTS)) {
+    if (!this._status.is(DriveItemStatus.EXISTS)) {
       throw new FolderAlreadyTrashed(this.name);
     }
 
-    this._status = this._status.changeTo(FolderStatuses.TRASHED);
+    this._status = this._status.changeTo(DriveItemStatus.TRASHED);
     this._updatedAt = FolderUpdatedAt.now();
 
     // TODO: record trashed event
@@ -204,7 +205,7 @@ export class Folder extends AggregateRoot {
     return !this._parentId;
   }
 
-  hasStatus(status: FolderStatuses): boolean {
+  hasStatus(status: DriveItemStatus): boolean {
     return this._status.value === status;
   }
 

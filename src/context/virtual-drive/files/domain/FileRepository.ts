@@ -1,12 +1,12 @@
 import { File, FileAttributes } from './File';
-import { FileStatuses } from './FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 export abstract class FileRepository {
   abstract all(): Promise<Array<File>>;
 
   abstract matchingPartial(partial: Partial<FileAttributes>): Array<File>;
 
-  abstract searchByPathPrefix(pathPrefix: string, status?: FileStatuses): Array<File>;
+  abstract searchByPathPrefix(pathPrefix: string, status?: DriveItemStatus): Array<File>;
 
   abstract searchByUuid(uuid: File['uuid']): Promise<File | undefined>;
 

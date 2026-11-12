@@ -1,6 +1,6 @@
 import { filterStaleRemoteFiles, filterStaleRemoteFolders } from './filter-stale-remote-items';
 import { RemoteSyncedFile, RemoteSyncedFolder } from '../../../apps/main/remote-sync/helpers';
-import { DriveItemStatus } from '../../../context/shared/domain/DriveItemStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 describe('filter-stale-remote-items', () => {
   const loadedAt = new Date('2026-01-01T12:00:00.000Z');

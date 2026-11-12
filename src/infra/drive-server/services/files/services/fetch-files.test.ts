@@ -2,7 +2,7 @@ import { partialSpyOn } from 'tests/vitest/utils.helper';
 
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
-import { DriveItemStatus } from '../../../../../context/shared/domain/DriveItemStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { fetchFilesSync } from './fetch-files';
 
 describe('fetch-files', () => {
