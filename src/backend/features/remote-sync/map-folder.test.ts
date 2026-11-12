@@ -1,25 +1,18 @@
 import { resolveFolderStatus, mapFolder } from './map-folder';
-import type { FolderSyncDto } from './types';
+import type { FolderSyncMappingDto } from './types';
 
-const createFolderSyncDtoFixture = (payload: Partial<FolderSyncDto> = {}): FolderSyncDto => ({
+const createFolderSyncDtoFixture = (payload: Partial<FolderSyncMappingDto> = {}): FolderSyncMappingDto => ({
   uuid: 'folder-uuid',
   type: 'folder',
   bucket: 'bucket-1',
   userId: 1,
-  parentId: 0,
   parentUuid: '',
-  parent: {},
-  encryptVersion: '1',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
   plainName: 'My Folder',
-  size: 0,
-  creationTime: '2026-01-01T00:00:00.000Z',
-  modificationTime: '2026-01-01T00:00:00.000Z',
   status: 'EXISTS',
   removed: false,
   deleted: false,
-  name: 'My Folder',
   ...payload,
 });
 
@@ -63,7 +56,7 @@ describe('map-folder', () => {
       // Given
       const folder = createFolderSyncDtoFixture({
         uuid: 'folder-uuid',
-        name: 'My Folder',
+        plainName: 'My Folder',
         status: 'EXISTS',
         removed: true,
       });

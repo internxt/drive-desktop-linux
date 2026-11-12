@@ -1,18 +1,14 @@
 import { mapFile } from './map-file';
-import type { FileSyncDto } from './types';
+import type { FileSyncMappingDto } from './types';
 
-const createFileSyncDtoFixture = (payload: Partial<FileSyncDto> = {}): FileSyncDto => ({
+const createFileSyncDtoFixture = (payload: Partial<FileSyncMappingDto> = {}): FileSyncMappingDto => ({
   uuid: 'file-uuid-1',
   fileId: 'file-id-123',
-  name: 'test.jpg',
   size: '2048',
   type: 'jpg',
   bucket: 'bucket-1',
-  folderId: 10,
   folderUuid: 'folder-1',
-  encryptVersion: '1',
   userId: 1,
-  creationTime: '2026-01-01T00:00:00.000Z',
   modificationTime: '2026-01-01T00:00:00.000Z',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
@@ -27,7 +23,7 @@ describe('map-file', () => {
     const file = createFileSyncDtoFixture({
       uuid: 'file-uuid-1',
       fileId: 'file-id-123',
-      name: 'test.jpg',
+      plainName: 'test.jpg',
       size: '2048',
       type: 'jpg',
     });
@@ -57,7 +53,7 @@ describe('map-file', () => {
     const file = createFileSyncDtoFixture({
       uuid: 'file-uuid-2',
       fileId: null,
-      name: '',
+      plainName: '',
       size: '4096',
     });
 

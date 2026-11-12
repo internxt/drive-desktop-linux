@@ -11,7 +11,7 @@ import { DirectoryStateRepository } from '../virtual-drive/services/lazy/directo
 import { synchronizeDirectoryMetadata } from '../virtual-drive/services/lazy/synchronize-directory-metadata';
 import { persistFilesSyncBatch } from './persist-files-sync-batch';
 import { persistFoldersSyncBatch } from './persist-folders-sync-batch';
-import type { FileSyncDto, FolderSyncDto } from './types';
+import type { FileSyncMappingDto, FolderSyncMappingDto } from './types';
 
 describe('directory-metadata-write-coordination', () => {
   const fetchFolderMock = partialSpyOn(fetchFolderModule, 'fetchFolder');
@@ -116,19 +116,15 @@ describe('directory-metadata-write-coordination', () => {
   });
 });
 
-function staleFile({ folderUuid }: { folderUuid: string }): FileSyncDto {
+function staleFile({ folderUuid }: { folderUuid: string }): FileSyncMappingDto {
   return {
     uuid: 'stale-file',
-    name: 'Stale',
     type: 'txt',
     size: '10',
     bucket: 'bucket',
     fileId: 'file-id',
-    folderId: 0,
     folderUuid,
-    encryptVersion: '',
     userId: 1,
-    creationTime: '',
     modificationTime: '2026-06-01T11:00:00.000Z',
     createdAt: '2026-06-01T11:00:00.000Z',
     updatedAt: '2026-06-01T11:00:00.000Z',
@@ -137,25 +133,18 @@ function staleFile({ folderUuid }: { folderUuid: string }): FileSyncDto {
   };
 }
 
-function staleFolder({ parentUuid }: { parentUuid: string }): FolderSyncDto {
+function staleFolder({ parentUuid }: { parentUuid: string }): FolderSyncMappingDto {
   return {
     uuid: 'stale-folder',
-    name: 'Stale folder',
     type: 'folder',
     bucket: 'bucket',
     createdAt: '2026-06-01T11:00:00.000Z',
     updatedAt: '2026-06-01T11:00:00.000Z',
     plainName: 'Stale folder',
-    size: 0,
-    creationTime: '',
-    modificationTime: '2026-06-01T11:00:00.000Z',
     status: 'EXISTS',
     removed: false,
     deleted: false,
-    parentId: 0,
     parentUuid,
-    parent: {},
     userId: 1,
-    encryptVersion: '',
   };
 }

@@ -2,7 +2,7 @@ import { partialSpyOn, call } from 'tests/vitest/utils.helper';
 
 import * as createOrUpdateFolderModule from '../../../infra/sqlite/services/folder/create-or-update-folder-by-batch';
 import { persistFoldersSyncBatch } from './persist-folders-sync-batch';
-import type { FolderSyncDto } from './types';
+import type { FolderSyncMappingDto } from './types';
 
 describe('persist-folders-sync-batch', () => {
   const createOrUpdateMock = partialSpyOn(createOrUpdateFolderModule, 'createOrUpdateFolderByBatch');
@@ -14,26 +14,19 @@ describe('persist-folders-sync-batch', () => {
   it('should map items and call createOrUpdateFolderByBatch', async () => {
     // Given
     createOrUpdateMock.mockResolvedValue({ data: [] });
-    const items = [
+    const items: FolderSyncMappingDto[] = [
       {
         uuid: 'f1',
-        name: 'Folder 1',
         type: 'folder',
         bucket: 'b1',
         createdAt: '',
         updatedAt: '',
         plainName: 'Folder 1',
-        size: 0,
-        creationTime: '',
-        modificationTime: '',
-        status: 'EXISTS' as const,
+        status: 'EXISTS',
         removed: false,
         deleted: false,
-        parentId: 0,
         parentUuid: '',
-        parent: {},
         userId: 1,
-        encryptVersion: '',
       },
     ];
 
@@ -57,7 +50,7 @@ describe('persist-folders-sync-batch', () => {
     // Given
     const error = new Error('Database write error');
     createOrUpdateMock.mockResolvedValue({ error });
-    const items: FolderSyncDto[] = [];
+    const items: FolderSyncMappingDto[] = [];
 
     // When
     const result = await persistFoldersSyncBatch({ items });

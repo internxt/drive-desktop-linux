@@ -1,8 +1,8 @@
 import { toDriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import type { RemoteSyncedFile } from '../../../apps/main/remote-sync/helpers';
-import type { FileSyncDto } from './types';
+import type { FileSyncMappingDto } from './types';
 
-export function mapFile(dto: FileSyncDto): RemoteSyncedFile {
+export function mapFile(dto: FileSyncMappingDto): RemoteSyncedFile {
   return {
     uuid: dto.uuid,
     fileId: dto.fileId ?? '',
