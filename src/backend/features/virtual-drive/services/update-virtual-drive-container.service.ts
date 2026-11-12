@@ -3,7 +3,7 @@ import { RemoteItemsGenerator } from '../../../../context/virtual-drive/remoteTr
 import { FolderRepositorySynchronizer } from '../../../../context/virtual-drive/folders/application/FolderRepositorySynchronizer/FolderRepositorySynchronizer';
 import { FileRepositorySynchronizer } from '../../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
 import { StorageRemoteChangesSyncher } from '../../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
-import { ServerFolderStatus } from '../../../../context/shared/domain/ServerFolder';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { User } from '../../../../apps/main/types';
 import { Container } from 'diod';
@@ -17,7 +17,7 @@ export async function updateVirtualDriveContainer({ container, user }: { contain
     ]);
 
     const deletedFolderIds = new Set(
-      allRemoteItems.folders.filter((f) => f.status !== ServerFolderStatus.EXISTS).map((f) => f.id),
+      allRemoteItems.folders.filter((f) => f.status !== DriveItemStatus.EXISTS).map((f) => f.id),
     );
 
     await Promise.all([

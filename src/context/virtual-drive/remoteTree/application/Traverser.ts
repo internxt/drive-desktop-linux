@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { ServerFile, ServerFileStatus } from '../../../shared/domain/ServerFile';
-import { ServerFolder, ServerFolderStatus } from '../../../shared/domain/ServerFolder';
+import { ServerFile } from '../../../shared/domain/ServerFile';
+import { ServerFolder } from '../../../shared/domain/ServerFolder';
 import { createFileFromServerFile } from './FileCreatorFromServerFile';
 import { createFolderFromServerFolder } from '../../folders/application/create/FolderCreatorFromServerFolder';
 import { Folder } from '../../folders/domain/Folder';
@@ -17,12 +17,12 @@ type Items = {
 @Service()
 export class Traverser {
   constructor(
-    private readonly fileStatusesToFilter: Array<ServerFileStatus>,
-    private readonly folderStatusesToFilter: Array<ServerFolderStatus>,
+    private readonly fileStatusesToFilter: Array<DriveItemStatus>,
+    private readonly folderStatusesToFilter: Array<DriveItemStatus>,
   ) {}
 
   static existingItems(): Traverser {
-    return new Traverser([ServerFileStatus.EXISTS], [ServerFolderStatus.EXISTS]);
+    return new Traverser([DriveItemStatus.EXISTS], [DriveItemStatus.EXISTS]);
   }
 
   private createRootFolder(id: number, rootFolderUuid: string): Folder {
