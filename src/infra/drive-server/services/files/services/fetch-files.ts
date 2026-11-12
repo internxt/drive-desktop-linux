@@ -1,4 +1,3 @@
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import type { SynchronizationPageRequest } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { DriveServerError } from '../../../drive-server.error';
