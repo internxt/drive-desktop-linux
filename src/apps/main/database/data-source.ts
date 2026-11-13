@@ -6,6 +6,7 @@ import { TypeOrmStorageFile } from '../../../context/storage/StorageFiles/infras
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../core/electron/paths';
 import sqlite3 from 'better-sqlite3';
+import { resetAppDataSourceBootstrapState } from '../../../apps/main/database/app-data-source-bootstrap-state';
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
