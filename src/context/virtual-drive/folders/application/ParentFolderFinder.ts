@@ -3,7 +3,7 @@ import { Path } from '../../../shared/domain/value-objects/Path';
 import { FolderNotFoundError } from '../domain/errors/FolderNotFoundError';
 import { Folder } from '../domain/Folder';
 import { FolderRepository } from '../domain/FolderRepository';
-import { FolderStatuses } from '../domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 @Service()
 export class ParentFolderFinder {
@@ -12,7 +12,7 @@ export class ParentFolderFinder {
   async run(path: Path): Promise<Folder> {
     const result = this.repository.matchingPartial({
       path: path.dirname(),
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     if (!result || result.length === 0) {

@@ -26,7 +26,6 @@ describe('findBackupFolderByName', () => {
 
     call(mockedFetchFolder).toStrictEqual('device-uuid');
     expect(result).toStrictEqual({
-      id: 2,
       name: 'Photos',
       uuid: 'photos-uuid',
     });

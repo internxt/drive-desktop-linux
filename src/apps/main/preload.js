@@ -211,11 +211,11 @@ contextBridge.exposeInMainWorld('electron', {
   getBackupFatalErrors() {
     return ipcRenderer.invoke('get-backup-fatal-errors');
   },
-  getBackupErrorByFolder(folderId) {
-    return ipcRenderer.invoke('get-backup-error-by-folder', folderId);
+  getBackupErrorByFolder(folderUuid) {
+    return ipcRenderer.invoke('get-backup-error-by-folder', folderUuid);
   },
-  deleteBackupError(folderId) {
-    return ipcRenderer.invoke('delete-backup-error', folderId);
+  deleteBackupError(folderUuid) {
+    return ipcRenderer.invoke('delete-backup-error', folderUuid);
   },
   onBackupFatalErrorsChanged(func) {
     const eventName = 'backup-fatal-errors-changed';
@@ -448,5 +448,17 @@ contextBridge.exposeInMainWorld('electron', {
     const callbackWrapper = (_, info) => callback(info);
     ipcRenderer.on(eventName, callbackWrapper);
     return () => ipcRenderer.removeListener(eventName, callbackWrapper);
+  },
+  getClientCompatibility() {
+    return ipcRenderer.invoke('get-client-compatibility');
+  },
+  onClientCompatibilityChange(callback) {
+    const eventName = 'client-compatibility-changed';
+    const callbackWrapper = (_, state) => callback(state);
+    ipcRenderer.on(eventName, callbackWrapper);
+    return () => ipcRenderer.removeListener(eventName, callbackWrapper);
+  },
+  updateApp() {
+    return ipcRenderer.invoke('update-app');
   },
 });

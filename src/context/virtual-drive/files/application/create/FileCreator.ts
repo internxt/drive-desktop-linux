@@ -1,6 +1,6 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { basename } from 'path';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { ParentFolderFinder } from '../../../folders/application/ParentFolderFinder';
 import { EventBus } from '../../../shared/domain/EventBus';
@@ -11,7 +11,6 @@ import { FileSize } from '../../domain/FileSize';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 import { PersistedFileData, RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { FileContentsId } from '../../domain/FileContentsId';
-import { FileFolderId } from '../../domain/FileFolderId';
 import { runAfterParentCreations } from '../../../folders/application/create/PendingFolderCreationTracker';
 import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
 import { createTransientErrorHandler } from '../../../../../backend/common/rate-limit/transient-error-handler';
@@ -70,27 +69,18 @@ export class FileCreator {
     const fileSize = new FileSize(size);
 
     const folder = await this.parentFolderFinder.run(filePath);
-    const fileFolderId = new FileFolderId(folder.id);
 
-    // utimensat may have asked for a time while this file was still staged, in
-    // which case it is carried into the CREATE call rather than applied after.
     const requestedModificationTime = this.pendingModificationTimes.take(filePath.value);
 
     const { data: persistedFile, error } = await this.persistWithRetry({
       filePath,
       fileContentsId,
       fileSize,
-      fileFolderId,
       folderUuid: folder.uuid,
       requestedModificationTime,
     });
 
     if (error) {
-      // The time was taken before the call, so that every retry inside
-      // persistWithRetry sends the same value. If the create did not happen at
-      // all, put it back: the staged copy survives a failed upload and the next
-      // release will create the file, which should still carry the time the user
-      // asked for rather than the moment that retry happened to succeed.
       if (requestedModificationTime) {
         this.pendingModificationTimes.set(filePath.value, requestedModificationTime);
       }
@@ -98,13 +88,12 @@ export class FileCreator {
       throw error;
     }
 
-    const { modificationTime, id, uuid, createdAt } = persistedFile;
+    const { modificationTime, uuid, createdAt } = persistedFile;
 
     return File.create({
-      id,
       uuid,
       contentsId: fileContentsId.value,
-      folderId: fileFolderId.value,
+      folderUuid: folder.uuid,
       createdAt,
       modificationTime,
       path: filePath.value,
@@ -117,14 +106,12 @@ export class FileCreator {
     filePath,
     fileContentsId,
     fileSize,
-    fileFolderId,
     folderUuid,
     requestedModificationTime,
   }: {
     filePath: FilePath;
     fileContentsId: FileContentsId;
     fileSize: FileSize;
-    fileFolderId: FileFolderId;
     folderUuid: string;
     requestedModificationTime?: Date;
   }): Promise<Result<PersistedFileData, DriveDesktopError>> {
@@ -134,7 +121,6 @@ export class FileCreator {
           contentsId: fileContentsId,
           path: filePath,
           size: fileSize,
-          folderId: fileFolderId,
           folderUuid,
           modificationTime: requestedModificationTime,
         });

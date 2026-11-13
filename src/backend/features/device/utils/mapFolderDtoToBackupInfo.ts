@@ -7,7 +7,6 @@ export function mapFolderDtoToBackupInfo(backup: FolderDtoWithPathname): BackupI
   return {
     name: backup.plainName,
     pathname: createAbsolutePath(backup.pathname),
-    folderId: backup.id,
     folderUuid: backup.uuid,
     tmpPath: app.getPath('temp'),
     backupsBucket: backup.bucket,

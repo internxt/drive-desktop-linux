@@ -46,7 +46,6 @@ describe('virtual-drive.service', () => {
     }),
   } as unknown as Container;
   const user: User = mockDeep<User>({
-    root_folder_id: 1,
     rootFolderId: 'root-folder-id',
   });
 

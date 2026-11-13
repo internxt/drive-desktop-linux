@@ -2,7 +2,7 @@ import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { SingleFolderMatchingSearcher } from '../../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
 import { Folder, FolderAttributes } from '../../../../../../context/virtual-drive/folders/domain/Folder';
-import { FolderStatuses } from '../../../../../../context/virtual-drive/folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FuseCodes } from '../../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { handleFolderRenameIntent } from './handle-folder-rename-intent';
@@ -11,13 +11,11 @@ import * as moveFolderModule from './move-folder';
 import { call, calls, partialSpyOn } from '../../../../../../../tests/vitest/utils.helper';
 
 const folderAttrs: FolderAttributes = {
-  id: 1,
   uuid: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-  parentId: 0,
   path: '/old/folder',
   updatedAt: new Date().toISOString(),
   createdAt: new Date().toISOString(),
-  status: FolderStatuses.EXISTS,
+  status: DriveItemStatus.EXISTS,
 };
 
 describe('handle-folder-rename-intent', () => {
@@ -116,6 +114,6 @@ describe('handle-folder-rename-intent', () => {
     await handleFolderRenameIntent(props);
 
     // Then
-    call(searcherMock.run).toStrictEqual({ path: props.src, status: FolderStatuses.EXISTS });
+    call(searcherMock.run).toStrictEqual({ path: props.src, status: DriveItemStatus.EXISTS });
   });
 });

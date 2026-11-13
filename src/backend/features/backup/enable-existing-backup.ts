@@ -8,7 +8,7 @@ import { Device } from './types/Device';
 import { AbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { PATHS } from '../../../core/electron/paths';
 import { Result } from '../../../context/shared/domain/Result';
-import { BackupEntry } from './types/BackupEntry';
+import { BackupEntry, StoredBackupEntry } from './types/BackupEntry';
 
 type Props = {
   pathname: AbsolutePath;
@@ -20,10 +20,10 @@ async function resolveBackupEntry({
   backup,
 }: {
   pathname: AbsolutePath;
-  backup: BackupEntry;
+  backup: StoredBackupEntry;
 }): Promise<Result<BackupEntry, Error>> {
   if (backup.folderUuid) {
-    return { data: backup };
+    return { data: { enabled: backup.enabled, folderUuid: backup.folderUuid } };
   }
 
   return migrateBackupEntryIfNeeded({ pathname, backup });
@@ -46,7 +46,6 @@ function buildBackupInfo({
   const { base } = parse(pathname);
   return {
     folderUuid: backup.folderUuid,
-    folderId: backup.folderId,
     pathname,
     name: base,
     tmpPath: PATHS.TEMPORAL_FOLDER,

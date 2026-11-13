@@ -17,7 +17,6 @@ export type User = {
   publicKey: string | Record<string, never>;
   registerCompleted: boolean;
   revocateKey: string | Record<string, never>;
-  root_folder_id: number;
   /** the uuid of the root folder */
   rootFolderId: string;
   sharedWorkspace: boolean;

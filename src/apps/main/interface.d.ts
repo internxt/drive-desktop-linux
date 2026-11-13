@@ -155,7 +155,7 @@ export interface IElectronAPI {
   };
   getVirtualDriveRoot(): Promise<string>;
   chooseSyncRootWithDialog(): Promise<ChooseSyncRootResult>;
-  getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
+  getBackupErrorByFolder(folderUuid: string): Promise<BackupErrorRecord | undefined>;
   getLastBackupHadIssues(): Promise<boolean>;
   onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
   onMarketingNotifications(fn: (notifications: Array<UserNotification>) => void): () => void;
@@ -166,6 +166,11 @@ export interface IElectronAPI {
   getUpdateStatus(): Promise<{ version: string } | null>;
   getFileManagerAvailability(): Promise<boolean>;
   onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
+  getClientCompatibility(): Promise<import('@internxt/drive-desktop-core/build/backend').ClientCompatibilityState>;
+  onClientCompatibilityChange(
+    callback: (state: import('@internxt/drive-desktop-core/build/backend').ClientCompatibilityState) => void,
+  ): () => void;
+  updateApp(): Promise<void>;
   getRemoteSyncStatus(): Promise<import('./remote-sync/helpers').RemoteSyncStatus>;
   onRemoteSyncStatusChange(callback: (status: import('./remote-sync/helpers').RemoteSyncStatus) => void): () => void;
   getVirtualDriveStatus(): Promise<import('../../backend/features/virtual-drive').FuseDriveStatus>;
@@ -201,7 +206,7 @@ export interface IElectronAPI {
     discoveredBackups: () => Promise<void>;
   };
   onBackupFailed: (callback: (error: { message: string; cause: string }) => void) => () => void;
-  deleteBackupError: (folderId: number) => Promise<void>;
+  deleteBackupError: (folderUuid: string) => Promise<void>;
 }
 
 declare global {

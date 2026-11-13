@@ -95,7 +95,7 @@ declare interface Window {
 
     getBackupFatalErrors(): Promise<Array<BackupErrorRecord>>;
 
-    getBackupErrorByFolder(folderId: number): Promise<BackupErrorRecord | undefined>;
+    getBackupErrorByFolder(folderUuid: string): Promise<BackupErrorRecord | undefined>;
 
     getVirtualDriveRoot(): Promise<string>;
 
@@ -140,7 +140,7 @@ declare interface Window {
 
     getLastBackupHadIssues: () => Promise<boolean>;
 
-    deleteBackupError(folderId: number): Promise<void>;
+    deleteBackupError(folderUuid: string): Promise<void>;
 
     onBackupFatalErrorsChanged(fn: (backupErrors: Array<BackupErrorRecord>) => void): () => void;
 
@@ -226,5 +226,10 @@ declare interface Window {
     getUpdateStatus(): Promise<{ version: string } | null>;
     getFileManagerAvailability(): Promise<boolean>;
     onUpdateAvailable(callback: (info: { version: string }) => void): () => void;
+    getClientCompatibility(): Promise<import('@internxt/drive-desktop-core/build/backend').ClientCompatibilityState>;
+    onClientCompatibilityChange(
+      callback: (state: import('@internxt/drive-desktop-core/build/backend').ClientCompatibilityState) => void,
+    ): () => void;
+    updateApp(): Promise<void>;
   };
 }

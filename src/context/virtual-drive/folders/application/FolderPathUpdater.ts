@@ -1,9 +1,8 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Folder } from '../domain/Folder';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderRepository } from '../domain/FolderRepository';
-import { FolderStatuses } from '../domain/FolderStatus';
 import { ActionNotPermittedError } from '../domain/errors/ActionNotPermittedError';
 import { FolderNotFoundError } from '../domain/errors/FolderNotFoundError';
 import { PathHasNotChangedError } from '../domain/errors/PathHasNotChangedError';
@@ -21,7 +20,7 @@ export class FolderPathUpdater {
   async run(uuid: Folder['uuid'], posixRelativePath: string) {
     const folder = this.repository.matchingPartial({
       uuid,
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     })[0];
 
     if (!folder) {

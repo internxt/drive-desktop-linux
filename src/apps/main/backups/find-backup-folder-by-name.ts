@@ -13,7 +13,6 @@ export async function findBackupFolderByName({ deviceUuid, folderName }: Props) 
   if (!existingFolder) return;
 
   return {
-    id: existingFolder.id,
     name: existingFolder.plainName,
     uuid: existingFolder.uuid,
   };

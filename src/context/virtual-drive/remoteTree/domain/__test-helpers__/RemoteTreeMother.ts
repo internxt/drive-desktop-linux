@@ -10,7 +10,6 @@ import { FolderNameMother } from '../../../../../context/shared/domain/__test-he
 export class RemoteTreeMother {
   static onlyRoot(): RemoteTree {
     const root = FolderMother.fromPartial({
-      parentId: null,
       path: '/',
       status: FolderStatus.Exists.value,
     });

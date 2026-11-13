@@ -2,7 +2,7 @@ import { Service } from 'diod';
 import { Folder } from '../domain/Folder';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderRepository } from '../domain/FolderRepository';
-import { FolderStatuses } from '../domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { ActionNotPermittedError } from '../domain/errors/ActionNotPermittedError';
 import { ParentFolderFinder } from './ParentFolderFinder';
 import { FolderDescendantsPathUpdater } from './FolderDescendantsPathUpdater';
@@ -35,7 +35,7 @@ export class FolderMover {
   async run(folder: Folder, destination: FolderPath): Promise<void> {
     const resultFolder = this.repository.matchingPartial({
       path: destination.value,
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     const shouldBeMerge = resultFolder.length > 0;

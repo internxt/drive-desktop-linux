@@ -1,15 +1,21 @@
 import { DataSource } from 'typeorm';
-import BetterSqlite3 from 'better-sqlite3';
 import { DriveFile } from './entities/DriveFile';
 import { DriveFolder } from './entities/DriveFolder';
 import { ScannedItem } from './entities/ScannedItem';
 import { TypeOrmStorageFile } from '../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/entities/TypeOrmStorageFile';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../core/electron/paths';
+import sqlite3 from 'better-sqlite3';
+import { resetAppDataSourceBootstrapState } from '../../../apps/main/database/app-data-source-bootstrap-state';
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
-  driver: BetterSqlite3,
+  /**
+   * TypeORM 1.x loads the driver with a dynamic require(name) that webpack replaces with an empty context, so the
+   * packaged app fails with "SQLite package has not been found". A literal require is resolved by webpack's
+   * externals and loads the native module at runtime.
+   */
+  driver: sqlite3,
   database: PATHS.DATABASE,
   logging: false,
   synchronize: true,
@@ -34,4 +40,6 @@ export async function resetAppDataSourceOnLogout() {
   } catch (error) {
     logger.error({ msg: 'Error destroying database connection on user logout', error });
   }
+
+  resetAppDataSourceBootstrapState();
 }

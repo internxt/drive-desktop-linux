@@ -3,9 +3,8 @@ import { MakeStorageFileAvaliableOffline } from '../../../StorageFiles/applicati
 import { FilesByPartialSearcher } from '../../../../virtual-drive/files/application/search/FilesByPartialSearcher';
 import { SingleFolderMatchingFinder } from '../../../../virtual-drive/folders/application/SingleFolderMatchingFinder';
 import { FoldersSearcherByPartial } from '../../../../virtual-drive/folders/application/search/FoldersSearcherByPartial';
-import { FolderStatuses } from '../../../../virtual-drive/folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Folder } from '../../../../virtual-drive/folders/domain/Folder';
-import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';
 
 @Service()
 export class MakeFolderAvaliableOffline {
@@ -18,15 +17,15 @@ export class MakeFolderAvaliableOffline {
 
   private async makeFolderAvaliableOffline(folder: Folder): Promise<void> {
     const files = await this.filesByPartialSearcher.run({
-      folderId: folder.id,
-      status: FileStatuses.EXISTS,
+      folderUuid: folder.uuid,
+      status: DriveItemStatus.EXISTS,
     });
 
     const filesMadeAvaliable = files.map((file) => this.makeStorageFileAvaliableOffline.run(file.path));
 
     const subfolders = await this.foldersSearcherByPartial.run({
-      parentId: folder.id,
-      status: FolderStatuses.EXISTS,
+      parentUuid: folder.uuid,
+      status: DriveItemStatus.EXISTS,
     });
 
     const subfoldersMadeAvaliable = subfolders.map((subfolder) => this.makeFolderAvaliableOffline(subfolder));
@@ -37,7 +36,7 @@ export class MakeFolderAvaliableOffline {
   async run(path: string): Promise<void> {
     const folder = await this.singleFolderFinder.run({
       path,
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     await this.makeFolderAvaliableOffline(folder);

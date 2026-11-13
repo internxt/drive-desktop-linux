@@ -11,7 +11,7 @@ import { DirectoryStateRepository } from '../virtual-drive/services/lazy/directo
 import { synchronizeDirectoryMetadata } from '../virtual-drive/services/lazy/synchronize-directory-metadata';
 import { persistFilesSyncBatch } from './persist-files-sync-batch';
 import { persistFoldersSyncBatch } from './persist-folders-sync-batch';
-import type { FileSyncDto, FolderSyncDto } from './types';
+import type { FileSyncMappingDto, FolderSyncMappingDto } from './types';
 
 describe('directory-metadata-write-coordination', () => {
   const fetchFolderMock = partialSpyOn(fetchFolderModule, 'fetchFolder');
@@ -61,7 +61,7 @@ describe('directory-metadata-write-coordination', () => {
     getFreshDirectoryStatesMock.mockImplementation(async () => {
       events.push('snapshot');
       if (!events.includes('mark-loaded')) return new Map();
-      return new Map([[folder.id, loadedAt]]);
+      return new Map([[folder.uuid, loadedAt]]);
     });
     createOrUpdateFileMock.mockImplementation(async ({ files }) => {
       events.push(files?.some((file) => file?.uuid === 'stale-file') ? 'write-stale-file' : 'write-files');
@@ -72,7 +72,7 @@ describe('directory-metadata-write-coordination', () => {
     await vi.waitFor(() => {
       expect(events).toContain('mark-loaded');
     });
-    const persist = persistFilesSyncBatch({ items: [staleFile({ folderId: folder.id })] });
+    const persist = persistFilesSyncBatch({ items: [staleFile({ folderUuid: folder.uuid })] });
     await Promise.resolve();
 
     expect(events).toStrictEqual(['write-files', 'mark-loaded']);
@@ -93,7 +93,7 @@ describe('directory-metadata-write-coordination', () => {
     getFreshDirectoryStatesMock.mockImplementation(async () => {
       events.push('snapshot');
       if (!events.includes('mark-loaded')) return new Map();
-      return new Map([[folder.id, loadedAt]]);
+      return new Map([[folder.uuid, loadedAt]]);
     });
     createOrUpdateFolderMock.mockImplementation(async ({ folders }) => {
       events.push(folders?.some((entry) => entry?.uuid === 'stale-folder') ? 'write-stale-folder' : 'write-folders');
@@ -104,7 +104,7 @@ describe('directory-metadata-write-coordination', () => {
     await vi.waitFor(() => {
       expect(events).toContain('mark-loaded');
     });
-    const persist = persistFoldersSyncBatch({ items: [staleFolder({ parentId: folder.id })] });
+    const persist = persistFoldersSyncBatch({ items: [staleFolder({ parentUuid: folder.uuid })] });
     await Promise.resolve();
 
     expect(events).toStrictEqual(['write-folders', 'mark-loaded']);
@@ -116,20 +116,15 @@ describe('directory-metadata-write-coordination', () => {
   });
 });
 
-function staleFile({ folderId }: { folderId: number }): FileSyncDto {
+function staleFile({ folderUuid }: { folderUuid: string }): FileSyncMappingDto {
   return {
-    id: 1,
     uuid: 'stale-file',
-    name: 'Stale',
     type: 'txt',
     size: '10',
     bucket: 'bucket',
     fileId: 'file-id',
-    folderId,
-    folderUuid: 'folder-uuid',
-    encryptVersion: '',
+    folderUuid,
     userId: 1,
-    creationTime: '',
     modificationTime: '2026-06-01T11:00:00.000Z',
     createdAt: '2026-06-01T11:00:00.000Z',
     updatedAt: '2026-06-01T11:00:00.000Z',
@@ -138,26 +133,18 @@ function staleFile({ folderId }: { folderId: number }): FileSyncDto {
   };
 }
 
-function staleFolder({ parentId }: { parentId: number }): FolderSyncDto {
+function staleFolder({ parentUuid }: { parentUuid: string }): FolderSyncMappingDto {
   return {
-    id: 9,
     uuid: 'stale-folder',
-    name: 'Stale folder',
     type: 'folder',
     bucket: 'bucket',
     createdAt: '2026-06-01T11:00:00.000Z',
     updatedAt: '2026-06-01T11:00:00.000Z',
     plainName: 'Stale folder',
-    size: 0,
-    creationTime: '',
-    modificationTime: '2026-06-01T11:00:00.000Z',
     status: 'EXISTS',
     removed: false,
     deleted: false,
-    parentId,
-    parentUuid: 'parent-uuid',
-    parent: {},
+    parentUuid,
     userId: 1,
-    encryptVersion: '',
   };
 }

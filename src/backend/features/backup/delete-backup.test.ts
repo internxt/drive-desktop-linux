@@ -12,7 +12,6 @@ describe('delete-backup', () => {
 
   const backup = {
     folderUuid: 'folder-uuid',
-    folderId: 1,
     tmpPath: '/tmp',
     backupsBucket: 'bucket',
     pathname: createAbsolutePath('/home/dev/Documents'),
@@ -43,7 +42,6 @@ describe('delete-backup', () => {
       '/home/dev/Documents': backup,
       '/home/dev/Pictures': {
         ...backup,
-        folderId: 2,
         folderUuid: 'folder-uuid-2',
         pathname: createAbsolutePath('/home/dev/Pictures'),
         name: 'Pictures',
@@ -57,7 +55,6 @@ describe('delete-backup', () => {
       {
         '/home/dev/Pictures': {
           ...backup,
-          folderId: 2,
           folderUuid: 'folder-uuid-2',
           pathname: createAbsolutePath('/home/dev/Pictures'),
           name: 'Pictures',

@@ -104,8 +104,9 @@ describe('remote-sync-race-conditions', () => {
 
   describe('stale data protection against recent lazy sync', () => {
     it('does not overwrite freshly lazily-loaded files with older background sync batches', async () => {
+      const freshFolderUuid = 'fresh-folder-uuid';
       const freshLoadedAt = new Date('2026-06-01T12:00:00.000Z');
-      mockedGetFreshDirectoryStates.mockResolvedValue(new Map([[42, freshLoadedAt]]));
+      mockedGetFreshDirectoryStates.mockResolvedValue(new Map([[freshFolderUuid, freshLoadedAt]]));
 
       mockedGet.mockImplementation(async (endpoint: unknown) => {
         if (endpoint === '/folders/sync') return { data: { folders: [], nextCursor: null } };
@@ -114,13 +115,12 @@ describe('remote-sync-race-conditions', () => {
             data: {
               files: [
                 {
-                  id: 1,
                   uuid: 'stale-uuid',
                   fileId: 'f-1',
                   type: 'txt',
                   size: '100',
                   bucket: 'b',
-                  folderId: 42,
+                  folderUuid: freshFolderUuid,
                   userId: 1,
                   modificationTime: '2026-06-01T10:00:00.000Z',
                   createdAt: '2026-06-01T10:00:00.000Z',
@@ -129,13 +129,12 @@ describe('remote-sync-race-conditions', () => {
                   status: 'EXISTS',
                 },
                 {
-                  id: 2,
                   uuid: 'unmanaged-uuid',
                   fileId: 'f-2',
                   type: 'txt',
                   size: '200',
                   bucket: 'b',
-                  folderId: 999, // not in freshDirectoryStates
+                  folderUuid: 'unmanaged-folder-uuid',
                   userId: 1,
                   modificationTime: '2026-06-01T10:00:00.000Z',
                   createdAt: '2026-06-01T10:00:00.000Z',
@@ -160,8 +159,9 @@ describe('remote-sync-race-conditions', () => {
     });
 
     it('persists genuinely newer remote files and invalidates cached directory state', async () => {
+      const freshFolderUuid = 'fresh-folder-uuid';
       const freshLoadedAt = new Date('2026-06-01T12:00:00.000Z');
-      mockedGetFreshDirectoryStates.mockResolvedValue(new Map([[42, freshLoadedAt]]));
+      mockedGetFreshDirectoryStates.mockResolvedValue(new Map([[freshFolderUuid, freshLoadedAt]]));
 
       mockedGet.mockImplementation(async (endpoint: unknown) => {
         if (endpoint === '/folders/sync') return { data: { folders: [], nextCursor: null } };
@@ -170,13 +170,12 @@ describe('remote-sync-race-conditions', () => {
             data: {
               files: [
                 {
-                  id: 3,
                   uuid: 'newer-uuid',
                   fileId: 'f-3',
                   type: 'txt',
                   size: '300',
                   bucket: 'b',
-                  folderId: 42,
+                  folderUuid: freshFolderUuid,
                   userId: 1,
                   modificationTime: '2026-06-01T13:00:00.000Z',
                   createdAt: '2026-06-01T10:00:00.000Z',
@@ -197,7 +196,7 @@ describe('remote-sync-race-conditions', () => {
       expect(mockedCreateOrUpdateFileByBatch).toHaveBeenCalledWith({
         files: [expect.objectContaining({ uuid: 'newer-uuid' })],
       });
-      expect(mockedInvalidate).toHaveBeenCalledWith({ folderId: 42, statusScope: 'EXISTS' });
+      expect(mockedInvalidate).toHaveBeenCalledWith({ folderUuid: freshFolderUuid, statusScope: 'EXISTS' });
     });
   });
 

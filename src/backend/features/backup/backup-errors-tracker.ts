@@ -3,20 +3,20 @@ import { broadcastToWindows } from '../../../apps/main/windows';
 import { BackupErrorRecord } from './backup.types';
 
 export class BackupErrorsTracker {
-  private errors: Map<number, BackupErrorRecord> = new Map();
+  private errors: Map<string, BackupErrorRecord> = new Map();
 
   clear() {
     this.errors = new Map();
     this.broadcast();
   }
 
-  add(folderId: number, error: BackupErrorRecord) {
-    this.errors.set(folderId, error);
+  add(folderUuid: string, error: BackupErrorRecord) {
+    this.errors.set(folderUuid, error);
     this.broadcast();
   }
 
-  get(folderId: number): BackupErrorRecord | undefined {
-    return this.errors.get(folderId);
+  get(folderUuid: string): BackupErrorRecord | undefined {
+    return this.errors.get(folderUuid);
   }
 
   getAll(): BackupErrorRecord[] {

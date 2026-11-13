@@ -12,6 +12,9 @@ const {
   initializeCurrentUserMock,
   configGetMock,
   waitForLogoutToFinishMock,
+  isClientUnsupportedMock,
+  showClientCompatibilityWidgetMock,
+  bootstrapAppDataSourceMock,
 } = vi.hoisted(() => ({
   appFocusMock: vi.fn(),
   eventBusEmitMock: vi.fn(),
@@ -24,6 +27,9 @@ const {
   initializeCurrentUserMock: vi.fn(),
   configGetMock: vi.fn(),
   waitForLogoutToFinishMock: vi.fn(),
+  isClientUnsupportedMock: vi.fn(() => false),
+  showClientCompatibilityWidgetMock: vi.fn(),
+  bootstrapAppDataSourceMock: vi.fn(),
 }));
 
 vi.mock('electron', () => ({
@@ -75,8 +81,18 @@ vi.mock('../../../../core/electron/paths', () => ({
   },
 }));
 
+vi.mock('../../../../backend/features/client-compatibility', () => ({ isClientUnsupported: isClientUnsupportedMock }));
+
+vi.mock('../../../../backend/features/client-compatibility/services/show-client-compatibility-widget', () => ({
+  showClientCompatibilityWidget: showClientCompatibilityWidgetMock,
+}));
+
 vi.mock('../logout', () => ({
   waitForLogoutToFinish: waitForLogoutToFinishMock,
+}));
+
+vi.mock('../../database/bootstrap-app-data-source', () => ({
+  bootstrapAppDataSource: bootstrapAppDataSourceMock,
 }));
 
 describe('handle-deeplink', () => {
@@ -88,6 +104,7 @@ describe('handle-deeplink', () => {
 
   beforeEach(() => {
     waitForLogoutToFinishMock.mockResolvedValue(undefined);
+    bootstrapAppDataSourceMock.mockResolvedValue(undefined);
     processDeeplinkMock.mockResolvedValue({ mnemonic: 'mnemonic-a', newToken: 'token-a' });
     updateCredentialsMock.mockResolvedValue(undefined);
     initializeCurrentUserMock.mockResolvedValue(undefined);
@@ -111,8 +128,21 @@ describe('handle-deeplink', () => {
     expect(result).toBe(true);
     call(updateCredentialsMock).toStrictEqual({ mnemonic: 'mnemonic-a', newToken: 'token-a' });
     call(setIsLoggedInMock).toBe(true);
+    expect(bootstrapAppDataSourceMock).toHaveBeenCalledTimes(1);
     call(eventBusEmitMock).toBe('USER_LOGGED_IN');
     expect(canHisConfigBeRestoredMock).toHaveBeenCalledWith({ uuid: 'user-a' });
     expect(appFocusMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should log in and show the widget without starting the features when the version is unsupported', async () => {
+    isClientUnsupportedMock.mockReturnValueOnce(true);
+
+    const result = await handleDeeplink({ url: 'internxt://login?ok=true' });
+
+    expect(result).toBe(true);
+    expect(canHisConfigBeRestoredMock).toHaveBeenCalledWith({ uuid: 'user-a' });
+    call(setIsLoggedInMock).toBe(true);
+    expect(showClientCompatibilityWidgetMock).toHaveBeenCalledTimes(1);
+    expect(eventBusEmitMock).not.toHaveBeenCalled();
   });
 });
