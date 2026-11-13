@@ -36,7 +36,7 @@ describe('DevicePill', () => {
   it('should have selected styling when selected is true', () => {
     render(<DevicePill device={mockDevice} selected={true} setSelected={vi.fn()} />);
 
-    const pill = screen.getByTestId('device-pill-1');
+    const pill = screen.getByTestId('device-pill-uuid1');
     expect(pill).toHaveClass('border-gray-10');
     expect(pill).toHaveClass('bg-surface');
     expect(pill).toHaveClass('rounded-lg');
@@ -47,7 +47,7 @@ describe('DevicePill', () => {
 
     render(<DevicePill device={mockDevice} setSelected={mockSetSelected} />);
 
-    const pill = screen.getByTestId('device-pill-1');
+    const pill = screen.getByTestId('device-pill-uuid1');
     fireEvent.click(pill);
 
     expect(mockSetSelected).toHaveBeenCalledWith(mockDevice);

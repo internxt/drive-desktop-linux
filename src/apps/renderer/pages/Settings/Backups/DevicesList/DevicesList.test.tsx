@@ -97,23 +97,18 @@ describe('DevicesList', () => {
       setSelected: setSelectedMock,
     });
 
-    const pill = getByTestId('device-pill-2');
+    const pill = getByTestId('device-pill-uuid2');
     fireEvent.click(pill);
 
-    expect(setSelectedMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 2,
-        name: 'Device 2',
-      }),
-    );
+    expect(setSelectedMock).toHaveBeenCalledWith(mockDevices[1]);
   });
 
   it('should mark the selected device', () => {
     renderComponent({ selected: mockDevices[1] });
     const selectedPillClassnames = 'rounded-lg border border-gray-10 bg-surface shadow-sm dark:bg-gray-5';
 
-    const selectedPill = screen.getByTestId('device-pill-2');
-    const unselectedPill = screen.getByTestId('device-pill-1');
+    const selectedPill = screen.getByTestId('device-pill-uuid2');
+    const unselectedPill = screen.getByTestId('device-pill-uuid1');
 
     expect(selectedPill).toHaveClass(selectedPillClassnames);
     expect(unselectedPill).not.toHaveClass(selectedPillClassnames);
@@ -122,8 +117,8 @@ describe('DevicesList', () => {
   it('should properly mark the current device', () => {
     renderComponent({ current: mockDevices[0] });
 
-    const currentPill = screen.getByTestId('device-pill-1');
-    const notCurrentPill = screen.getByTestId('device-pill-2');
+    const currentPill = screen.getByTestId('device-pill-uuid1');
+    const notCurrentPill = screen.getByTestId('device-pill-uuid2');
 
     expect(currentPill).toBeInTheDocument();
     expect(currentPill).toHaveTextContent('settings.backups.this-device');
