@@ -8,6 +8,13 @@ import { PATHS } from '../../../core/electron/paths';
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
+  /**
+   * TypeORM 1.x loads the driver with a dynamic require(name) that webpack replaces with an empty context, so the
+   * packaged app fails with "SQLite package has not been found". A literal require is resolved by webpack's
+   * externals and loads the native module at runtime.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  driver: require('better-sqlite3'),
   database: PATHS.DATABASE,
   logging: false,
   synchronize: true,
