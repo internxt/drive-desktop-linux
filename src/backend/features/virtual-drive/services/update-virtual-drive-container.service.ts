@@ -4,12 +4,11 @@ import { FolderRepositorySynchronizer } from '../../../../context/virtual-drive/
 import { FileRepositorySynchronizer } from '../../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
 import { StorageRemoteChangesSyncher } from '../../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
 import { ServerFolderStatus } from '../../../../context/shared/domain/ServerFolder';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { User } from '../../../../apps/main/types';
+import { logger, UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { Container } from 'diod';
 
 // This is the old src/apps/drive/fuse/FuseApp.update
-export async function updateVirtualDriveContainer({ container, user }: { container: Container; user: User }) {
+export async function updateVirtualDriveContainer({ container, user }: { container: Container; user: UserDto }) {
   try {
     const [tree, allRemoteItems] = await Promise.all([
       container.get(RemoteTreeBuilder).run(user.root_folder_id, user.rootFolderId),

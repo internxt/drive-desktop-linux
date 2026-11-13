@@ -1,14 +1,13 @@
 import { PathLike } from 'node:fs';
 import type { Device } from './types/Device';
-import { User } from '../../../apps/main/types';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import { getCredentials } from '../../../apps/main/auth/get-credentials';
 import { downloadFolderAsZip } from '../download/download-folder-as-zip';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, UserDto } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '../../../context/shared/domain/Result';
 
 type Props = {
-  user: User;
+  user: UserDto;
   device: Device;
   path: PathLike;
   updateProgress: (progress: number) => void;
