@@ -1,6 +1,6 @@
 {
     "name": "internxt",
-    "version": "2.7.0",
+    "version": "2.7.1",
     "author": "Internxt <hello@internxt.com>",
     "description": "Internxt Drive client UI",
     "main": "./dist/main/main.js",
@@ -48,7 +48,11 @@
         "build:core": "npm --prefix packages/core run build",
         "core:bump": "node scripts/bump-core.js",
         "========== Mail Bridge ==========": "",
-        "build:mail-bridge": "node scripts/download-mail-bridge.cjs"
+        "build:mail-bridge": "node scripts/download-mail-bridge.cjs",
+        "========== Versioning ==========": "",
+        "version:patch": "npm version patch --no-git-tag-version",
+        "version:minor": "npm version minor --no-git-tag-version",
+        "version:major": "npm version major --no-git-tag-version"
     },
     "build": {
         "productName": "Internxt",
