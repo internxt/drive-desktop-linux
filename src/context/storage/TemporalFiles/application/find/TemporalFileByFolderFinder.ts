@@ -1,5 +1,5 @@
 import { Service } from 'diod';
-import { dirname } from 'path';
+import { posix } from 'node:path';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
 import { TemporalFile } from '../../domain/TemporalFile';
 
@@ -8,7 +8,8 @@ export class TemporalFileByFolderFinder {
   constructor(private readonly repository: TemporalFileRepository) {}
 
   async run(path: string): Promise<Array<TemporalFile>> {
-    const paths = await this.repository.matchingDirectory(dirname(path));
+
+    const paths = await this.repository.matchingDirectory(directoryPath(path));
 
     const result = await Promise.all(paths.map((path) => this.repository.find(path)));
 
@@ -21,4 +22,14 @@ export class TemporalFileByFolderFinder {
 
     return documents;
   }
+}
+
+function directoryPath(path: string) {
+  const normalized = posix.normalize(path);
+
+  if (normalized.length > 1 && normalized.endsWith('/')) {
+    return normalized.slice(0, -1);
+  }
+
+  return normalized;
 }
