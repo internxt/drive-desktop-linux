@@ -5,10 +5,16 @@ import { ScannedItem } from './entities/ScannedItem';
 import { TypeOrmStorageFile } from '../../../context/storage/StorageFiles/infrastructure/persistance/repository/typeorm/entities/TypeOrmStorageFile';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { PATHS } from '../../../core/electron/paths';
-import { resetAppDataSourceBootstrapState } from './app-data-source-bootstrap-state';
+import sqlite3 from 'better-sqlite3';
 
 export const AppDataSource = new DataSource({
   type: 'better-sqlite3',
+  /**
+   * TypeORM 1.x loads the driver with a dynamic require(name) that webpack replaces with an empty context, so the
+   * packaged app fails with "SQLite package has not been found". A literal require is resolved by webpack's
+   * externals and loads the native module at runtime.
+   */
+  driver: sqlite3,
   database: PATHS.DATABASE,
   logging: false,
   synchronize: true,
