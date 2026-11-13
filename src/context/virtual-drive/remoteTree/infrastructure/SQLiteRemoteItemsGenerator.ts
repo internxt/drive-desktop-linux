@@ -1,7 +1,7 @@
 import { Service } from 'diod';
 import { getUpdatedRemoteItems, startRemoteSync } from '../../../../apps/main/remote-sync/service';
-import { ServerFile, ServerFileStatus } from '../../../shared/domain/ServerFile';
-import { ServerFolder, ServerFolderStatus } from '../../../shared/domain/ServerFolder';
+import { ServerFile } from '../../../shared/domain/ServerFile';
+import { ServerFolder } from '../../../shared/domain/ServerFolder';
 import { RemoteItemsGenerator } from '../domain/RemoteItemsGenerator';
 
 @Service()
@@ -15,16 +15,15 @@ export class SQLiteRemoteItemsGenerator implements RemoteItemsGenerator {
         createdAt: updatedFile.createdAt,
         encrypt_version: '03-aes',
         fileId: updatedFile.fileId,
-        folderId: updatedFile.folderId,
-        id: updatedFile.id,
+        folderUuid: updatedFile.folderUuid,
         modificationTime: updatedFile.modificationTime,
-        name: updatedFile.name ?? updatedFile.plainName ?? '',
+        name: updatedFile.plainName,
         plainName: updatedFile.plainName,
         size: updatedFile.size,
-        type: updatedFile.type ?? null,
+        type: updatedFile.type ?? '',
         updatedAt: updatedFile.updatedAt,
         userId: updatedFile.userId,
-        status: updatedFile.status as ServerFileStatus,
+        status: updatedFile.status,
         uuid: updatedFile.uuid,
       };
     });
@@ -33,12 +32,11 @@ export class SQLiteRemoteItemsGenerator implements RemoteItemsGenerator {
       return {
         bucket: updatedFolder.bucket ?? null,
         createdAt: updatedFolder.createdAt,
-        id: updatedFolder.id,
-        name: updatedFolder.name ?? updatedFolder.plainName ?? '',
-        parentId: updatedFolder.parentId ?? null,
+        name: updatedFolder.plainName,
+        parentUuid: updatedFolder.parentUuid ?? null,
         updatedAt: updatedFolder.updatedAt,
-        plain_name: updatedFolder.plainName ?? null,
-        status: updatedFolder.status as ServerFolderStatus,
+        plain_name: updatedFolder.plainName,
+        status: updatedFolder.status,
         uuid: updatedFolder.uuid,
       };
     });

@@ -1,4 +1,4 @@
-import { RemoteSyncedFile } from 'src/apps/main/remote-sync/helpers';
+import { RemoteSyncedFile } from '../../../../apps/main/remote-sync/helpers';
 import { FileUuid, SimpleDriveFile, ContentsId } from '../../../../apps/main/database/entities/DriveFile';
 
 type TProps = {
@@ -13,7 +13,6 @@ export function parseData({ data }: TProps): SimpleDriveFile {
     name: data.plainName,
     nameWithExtension,
     extension: data.type,
-    parentId: data.folderId,
     parentUuid: data.folderUuid,
     contentsId: data.fileId as ContentsId,
     size: data.size,

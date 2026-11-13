@@ -8,7 +8,6 @@ import { Device } from '../../backup/types/Device';
  */
 export function mapDeviceAsFolderToDevice(deviceAsFolder: components['schemas']['DeviceAsFolder']): Device {
   return {
-    id: deviceAsFolder.id,
     uuid: deviceAsFolder.uuid,
     name: deviceAsFolder.plainName,
     bucket: deviceAsFolder.bucket,

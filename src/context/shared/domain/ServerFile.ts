@@ -1,23 +1,18 @@
-export enum ServerFileStatus {
-  EXISTS = 'EXISTS',
-  TRASHED = 'TRASHED',
-  REMOVED = 'REMOVED',
-}
+import type { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 export type ServerFile = {
   bucket: string;
   createdAt: string;
   encrypt_version: string;
   fileId: string;
-  folderId: number;
-  id: number;
+  folderUuid: string;
   modificationTime: string;
   name: string;
   size: number;
   type: string;
   updatedAt: string;
   userId: number;
-  status: ServerFileStatus;
+  status: DriveItemStatus;
   plainName?: string;
   uuid: string;
 };

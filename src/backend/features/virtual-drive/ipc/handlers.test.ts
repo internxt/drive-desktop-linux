@@ -19,7 +19,6 @@ describe('virtual-drive handlers', () => {
   const getUserSpy = partialSpyOn(getUserModule, 'getUser');
   const ipcHandleSpy = vi.spyOn(ipcMain, 'handle').mockImplementation(() => undefined as never);
   const user: User = mockDeep<User>({
-    root_folder_id: 1,
     rootFolderId: 'root-uuid',
   });
 

@@ -3,9 +3,7 @@ import { FolderPersistedDto } from '../folders/domain/file-systems/RemoteFileSys
 
 export function mapToFolderPersistedDto(folderDto: FolderDto): FolderPersistedDto {
   return {
-    id: folderDto.id,
     uuid: folderDto.uuid,
-    parentId: folderDto.parentId,
     updatedAt: folderDto.updatedAt,
     createdAt: folderDto.createdAt,
   };

@@ -5,7 +5,7 @@ import { BackupInfo } from './../../../apps/backups/BackupInfo';
 import { Device } from '../backup/types/Device';
 import { FolderDto } from '../../../infra/drive-server/out/dto';
 import { mapFolderDtoToBackupInfo } from './utils/mapFolderDtoToBackupInfo';
-import { findBackupPathnameFromId } from '../backup/find-backup-pathname-from-id';
+import { findBackupPathnameFromUuid } from '../backup/find-backup-pathname-from-uuid';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 
 export async function getBackupsFromDevice(device: Device, isCurrent?: boolean): Promise<Array<BackupInfo>> {
@@ -18,7 +18,7 @@ export async function getBackupsFromDevice(device: Device, isCurrent?: boolean):
     const result = folder.children
       .map((backup: FolderDto) => ({
         ...backup,
-        pathname: findBackupPathnameFromId({ id: backup.id }),
+        pathname: findBackupPathnameFromUuid({ folderUuid: backup.uuid }),
       }))
       .filter((backup): backup is FolderDtoWithPathname => {
         return !!(backup.pathname && backupsList[backup.pathname]?.enabled);
@@ -29,7 +29,6 @@ export async function getBackupsFromDevice(device: Device, isCurrent?: boolean):
     const result = folder.children.map((backup) => ({
       name: backup.plainName,
       pathname: createAbsolutePath(''),
-      folderId: backup.id,
       folderUuid: backup.uuid,
       tmpPath: '',
       backupsBucket: device.bucket,

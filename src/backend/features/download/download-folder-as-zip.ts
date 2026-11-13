@@ -42,7 +42,7 @@ export async function downloadFolderAsZip(
 
   const { tree, folderDecryptedNames, fileDecryptedNames, size } = data;
   tree.plainName = deviceName;
-  folderDecryptedNames[tree.id] = deviceName;
+  folderDecryptedNames[tree.uuid] = deviceName;
   const pendingFolders: { path: string; data: FolderTree }[] = [{ path: '', data: tree }];
   const tempFolderPath = await mkdtemp(join(tmpdir(), 'internxt-backup-download-'));
   const inFlightDownloadedBytesByFileId = new Map<string, number>();
@@ -78,7 +78,7 @@ export async function downloadFolderAsZip(
         data: FolderTree;
       };
       const folderPath =
-        currentFolder.path + (currentFolder.path === '' ? '' : '/') + folderDecryptedNames[currentFolder.data.id];
+        currentFolder.path + (currentFolder.path === '' ? '' : '/') + folderDecryptedNames[currentFolder.data.uuid];
 
       zip.addFolder(folderPath);
 
@@ -90,7 +90,7 @@ export async function downloadFolderAsZip(
         }
 
         const displayFilename = items.getItemDisplayName({
-          name: fileDecryptedNames[file.id],
+          name: fileDecryptedNames[file.uuid],
           type: file.type,
         });
 

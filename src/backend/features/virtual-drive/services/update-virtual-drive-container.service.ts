@@ -3,8 +3,7 @@ import { RemoteItemsGenerator } from '../../../../context/virtual-drive/remoteTr
 import { FolderRepositorySynchronizer } from '../../../../context/virtual-drive/folders/application/FolderRepositorySynchronizer/FolderRepositorySynchronizer';
 import { FileRepositorySynchronizer } from '../../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
 import { StorageRemoteChangesSyncher } from '../../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
-import { ServerFolderStatus } from '../../../../context/shared/domain/ServerFolder';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { User } from '../../../../apps/main/types';
 import { Container } from 'diod';
 
@@ -12,17 +11,17 @@ import { Container } from 'diod';
 export async function updateVirtualDriveContainer({ container, user }: { container: Container; user: User }) {
   try {
     const [tree, allRemoteItems] = await Promise.all([
-      container.get(RemoteTreeBuilder).run(user.root_folder_id, user.rootFolderId),
+      container.get(RemoteTreeBuilder).run(user.rootFolderId),
       container.get(RemoteItemsGenerator).getAll(),
     ]);
 
-    const deletedFolderIds = new Set(
-      allRemoteItems.folders.filter((f) => f.status !== ServerFolderStatus.EXISTS).map((f) => f.id),
+    const deletedFolderUuids = new Set(
+      allRemoteItems.folders.filter((f) => f.status !== DriveItemStatus.EXISTS).map((f) => f.uuid),
     );
 
     await Promise.all([
       container.get(FileRepositorySynchronizer).run(tree.files),
-      container.get(FolderRepositorySynchronizer).run(tree.folders, deletedFolderIds),
+      container.get(FolderRepositorySynchronizer).run(tree.folders, deletedFolderUuids),
       container.get(StorageRemoteChangesSyncher).run(),
     ]);
     logger.debug({ msg: '[VIRTUAL DRIVE] Tree updated successfully' });

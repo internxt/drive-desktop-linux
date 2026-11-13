@@ -1,9 +1,8 @@
 import { Service } from 'diod';
 import { SingleFolderMatchingFinder } from '../../../../virtual-drive/folders/application/SingleFolderMatchingFinder';
 import { FilesByPartialSearcher } from '../../../../virtual-drive/files/application/search/FilesByPartialSearcher';
-import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FoldersSearcherByPartial } from '../../../../virtual-drive/folders/application/search/FoldersSearcherByPartial';
-import { FolderStatuses } from '../../../../virtual-drive/folders/domain/FolderStatus';
 import { Folder } from '../../../../virtual-drive/folders/domain/Folder';
 import { StorageFileId } from '../../../StorageFiles/domain/StorageFileId';
 import { StorageFilesRepository } from '../../../StorageFiles/domain/StorageFilesRepository';
@@ -19,8 +18,8 @@ export class AllFilesInFolderAreAvailableOffline {
 
   private async subfoldersExists(folder: Folder): Promise<boolean> {
     const subfolders = await this.foldersSearcherByPartial.run({
-      parentId: folder.id,
-      status: FolderStatuses.EXISTS,
+      parentUuid: folder.uuid,
+      status: DriveItemStatus.EXISTS,
     });
 
     for (const subfolder of subfolders) {
@@ -35,8 +34,8 @@ export class AllFilesInFolderAreAvailableOffline {
 
   private async filesExists(folder: Folder): Promise<boolean> {
     const files = await this.filesByPartialSearcher.run({
-      folderId: folder.id,
-      status: FileStatuses.EXISTS,
+      folderUuid: folder.uuid,
+      status: DriveItemStatus.EXISTS,
     });
 
     if (files.length === 0) {

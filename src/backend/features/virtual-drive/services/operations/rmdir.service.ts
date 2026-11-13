@@ -1,4 +1,4 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { basename } from 'node:path';
 import { Container } from 'diod';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
@@ -6,7 +6,6 @@ import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../context/shared/domain/Result';
 import { FolderDeleter } from '../../../../../context/virtual-drive/folders/application/FolderDeleter';
 import { SingleFolderMatchingFinder } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingFinder';
-import { FolderStatuses } from '../../../../../context/virtual-drive/folders/domain/FolderStatus';
 import { SyncFolderMessenger } from '../../../../../context/virtual-drive/folders/domain/SyncFolderMessenger';
 import { FolderNotFoundError } from '../../../../../context/virtual-drive/folders/domain/errors/FolderNotFoundError';
 
@@ -14,7 +13,7 @@ export async function rmdir(path: string, container: Container): Promise<Result<
   try {
     const folder = await container.get(SingleFolderMatchingFinder).run({
       path,
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     await container.get(FolderDeleter).run(folder.uuid);

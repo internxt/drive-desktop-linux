@@ -1,10 +1,9 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { AllParentFoldersStatusIsExists } from '../../../folders/application/AllParentFoldersStatusIsExists';
 import { File } from '../../domain/File';
 import { FileRepository } from '../../domain/FileRepository';
-import { FileStatuses } from '../../domain/FileStatus';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 import { addFileToTrash } from '../../../../../infra/drive-server/services/files/services/add-file-to-trash';
 
@@ -20,7 +19,7 @@ export class FileTrasher {
     const file = this.repository
       .matchingPartial({
         contentsId,
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       })
       .at(0);
 
@@ -28,12 +27,12 @@ export class FileTrasher {
       return;
     }
 
-    if (file.status.is(FileStatuses.TRASHED)) {
+    if (file.status.is(DriveItemStatus.TRASHED)) {
       logger.warn({ msg: `File ${file.path} is already trashed. Will ignore...` });
       return;
     }
 
-    const allParentsExists = await this.allParentFoldersStatusIsExists.run(file.folderId);
+    const allParentsExists = await this.allParentFoldersStatusIsExists.run(file.folderUuid);
 
     if (!allParentsExists) {
       logger.warn({

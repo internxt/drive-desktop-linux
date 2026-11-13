@@ -1,7 +1,7 @@
 import { Container } from 'diod';
 import { FirstsFileSearcher } from '../../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { TemporalFile } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
-import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../../context/shared/domain/Result';
 import { trashFile } from './trash-file';
@@ -16,7 +16,7 @@ type Props = {
 export async function handleFileRenameIntent({ src, dest, container }: Props): Promise<Result<void, FuseError>> {
   const file = await container.get(FirstsFileSearcher).run({
     path: src,
-    status: FileStatuses.EXISTS,
+    status: DriveItemStatus.EXISTS,
   });
 
   if (!file) return { error: new FuseNoSuchFileOrDirectoryError(src) };
