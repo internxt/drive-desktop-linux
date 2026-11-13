@@ -1,23 +1,20 @@
 import { toDriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import type { RemoteSyncedFile } from '../../../apps/main/remote-sync/helpers';
-import type { FileSyncDto } from './types';
+import type { FileSyncMappingDto } from './types';
 
-export function mapFile(dto: FileSyncDto): RemoteSyncedFile {
+export function mapFile(dto: FileSyncMappingDto): RemoteSyncedFile {
   return {
-    id: dto.id,
     uuid: dto.uuid,
     fileId: dto.fileId ?? '',
     type: dto.type,
     size: Number.parseInt(dto.size, 10) || 0,
     bucket: dto.bucket,
-    folderId: dto.folderId,
     folderUuid: dto.folderUuid,
     userId: dto.userId,
     modificationTime: dto.modificationTime,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
     plainName: dto.plainName,
-    name: dto.name || undefined,
     status: toDriveItemStatus(dto.status),
   };
 }

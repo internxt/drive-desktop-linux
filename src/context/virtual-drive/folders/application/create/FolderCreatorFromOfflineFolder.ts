@@ -1,12 +1,8 @@
 import { Service } from 'diod';
 import { EventBus } from '../../../shared/domain/EventBus';
 import { Folder } from '../../domain/Folder';
-import { FolderCreatedAt } from '../../domain/FolderCreatedAt';
-import { FolderId } from '../../domain/FolderId';
 import { FolderPath } from '../../domain/FolderPath';
 import { FolderRepository } from '../../domain/FolderRepository';
-import { FolderUpdatedAt } from '../../domain/FolderUpdatedAt';
-import { FolderUuid } from '../../domain/FolderUuid';
 import { OfflineFolder } from '../../domain/OfflineFolder';
 import { SyncFolderMessenger } from '../../domain/SyncFolderMessenger';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
@@ -23,10 +19,7 @@ export class FolderCreatorFromOfflineFolder {
   async run(offlineFolder: OfflineFolder): Promise<Folder> {
     this.syncFolderMessenger.creating(offlineFolder.name);
 
-    const either = await this.remote.persist(
-      new FolderPath(offlineFolder.path).name(),
-      new FolderUuid(offlineFolder.uuid).value,
-    );
+    const either = await this.remote.persist(new FolderPath(offlineFolder.path).name(), offlineFolder.parentUuid);
 
     if (either.isLeft()) {
       return Promise.reject(either.getLeft());
@@ -34,14 +27,13 @@ export class FolderCreatorFromOfflineFolder {
 
     const dto = either.getRight();
 
-    const folder = Folder.create(
-      new FolderId(dto.id),
-      new FolderUuid(dto.uuid),
-      new FolderPath(offlineFolder.path),
-      new FolderId(dto.parentId),
-      FolderCreatedAt.fromString(dto.createdAt),
-      FolderUpdatedAt.fromString(dto.updatedAt),
-    );
+    const folder = Folder.create({
+      uuid: dto.uuid,
+      path: offlineFolder.path,
+      parentUuid: offlineFolder.parentUuid,
+      createdAt: dto.createdAt,
+      updatedAt: dto.updatedAt,
+    });
 
     await this.repository.add(folder);
 

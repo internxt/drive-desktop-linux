@@ -8,14 +8,14 @@ import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 describe('Traverser', () => {
   it('first level files starts with /', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
     const rawTree = {
       files: [
         {
           plainName: 'file A',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
-          folderId: baseFolderId,
+          folderUuid: rootFolderUuid,
           size: 67,
           status: 'EXISTS',
         } as ServerFile,
@@ -24,51 +24,81 @@ describe('Traverser', () => {
     };
     const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.filePaths).toEqual(['/file A']);
     expect(tree.folderPaths).toEqual(['/']);
   });
 
   it('second level files starts with /', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
+    const childFolderUuid = UuidMother.primitive();
     const rawTree = {
       files: [
         {
           plainName: 'file A',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
-          folderId: 22491,
+          folderUuid: childFolderUuid,
           size: 200,
-          status: 'EXISTS',
+          status: DriveItemStatus.EXISTS,
         } as ServerFile,
       ],
       folders: [
         {
-          id: 22491,
-          parentId: baseFolderId,
+          parentUuid: rootFolderUuid,
           plain_name: 'folder A',
-          status: 'EXISTS',
-          uuid: '87c76c58-717d-5fee-ab8d-0ab4b94bb708',
+          status: DriveItemStatus.EXISTS,
+          uuid: childFolderUuid,
         } as ServerFolder,
       ],
     };
     const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
+
+    expect(tree.filePaths).toEqual(['/folder A/file A']);
+    expect(tree.folderPaths).toEqual(['/', '/folder A']);
+  });
+
+  it('uses folderUuid and parentUuid when linking items in the tree', () => {
+    const rootFolderUuid = UuidMother.primitive();
+    const childFolderUuid = UuidMother.primitive();
+    const rawTree = {
+      files: [
+        {
+          plainName: 'file A',
+          fileId: BucketEntryIdMother.primitive(),
+          uuid: UuidMother.primitive(),
+          folderUuid: childFolderUuid,
+          size: 200,
+          status: DriveItemStatus.EXISTS,
+        } as ServerFile,
+      ],
+      folders: [
+        {
+          parentUuid: rootFolderUuid,
+          plain_name: 'folder A',
+          status: DriveItemStatus.EXISTS,
+          uuid: childFolderUuid,
+        } as ServerFolder,
+      ],
+    };
+    const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
+
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.filePaths).toEqual(['/folder A/file A']);
     expect(tree.folderPaths).toEqual(['/', '/folder A']);
   });
 
   it('first level folder starts with /', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
     const rawTree = {
       files: [],
       folders: [
         {
-          id: 22491,
-          parentId: baseFolderId,
+          parentUuid: rootFolderUuid,
           plain_name: 'folder A',
           status: 'EXISTS',
           uuid: '35d8c70c-36eb-5761-8340-cf632a86334b',
@@ -77,26 +107,25 @@ describe('Traverser', () => {
     };
     const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.folderPaths).toEqual(['/', '/folder A']);
   });
 
   it('second level folder starts with /', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
+    const folderAUuid = 'fc790269-92ac-5990-b9e0-a08d6552bf0b';
     const rawTree = {
       files: [],
       folders: [
         {
-          id: 22491,
-          parentId: baseFolderId,
+          parentUuid: rootFolderUuid,
           plain_name: 'folder A',
           status: 'EXISTS',
-          uuid: 'fc790269-92ac-5990-b9e0-a08d6552bf0b',
+          uuid: folderAUuid,
         } as ServerFolder,
         {
-          id: 89181879209463,
-          parentId: 22491,
+          parentUuid: folderAUuid,
           plain_name: 'folder B',
           status: 'EXISTS',
           uuid: '56fdacd4-384e-558c-9442-bb032f4b9123',
@@ -105,26 +134,25 @@ describe('Traverser', () => {
     };
     const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.folderPaths).toEqual(['/', '/folder A', '/folder A/folder B']);
   });
 
   it('root folder should exist', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
+    const folderAUuid = '6a17069e-5473-5101-b3ab-66f710043f3e';
     const rawTree = {
       files: [],
       folders: [
         {
-          id: 22491,
-          parentId: baseFolderId,
+          parentUuid: rootFolderUuid,
           plain_name: 'folder A',
           status: 'EXISTS',
-          uuid: '6a17069e-5473-5101-b3ab-66f710043f3e',
+          uuid: folderAUuid,
         } as ServerFolder,
         {
-          id: 89181879209463,
-          parentId: 22491,
+          parentUuid: folderAUuid,
           plain_name: 'folder B',
           status: 'EXISTS',
           uuid: 'd600cb02-ad9c-570f-8977-eb87b7e95ef5',
@@ -133,20 +161,20 @@ describe('Traverser', () => {
     };
     const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.folderPaths).toEqual(['/', '/folder A', '/folder A/folder B']);
   });
 
   it('when a file data is invalid ignore it and continue', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
     const rawTree = {
       files: [
         {
           plainName: 'invalid file',
           fileId: 'Some response',
           uuid: UuidMother.primitive(),
-          folderId: baseFolderId,
+          folderUuid: rootFolderUuid,
           size: 67,
           status: 'EXISTS',
         } as ServerFile,
@@ -154,7 +182,7 @@ describe('Traverser', () => {
           plainName: 'valid_name',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
-          folderId: baseFolderId,
+          folderUuid: rootFolderUuid,
           size: 67,
           status: 'EXISTS',
         } as ServerFile,
@@ -162,7 +190,7 @@ describe('Traverser', () => {
           plainName: 'valid_name_2',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
-          folderId: baseFolderId,
+          folderUuid: rootFolderUuid,
           size: 67,
           status: 'INVALID_STATUS',
         } as unknown as ServerFile,
@@ -171,19 +199,18 @@ describe('Traverser', () => {
     };
     const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.filePaths).toEqual(['/valid_name']);
   });
 
   it('when a folder data is invalid ignore it and continue', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
     const rawTree = {
       files: [],
       folders: [
         {
-          id: 22491,
-          parentId: baseFolderId,
+          parentUuid: rootFolderUuid,
           plain_name: 'folder A',
           status: 'EXISTS',
           uuid: 'fc790269-92ac-5990-b9e0-a08d6552bf0b',
@@ -193,29 +220,28 @@ describe('Traverser', () => {
     };
     const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.filePaths).toEqual([]);
     expect(tree.folderPaths).toEqual(['/', '/folder A']);
   });
 
   it('filters the files and folders depending on the filters set', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
     const rawTree = {
       files: [
         {
           plainName: 'file A',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
-          folderId: baseFolderId,
+          folderUuid: rootFolderUuid,
           size: 67,
           status: 'TRASHED',
         } as ServerFile,
       ],
       folders: [
         {
-          id: 22491,
-          parentId: baseFolderId,
+          parentUuid: rootFolderUuid,
           plain_name: 'folder A',
           status: 'TRASHED',
           uuid: 'fc790269-92ac-5990-b9e0-a08d6552bf0b',
@@ -224,20 +250,20 @@ describe('Traverser', () => {
     };
     const SUT = new Traverser([DriveItemStatus.EXISTS, DriveItemStatus.TRASHED], [DriveItemStatus.EXISTS]);
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.filePaths).toEqual(['/file A']);
     expect(tree.folderPaths).toEqual(['/']);
   });
 
   it('skips a file without plainName and logs a warning', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
     const rawTree = {
       files: [
         {
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
-          folderId: baseFolderId,
+          folderUuid: rootFolderUuid,
           size: 67,
           status: 'EXISTS',
         } as ServerFile,
@@ -245,7 +271,7 @@ describe('Traverser', () => {
           plainName: 'valid_file',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
-          folderId: baseFolderId,
+          folderUuid: rootFolderUuid,
           size: 100,
           status: 'EXISTS',
         } as ServerFile,
@@ -254,7 +280,7 @@ describe('Traverser', () => {
     };
     const SUT = Traverser.existingItems();
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.filePaths).toEqual(['/valid_file']);
     expect(loggerMock.warn).toHaveBeenCalledWith(
@@ -263,19 +289,17 @@ describe('Traverser', () => {
   });
 
   it('skips a folder without plain_name and logs a warning', () => {
-    const baseFolderId = 6;
+    const rootFolderUuid = UuidMother.primitive();
     const rawTree = {
       files: [],
       folders: [
         {
-          id: 100,
-          parentId: baseFolderId,
+          parentUuid: rootFolderUuid,
           status: 'EXISTS',
           uuid: UuidMother.primitive(),
         } as ServerFolder,
         {
-          id: 200,
-          parentId: baseFolderId,
+          parentUuid: rootFolderUuid,
           plain_name: 'valid_folder',
           status: 'EXISTS',
           uuid: UuidMother.primitive(),
@@ -284,7 +308,7 @@ describe('Traverser', () => {
     };
     const SUT = Traverser.existingItems();
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.folderPaths).toEqual(['/', '/valid_folder']);
     expect(loggerMock.warn).toHaveBeenCalledWith(
@@ -293,31 +317,30 @@ describe('Traverser', () => {
   });
 
   it('does not traverse children of a folder without plain_name', () => {
-    const baseFolderId = 6;
-    const missingNameFolderId = 100;
+    const rootFolderUuid = UuidMother.primitive();
+    const missingNameFolderUuid = UuidMother.primitive();
     const rawTree = {
       files: [
         {
           plainName: 'orphaned_file',
           fileId: BucketEntryIdMother.primitive(),
           uuid: UuidMother.primitive(),
-          folderId: missingNameFolderId,
+          folderUuid: missingNameFolderUuid,
           size: 50,
           status: 'EXISTS',
         } as ServerFile,
       ],
       folders: [
         {
-          id: missingNameFolderId,
-          parentId: baseFolderId,
+          parentUuid: rootFolderUuid,
           status: 'EXISTS',
-          uuid: UuidMother.primitive(),
+          uuid: missingNameFolderUuid,
         } as ServerFolder,
       ],
     };
     const SUT = Traverser.existingItems();
 
-    const tree = SUT.run(baseFolderId, UuidMother.primitive(), rawTree);
+    const tree = SUT.run(rootFolderUuid, rawTree);
 
     expect(tree.filePaths).toEqual([]);
     expect(tree.folderPaths).toEqual(['/']);

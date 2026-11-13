@@ -13,7 +13,6 @@ export async function createBackupFolder({ folderName, device }: Props) {
   const { error, data } = await createFolder({ parentFolderUuid: device.uuid, plainName: folderName });
   if (data) {
     const backupData: Backup = {
-      id: data.id,
       name: data.plainName,
       uuid: data.uuid,
     };

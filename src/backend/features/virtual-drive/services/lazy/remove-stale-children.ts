@@ -23,7 +23,7 @@ export async function removeStaleChildren({
 }: Props) {
   // /.Trash is local. It is absent from the remote listing and must survive a refresh.
   const removedFolderChildren = folderRepository
-    .matchingPartial({ parentId: folder.id })
+    .matchingPartial({ parentUuid: folder.uuid })
     .filter(
       (child) =>
         !isVirtualTrashFolder(child) &&
@@ -33,13 +33,13 @@ export async function removeStaleChildren({
   const staleFolders = staleFolderTree({ removedFolderChildren, folderRepository });
 
   const staleFiles = fileRepository
-    .matchingPartial({ folderId: folder.id })
+    .matchingPartial({ folderUuid: folder.uuid })
     .filter((child) => !remoteFileUuids.has(child.uuid));
 
   await Promise.all([
     ...staleFolders.map(async (staleFolder) => {
-      await DirectoryStateRepository.invalidate({ folderId: staleFolder.id, statusScope: 'EXISTS' });
-      await folderRepository.delete(staleFolder.id);
+      await DirectoryStateRepository.invalidate({ folderUuid: staleFolder.uuid, statusScope: 'EXISTS' });
+      await folderRepository.delete(staleFolder.uuid);
     }),
     ...staleFiles.map((child) => fileRepository.delete(child.uuid)),
     ...removedFolderChildren.map((child) => fileRepository.deleteByFolderPath(child.path)),

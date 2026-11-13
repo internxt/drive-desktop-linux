@@ -15,7 +15,7 @@ describe('migrate-backup-entry-if-needed', () => {
 
     const result = await migrateBackupEntryIfNeeded({ pathname: '/home/dev/Documents', backup });
 
-    expect(result).toStrictEqual({ data: backup });
+    expect(result).toStrictEqual({ data: { enabled: true, folderUuid: 'existing-uuid' } });
     expect(getBackupFolderUuidMock).not.toBeCalled();
     expect(configStoreSetMock).not.toBeCalled();
   });
@@ -31,7 +31,10 @@ describe('migrate-backup-entry-if-needed', () => {
     const result = await migrateBackupEntryIfNeeded({ pathname, backup });
 
     expect(result.data?.folderUuid).toBe('new-folder-uuid');
-    call(configStoreSetMock).toStrictEqual(['backupList', backupList]);
+    call(configStoreSetMock).toStrictEqual([
+      'backupList',
+      { [pathname]: { enabled: true, folderUuid: 'new-folder-uuid' } },
+    ]);
   });
 
   it('should return error when folder uuid retrieval fails', async () => {

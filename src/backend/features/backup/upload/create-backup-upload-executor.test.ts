@@ -74,7 +74,7 @@ describe('createBackupUploadExecutor', () => {
   });
 
   it('should track non-fatal error and return success', async () => {
-    const { localFile, executor } = setup();
+    const { remoteTree, localFile, executor } = setup();
     const nonFatalError = new DriveDesktopError('BAD_RESPONSE', 'Network error');
     uploadFileToBackupMock.mockResolvedValue({ error: nonFatalError });
 
@@ -82,7 +82,10 @@ describe('createBackupUploadExecutor', () => {
 
     expect(result.data).toBeUndefined();
     expect(result.error).toBeUndefined();
-    expect(backupErrorsTrackerAddMock).toHaveBeenCalled();
+    expect(backupErrorsTrackerAddMock).toHaveBeenCalledWith(remoteTree.root.uuid, {
+      name: localFile.nameWithExtension(),
+      error: nonFatalError.cause,
+    });
     expect(tracker.incrementProcessed).toHaveBeenCalledWith(1);
   });
 
@@ -96,7 +99,6 @@ describe('createBackupUploadExecutor', () => {
       path: localFile.path,
       size: localFile.size,
       bucket: 'bucket',
-      folderId: remoteTree.root.id,
       folderUuid: remoteTree.root.uuid,
       environment: {} as Environment,
       signal: abortController.signal,

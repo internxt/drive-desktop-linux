@@ -1,26 +1,18 @@
 import { resolveFolderStatus, mapFolder } from './map-folder';
-import type { FolderSyncDto } from './types';
+import type { FolderSyncMappingDto } from './types';
 
-const createFolderSyncDtoFixture = (payload: Partial<FolderSyncDto> = {}): FolderSyncDto => ({
-  id: 1,
+const createFolderSyncDtoFixture = (payload: Partial<FolderSyncMappingDto> = {}): FolderSyncMappingDto => ({
   uuid: 'folder-uuid',
   type: 'folder',
   bucket: 'bucket-1',
   userId: 1,
-  parentId: 0,
   parentUuid: '',
-  parent: {},
-  encryptVersion: '1',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
   plainName: 'My Folder',
-  size: 0,
-  creationTime: '2026-01-01T00:00:00.000Z',
-  modificationTime: '2026-01-01T00:00:00.000Z',
   status: 'EXISTS',
   removed: false,
   deleted: false,
-  name: 'My Folder',
   ...payload,
 });
 
@@ -34,20 +26,20 @@ describe('map-folder', () => {
       expect(result).toBe('TRASHED');
     });
 
-    it('should return DELETED when removed is true and status is empty', () => {
+    it('should return TRASHED when removed is true and status is empty', () => {
       // When
       const result = resolveFolderStatus({ removed: true });
 
       // Then
-      expect(result).toBe('DELETED');
+      expect(result).toBe('TRASHED');
     });
 
-    it('should return TRASHED when deleted is true and status is empty', () => {
+    it('should return DELETED when deleted is true and status is empty', () => {
       // When
       const result = resolveFolderStatus({ deleted: true });
 
       // Then
-      expect(result).toBe('TRASHED');
+      expect(result).toBe('DELETED');
     });
 
     it('should default to EXISTS when no status, removed or deleted flags are present', () => {
@@ -63,9 +55,8 @@ describe('map-folder', () => {
     it('should map all folder properties with resolved status', () => {
       // Given
       const folder = createFolderSyncDtoFixture({
-        id: 1,
         uuid: 'folder-uuid',
-        name: 'My Folder',
+        plainName: 'My Folder',
         status: 'EXISTS',
         removed: true,
       });
@@ -75,12 +66,10 @@ describe('map-folder', () => {
 
       // Then
       expect(result).toStrictEqual({
-        id: 1,
         uuid: 'folder-uuid',
-        name: 'My Folder',
         status: 'EXISTS',
         type: 'folder',
-        parentId: 0,
+        parentUuid: undefined,
         bucket: 'bucket-1',
         userId: 1,
         createdAt: '2026-01-01T00:00:00.000Z',
@@ -89,26 +78,20 @@ describe('map-folder', () => {
       });
     });
 
-    it('should set name to undefined when name is an empty string', () => {
-      // Given
+    it('should map parentUuid when provided by the sync dto', () => {
       const folder = createFolderSyncDtoFixture({
-        id: 2,
-        uuid: 'folder-uuid-2',
-        name: '',
+        parentUuid: 'parent-folder-uuid',
       });
 
-      // When
       const result = mapFolder(folder);
 
-      // Then
-      expect(result.name).toBeUndefined();
-      expect(result.status).toBe('EXISTS');
+      expect(result.parentUuid).toBe('parent-folder-uuid');
     });
 
-    it('should default missing parentId and bucket to null', () => {
+    it('should default missing parentUuid and bucket to null', () => {
       // Given
       const folder = createFolderSyncDtoFixture({
-        parentId: undefined,
+        parentUuid: undefined,
         bucket: undefined,
       });
 
@@ -116,7 +99,7 @@ describe('map-folder', () => {
       const result = mapFolder(folder);
 
       // Then
-      expect(result.parentId).toBe(null);
+      expect(result.parentUuid).toBeUndefined();
       expect(result.bucket).toBe(null);
     });
   });

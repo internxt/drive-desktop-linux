@@ -18,7 +18,7 @@ export class AllFilesInFolderAreAvailableOffline {
 
   private async subfoldersExists(folder: Folder): Promise<boolean> {
     const subfolders = await this.foldersSearcherByPartial.run({
-      parentId: folder.id,
+      parentUuid: folder.uuid,
       status: DriveItemStatus.EXISTS,
     });
 
@@ -34,7 +34,7 @@ export class AllFilesInFolderAreAvailableOffline {
 
   private async filesExists(folder: Folder): Promise<boolean> {
     const files = await this.filesByPartialSearcher.run({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
       status: DriveItemStatus.EXISTS,
     });
 

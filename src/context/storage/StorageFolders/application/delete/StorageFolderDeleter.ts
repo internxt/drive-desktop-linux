@@ -17,7 +17,7 @@ export class StorageFolderDeleter {
 
   private async deleteFilesOn(folder: Folder): Promise<void> {
     const files = await this.filesByPartialSearcher.run({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
     });
 
     const filesDeletion = files.map(({ path }) => this.storageFileDeleter.run(path));
@@ -27,7 +27,7 @@ export class StorageFolderDeleter {
 
   private async deleteSubfolders(folder: Folder): Promise<void> {
     const subfolders = await this.foldersSearcherByPartial.run({
-      parentId: folder.id,
+      parentUuid: folder.uuid,
     });
 
     const subfoldersDeleted = subfolders.map((subfolder) => this.deleteFolder(subfolder));

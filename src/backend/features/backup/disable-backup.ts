@@ -1,7 +1,7 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import configStore from '../../../apps/main/config';
 import { BackupInfo } from '../../../apps/backups/BackupInfo';
-import { findBackupPathnameFromId } from './find-backup-pathname-from-id';
+import { findBackupPathnameFromUuid } from './find-backup-pathname-from-uuid';
 import { getBackupFolderTreeSnapshot } from './get-backup-folder-tree-snapshot';
 import { deleteBackup } from './delete-backup';
 
@@ -11,7 +11,7 @@ type Props = {
 
 export async function disableBackup({ backup }: Props): Promise<void> {
   const backupsList = configStore.get('backupList');
-  const pathname = findBackupPathnameFromId({ id: backup.folderId });
+  const pathname = findBackupPathnameFromUuid({ folderUuid: backup.folderUuid });
 
   if (!pathname) {
     throw logger.error({ tag: 'BACKUPS', msg: 'Error finding backup pathname to disable backup' });

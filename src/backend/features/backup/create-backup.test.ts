@@ -17,7 +17,6 @@ const mockPath = vi.mocked(path);
 
 describe('createBackup', () => {
   const mockDevice = {
-    id: 1,
     uuid: 'device-123',
     bucket: 'test-bucket',
     name: 'Test Device',
@@ -43,7 +42,6 @@ describe('createBackup', () => {
   it('should create backup successfully', async () => {
     mockPostBackup.mockResolvedValue({
       data: {
-        id: 123,
         name: 'TestFolder',
         uuid: 'backup-uuid-456',
       },
@@ -62,7 +60,6 @@ describe('createBackup', () => {
     expect(mockConfigStore.set).toBeCalledWith('backupList', {
       '/home/user/TestFolder': {
         enabled: true,
-        folderId: 123,
         folderUuid: 'backup-uuid-456',
       },
     });
@@ -70,7 +67,6 @@ describe('createBackup', () => {
     expect(result).toStrictEqual({
       data: {
         folderUuid: 'backup-uuid-456',
-        folderId: 123,
         pathname: '/home/user/TestFolder',
         name: 'TestFolder',
         tmpPath: '/tmp',

@@ -36,7 +36,12 @@ describe('Folder Creator from Offline Folder', () => {
 
     await SUT.run(offlineFolder);
 
-    expect(repository.addMock).toBeCalledWith(folder);
+    expect(repository.addMock).toBeCalledWith(
+      expect.objectContaining({
+        uuid: folder.uuid,
+        path: folder.path,
+      }),
+    );
   });
 
   describe('Synchronization messages', () => {

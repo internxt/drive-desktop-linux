@@ -9,6 +9,7 @@ import { getCredentials } from './get-credentials';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { isClientUnsupported } from '../../../backend/features/client-compatibility';
 import { showClientCompatibilityWidget } from '../../../backend/features/client-compatibility/services/show-client-compatibility-widget';
+import { bootstrapAppDataSource } from '../database/bootstrap-app-data-source';
 
 let isLoggedIn = false;
 
@@ -57,6 +58,7 @@ eventBus.on('APP_IS_READY', async (): Promise<void> => {
 
   if (isLoggedIn) {
     await createTokenScheduleWithRetry();
+    await bootstrapAppDataSource();
     eventBus.emit('USER_LOGGED_IN');
   }
 });

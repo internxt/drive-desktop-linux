@@ -1,4 +1,4 @@
-import * as findBackupPathnameFromIdModule from './find-backup-pathname-from-id';
+import * as findBackupPathnameFromUuidModule from './find-backup-pathname-from-uuid';
 import * as getBackupFolderTreeSnapshotModule from './get-backup-folder-tree-snapshot';
 import * as deleteBackupModule from './delete-backup';
 import configStoreModule from '../../../apps/main/config';
@@ -8,7 +8,7 @@ import { loggerMock } from '../../../../tests/vitest/mocks.helper';
 import { disableBackup } from './disable-backup';
 
 describe('disable-backup', () => {
-  const findBackupPathnameFromIdMock = partialSpyOn(findBackupPathnameFromIdModule, 'findBackupPathnameFromId');
+  const findBackupPathnameFromUuidMock = partialSpyOn(findBackupPathnameFromUuidModule, 'findBackupPathnameFromUuid');
   const getBackupFolderTreeSnapshotMock = partialSpyOn(
     getBackupFolderTreeSnapshotModule,
     'getBackupFolderTreeSnapshot',
@@ -19,7 +19,6 @@ describe('disable-backup', () => {
 
   const backup = {
     folderUuid: 'folder-uuid',
-    folderId: 1,
     tmpPath: '/tmp',
     backupsBucket: 'bucket',
     pathname: createAbsolutePath('/home/dev/Documents'),
@@ -28,7 +27,7 @@ describe('disable-backup', () => {
 
   it('should throw when backup pathname is not found', async () => {
     configStoreGetMock.mockReturnValue({});
-    findBackupPathnameFromIdMock.mockReturnValue(undefined);
+    findBackupPathnameFromUuidMock.mockReturnValue(undefined);
 
     await expect(disableBackup({ backup })).rejects.toBeUndefined();
 
@@ -38,11 +37,11 @@ describe('disable-backup', () => {
 
   it('should disable backup and delete it when tree size is zero', async () => {
     const backupList = {
-      '/home/dev/Documents': { folderId: 1, folderUuid: 'folder-uuid', enabled: true },
+      '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: true },
     };
 
     configStoreGetMock.mockReturnValue(backupList);
-    findBackupPathnameFromIdMock.mockReturnValue('/home/dev/Documents');
+    findBackupPathnameFromUuidMock.mockReturnValue('/home/dev/Documents');
     getBackupFolderTreeSnapshotMock.mockResolvedValue({ data: { size: 0 } } as never);
     deleteBackupMock.mockResolvedValue({ data: true });
 
@@ -51,7 +50,7 @@ describe('disable-backup', () => {
     call(configStoreSetMock).toStrictEqual([
       'backupList',
       {
-        '/home/dev/Documents': { folderId: 1, folderUuid: 'folder-uuid', enabled: false },
+        '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: false },
       },
     ]);
     call(deleteBackupMock).toStrictEqual({ backup, isCurrent: true });
@@ -60,9 +59,9 @@ describe('disable-backup', () => {
   it('should log error when fetching the backup folder tree snapshot fails', async () => {
     const error = new Error('snapshot failed');
     configStoreGetMock.mockReturnValue({
-      '/home/dev/Documents': { folderId: 1, folderUuid: 'folder-uuid', enabled: true },
+      '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: true },
     });
-    findBackupPathnameFromIdMock.mockReturnValue('/home/dev/Documents');
+    findBackupPathnameFromUuidMock.mockReturnValue('/home/dev/Documents');
     getBackupFolderTreeSnapshotMock.mockResolvedValue({ error } as never);
 
     await expect(disableBackup({ backup })).rejects.toBeUndefined();
