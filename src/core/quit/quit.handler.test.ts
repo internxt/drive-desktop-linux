@@ -1,11 +1,19 @@
 import { app, ipcMain } from 'electron';
 import { call } from 'tests/vitest/utils.helper';
 import * as virtualDriveServiceModule from '../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
+import * as antivirusScanServiceModule from '../../apps/main/antivirus/AntivirusScanService';
+import * as antivirusManagerModule from '../../apps/main/antivirus/antivirusManager';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import * as registerQuitHandlerModule from './quit.handler';
 
+const { shutdownMock } = vi.hoisted(() => ({
+  shutdownMock: vi.fn(),
+}));
+
 describe('quit', () => {
   const stopVirtualDriveMock = partialSpyOn(virtualDriveServiceModule, 'stopVirtualDriveOnce');
+  const cancelScanMock = partialSpyOn(antivirusScanServiceModule.AntivirusScanService, 'cancelScan');
+  const getAntivirusManagerMock = partialSpyOn(antivirusManagerModule, 'getAntivirusManager');
   const appQuitMock = partialSpyOn(app, 'quit');
   const appOnMock = partialSpyOn(app, 'on', false);
   const ipcMainOnMock = partialSpyOn(ipcMain, 'on', false);
@@ -14,6 +22,9 @@ describe('quit', () => {
   beforeEach(() => {
     registerQuitHandlerMock.mockRestore();
     stopVirtualDriveMock.mockResolvedValue(undefined);
+    cancelScanMock.mockResolvedValue(undefined);
+    shutdownMock.mockResolvedValue(undefined);
+    getAntivirusManagerMock.mockReturnValue({ shutdown: shutdownMock } as never);
   });
 
   it('should register user-quit handler', () => {
@@ -33,6 +44,14 @@ describe('quit', () => {
     await (ipcMainOnMock.mock.calls[0][1] as () => Promise<void>)();
 
     expect(stopVirtualDriveMock).toBeCalled();
+  });
+
+  it('should stop antivirus on user-quit event', async () => {
+    registerQuitHandlerModule.registerQuitHandler();
+    await (ipcMainOnMock.mock.calls[0][1] as () => Promise<void>)();
+
+    expect(cancelScanMock).toBeCalled();
+    expect(shutdownMock).toBeCalled();
   });
 
   it('should call app.quit on user-quit event', async () => {
