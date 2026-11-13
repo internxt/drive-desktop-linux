@@ -3,8 +3,7 @@ import { RemoteItemsGenerator } from '../../../../context/virtual-drive/remoteTr
 import { FolderRepositorySynchronizer } from '../../../../context/virtual-drive/folders/application/FolderRepositorySynchronizer/FolderRepositorySynchronizer';
 import { FileRepositorySynchronizer } from '../../../../context/virtual-drive/files/application/FileRepositorySynchronizer';
 import { StorageRemoteChangesSyncher } from '../../../../context/storage/StorageFiles/application/sync/StorageRemoteChangesSyncher';
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { User } from '../../../../apps/main/types';
 import { Container } from 'diod';
 

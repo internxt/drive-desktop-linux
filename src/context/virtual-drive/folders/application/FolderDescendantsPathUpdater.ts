@@ -1,9 +1,8 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Folder } from '../domain/Folder';
 import { FolderRepository } from '../domain/FolderRepository';
 import { FileRepository } from '../../files/domain/FileRepository';
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 @Service()
 export class FolderDescendantsPathUpdater {

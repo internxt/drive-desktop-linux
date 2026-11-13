@@ -1,12 +1,11 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { ServerFile } from '../../../shared/domain/ServerFile';
 import { ServerFolder } from '../../../shared/domain/ServerFolder';
 import { createFileFromServerFile } from './FileCreatorFromServerFile';
 import { createFolderFromServerFolder } from '../../folders/application/create/FolderCreatorFromServerFolder';
 import { Folder } from '../../folders/domain/Folder';
 import { FolderStatus } from '../../folders/domain/FolderStatus';
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { EitherTransformer } from '../../shared/application/EitherTransformer';
 import { RemoteTree } from '../domain/RemoteTree';
 

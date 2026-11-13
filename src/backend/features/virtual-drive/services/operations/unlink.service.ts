@@ -1,4 +1,4 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Container } from 'diod';
 import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FuseError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
@@ -7,7 +7,6 @@ import { TemporalFileByPathFinder } from '../../../../../context/storage/Tempora
 import { Result } from '../../../../../context/shared/domain/Result';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FileTrasher } from '../../../../../context/virtual-drive/files/application/trash/FileTrasher';
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 
 export async function unlink(path: string, container: Container): Promise<Result<void, FuseError>> {

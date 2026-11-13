@@ -1,11 +1,10 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { ParentFolderFinder } from '../../../folders/application/ParentFolderFinder';
 import { EventBus } from '../../../shared/domain/EventBus';
 import { File } from '../../domain/File';
 import { FilePath } from '../../domain/FilePath';
 import { FileRepository } from '../../domain/FileRepository';
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { ActionNotPermittedError } from '../../domain/errors/ActionNotPermittedError';
 import { FileAlreadyExistsError } from '../../domain/errors/FileAlreadyExistsError';
 import { FileNotFoundError } from '../../domain/errors/FileNotFoundError';

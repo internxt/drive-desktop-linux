@@ -1,10 +1,9 @@
 import { Service } from 'diod';
 import { SingleFileMatchingSearcher } from '../../../../virtual-drive/files/application/search/SingleFileMatchingSearcher';
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { StorageFile } from '../../domain/StorageFile';
 import { StorageFilesRepository } from '../../domain/StorageFilesRepository';
 import { StorageFileDownloader } from '../download/StorageFileDownloader/StorageFileDownloader';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { DownloadProgressTracker } from '../../../../shared/domain/DownloadProgressTracker';
 import { downloadWithProgressTracking } from '../download/download-with-progress-tracking';
 

@@ -1,10 +1,9 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { AllParentFoldersStatusIsExists } from '../../../folders/application/AllParentFoldersStatusIsExists';
 import { File } from '../../domain/File';
 import { FileRepository } from '../../domain/FileRepository';
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 import { addFileToTrash } from '../../../../../infra/drive-server/services/files/services/add-file-to-trash';
 

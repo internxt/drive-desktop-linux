@@ -18,9 +18,9 @@ export class FolderStatus extends EnumValueObject<DriveItemStatus> {
     throw new InvalidArgumentError(`The folder status ${value} is invalid`);
   }
 
-  static Exists = new FolderStatus(DriveItemStatus.EXISTS);
-  static Trashed = new FolderStatus(DriveItemStatus.TRASHED);
-  static Deleted = new FolderStatus(DriveItemStatus.DELETED);
+  public static Exists = new FolderStatus(DriveItemStatus.EXISTS);
+  public static Trashed = new FolderStatus(DriveItemStatus.TRASHED);
+  public static Deleted = new FolderStatus(DriveItemStatus.DELETED);
 
   changeTo(status: DriveItemStatus): FolderStatus {
     if (this.value === DriveItemStatus.TRASHED) {
