@@ -48,21 +48,38 @@ describe('opendir', () => {
     });
   });
 
-  describe('when directory has auxiliary temporal files', () => {
-    it('should include only auxiliary temporal files in entries', async () => {
+  describe('when directory has temporal files still being uploaded', () => {
+    it('should list them so the directory does not look empty', async () => {
       const auxiliaryFile = mockDeep<TemporalFile>();
-      auxiliaryFile.isAuxiliary.mockReturnValue(true);
-      (auxiliaryFile as { name: string }).name = 'aux.tmp';
+      (auxiliaryFile as { nameWithExtension: string }).nameWithExtension = 'aux.tmp';
 
-      const nonAuxiliaryFile = mockDeep<TemporalFile>();
-      nonAuxiliaryFile.isAuxiliary.mockReturnValue(false);
+      const uploadingFile = mockDeep<TemporalFile>();
+      (uploadingFile as { nameWithExtension: string }).nameWithExtension = 'PD_0064.JPG';
 
-      temporalFinder.run.mockResolvedValue([auxiliaryFile, nonAuxiliaryFile]);
+      temporalFinder.run.mockResolvedValue([auxiliaryFile, uploadingFile]);
 
       const { data, error } = await opendir('/some/folder', container);
 
       expect(error).toBeUndefined();
-      expect(data?.entries).toStrictEqual([{ name: 'aux.tmp', mode: FILE_MODE }]);
+      expect(data?.entries).toStrictEqual([
+        { name: 'aux.tmp', mode: FILE_MODE },
+        { name: 'PD_0064.JPG', mode: FILE_MODE },
+      ]);
+    });
+
+    it('should not list a temporal file whose name is already persisted', async () => {
+      readDirectoryMock.mockResolvedValue({
+        data: { files: ['PD_0064.JPG'], folders: [] },
+      });
+
+      const uploadingFile = mockDeep<TemporalFile>();
+      (uploadingFile as { nameWithExtension: string }).nameWithExtension = 'PD_0064.JPG';
+      temporalFinder.run.mockResolvedValue([uploadingFile]);
+
+      const { data, error } = await opendir('/some/folder', container);
+
+      expect(error).toBeUndefined();
+      expect(data?.entries).toStrictEqual([{ name: 'PD_0064.JPG', mode: FILE_MODE }]);
     });
   });
 
