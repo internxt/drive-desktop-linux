@@ -96,8 +96,8 @@ describe('synchronize-directory-metadata', () => {
         children: [],
         files: [
           {
-            uuid: 'file-uuid',
-            fileId: 'contents-id',
+            uuid: '550e8400-e29b-41d4-a716-446655440001',
+            fileId: '21e5ac204d8744589cb5abcd',
             type: 'docx',
             size: '5040',
             bucket: 'bucket',
@@ -116,7 +116,9 @@ describe('synchronize-directory-metadata', () => {
 
     await synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository: files });
 
-    expect(await files.searchByUuid('file-uuid')).toMatchObject({ path: '/libre_office_save_test.docx' });
+    expect(await files.searchByUuid('550e8400-e29b-41d4-a716-446655440001')).toMatchObject({
+      path: '/libre_office_save_test.docx',
+    });
   });
 
   it('should mark the directory as errored and return EIO when fetching fails', async () => {

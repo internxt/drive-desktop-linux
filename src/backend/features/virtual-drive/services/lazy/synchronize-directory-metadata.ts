@@ -118,4 +118,3 @@ function isExistingFile(file: { status: string }) {
 function fileName(file: RemoteSyncedFile) {
   return file.type ? `${file.plainName}.${file.type}` : file.plainName;
 }
-

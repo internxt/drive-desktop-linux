@@ -13,8 +13,12 @@ describe('create-or-update-file-by-batch', () => {
   });
 
   it('persists copies so the caller keeps its file types', async () => {
-    upsertMock.mockImplementation(async (chunk: Array<{ type: string }>) => {
-      for (const file of chunk) file.type = 'mp4';
+    upsertMock.mockImplementation(async (entityOrEntities) => {
+      const chunk = Array.isArray(entityOrEntities) ? entityOrEntities : [entityOrEntities];
+      for (const file of chunk) {
+        file.type = 'mp4';
+      }
+      return undefined as never;
     });
     const files: RemoteSyncedFile[] = [
       {
@@ -35,8 +39,11 @@ describe('create-or-update-file-by-batch', () => {
 
     const result = await createOrUpdateFileByBatch({ files });
 
+    const persisted = upsertMock.mock.calls[0][0];
+    const persistedFile = Array.isArray(persisted) ? persisted[0] : persisted;
+
     expect(files[0].type).toBe('docx');
     expect(result.data?.[0].nameWithExtension).toBe('libre_office_save_test.docx');
-    expect(upsertMock.mock.calls[0][0][0]).not.toBe(files[0]);
+    expect(persistedFile).not.toBe(files[0]);
   });
 });
