@@ -6,7 +6,7 @@ import * as widgetModule from '../windows/widget';
 import * as authWindowModule from '../windows/auth';
 import * as virtualDriveServiceModule from '../../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
 import * as dataSourceModule from '../database/data-source';
-import * as fileManagerExtensionModule from '../../../backend/features/file-manager-extension/install';
+import * as fileManagerExtensionModule from '../../../backend/features/file-manager-extension/uninstall';
 import * as initialSyncReadyModule from '../remote-sync/InitialSyncReady';
 import * as remoteSyncModule from '../remote-sync/service';
 import * as antivirusScanServiceModule from '../antivirus/AntivirusScanService';

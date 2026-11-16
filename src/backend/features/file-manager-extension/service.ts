@@ -120,6 +120,15 @@ function getExtensionFile(source: string): string {
   return path.join(PATHS.RESOURCES_PATH, source);
 }
 
+function isDeletePermissionError(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error.code === 'EACCES' || error.code === 'EPERM')
+  );
+}
+
 export async function getFileManagerType(): Promise<SupportedFileManager> {
   return await detectAvailableFileManager();
 }
@@ -133,12 +142,16 @@ export async function isInstalled(): Promise<boolean> {
   return installedStates.every(Boolean);
 }
 
-export async function copyExtensionFile(): Promise<void> {
+type CopyExtensionFileProps = {
+  overwrite?: boolean;
+};
+
+export async function copyExtensionFile({ overwrite = false }: CopyExtensionFileProps = {}) {
   const config = await getFileManagerConfig();
   if (!config) return;
 
   const alreadyInstalled = await isInstalled();
-  if (alreadyInstalled) return;
+  if (alreadyInstalled && !overwrite) return;
 
   await Promise.all(
     config.assets.map(async (asset) => {
@@ -146,21 +159,23 @@ export async function copyExtensionFile(): Promise<void> {
       const destination = asset.destination;
 
       const destinationExists = await doesFileExist(destination);
-      if (destinationExists) {
+      if (destinationExists && !overwrite) {
         if (asset.executable) {
           await fs.chmod(destination, 0o755);
         }
         return;
       }
 
-      await fs.mkdir(path.dirname(destination), {
-        recursive: true,
-      });
+      if (!destinationExists) {
+        await fs.mkdir(path.dirname(destination), {
+          recursive: true,
+        });
+      }
 
       if (asset.template) {
         const template = await fs.readFile(source, 'utf8');
         await fs.writeFile(destination, template.replaceAll('{{HOME}}', PATHS.HOME_FOLDER_PATH), 'utf8');
-      } else if (process.env.NODE_ENV !== 'production') {
+      } else if (process.env.NODE_ENV !== 'production' && !destinationExists) {
         await fs.link(source, destination);
       } else {
         await fs.cp(source, destination);
@@ -188,7 +203,18 @@ export async function deleteExtensionFile(): Promise<void> {
         return;
       }
 
-      await fs.rm(asset.destination);
+      try {
+        await fs.rm(asset.destination);
+      } catch (error) {
+        if (!isDeletePermissionError(error)) {
+          throw error;
+        }
+
+        logger.debug({
+          msg: `[FILE_MANAGER_EXTENSION] Could not remove ${asset.destination}, will retry by overwriting`,
+          error,
+        });
+      }
     }),
   );
 
