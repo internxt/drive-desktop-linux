@@ -5,7 +5,7 @@ import { getWidget } from '../windows/widget';
 import { createAuthWindow } from '../windows/auth';
 import { stopVirtualDriveOnce } from '../../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
 import { resetAppDataSourceOnLogout } from '../database/data-source';
-import { uninstallFileManagerExtension } from '../../../backend/features/file-manager-extension/install';
+import { uninstallFileManagerExtension } from '../../../backend/features/file-manager-extension/uninstall';
 import { setInitialSyncState } from '../remote-sync/InitialSyncReady';
 import { remoteSyncManager, cancelPendingRemoteSync } from '../remote-sync/service';
 import { AntivirusScanService } from '../antivirus/AntivirusScanService';

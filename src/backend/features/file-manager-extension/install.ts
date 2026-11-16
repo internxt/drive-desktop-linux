@@ -15,8 +15,12 @@ function isUpToDate(): boolean {
   return extVersion >= LATEST_EXTENSION_VERSION;
 }
 
-async function install(): Promise<void> {
-  await copyExtensionFile();
+type InstallProps = {
+  overwrite?: boolean;
+};
+
+async function install({ overwrite = false }: InstallProps = {}) {
+  await copyExtensionFile({ overwrite });
 
   configStore.set('fileManagerExtensionVersion', LATEST_EXTENSION_VERSION);
 
@@ -62,7 +66,7 @@ export async function installFileManagerExtension() {
       });
 
       await deleteExtensionFile();
-      await install();
+      await install({ overwrite: true });
       await reloadFileManager().catch((reloadError) => {
         logger.error({
           msg: 'Caught error while reloading file manager extension',
@@ -73,29 +77,6 @@ export async function installFileManagerExtension() {
   } catch (error) {
     logger.error({
       msg: '[FILE_MANAGER_EXTENSION] Installation failed',
-      error,
-    });
-  }
-}
-
-export async function uninstallFileManagerExtension() {
-  try {
-    const installed = await isInstalled();
-
-    if (!installed) {
-      return;
-    }
-
-    await deleteExtensionFile();
-    await reloadFileManager().catch((error) => {
-      logger.error({
-        msg: 'Caught error while reloading file manager extension',
-        error,
-      });
-    });
-  } catch (error) {
-    logger.error({
-      msg: '[FILE_MANAGER_EXTENSION] Uninstallation failed',
       error,
     });
   }
