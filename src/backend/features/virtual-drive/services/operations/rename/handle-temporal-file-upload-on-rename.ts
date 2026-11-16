@@ -4,6 +4,8 @@ import { FirstsFileSearcher } from '../../../../../../context/virtual-drive/file
 import { TemporalFileByPathFinder } from '../../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../../context/shared/domain/Result';
+import { TemporalFile } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
+import { uploadLibreOfficeStagingFileOnRename } from './upload-libreoffice-staging-file-on-rename';
 import { uploadTemporalFileOnRename } from './upload-temporal-file-on-rename';
 
 type Props = {
@@ -22,12 +24,18 @@ export async function handleTemporalFileUploadOnRename({
     status: DriveItemStatus.EXISTS,
   });
 
+  const document = await container.get(TemporalFileByPathFinder).run(src);
+
   if (!fileToOverride) {
+    // A new document has no drive file to override. The bytes live in the
+    // staging file until this rename, which is the save.
+    if (document?.isLibreOfficeStagingFile() && !TemporalFile.isTemporaryPath(dest)) {
+      return uploadLibreOfficeStagingFileOnRename({ src, dest, container });
+    }
+
     logger.debug({ msg: '[UPLOAD ON RENAME] file to override not found', dest });
     return { error: new FuseNoSuchFileOrDirectoryError(dest) };
   }
-
-  const document = await container.get(TemporalFileByPathFinder).run(src);
 
   if (!document) {
     logger.debug({ msg: '[UPLOAD ON RENAME] offline file not found', src });

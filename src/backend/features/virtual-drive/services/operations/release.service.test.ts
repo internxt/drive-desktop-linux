@@ -88,6 +88,28 @@ describe('release', () => {
       calls(uploader.run).toHaveLength(0);
       call(deleter.run).toStrictEqual('/Documents/.~lock.file.odt#');
     });
+
+    it('should keep a LibreOffice staging file so the editor can reopen it', async () => {
+      finder.run.mockResolvedValue(createAuxiliaryFile('/lu371445na4g.tmp'));
+
+      const { data, error } = await release({ path: '/lu371445na4g.tmp', processName: 'soffice.bin', container });
+
+      expect(error).toBeUndefined();
+      expect(data).toBeUndefined();
+      calls(uploader.run).toHaveLength(0);
+      calls(deleter.run).toHaveLength(0);
+    });
+
+    it('should delete a regular tmp file without uploading it', async () => {
+      finder.run.mockResolvedValue(createAuxiliaryFile('/Documents/download.tmp'));
+
+      const { data, error } = await release({ path: '/Documents/download.tmp', processName: 'cat', container });
+
+      expect(error).toBeUndefined();
+      expect(data).toBeUndefined();
+      calls(uploader.run).toHaveLength(0);
+      call(deleter.run).toStrictEqual('/Documents/download.tmp');
+    });
   });
 
   describe('when a temporal file is found', () => {

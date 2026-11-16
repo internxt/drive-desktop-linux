@@ -10,6 +10,7 @@ import {
 import { TemporalFileByPathFinder } from '../../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { FuseCodes } from '../../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { handleTemporalFileUploadOnRename } from './handle-temporal-file-upload-on-rename';
+import * as uploadLibreOfficeStagingFileOnRenameModule from './upload-libreoffice-staging-file-on-rename';
 import * as uploadTemporalFileOnRenameModule from './upload-temporal-file-on-rename';
 import { call, calls, partialSpyOn } from '../../../../../../../tests/vitest/utils.helper';
 
@@ -34,6 +35,10 @@ const temporalAttrs: TemporalFileAttributes = {
 
 describe('handle-temporal-file-upload-on-rename', () => {
   const uploadMock = partialSpyOn(uploadTemporalFileOnRenameModule, 'uploadTemporalFileOnRename');
+  const stagingUploadMock = partialSpyOn(
+    uploadLibreOfficeStagingFileOnRenameModule,
+    'uploadLibreOfficeStagingFileOnRename',
+  );
   let container: ReturnType<typeof mockDeep<Container>>;
   let searcherMock: ReturnType<typeof mockDeep<FirstsFileSearcher>>;
   let finderMock: ReturnType<typeof mockDeep<TemporalFileByPathFinder>>;
@@ -51,7 +56,10 @@ describe('handle-temporal-file-upload-on-rename', () => {
     container.get.calledWith(FirstsFileSearcher).mockReturnValue(searcherMock);
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(finderMock);
     props.container = container;
+    props.src = '/tmp/internxt/file.txt';
+    props.dest = '/folder/file.txt';
     uploadMock.mockResolvedValue({ data: undefined });
+    stagingUploadMock.mockResolvedValue({ data: undefined });
   });
 
   it('should return ENOENT when file to override is not found', async () => {
@@ -64,6 +72,43 @@ describe('handle-temporal-file-upload-on-rename', () => {
     // Then
     expect(result.error?.code).toBe(FuseCodes.ENOENT);
     calls(uploadMock).toHaveLength(0);
+    calls(stagingUploadMock).toHaveLength(0);
+  });
+
+  it('should upload a LibreOffice staging file as a new document when the destination does not exist', async () => {
+    // Given
+    const document = TemporalFile.from({
+      createdAt: new Date(),
+      modifiedAt: new Date(),
+      path: '/lu371445na4g.tmp',
+      size: 20,
+    });
+    searcherMock.run.mockResolvedValue(undefined);
+    finderMock.run.mockResolvedValue(document);
+    props.src = '/lu371445na4g.tmp';
+    props.dest = '/save_test.odt';
+
+    // When
+    const result = await handleTemporalFileUploadOnRename(props);
+
+    // Then
+    expect(result.data).toBeUndefined();
+    call(stagingUploadMock).toStrictEqual({ src: props.src, dest: props.dest, container });
+    calls(uploadMock).toHaveLength(0);
+  });
+
+  it('should return ENOENT when a non-staging temporal file is renamed onto a missing path', async () => {
+    // Given
+    searcherMock.run.mockResolvedValue(undefined);
+    finderMock.run.mockResolvedValue(TemporalFile.from(temporalAttrs));
+
+    // When
+    const result = await handleTemporalFileUploadOnRename(props);
+
+    // Then
+    expect(result.error?.code).toBe(FuseCodes.ENOENT);
+    calls(uploadMock).toHaveLength(0);
+    calls(stagingUploadMock).toHaveLength(0);
   });
 
   it('should return ENOENT when temporal document is not found', async () => {

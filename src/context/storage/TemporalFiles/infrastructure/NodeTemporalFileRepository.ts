@@ -148,6 +148,32 @@ export class NodeTemporalFileRepository implements TemporalFileRepository {
     this.revisions.delete(documentPath.value);
   }
 
+  async move(from: TemporalFilePath, to: TemporalFilePath): Promise<void> {
+    if (from.value === to.value) {
+      return;
+    }
+
+    const contentPath = this.map.get(from.value);
+
+    if (!contentPath) {
+      throw new Error(`Document with path ${from.value} not found`);
+    }
+
+    if (this.map.has(to.value)) {
+      throw new Error(`Document with path ${to.value} already exists`);
+    }
+
+    const revision = this.revisions.get(from.value);
+
+    this.map.delete(from.value);
+    this.revisions.delete(from.value);
+    this.map.set(to.value, contentPath);
+
+    if (revision !== undefined) {
+      this.revisions.set(to.value, revision);
+    }
+  }
+
   async matchingDirectory(directory: string): Promise<TemporalFilePath[]> {
     const paths = Array.from(this.map.keys());
 
