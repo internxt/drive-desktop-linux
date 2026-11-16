@@ -24,6 +24,9 @@ export type TemporalFileAttributes = {
  * runs on a staged copy that has since been written, those writes are lost.
  *
  * Auxiliary files (lock files, .tmp, vim swap, vim probe/backup files, .goutputstream-*) are ignored.
+ * LibreOffice staging files (`lu` + random + `.tmp`) are auxiliary too, but they are the
+ * document being saved: the editor closes them and reopens the same path before renaming
+ * them onto the real name, so they must survive that first close.
  */
 export class TemporalFile extends AggregateRoot {
   private static readonly TEMPORAL_EXTENSION = 'tmp';
@@ -32,6 +35,7 @@ export class TemporalFile extends AggregateRoot {
   private static readonly VIM_SWAP_FILE_PATTERN = /\.sw[a-z]$/i;
   private static readonly VIM_BACKUP_FILE_SUFFIX = '~';
   private static readonly VIM_PROBE_FILE_NAME = '4913';
+  private static readonly LIBREOFFICE_STAGING_FILE_PATTERN = /^lu[a-z0-9]+\.tmp$/i;
 
   private constructor(
     private _createdAt: Date,
@@ -136,6 +140,16 @@ export class TemporalFile extends AggregateRoot {
 
   isTemporal(): boolean {
     return this.extension === TemporalFile.TEMPORAL_EXTENSION;
+  }
+
+  /**
+   * LibreOffice `osl_createTempFile` reserves `lu<random>.tmp` in the target
+   * directory, closes it, then opens that same path to write the document and
+   * finally renames it to the real name. The `.tmp` extension makes it
+   * auxiliary, but deleting it on the first close is what makes the reopen fail.
+   */
+  isLibreOfficeStagingFile(): boolean {
+    return TemporalFile.LIBREOFFICE_STAGING_FILE_PATTERN.test(this.nameWithExtension);
   }
 
   isOutputStream(): boolean {
