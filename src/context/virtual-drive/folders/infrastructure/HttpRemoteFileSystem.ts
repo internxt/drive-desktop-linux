@@ -3,7 +3,7 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { Folder } from '../domain/Folder';
 import { FolderPath } from '../domain/FolderPath';
-import { FolderPersistedDto, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
+import { FolderPersistedDto, FolderContentTimestamps, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
 import { parseRetryAfterMs } from '../../../../backend/common/rate-limit/transient-error-handler';
 import { mapToFolderPersistedDto } from '../../utils/map-to-folder-persisted-dto';
@@ -55,8 +55,17 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
     });
   }
 
-  async persist(plainName: string, parentFolderUuid: string): Promise<Either<DriveDesktopError, FolderPersistedDto>> {
-    const { data, error } = await createFolder({ parentFolderUuid, plainName });
+  async persist(
+    plainName: string,
+    parentFolderUuid: string,
+    contentTimestamps?: FolderContentTimestamps,
+  ): Promise<Either<DriveDesktopError, FolderPersistedDto>> {
+    const { data, error } = await createFolder({
+      parentFolderUuid,
+      plainName,
+      modificationTime: contentTimestamps?.modificationTime,
+      creationTime: contentTimestamps?.creationTime,
+    });
     if (data) {
       return right(mapToFolderPersistedDto(data));
     }

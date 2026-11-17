@@ -13,6 +13,9 @@ import { FileContentsId } from '../../domain/FileContentsId';
 import { overrideFile } from '../../../../../infra/drive-server/services/files/services/override-file';
 import { DriveServerError } from '../../../../../infra/drive-server/drive-server.error';
 import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
+import type { ContentTimestamps } from '../../../../../shared/content-timestamps/content-timestamps-from-stats';
+
+type FileOverrideContentTimestamps = Partial<Pick<ContentTimestamps, 'modificationTime'>>;
 
 /**
  * How many times the metadata write is retried after a transient failure. The
@@ -69,6 +72,7 @@ export class FileOverrider {
     oldContentsId: File['contentsId'],
     newContentsId: File['contentsId'],
     newSize: File['size'],
+    contentTimestamps?: FileOverrideContentTimestamps,
   ): Promise<File> {
     const file = await this.repository.searchByContentsId(oldContentsId);
 
@@ -94,6 +98,7 @@ export class FileOverrider {
           fileUuid: file.uuid,
           fileContentsId: file.contentsId,
           fileSize: file.size,
+          modificationTime: contentTimestamps?.modificationTime,
         });
 
         return result.error ? { error: mapOverrideFileError(result.error) } : { data: result.data };
@@ -104,6 +109,12 @@ export class FileOverrider {
 
     if (error) {
       throw error;
+    }
+
+    if (contentTimestamps?.modificationTime) {
+      file.update({
+        modificationTime: contentTimestamps.modificationTime.toISOString(),
+      });
     }
 
     await this.repository.update(file);

@@ -4,6 +4,7 @@ import { LocalTree } from '../../../../context/local/localTree/domain/LocalTree'
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
 import { Result } from '../../../../context/shared/domain/Result';
 
+import { contentTimestampsFromStats } from '../../../../shared/content-timestamps/content-timestamps-from-stats';
 import { ExtendedDirent, ProcessedDirents } from './types';
 import { LocalFile } from '../../../../context/local/localFile/domain/LocalFile';
 import { LocalFolder } from '../../../../context/local/localFolder/domain/LocalFolder';
@@ -110,7 +111,13 @@ function addFilesToTree({
   files: ExtendedDirent[];
 }): void {
   files.forEach(({ path, stats }) => {
-    const file = LocalFile.from({ path, modificationTime: stats.mtime.getTime(), size: stats.size });
+    const { modificationTime, creationTime } = contentTimestampsFromStats(stats);
+    const file = LocalFile.from({
+      path,
+      modificationTime: modificationTime.getTime(),
+      creationTime: creationTime.getTime(),
+      size: stats.size,
+    });
     tree.addFile(currentLocalFolder, file);
   });
 }
@@ -129,7 +136,8 @@ async function addFoldersToTreeAndTraverseChildren({
   const skippedItems: TraverseResult['skippedItems'] = [];
 
   for (const { path, stats } of folders) {
-    const folder = LocalFolder.from(path, stats.mtime.getTime());
+    const { modificationTime, creationTime } = contentTimestampsFromStats(stats);
+    const folder = LocalFolder.from(path, modificationTime.getTime(), creationTime.getTime());
     tree.addFolder(currentLocalFolder, folder);
 
     // eslint-disable-next-line no-await-in-loop

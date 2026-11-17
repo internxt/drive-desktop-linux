@@ -3,6 +3,7 @@ import { Result } from '../../../../context/shared/domain/Result';
 import { safeStat } from '../../../../infra/local-file-system/safe-stat';
 import { AbsolutePath } from '../../../../context/local/localFile/infrastructure/AbsolutePath';
 import { LocalTree } from '../../../../context/local/localTree/domain/LocalTree';
+import { contentTimestampsFromStats } from '../../../../shared/content-timestamps/content-timestamps-from-stats';
 import { traverse } from './traverse';
 
 export async function buildLocalTree(
@@ -17,7 +18,8 @@ export async function buildLocalTree(
   if (!root.isDirectory()) {
     return { error: new DriveDesktopError('BAD_REQUEST', `${folder} is not a directory`) };
   }
-  const tree = new LocalTree(folder, root.mtime.getTime());
+  const { modificationTime, creationTime } = contentTimestampsFromStats(root);
+  const tree = new LocalTree(folder, modificationTime.getTime(), creationTime.getTime());
   const result = await traverse({ tree, currentFolder: folder, rootFolder: folder });
   if (result.error) {
     return { error: result.error };

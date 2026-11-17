@@ -4,12 +4,18 @@ import { FolderPath } from '../../domain/FolderPath';
 import { Folder } from '../../domain/Folder';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { persistFolderWithRetry } from './persist-folder-with-retry';
+import type { FolderContentTimestamps } from '../../domain/file-systems/RemoteFileSystem';
 
 @Service()
 export class SimpleFolderCreator {
   constructor(private readonly rfs: RemoteFileSystem) {}
 
-  async run(path: string, parentUuid: string, signal?: AbortSignal): Promise<Folder> {
+  async run(
+    path: string,
+    parentUuid: string,
+    signal?: AbortSignal,
+    contentTimestamps?: FolderContentTimestamps,
+  ): Promise<Folder> {
     const folderPath = new FolderPath(path);
 
     const { data: dto, error } = await persistFolderWithRetry({
@@ -19,6 +25,7 @@ export class SimpleFolderCreator {
       tag: 'BACKUPS',
       context: 'BACKUP FOLDER CREATION RETRY',
       signal,
+      contentTimestamps,
     });
 
     if (error) {

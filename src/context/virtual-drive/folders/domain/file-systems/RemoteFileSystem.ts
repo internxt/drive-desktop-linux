@@ -9,8 +9,17 @@ export type FolderPersistedDto = {
   createdAt: string;
 };
 
+export type FolderContentTimestamps = {
+  modificationTime?: Date;
+  creationTime?: Date;
+};
+
 export abstract class RemoteFileSystem {
-  abstract persist(plainName: string, parentFolderUuid: string): Promise<Either<DriveDesktopError, FolderPersistedDto>>;
+  abstract persist(
+    plainName: string,
+    parentFolderUuid: string,
+    contentTimestamps?: FolderContentTimestamps,
+  ): Promise<Either<DriveDesktopError, FolderPersistedDto>>;
 
   abstract searchWith(parentFolderUuid: string, folderPath: FolderPath): Promise<Folder | undefined>;
 }

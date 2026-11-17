@@ -5,9 +5,11 @@ import Chance from '../../../../../context/shared/infrastructure/__test-helpers_
 
 export class LocalFileMother {
   static any(): LocalFile {
+    const time = DateMother.today().getTime();
     return LocalFile.from({
       path: AbsolutePathMother.anyFile(),
-      modificationTime: DateMother.today().getTime(),
+      modificationTime: time,
+      creationTime: time,
       size: Chance.integer({ min: 1, max: 10_000 }),
     });
   }

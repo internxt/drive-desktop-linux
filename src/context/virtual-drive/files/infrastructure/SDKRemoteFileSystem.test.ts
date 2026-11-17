@@ -19,7 +19,8 @@ describe('SDKRemoteFileSystem', () => {
   const fileResponse = {
     uuid: 'file-uuid',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    modificationTime: '2020-01-02T03:04:05.000Z',
+    updatedAt: '2025-06-07T08:09:10.000Z',
   };
 
   const sut = new SDKRemoteFileSystem('bucket-id');
@@ -111,7 +112,8 @@ describe('SDKRemoteFileSystem', () => {
     expect(result.getRight()).toMatchObject({
       uuid: fileResponse.uuid,
       createdAt: fileResponse.createdAt,
-      modificationTime: fileResponse.updatedAt,
+      modificationTime: fileResponse.modificationTime,
+      updatedAt: fileResponse.updatedAt,
     });
   });
 });

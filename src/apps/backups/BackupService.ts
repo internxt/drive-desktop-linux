@@ -187,6 +187,10 @@ export class BackupService {
         relative(local.root.path, localFolder.path),
         parent.uuid,
         signal,
+        {
+          modificationTime: new Date(localFolder.modificationTime),
+          creationTime: new Date(localFolder.creationTime),
+        },
       );
 
       remote.addFolder(parent, folder);
