@@ -35,7 +35,8 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     const { data, error } = await createFile(body);
     if (data) {
       const result: PersistedFileData = {
-        modificationTime: data.modificationTime ?? data.updatedAt,
+        modificationTime: data.modificationTime,
+        updatedAt: data.updatedAt,
         uuid: data.uuid,
         createdAt: data.createdAt,
       };

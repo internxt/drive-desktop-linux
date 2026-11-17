@@ -8,12 +8,17 @@ import { BackupProgressTracker } from '../backup-progress-tracker';
 import { mockDeep } from 'vitest-mock-extended';
 import { createBackupUploadExecutor } from './create-backup-upload-executor';
 import * as uploadFileToBackupModule from './upload-file-to-backup';
+import * as resolveLocalFileModule from './resolve-local-file-for-backup-upload';
 import * as backupErrorsTrackerModule from '../';
 import { AbsolutePath } from '../../../../context/local/localFile/infrastructure/AbsolutePath';
 import { Environment } from '@internxt/inxt-js';
 
 describe('createBackupUploadExecutor', () => {
   const uploadFileToBackupMock = partialSpyOn(uploadFileToBackupModule, 'uploadFileToBackup');
+  const resolveLocalFileForBackupUploadMock = partialSpyOn(
+    resolveLocalFileModule,
+    'resolveLocalFileForBackupUpload',
+  );
   const backupErrorsTrackerAddMock = partialSpyOn(backupErrorsTrackerModule.backupErrorsTracker, 'add');
 
   let tracker: BackupProgressTracker;
@@ -22,6 +27,17 @@ describe('createBackupUploadExecutor', () => {
   beforeEach(() => {
     tracker = mockDeep<BackupProgressTracker>();
     abortController = new AbortController();
+    resolveLocalFileForBackupUploadMock.mockImplementation(async ({ localFile }) => ({
+      data: {
+        kind: 'ready',
+        upload: {
+          path: localFile.path,
+          size: localFile.size,
+          modificationTime: new Date(localFile.modificationTime),
+          creationTime: new Date(localFile.creationTime),
+        },
+      },
+    }));
   });
 
   function setup() {
@@ -106,6 +122,18 @@ describe('createBackupUploadExecutor', () => {
       creationTime: new Date(localFile.creationTime),
     });
   });
+  it('should defer without uploading or incrementing progress when local file is still changing', async () => {
+    const { localFile, executor } = setup();
+    resolveLocalFileForBackupUploadMock.mockResolvedValueOnce({ data: { kind: 'deferred' } });
+
+    const result = await executor(localFile, abortController.signal);
+
+    expect(result.data).toBeUndefined();
+    expect(result.error).toBeUndefined();
+    expect(uploadFileToBackupMock).not.toHaveBeenCalled();
+    expect(tracker.incrementProcessed).not.toHaveBeenCalled();
+  });
+
   it('should return success without uploading when signal is already aborted', async () => {
     const { localFile, executor } = setup();
     abortController.abort();

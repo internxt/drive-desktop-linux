@@ -103,7 +103,7 @@ export class FileCreator {
       throw error;
     }
 
-    const { modificationTime, uuid, createdAt } = persistedFile;
+    const { modificationTime, updatedAt, uuid, createdAt } = persistedFile;
 
     return File.create({
       uuid,
@@ -113,7 +113,7 @@ export class FileCreator {
       modificationTime,
       path: filePath.value,
       size: fileSize.value,
-      updatedAt: modificationTime,
+      updatedAt,
     });
   }
 

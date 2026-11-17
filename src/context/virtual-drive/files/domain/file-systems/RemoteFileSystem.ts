@@ -16,7 +16,8 @@ export type FileDataToPersist = {
 };
 
 export type PersistedFileData = {
-  modificationTime: string;
+  modificationTime?: string;
+  updatedAt: string;
   uuid: string;
   createdAt: string;
 };

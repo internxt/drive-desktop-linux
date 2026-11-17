@@ -6,6 +6,7 @@ import { Result } from '../../../../context/shared/domain/Result';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
 import { relative } from '../../../../apps/backups/utils/relative';
 import { uploadFileToBackup } from './upload-file-to-backup';
+import { resolveLocalFileForBackupUpload } from './resolve-local-file-for-backup-upload';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { isFatalError } from '../../../../shared/issues/SyncErrorCause';
 import { TaskExecutor } from '../../../common/async-queue/types';
@@ -25,15 +26,42 @@ export function createBackupUploadExecutor(
     const remotePath = relative(localRootPath, localFile.path);
     const parent = remoteTree.getParent(remotePath);
 
+    const resolved = await resolveLocalFileForBackupUpload({ localFile });
+    if (resolved.error) {
+      logger.error({
+        tag: 'BACKUPS',
+        msg: '[FILE UPLOAD FAILED] Could not read local file before upload',
+        error: resolved.error,
+        path: localFile.path,
+      });
+
+      if (isFatalError(resolved.error.cause)) {
+        return { error: resolved.error };
+      }
+
+      backupErrorsTracker.add(parent.uuid, {
+        name: localFile.nameWithExtension(),
+        error: resolved.error.cause,
+      });
+
+      return { data: undefined };
+    }
+
+    if (resolved.data.kind === 'deferred') {
+      return { data: undefined };
+    }
+
+    const { upload } = resolved.data;
+
     const result = await uploadFileToBackup({
-      path: localFile.path,
-      size: localFile.size,
+      path: upload.path,
+      size: upload.size,
       bucket,
       folderUuid: parent.uuid,
       environment,
       signal,
-      modificationTime: new Date(localFile.modificationTime),
-      creationTime: new Date(localFile.creationTime),
+      modificationTime: upload.modificationTime,
+      creationTime: upload.creationTime,
     });
 
     tracker.incrementProcessed(1);
