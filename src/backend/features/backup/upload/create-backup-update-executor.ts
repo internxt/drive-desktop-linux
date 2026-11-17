@@ -43,7 +43,7 @@ export function createBackupUpdateExecutor(
         return { error: result.error };
       }
 
-      backupErrorsTracker.add(remoteFile.folderId, {
+      backupErrorsTracker.add(remoteFile.folderUuid, {
         name: localFile.nameWithExtension(),
         error: result.error.cause,
       });

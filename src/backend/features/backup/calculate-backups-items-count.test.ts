@@ -9,7 +9,6 @@ import { RemoteTreeBuilder } from '../../../context/virtual-drive/remoteTree/app
 
 const makeBackup = (folderUuid: string): BackupInfo => ({
   folderUuid,
-  folderId: 1,
   tmpPath: '/tmp/backup',
   backupsBucket: 'bucket',
   pathname: `/home/user/${folderUuid}` as AbsolutePath,

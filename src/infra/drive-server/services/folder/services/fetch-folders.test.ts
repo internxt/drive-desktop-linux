@@ -1,6 +1,7 @@
 import { partialSpyOn } from 'tests/vitest/utils.helper';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 import { DriveServerError } from '../../../drive-server.error';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { fetchFoldersSync } from './fetch-folders';
 
 describe('fetch-folders', () => {
@@ -8,6 +9,7 @@ describe('fetch-folders', () => {
 
   const defaultQuery = {
     limit: 50,
+    updatedAt: '1970-01-01T00:00:00.000Z',
   };
 
   it('should return folders and nextCursor when response is valid', async () => {
@@ -37,7 +39,7 @@ describe('fetch-folders', () => {
   it('should pass status and updatedAt to the query when provided', async () => {
     driveServerGetMock.mockResolvedValue({ data: { folders: [], nextCursor: null } } as object);
 
-    const query = { ...defaultQuery, status: 'EXISTS' as const, updatedAt: '2026-01-01T00:00:00.000Z' };
+    const query = { ...defaultQuery, status: DriveItemStatus.EXISTS, updatedAt: '2026-01-01T00:00:00.000Z' };
     await fetchFoldersSync(query);
 
     expect(driveServerGetMock).toHaveBeenCalledWith('/folders/sync', { query });
@@ -46,7 +48,7 @@ describe('fetch-folders', () => {
   it('should pass cursor to the query when provided', async () => {
     driveServerGetMock.mockResolvedValue({ data: { folders: [], nextCursor: null } } as object);
 
-    const query = { ...defaultQuery, cursor: 'cursor-abc' };
+    const query = { limit: defaultQuery.limit, cursor: 'cursor-abc' };
     await fetchFoldersSync(query);
 
     expect(driveServerGetMock).toHaveBeenCalledWith('/folders/sync', { query });

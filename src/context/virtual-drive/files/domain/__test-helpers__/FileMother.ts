@@ -1,5 +1,5 @@
 import { FileAttributes } from '../File';
-import { FileStatuses } from '../FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { File } from '../File';
 import { FilePathMother } from './FilePathMother';
 import Chance from 'chance';
@@ -13,32 +13,30 @@ export class FileMother {
 
   static any() {
     return File.from({
-      id: chance.integer({ min: 1000 }),
       uuid: UuidMother.primitive(),
       contentsId: BucketEntryIdMother.primitive(),
-      folderId: 3972960,
+      folderUuid: UuidMother.primitive(),
       createdAt: new Date().toISOString(),
       modificationTime: new Date().toISOString(),
       path: FilePathMother.random(2).value,
       size: 893924973,
       updatedAt: new Date().toISOString(),
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
   }
 
   static fromPartial(partial: Partial<FileAttributes>) {
     return File.from({
       ...{
-        id: chance.integer({ min: 1000 }),
         uuid: UuidMother.primitive(),
         contentsId: BucketEntryIdMother.primitive(),
-        folderId: 3972960,
+        folderUuid: UuidMother.primitive(),
         createdAt: new Date().toISOString(),
         modificationTime: new Date().toISOString(),
         path: FilePathMother.random().value,
         size: 893924973,
         updatedAt: new Date().toISOString(),
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       },
       ...partial,
     });

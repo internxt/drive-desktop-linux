@@ -20,7 +20,6 @@ const mockedMigrateBackupEntryIfNeeded = vi.mocked(migrateBackupEntryIfNeeded);
 
 describe('enable-existing-backup', () => {
   const mockDevice = {
-    id: 123,
     bucket: 'test-bucket',
     uuid: 'device-uuid',
     name: 'Test Device',
@@ -31,7 +30,6 @@ describe('enable-existing-backup', () => {
   const pathname = createAbsolutePath('/path/to/backup');
   const existingBackupData = {
     folderUuid: 'existing-uuid',
-    folderId: 456,
     enabled: false,
   };
 
@@ -42,7 +40,6 @@ describe('enable-existing-backup', () => {
   it('should create new backup when folder no longer exists', async () => {
     const mockNewBackupInfo = {
       folderUuid: 'new-folder-uuid',
-      folderId: 789,
       pathname,
       name: 'backup',
       tmpPath: '/tmp',
@@ -67,7 +64,7 @@ describe('enable-existing-backup', () => {
       .mockReturnValueOnce({ [pathname]: existingBackupData });
 
     mockedFetchFolder.mockResolvedValue({
-      data: { id: existingBackupData.folderId } as unknown as GetFolderContentDto,
+      data: { uuid: existingBackupData.folderUuid } as unknown as GetFolderContentDto,
     });
 
     const result = await enableExistingBackup({ pathname, device: mockDevice });
@@ -81,7 +78,6 @@ describe('enable-existing-backup', () => {
     expect(result).toStrictEqual({
       data: {
         folderUuid: existingBackupData.folderUuid,
-        folderId: existingBackupData.folderId,
         pathname,
         name: 'backup',
         tmpPath: PATHS.TEMPORAL_FOLDER,

@@ -10,6 +10,16 @@ describe('migrate-backup-entry-if-needed', () => {
   const configStoreSetMock = partialSpyOn(configStoreModule, 'set');
   const loggerErrorMock = partialSpyOn(logger, 'error');
 
+  it('should return backup unchanged when folder uuid is already set', async () => {
+    const backup = { folderId: 1, folderUuid: 'existing-uuid', enabled: true };
+
+    const result = await migrateBackupEntryIfNeeded({ pathname: '/home/dev/Documents', backup });
+
+    expect(result).toStrictEqual({ data: { enabled: true, folderUuid: 'existing-uuid' } });
+    expect(getBackupFolderUuidMock).not.toBeCalled();
+    expect(configStoreSetMock).not.toBeCalled();
+  });
+
   it('should migrate backup by fetching folder uuid and persisting it', async () => {
     const pathname = '/home/dev/Documents';
     const backup = { folderId: 1, folderUuid: '', enabled: true };
@@ -21,7 +31,10 @@ describe('migrate-backup-entry-if-needed', () => {
     const result = await migrateBackupEntryIfNeeded({ pathname, backup });
 
     expect(result.data?.folderUuid).toBe('new-folder-uuid');
-    call(configStoreSetMock).toStrictEqual(['backupList', backupList]);
+    call(configStoreSetMock).toStrictEqual([
+      'backupList',
+      { [pathname]: { enabled: true, folderUuid: 'new-folder-uuid' } },
+    ]);
   });
 
   it('should return error when folder uuid retrieval fails', async () => {

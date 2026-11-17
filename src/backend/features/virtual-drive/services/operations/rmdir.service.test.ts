@@ -4,7 +4,7 @@ import { FuseCodes } from '../../../../../apps/drive/fuse/callbacks/FuseCodes';
 import { FolderDeleter } from '../../../../../context/virtual-drive/folders/application/FolderDeleter';
 import { SingleFolderMatchingFinder } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingFinder';
 import { Folder } from '../../../../../context/virtual-drive/folders/domain/Folder';
-import { FolderStatuses } from '../../../../../context/virtual-drive/folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { SyncFolderMessenger } from '../../../../../context/virtual-drive/folders/domain/SyncFolderMessenger';
 import { FolderNotFoundError } from '../../../../../context/virtual-drive/folders/domain/errors/FolderNotFoundError';
 import { rmdir } from './rmdir.service';
@@ -28,13 +28,11 @@ describe('rmdir', () => {
   it('should trash folder when folder exists', async () => {
     folderFinder.run.mockResolvedValue(
       Folder.from({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440010',
-        parentId: 2,
         path: '/some/folder',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: FolderStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       }),
     );
 
@@ -63,13 +61,11 @@ describe('rmdir', () => {
   it('should return EIO when trash fails', async () => {
     folderFinder.run.mockResolvedValue(
       Folder.from({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440011',
-        parentId: 2,
         path: '/some/folder',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: FolderStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       }),
     );
     folderDeleter.run.mockRejectedValue(new Error('boom'));

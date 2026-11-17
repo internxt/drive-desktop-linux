@@ -2,7 +2,7 @@ import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import { FirstsFileSearcher } from '../../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { File, FileAttributes } from '../../../../../../context/virtual-drive/files/domain/File';
-import { FileStatuses } from '../../../../../../context/virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import {
   TemporalFile,
   TemporalFileAttributes,
@@ -14,16 +14,15 @@ import * as uploadTemporalFileOnRenameModule from './upload-temporal-file-on-ren
 import { call, calls, partialSpyOn } from '../../../../../../../tests/vitest/utils.helper';
 
 const fileAttrs: FileAttributes = {
-  id: 1,
   uuid: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
   contentsId: 'aabbccddeeff001122334455',
-  folderId: 0,
+  folderUuid: '22222222-2222-4333-8444-555555555555',
   createdAt: new Date().toISOString(),
   modificationTime: new Date().toISOString(),
   path: '/folder/file.txt',
   size: 100,
   updatedAt: new Date().toISOString(),
-  status: FileStatuses.EXISTS,
+  status: DriveItemStatus.EXISTS,
 };
 
 const temporalAttrs: TemporalFileAttributes = {
@@ -103,7 +102,7 @@ describe('handle-temporal-file-upload-on-rename', () => {
     await handleTemporalFileUploadOnRename(props);
 
     // Then
-    call(searcherMock.run).toStrictEqual({ path: props.dest, status: FileStatuses.EXISTS });
+    call(searcherMock.run).toStrictEqual({ path: props.dest, status: DriveItemStatus.EXISTS });
   });
 
   it('should search for temporal document at src', async () => {

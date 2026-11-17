@@ -13,7 +13,7 @@ describe('resolve-folder', () => {
   const folderRepository = mockDeep<FolderRepository>();
   const fileRepository = mockDeep<FileRepository>();
   const root = FolderMother.root();
-  const child = FolderMother.fromPartial({ id: 99, parentId: root.id, path: '/documents' });
+  const child = FolderMother.fromPartial({ parentUuid: root.uuid, path: '/documents' });
 
   beforeEach(() => {
     folderRepository.matchingPartial.mockImplementation(({ path }) => (path === '/' ? [root] : []));
@@ -59,7 +59,7 @@ describe('resolve-folder', () => {
 
   it('should not refresh the parent of a missing virtual trash path', async () => {
     synchronizeMock.mockClear();
-    const trash = FolderMother.fromPartial({ id: 7, parentId: root.id, path: '/.Trash-1000' });
+    const trash = FolderMother.fromPartial({ parentUuid: root.uuid, path: '/.Trash-1000' });
     folderRepository.matchingPartial.mockImplementation(({ path }) => {
       if (path === '/') return [root];
       if (path === '/.Trash-1000') return [trash];

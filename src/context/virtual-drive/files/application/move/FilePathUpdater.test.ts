@@ -76,7 +76,6 @@ describe('File path updater', () => {
     const destination = new FilePath(`${fileToMove.dirname}_/${fileToMove.nameWithExtension}`);
 
     const destinationFolder = FolderMother.fromPartial({
-      id: fileToMove.folderId + 1,
       path: destination.dirname(),
     });
 
@@ -86,7 +85,7 @@ describe('File path updater', () => {
 
     expect(repository.updateMock).toBeCalledWith(
       expect.objectContaining({
-        folderId: destinationFolder.id,
+        folderUuid: destinationFolder.uuid,
         path: destination.value,
       }),
     );

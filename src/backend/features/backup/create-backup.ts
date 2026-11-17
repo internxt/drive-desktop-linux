@@ -20,7 +20,6 @@ export async function createBackup({ pathname, device }: Props): Promise<Result<
   const backupList = configStore.get('backupList');
   backupList[pathname] = {
     enabled: true,
-    folderId: newBackup.id,
     folderUuid: newBackup.uuid,
   };
 
@@ -28,7 +27,6 @@ export async function createBackup({ pathname, device }: Props): Promise<Result<
 
   const createdBackup: BackupInfo = {
     folderUuid: newBackup.uuid,
-    folderId: newBackup.id,
     pathname,
     name: base,
     tmpPath: app.getPath('temp'),

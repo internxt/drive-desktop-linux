@@ -1,12 +1,11 @@
 import { Container } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { type Result } from '../../../../../context/shared/domain/Result';
 import { FuseError, FuseIOError } from '../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { TemporalFileByPathFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
 import { TemporalFileUploader } from '../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileDeleter } from '../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
-import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
 import { UploadSizeLimitError } from '../../../user/file-size-limit/upload-size-limit-error';
 import { DriveDesktopError } from '../../../../../context/shared/domain/errors/DriveDesktopError';
 import { addVirtualDriveIssue } from '../../../../../apps/main/issues/virtual-drive';
@@ -64,7 +63,7 @@ export async function release({ path, processName, container }: Props): Promise<
     uploadsInProgress.add(path);
 
     try {
-      const existingFile = await container.get(FirstsFileSearcher).run({ path, status: FileStatuses.EXISTS });
+      const existingFile = await container.get(FirstsFileSearcher).run({ path, status: DriveItemStatus.EXISTS });
       const replaces = existingFile
         ? { contentsId: existingFile.contentsId, name: existingFile.name, extension: existingFile.type }
         : undefined;

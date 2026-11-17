@@ -1,6 +1,6 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { basename } from 'path';
+import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { ParentFolderFinder } from '../../../folders/application/ParentFolderFinder';
 import { EventBus } from '../../../shared/domain/EventBus';
@@ -11,7 +11,6 @@ import { FileSize } from '../../domain/FileSize';
 import { SyncFileMessenger } from '../../domain/SyncFileMessenger';
 import { PersistedFileData, RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { FileContentsId } from '../../domain/FileContentsId';
-import { FileFolderId } from '../../domain/FileFolderId';
 import { runAfterParentCreations } from '../../../folders/application/create/PendingFolderCreationTracker';
 import { retryWithBackoff } from '../../../../../shared/retry-with-backoff';
 import { createTransientErrorHandler } from '../../../../../backend/common/rate-limit/transient-error-handler';
@@ -80,7 +79,6 @@ export class FileCreator {
     const fileSize = new FileSize(size);
 
     const folder = await this.parentFolderFinder.run(filePath);
-    const fileFolderId = new FileFolderId(folder.id);
 
     // utimensat may have asked for a time while this file was still staged, in
     // which case it is carried into the CREATE call rather than applied after.
@@ -92,7 +90,6 @@ export class FileCreator {
       filePath,
       fileContentsId,
       fileSize,
-      fileFolderId,
       folderUuid: folder.uuid,
       requestedModificationTime,
       creationTime,
@@ -106,13 +103,12 @@ export class FileCreator {
       throw error;
     }
 
-    const { modificationTime, id, uuid, createdAt } = persistedFile;
+    const { modificationTime, uuid, createdAt } = persistedFile;
 
     return File.create({
-      id,
       uuid,
       contentsId: fileContentsId.value,
-      folderId: fileFolderId.value,
+      folderUuid: folder.uuid,
       createdAt,
       modificationTime,
       path: filePath.value,
@@ -125,7 +121,6 @@ export class FileCreator {
     filePath,
     fileContentsId,
     fileSize,
-    fileFolderId,
     folderUuid,
     requestedModificationTime,
     creationTime,
@@ -133,7 +128,6 @@ export class FileCreator {
     filePath: FilePath;
     fileContentsId: FileContentsId;
     fileSize: FileSize;
-    fileFolderId: FileFolderId;
     folderUuid: string;
     requestedModificationTime?: Date;
     creationTime?: Date;
@@ -144,7 +138,6 @@ export class FileCreator {
           contentsId: fileContentsId,
           path: filePath,
           size: fileSize,
-          folderId: fileFolderId,
           folderUuid,
           modificationTime: requestedModificationTime,
           creationTime,

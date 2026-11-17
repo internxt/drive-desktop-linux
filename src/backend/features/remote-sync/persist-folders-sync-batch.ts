@@ -4,10 +4,10 @@ import { DirectoryStateRepository } from '../virtual-drive/services/lazy/directo
 import { runWithDirectoryMetadataWriteLock } from '../virtual-drive/services/lazy/run-with-directory-metadata-write-lock';
 import { filterStaleRemoteFolders } from './filter-stale-remote-items';
 import { mapFolder } from './map-folder';
-import type { FolderSyncDto } from './types';
+import type { FolderSyncMappingDto } from './types';
 
 type Props = {
-  items: FolderSyncDto[];
+  items: FolderSyncMappingDto[];
 };
 
 async function writeFoldersFromFreshSnapshot({ items }: Props) {
@@ -21,8 +21,8 @@ async function writeFoldersFromFreshSnapshot({ items }: Props) {
   if (result.error) return Result.err(result.error);
 
   await Promise.all(
-    [...foldersToInvalidate].map((folderId) =>
-      DirectoryStateRepository.invalidate({ folderId, statusScope: 'EXISTS' }),
+    [...foldersToInvalidate].map((folderUuid) =>
+      DirectoryStateRepository.invalidate({ folderUuid, statusScope: 'EXISTS' }),
     ),
   );
 

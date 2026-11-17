@@ -1,6 +1,6 @@
 import { Container } from 'diod';
 import { SingleFolderMatchingSearcher } from '../../../../../../context/virtual-drive/folders/application/SingleFolderMatchingSearcher';
-import { FolderStatuses } from '../../../../../../context/virtual-drive/folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FuseError, FuseNoSuchFileOrDirectoryError } from '../../../../../../apps/drive/fuse/callbacks/FuseErrors';
 import { Result } from '../../../../../../context/shared/domain/Result';
 import { trashFolder } from './trash-folder';
@@ -15,7 +15,7 @@ type Props = {
 export async function handleFolderRenameIntent({ src, dest, container }: Props): Promise<Result<void, FuseError>> {
   const folder = await container.get(SingleFolderMatchingSearcher).run({
     path: src,
-    status: FolderStatuses.EXISTS,
+    status: DriveItemStatus.EXISTS,
   });
 
   if (!folder) return { error: new FuseNoSuchFileOrDirectoryError(src) };

@@ -22,7 +22,6 @@ describe('upload-file-to-backup', () => {
     path: '/some/path/file.txt',
     size: 1024,
     bucket: 'test-bucket',
-    folderId: 1,
     folderUuid: 'folder-uuid',
     environment: {} as Environment,
     signal: new AbortController().signal,

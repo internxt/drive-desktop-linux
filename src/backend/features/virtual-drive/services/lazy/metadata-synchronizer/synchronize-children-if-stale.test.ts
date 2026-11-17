@@ -57,7 +57,7 @@ describe('synchronize-children-if-stale', () => {
     const first = synchronizeChildrenIfStale(props);
     const second = synchronizeChildrenIfStale({
       ...props,
-      folder: FolderMother.fromPartial({ id: 99, path: '/documents' }),
+      folder: FolderMother.fromPartial({ path: '/documents' }),
     });
     calls(refreshMock).toHaveLength(2);
     pending.resolve(Result.ok(undefined));

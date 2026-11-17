@@ -18,7 +18,6 @@ const remoteNotificationsEnabled = false;
 
 export type EventPayload = {
   eventName?: string;
-  id?: number;
   uuid?: string;
   bucket?: string;
 };
@@ -98,10 +97,6 @@ function cleanAndStartRemoteNotifications() {
 
     if (data.event) {
       eventPayload.eventName = data.event;
-    }
-
-    if (data.payload.id) {
-      eventPayload.id = data.payload.id;
     }
 
     if (data.payload.uuid) {

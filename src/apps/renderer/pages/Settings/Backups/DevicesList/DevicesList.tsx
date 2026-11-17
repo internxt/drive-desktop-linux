@@ -12,7 +12,7 @@ export function DevicesList({ className }: DevicesSideBarProps) {
   const { devices, deviceState, current, selected, setSelected } = useContext(DeviceContext);
 
   const devicesWithoutCurrent = devices.filter(
-    (device) => deviceState.status === 'SUCCESS' && device.id !== deviceState.device.id,
+    (device) => deviceState.status === 'SUCCESS' && device.uuid !== deviceState.device.uuid,
   );
 
   return (
@@ -27,7 +27,7 @@ export function DevicesList({ className }: DevicesSideBarProps) {
               </li>
             )}
             {devicesWithoutCurrent.map((device) => (
-              <li className="my-1" key={device.id}>
+              <li className="my-1" key={device.uuid}>
                 <DevicePill device={device} selected={device === selected} setSelected={setSelected} />
               </li>
             ))}

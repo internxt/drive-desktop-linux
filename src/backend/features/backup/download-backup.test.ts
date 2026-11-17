@@ -24,7 +24,6 @@ describe('download-backup', () => {
   const user = { bridgeUser: 'bridge-user', userId: 'user-id' };
 
   const device = {
-    id: 1,
     uuid: 'device-uuid',
     name: 'Desktop',
     bucket: 'bucket',

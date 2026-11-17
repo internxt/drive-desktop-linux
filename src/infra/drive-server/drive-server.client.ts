@@ -2,6 +2,7 @@ import axios, { isAxiosError } from 'axios';
 import { attachRateLimiterInterceptors } from './client/interceptors/rate-limiter/attach-rate-limiter-interceptors';
 import { attachAuthInterceptors } from './client/interceptors/auth/attach-auth-interceptors';
 import { attachErrorLoggerInterceptor } from './client/interceptors/error-logger/attach-error-logger-interceptor';
+import { attachClientVersionInterceptors } from '../../backend/features/client-compatibility/services/attach-client-version-interceptors';
 import { Result } from '../../context/shared/domain/Result';
 import { DriveServerError, mapStatusToErrorCause } from './drive-server.error';
 import { ClientOptions } from './drive-server.types';
@@ -90,6 +91,7 @@ type RequestOptions<T, P extends keyof T, M extends HTTPMethod> = {
   headers?: Record<string, string>;
   query?: OperationQuery<T, P, M>;
   body?: OperationRequestBody<T, P, M>;
+  signal?: AbortSignal;
 };
 
 /**
@@ -114,6 +116,13 @@ export function createClient<T>(opts: ClientOptions) {
   });
 
   attachErrorLoggerInterceptor(http);
+
+  /**
+   * v2.7.1 Alexis Mora
+   * Attached last on purpose: axios runs request interceptors in reverse order, so a client the backend rejected
+   * fails before the rate limiter or the auth headers do any work.
+   */
+  attachClientVersionInterceptors(http);
 
   /**
    * Low‑level helper that performs the actual Axios call.
@@ -145,6 +154,7 @@ export function createClient<T>(opts: ClientOptions) {
         headers: o?.headers,
         params: o?.query,
         data: o?.body,
+        signal: o?.signal,
       });
       return { data };
     } catch (error) {

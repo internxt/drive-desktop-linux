@@ -15,7 +15,6 @@ describe('DeviceContext', () => {
   const unsubscribeMock = vi.fn();
 
   const device: Device = {
-    id: 1,
     uuid: 'device-uuid',
     name: 'Linux Device',
     bucket: 'bucket',

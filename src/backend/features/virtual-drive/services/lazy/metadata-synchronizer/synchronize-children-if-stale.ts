@@ -9,7 +9,7 @@ export async function synchronizeChildrenIfStale(props: FolderMetadataProps) {
   // /.Trash and /.Trash-$uid are local folders. Their uuids are not on the server.
   if (isVirtualTrashFolder(props.folder)) return Result.ok(undefined);
 
-  const key = `${props.folder.id}:EXISTS`;
+  const key = `${props.folder.uuid}:EXISTS`;
   const inFlightRefresh = inFlightRefreshes.get(key);
 
   if (inFlightRefresh) return inFlightRefresh;

@@ -1,5 +1,4 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
-import type { SynchronizationPageRequest } from '@internxt/drive-desktop-core/build/backend';
+import { logger, type SynchronizationPageRequest } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { fetchFilesSync } from '../../../infra/drive-server/services/files/services/fetch-files';
 

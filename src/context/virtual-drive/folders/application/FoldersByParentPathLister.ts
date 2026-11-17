@@ -14,7 +14,7 @@ export class FoldersByParentPathLister {
     const folder = await this.singleFolderMatchingFinder.run({ path });
 
     const folders = this.repository.matchingPartial({
-      parentId: folder.id,
+      parentUuid: folder.uuid,
     });
 
     return folders.map((folder) => folder.name);

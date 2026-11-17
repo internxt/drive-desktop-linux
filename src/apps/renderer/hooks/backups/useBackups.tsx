@@ -61,7 +61,7 @@ export function useBackups(): BackupContextProps {
     if (error) return;
 
     setBackups((prevBackups) => {
-      const existingIndex = prevBackups.findIndex((backup) => backup.folderId === newBackup.folderId);
+      const existingIndex = prevBackups.findIndex((backup) => backup.folderUuid === newBackup.folderUuid);
 
       if (existingIndex === -1) {
         return [...prevBackups, newBackup];

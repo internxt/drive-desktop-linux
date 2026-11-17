@@ -1,45 +1,40 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { EnumValueObject } from '../../../shared/domain/value-objects/EnumValueObject';
 import { InvalidArgumentError } from '../../../shared/domain/errors/InvalidArgumentError';
 import { ActionNotPermittedError } from './errors/ActionNotPermittedError';
 
-export enum FolderStatuses {
-  EXISTS = 'EXISTS',
-  TRASHED = 'TRASHED',
-  DELETED = 'DELETED',
-}
-
-export class FolderStatus extends EnumValueObject<FolderStatuses> {
-  constructor(value: FolderStatuses) {
-    super(value, Object.values(FolderStatuses));
+export class FolderStatus extends EnumValueObject<DriveItemStatus> {
+  constructor(value: DriveItemStatus) {
+    super(value, Object.values(DriveItemStatus));
   }
 
   static fromValue(value: string): FolderStatus {
-    for (const fileStatusValue of Object.values(FolderStatuses)) {
-      if (value === fileStatusValue.toString()) {
-        return new FolderStatus(fileStatusValue);
+    for (const folderStatusValue of Object.values(DriveItemStatus)) {
+      if (value === folderStatusValue.toString()) {
+        return new FolderStatus(folderStatusValue);
       }
     }
 
     throw new InvalidArgumentError(`The folder status ${value} is invalid`);
   }
 
-  static Exists = new FolderStatus(FolderStatuses.EXISTS);
-  static Trashed = new FolderStatus(FolderStatuses.TRASHED);
-  static Deleted = new FolderStatus(FolderStatuses.DELETED);
+  public static Exists = new FolderStatus(DriveItemStatus.EXISTS);
+  public static Trashed = new FolderStatus(DriveItemStatus.TRASHED);
+  public static Deleted = new FolderStatus(DriveItemStatus.DELETED);
 
-  changeTo(status: FolderStatuses): FolderStatus {
-    if (this.value === 'TRASHED') {
+  changeTo(status: DriveItemStatus): FolderStatus {
+    if (this.value === DriveItemStatus.TRASHED) {
       throw new ActionNotPermittedError('restore from trash');
     }
 
-    return new FolderStatus(FolderStatuses[status]);
+    return new FolderStatus(status);
   }
 
-  is(status: FolderStatuses): boolean {
-    return this.value === FolderStatuses[status];
+  is(status: DriveItemStatus): boolean {
+    return this.value === status;
   }
 
-  protected throwErrorForInvalidValue(value: FolderStatuses): void {
+  protected throwErrorForInvalidValue(value: DriveItemStatus): void {
     throw new InvalidArgumentError(`Folder status ${value} is invalid`);
   }
 }

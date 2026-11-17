@@ -26,14 +26,15 @@ export class FolderDeleter {
     }
 
     try {
-      if (!folder.parentId) {
+      if (folder.isRoot()) {
         throw new ActionNotPermittedError('Trash root folder');
       }
 
-      const allParentsExists = await this.allParentFoldersStatusIsExists.run(
-        // TODO: Create a new aggregate root for root folder so the rest have the parent Id as number
-        folder.parentId as number,
-      );
+      if (!folder.parentUuid) {
+        throw new ActionNotPermittedError('Trash folder without parent uuid');
+      }
+
+      const allParentsExists = await this.allParentFoldersStatusIsExists.run(folder.parentUuid);
 
       if (!allParentsExists) {
         logger.warn({
@@ -52,7 +53,7 @@ export class FolderDeleter {
         });
         throw new Error('Error when deleting folder');
       }
-      await this.repository.delete(folder.id);
+      await this.repository.delete(folder.uuid);
       await this.fileRepository.deleteByFolderPath(folder.path);
     } catch (error: unknown) {
       logger.error({
