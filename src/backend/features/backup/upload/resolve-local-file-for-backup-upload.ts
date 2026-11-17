@@ -81,9 +81,7 @@ type LocalFileStateRead = {
   creationTime: Date;
 };
 
-async function readLocalFileState(
-  absolutePath: string,
-): Promise<Result<LocalFileStateRead, DriveDesktopError>> {
+async function readLocalFileState(absolutePath: string): Promise<Result<LocalFileStateRead, DriveDesktopError>> {
   const { data: stats, error } = await safeStat(absolutePath);
   if (error) {
     return { error };

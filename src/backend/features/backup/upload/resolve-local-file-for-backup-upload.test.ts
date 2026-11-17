@@ -1,3 +1,4 @@
+import type { Stats } from 'node:fs';
 import { vi } from 'vitest';
 import { DriveDesktopError } from '../../../../context/shared/domain/errors/DriveDesktopError';
 import { LocalFileMother } from '../../../../context/local/localFile/domain/__test-helpers__/LocalFileMother';
@@ -9,7 +10,7 @@ vi.mock(import('../../../../infra/local-file-system/safe-stat'));
 
 const safeStatMock = vi.mocked(safeStatModule.safeStat);
 
-function fileStats(size: number, mtimeMs: number) {
+function fileStats(size: number, mtimeMs: number): Stats {
   return {
     isFile: () => true,
     isDirectory: () => false,
@@ -18,7 +19,7 @@ function fileStats(size: number, mtimeMs: number) {
     birthtime: new Date(mtimeMs),
     birthtimeMs: mtimeMs,
     ctime: new Date(mtimeMs),
-  };
+  } as Stats;
 }
 
 describe('resolve-local-file-for-backup-upload', () => {
@@ -85,7 +86,7 @@ describe('resolve-local-file-for-backup-upload', () => {
   });
 
   it('returns stat errors from safeStat', async () => {
-    const localFile = LocalFileMother.fromPartial();
+    const localFile = LocalFileMother.fromPartial({});
     const statError = new DriveDesktopError('NOT_EXISTS', 'missing');
     safeStatMock.mockResolvedValue({ error: statError });
 

@@ -15,10 +15,7 @@ import { Environment } from '@internxt/inxt-js';
 
 describe('createBackupUploadExecutor', () => {
   const uploadFileToBackupMock = partialSpyOn(uploadFileToBackupModule, 'uploadFileToBackup');
-  const resolveLocalFileForBackupUploadMock = partialSpyOn(
-    resolveLocalFileModule,
-    'resolveLocalFileForBackupUpload',
-  );
+  const resolveLocalFileForBackupUploadMock = partialSpyOn(resolveLocalFileModule, 'resolveLocalFileForBackupUpload');
   const backupErrorsTrackerAddMock = partialSpyOn(backupErrorsTrackerModule.backupErrorsTracker, 'add');
 
   let tracker: BackupProgressTracker;
