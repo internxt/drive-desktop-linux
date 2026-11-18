@@ -1,11 +1,23 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import configStore from '../../../../apps/main/config';
-import { Result } from '../../../../context/shared/domain/Result';
 import { getUserFileSizeLimit } from '../../../../infra/drive-server/services/files/services/get-user-file-size-limit';
-import { UserFileSizeLimit } from '../../../../infra/drive-server/out/dto';
 
-export async function resolveUserFileSizeLimit(): Promise<Result<Exclude<UserFileSizeLimit, null>, Error>> {
-  const { data, error } = await getUserFileSizeLimit();
+const FILE_SIZE_LIMIT_REQUEST_TIMEOUT_MS = 10_000;
+
+type Props = {
+  signal?: AbortSignal;
+};
+
+/**
+ * v2.7.0 Esteban
+ * Login and an upload waiting on the limit share this request: one attempt, aborted after 10s.
+ * A failed response stays an error. Returning the stored limit would make the core save it as a fresh
+ * confirmation and skip the backend for 15 minutes. The previous limit stays in the config store.
+ */
+export async function resolveUserFileSizeLimit({
+  signal = AbortSignal.timeout(FILE_SIZE_LIMIT_REQUEST_TIMEOUT_MS),
+}: Props = {}) {
+  const { data, error } = await getUserFileSizeLimit({ signal });
 
   if (data) {
     configStore.set('maxUploadFileSizeInBytes', data);
@@ -14,19 +26,7 @@ export async function resolveUserFileSizeLimit(): Promise<Result<Exclude<UserFil
       msg: 'Resolved user file size limit from API',
     });
 
-    return {
-      data,
-    };
-  }
-
-  const lastKnownFileSizeLimit = configStore.get('maxUploadFileSizeInBytes');
-  if (lastKnownFileSizeLimit) {
-    logger.warn({
-      tag: 'SYNC-ENGINE',
-      msg: 'Using stored user file size limit',
-    });
-
-    return { data: lastKnownFileSizeLimit };
+    return { data };
   }
 
   logger.error({
@@ -35,5 +35,5 @@ export async function resolveUserFileSizeLimit(): Promise<Result<Exclude<UserFil
     error,
   });
 
-  return { error: error || new Error('Unable to resolve user file size limit') };
+  return { error: error ?? new Error('Unable to resolve user file size limit') };
 }

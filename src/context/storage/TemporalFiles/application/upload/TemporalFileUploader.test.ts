@@ -1,7 +1,7 @@
+import { FileSizeLimitModule } from '@internxt/drive-desktop-core/build/backend';
 import { Readable } from 'node:stream';
 import { mockDeep } from 'vitest-mock-extended';
-import { partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
-import configStore from '../../../../../apps/main/config';
+import { call, calls, partialSpyOn } from '../../../../../../tests/vitest/utils.helper';
 import {
   clearMaxFileSizeRejectionModal,
   clearUploadSizeLimitBlockedPath,
@@ -14,10 +14,9 @@ import { Optional } from '../../../../../shared/types/Optional';
 import { TemporalFileRepository } from '../../domain/TemporalFileRepository';
 import { TemporalFileUploaderFactory } from '../../domain/upload/TemporalFileUploaderFactory';
 import { TemporalFileUploader } from './TemporalFileUploader';
-import { call, calls } from '../../../../../../tests/vitest/utils.helper';
 
 describe('TemporalFileUploader', () => {
-  const configGetMock = partialSpyOn(configStore, 'get');
+  const checkUploadFileSizeMock = partialSpyOn(FileSizeLimitModule, 'checkUploadFileSize');
   const validateSpaceMock = partialSpyOn(validateSpaceModule, 'validateSpace');
   const repository = mockDeep<TemporalFileRepository>();
   const uploaderFactory = mockDeep<TemporalFileUploaderFactory>();
@@ -49,6 +48,7 @@ describe('TemporalFileUploader', () => {
   }
 
   beforeEach(() => {
+    checkUploadFileSizeMock.mockResolvedValue({ allowed: true });
     repository.watchFile.mockReturnValue(stopWatching);
     eventBus.publish.mockResolvedValue(undefined);
     uploaderFactory.read.mockReturnValue(uploaderFactory);
@@ -276,7 +276,12 @@ describe('TemporalFileUploader', () => {
   });
 
   it('should reject oversized temporal files before opening the upload stream', async () => {
-    configGetMock.mockReturnValue(100);
+    checkUploadFileSizeMock.mockResolvedValue({
+      allowed: false,
+      reason: 'PLAN_LIMIT_EXCEEDED',
+      maxFileSize: 100,
+      showUpgradeCta: true,
+    });
 
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
@@ -287,7 +292,7 @@ describe('TemporalFileUploader', () => {
   });
 
   it('should reject temporal files when drive space is insufficient before opening the upload stream', async () => {
-    configGetMock.mockReturnValue(101);
+    checkUploadFileSizeMock.mockResolvedValue({ allowed: true });
     validateSpaceMock.mockResolvedValue({ data: { hasSpace: false } });
 
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
@@ -303,7 +308,7 @@ describe('TemporalFileUploader', () => {
   });
 
   it('should continue upload when the stored limit is unavailable', async () => {
-    configGetMock.mockReturnValue(0);
+    checkUploadFileSizeMock.mockResolvedValue({ allowed: true });
 
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
@@ -313,7 +318,7 @@ describe('TemporalFileUploader', () => {
   });
 
   it('should upload temporal files when they fit the stored limit', async () => {
-    configGetMock.mockReturnValue(101);
+    checkUploadFileSizeMock.mockResolvedValue({ allowed: true });
 
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
