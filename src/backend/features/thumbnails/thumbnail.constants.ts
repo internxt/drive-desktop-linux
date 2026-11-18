@@ -1,2 +1,4 @@
 export const THUMBNAIL_SIZE = 256;
+export const THUMBNAIL_NORMAL_SIZE = 128;
 export const UPLOAD_TIMEOUT_MS = 30_000;
+export const MAX_VIDEO_THUMBNAIL_HYDRATION_BYTES = 16 * 1024 * 1024; // 16 MB
