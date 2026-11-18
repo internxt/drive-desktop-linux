@@ -1,9 +1,8 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { mockDeep } from 'vitest-mock-extended';
 import { Container } from 'diod';
 import type { File } from '../../../../context/virtual-drive/files/domain/File';
 import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
-import { FileStatuses } from '../../../../context/virtual-drive/files/domain/FileStatus';
 import * as ensureThumbnailSourceModule from './ensure-thumbnail-source';
 import * as createSystemThumbnailModule from './create-system-thumbnail';
 import { call, calls, partialSpyOn } from '../../../../../tests/vitest/utils.helper';
@@ -51,7 +50,7 @@ describe('sync-thumbnail-file', () => {
     expect(synced).toBe(true);
     call(fileSearcher.run).toStrictEqual({
       path: '/photos/photo.jpg',
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
     call(ensureThumbnailSourceMock).toMatchObject({
       file: photo,

@@ -4,8 +4,6 @@ import { EventBus } from '../../../shared/domain/EventBus';
 import { Folder } from '../../domain/Folder';
 import { FolderPath } from '../../domain/FolderPath';
 import { FolderRepository } from '../../domain/FolderRepository';
-import { FolderUpdatedAt } from '../../domain/FolderUpdatedAt';
-import { FolderUuid } from '../../domain/FolderUuid';
 import { FolderInPathAlreadyExistsError } from '../../domain/errors/FolderInPathAlreadyExistsError';
 import { RemoteFileSystem } from '../../domain/file-systems/RemoteFileSystem';
 import { ParentFolderFinder } from '../ParentFolderFinder';

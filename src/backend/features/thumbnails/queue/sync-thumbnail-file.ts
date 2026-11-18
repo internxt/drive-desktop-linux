@@ -1,8 +1,7 @@
 import { join } from 'node:path';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import type { Container } from 'diod';
 import { FirstsFileSearcher } from '../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
-import { FileStatuses } from '../../../../context/virtual-drive/files/domain/FileStatus';
 import { createSystemThumbnail } from './create-system-thumbnail';
 import { ensureThumbnailSource } from './ensure-thumbnail-source';
 
@@ -26,7 +25,7 @@ export async function syncThumbnailFile({
   try {
     const file = await container.get(FirstsFileSearcher).run({
       path: join(folderPath, fileName),
-      status: FileStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
     if (!file || file.size <= 0) return true;
 
