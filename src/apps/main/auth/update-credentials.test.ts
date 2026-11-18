@@ -30,6 +30,7 @@ describe('updateCredentials', () => {
     bucket: 'bucket',
     backupsBucket: 'backups-bucket',
     rootFolderId: 'root-folder-id',
+    root_folder_id: 1,
     mnemonic: 'user-mnemonic',
     createdAt: '2025-01-01',
     privateKey: '',
