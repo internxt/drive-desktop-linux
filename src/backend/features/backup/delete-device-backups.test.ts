@@ -81,6 +81,21 @@ describe('delete-device-backups', () => {
     expect(startRemoteSyncMock).not.toBeCalled();
   });
 
+  it('should finish when the device folder is already absent', async () => {
+    getBackupsFromDeviceMock.mockResolvedValue(backups);
+    deleteBackupMock.mockResolvedValue({ data: true });
+    fetchFolderMock.mockResolvedValue({ error: new DriveServerError('NOT_FOUND', 404, 'folder missing') });
+
+    await deleteDeviceBackups({
+      device,
+      isCurrent: true,
+    });
+
+    calls(deleteBackupMock).toHaveLength(1);
+    expect(addFolderToTrashMock).not.toBeCalled();
+    calls(loggerMock.error).toHaveLength(0);
+  });
+
   it('should fail and skip orphan deletion when the device folder cannot be fetched', async () => {
     getBackupsFromDeviceMock.mockResolvedValue(backups);
     deleteBackupMock.mockResolvedValue({ data: true });

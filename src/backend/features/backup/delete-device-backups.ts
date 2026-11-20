@@ -24,6 +24,12 @@ export async function deleteDeviceBackups({ device, isCurrent }: Props) {
     // Orphan folders are siblings of the device folder. One content request is enough;
     // a global remote sync walks the whole drive and blocks deletion.
     const { data: folder, error } = await fetchFolder(device.uuid);
+    if (error?.cause === 'NOT_FOUND') {
+      // v.2.7.1
+      // Esteban Galvis Triana
+      // The device folder is already gone, so there are no orphan children left to trash.
+      return;
+    }
     if (error) {
       throw error;
     }
