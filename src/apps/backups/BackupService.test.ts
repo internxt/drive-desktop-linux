@@ -77,7 +77,7 @@ describe('BackupService', () => {
 
     expect(result).toBeUndefined();
     expect(buildLocalTreeMock).toHaveBeenCalledWith(info.pathname);
-    expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderUuid, true);
+    expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderUuid);
     expect(simpleFolderCreator.run).toHaveBeenCalledWith(
       expect.any(String),
       expect.any(Number),
@@ -123,7 +123,7 @@ describe('BackupService', () => {
     const result = await backupService.run(info, abortController.signal, tracker);
 
     expect(result).toStrictEqual(new DriveDesktopError('UNKNOWN', 'An unknown error occurred'));
-    expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderUuid, true);
+    expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderUuid);
   });
 
   it('should return an error if there is not enough space', async () => {

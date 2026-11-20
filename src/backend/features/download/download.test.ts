@@ -9,7 +9,8 @@ const {
   createReadStreamMock,
   createWriteStreamMock,
   downloadFileV2Mock,
-  getBackupFolderTreeSnapshotMock,
+  fetchFolderMock,
+  fetchFolderTotalSizeMock,
   mkdirMock,
   mkdtempMock,
   openMock,
@@ -22,13 +23,22 @@ const {
     createReadStreamMock: vi.fn(),
     createWriteStreamMock: vi.fn(),
     downloadFileV2Mock: vi.fn(),
-    getBackupFolderTreeSnapshotMock: vi.fn(),
+    fetchFolderMock: vi.fn(),
+    fetchFolderTotalSizeMock: vi.fn(),
     mkdirMock: vi.fn(),
     mkdtempMock: vi.fn(),
     openMock: vi.fn(),
     rmMock: vi.fn(),
   };
 });
+
+vi.mock('../../../infra/drive-server/services/folder/services/fetch-folder', () => ({
+  fetchFolder: fetchFolderMock,
+}));
+
+vi.mock('../../../infra/drive-server/services/folder/services/fetch-folder-total-size-bytes', () => ({
+  fetchFolderTotalSizeBytes: fetchFolderTotalSizeMock,
+}));
 
 vi.mock('node:fs', () => {
   return {
@@ -81,13 +91,32 @@ vi.mock('@internxt/lib', () => {
   };
 });
 
-vi.mock('../backup/get-backup-folder-tree-snapshot', () => {
-  return {
-    getBackupFolderTreeSnapshot: getBackupFolderTreeSnapshotMock,
-  };
-});
-
 import { downloadFolderAsZip } from './download-folder-as-zip';
+
+const existingFile = {
+  status: 'EXISTS' as const,
+};
+
+const existingFolder = {
+  status: 'EXISTS' as const,
+  deleted: false,
+  removed: false,
+};
+
+function mockFetchFolderContent({
+  files,
+  children = [],
+}: {
+  files: Array<Record<string, unknown>>;
+  children?: Array<Record<string, unknown>>;
+}) {
+  return {
+    data: {
+      files: files.map((file) => ({ ...existingFile, ...file })),
+      children: children.map((child) => ({ ...existingFolder, ...child })),
+    },
+  };
+}
 
 describe('download', () => {
   beforeEach(() => {
@@ -95,6 +124,7 @@ describe('download', () => {
       write: (_chunk: Buffer, cb?: (error?: Error | null) => void) => cb?.(null),
       end: (cb?: (error?: Error | null) => void) => cb?.(null),
       destroy: vi.fn(),
+      on: vi.fn(),
     } as unknown as WriteStream;
 
     createWriteStreamMock.mockReturnValue(fakeWriteStream);
@@ -110,6 +140,8 @@ describe('download', () => {
     addFileMock.mockClear();
     addFolderMock.mockClear();
     closeMock.mockClear();
+    fetchFolderMock.mockReset();
+    fetchFolderTotalSizeMock.mockReset();
   });
 
   afterEach(() => {
@@ -117,46 +149,34 @@ describe('download', () => {
   });
 
   it('should add empty file to zip without remote download when backup file has no fileId', async () => {
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: null,
-              size: '0',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'empty.txt',
-        },
-        size: 0,
-      },
-    });
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 0 });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'empty.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: null,
+            size: '0',
+          },
+        ],
+      }),
+    );
 
-    await downloadFolderAsZip(
-      'Ubuntu',
-      'https://gateway.internxt.com',
-      'folder-uuid',
-      '/tmp/backup.zip',
-      {
+    await downloadFolderAsZip({
+      deviceName: 'Ubuntu',
+      networkApiUrl: 'https://gateway.internxt.com',
+      rootFolderUuid: 'root-uuid',
+      fullPath: '/tmp/backup.zip',
+      environment: {
         bridgeUser: 'bridge-user',
         bridgePass: 'bridge-pass',
         encryptionKey: 'mnemonic',
       },
-      {},
-    );
+      opts: {},
+    });
 
     expect(downloadFileV2Mock).not.toHaveBeenCalled();
     call(addFolderMock).toBe('Ubuntu');
@@ -175,50 +195,38 @@ describe('download', () => {
   });
 
   it('should retry backup file download on 502 and then continue', async () => {
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({ response: { status: 502 }, message: 'bad gateway' })
       .mockResolvedValueOnce(createEmptyStream());
 
-    const downloadPromise = downloadFolderAsZip(
-      'Ubuntu',
-      'https://gateway.internxt.com',
-      'folder-uuid',
-      '/tmp/backup.zip',
-      {
+    const downloadPromise = downloadFolderAsZip({
+      deviceName: 'Ubuntu',
+      networkApiUrl: 'https://gateway.internxt.com',
+      rootFolderUuid: 'root-uuid',
+      fullPath: '/tmp/backup.zip',
+      environment: {
         bridgeUser: 'bridge-user',
         bridgePass: 'bridge-pass',
         encryptionKey: 'mnemonic',
       },
-      {},
-    );
+      opts: {},
+    });
 
     await downloadPromise;
 
@@ -226,50 +234,38 @@ describe('download', () => {
   });
 
   it('should retry when 502 status is at root level in sdk error', async () => {
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({ status: 502, message: 'Request failed with status code 502' })
       .mockResolvedValueOnce(createEmptyStream());
 
-    const downloadPromise = downloadFolderAsZip(
-      'Ubuntu',
-      'https://gateway.internxt.com',
-      'folder-uuid',
-      '/tmp/backup.zip',
-      {
+    const downloadPromise = downloadFolderAsZip({
+      deviceName: 'Ubuntu',
+      networkApiUrl: 'https://gateway.internxt.com',
+      rootFolderUuid: 'root-uuid',
+      fullPath: '/tmp/backup.zip',
+      environment: {
         bridgeUser: 'bridge-user',
         bridgePass: 'bridge-pass',
         encryptionKey: 'mnemonic',
       },
-      {},
-    );
+      opts: {},
+    });
 
     await downloadPromise;
 
@@ -277,33 +273,21 @@ describe('download', () => {
   });
 
   it('should retry when content length mismatch happens', async () => {
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({
@@ -312,18 +296,18 @@ describe('download', () => {
       })
       .mockResolvedValueOnce(createEmptyStream());
 
-    const downloadPromise = downloadFolderAsZip(
-      'Ubuntu',
-      'https://gateway.internxt.com',
-      'folder-uuid',
-      '/tmp/backup.zip',
-      {
+    const downloadPromise = downloadFolderAsZip({
+      deviceName: 'Ubuntu',
+      networkApiUrl: 'https://gateway.internxt.com',
+      rootFolderUuid: 'root-uuid',
+      fullPath: '/tmp/backup.zip',
+      environment: {
         bridgeUser: 'bridge-user',
         bridgePass: 'bridge-pass',
         encryptionKey: 'mnemonic',
       },
-      {},
-    );
+      opts: {},
+    });
 
     await downloadPromise;
 
@@ -331,33 +315,21 @@ describe('download', () => {
   });
 
   it('should retry when empty response connection reset happens', async () => {
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({
@@ -366,50 +338,38 @@ describe('download', () => {
       })
       .mockResolvedValueOnce(createEmptyStream());
 
-    await downloadFolderAsZip(
-      'Ubuntu',
-      'https://gateway.internxt.com',
-      'folder-uuid',
-      '/tmp/backup.zip',
-      {
+    await downloadFolderAsZip({
+      deviceName: 'Ubuntu',
+      networkApiUrl: 'https://gateway.internxt.com',
+      rootFolderUuid: 'root-uuid',
+      fullPath: '/tmp/backup.zip',
+      environment: {
         bridgeUser: 'bridge-user',
         bridgePass: 'bridge-pass',
         encryptionKey: 'mnemonic',
       },
-      {},
-    );
+      opts: {},
+    });
 
     expect(downloadFileV2Mock).toHaveBeenCalledTimes(2);
   });
 
   it('should retry when request times out', async () => {
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({
@@ -418,83 +378,131 @@ describe('download', () => {
       })
       .mockResolvedValueOnce(createEmptyStream());
 
-    await downloadFolderAsZip(
-      'Ubuntu',
-      'https://gateway.internxt.com',
-      'folder-uuid',
-      '/tmp/backup.zip',
-      {
+    await downloadFolderAsZip({
+      deviceName: 'Ubuntu',
+      networkApiUrl: 'https://gateway.internxt.com',
+      rootFolderUuid: 'root-uuid',
+      fullPath: '/tmp/backup.zip',
+      environment: {
         bridgeUser: 'bridge-user',
         bridgePass: 'bridge-pass',
         encryptionKey: 'mnemonic',
       },
-      {},
-    );
+      opts: {},
+    });
 
     expect(downloadFileV2Mock).toHaveBeenCalledTimes(2);
   });
 
   it('should retry failed file before adding it to zip', async () => {
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-a',
-              size: '1',
-            },
-            {
-              id: 78,
-              uuid: 'file-78-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-b',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'a.txt',
-          78: 'b.txt',
-        },
-        size: 2,
-      },
-    });
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 2 });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'a.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-a',
+            size: '1',
+          },
+          {
+            uuid: 'file-78-uuid',
+            plainName: 'b.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-b',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({ status: 502, message: 'Request failed with status code 502' })
       .mockResolvedValueOnce(createEmptyStream())
       .mockResolvedValueOnce(createEmptyStream());
 
-    const downloadPromise = downloadFolderAsZip(
-      'Ubuntu',
-      'https://gateway.internxt.com',
-      'folder-uuid',
-      '/tmp/backup.zip',
-      {
+    const downloadPromise = downloadFolderAsZip({
+      deviceName: 'Ubuntu',
+      networkApiUrl: 'https://gateway.internxt.com',
+      rootFolderUuid: 'root-uuid',
+      fullPath: '/tmp/backup.zip',
+      environment: {
         bridgeUser: 'bridge-user',
         bridgePass: 'bridge-pass',
         encryptionKey: 'mnemonic',
       },
-      {},
-    );
+      opts: {},
+    });
 
     await downloadPromise;
 
     expect(downloadFileV2Mock).toHaveBeenCalledTimes(3);
     expect(addFileMock).toHaveBeenCalledTimes(2);
     expect(createReadStreamMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('should close the output stream and propagate the original error when size fetching throws', async () => {
+    const sizeError = new Error('stats request failed');
+    const destroy = vi.fn();
+    fetchFolderTotalSizeMock.mockRejectedValue(sizeError);
+    createWriteStreamMock.mockReturnValue({
+      write: (_chunk: Buffer, cb?: (error?: Error | null) => void) => cb?.(null),
+      end: (cb?: (error?: Error | null) => void) => cb?.(null),
+      destroy,
+      on: vi.fn(),
+    });
+
+    await expect(
+      downloadFolderAsZip({
+        deviceName: 'Ubuntu',
+        networkApiUrl: 'https://gateway.internxt.com',
+        rootFolderUuid: 'root-uuid',
+        fullPath: '/tmp/backup.zip',
+        environment: {
+          bridgeUser: 'bridge-user',
+          bridgePass: 'bridge-pass',
+          encryptionKey: 'mnemonic',
+        },
+        opts: {},
+      }),
+    ).rejects.toBe(sizeError);
+
+    expect(destroy).toHaveBeenCalledWith(sizeError);
+    expect(fetchFolderMock).not.toHaveBeenCalled();
+  });
+
+  it('should close the output stream when the temp folder cannot be created', async () => {
+    const destroy = vi.fn();
+    mkdtempMock.mockRejectedValue(new Error('temp failed'));
+    createWriteStreamMock.mockReturnValue({
+      destroyed: false,
+      writableEnded: false,
+      write: (_chunk: Buffer, cb?: (error?: Error | null) => void) => cb?.(null),
+      end: (cb?: (error?: Error | null) => void) => cb?.(null),
+      destroy,
+      on: vi.fn(),
+    });
+
+    await expect(
+      downloadFolderAsZip({
+        deviceName: 'Ubuntu',
+        networkApiUrl: 'https://gateway.internxt.com',
+        rootFolderUuid: 'root-uuid',
+        fullPath: '/tmp/backup.zip',
+        environment: {
+          bridgeUser: 'bridge-user',
+          bridgePass: 'bridge-pass',
+          encryptionKey: 'mnemonic',
+        },
+        opts: {},
+      }),
+    ).rejects.toThrow('temp failed');
+
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(fetchFolderTotalSizeMock).not.toHaveBeenCalled();
   });
 });
 

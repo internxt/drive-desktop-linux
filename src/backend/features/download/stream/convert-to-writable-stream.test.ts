@@ -12,6 +12,7 @@ describe('convert-to-writable-stream', () => {
       write,
       end,
       destroy,
+      on: vi.fn(),
     } as unknown as WriteStream;
 
     const stream = convertToWritableStream({ writeStream });
@@ -37,6 +38,7 @@ describe('convert-to-writable-stream', () => {
       write,
       end,
       destroy,
+      on: vi.fn(),
     } as unknown as WriteStream;
 
     const stream = convertToWritableStream({ writeStream });

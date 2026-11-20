@@ -24,7 +24,10 @@ export async function precalculateBackupItemCount(
 
   let remote;
   try {
-    remote = await remoteTreeBuilder.run(backupInfo.folderUuid, true);
+    // v.2.7.1
+    // Esteban Galvis Triana
+    // Item counts use the SQLite tree. Refreshing here would sync the whole drive before the backup starts.
+    remote = await remoteTreeBuilder.run(backupInfo.folderUuid);
   } catch (error) {
     return { error: error instanceof Error ? error : new Error(String(error)) };
   }
