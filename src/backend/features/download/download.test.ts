@@ -103,6 +103,21 @@ const existingFolder = {
   removed: false,
 };
 
+function mockFetchFolderContent({
+  files,
+  children = [],
+}: {
+  files: Array<Record<string, unknown>>;
+  children?: Array<Record<string, unknown>>;
+}) {
+  return {
+    data: {
+      files: files.map((file) => ({ ...existingFile, ...file })),
+      children: children.map((child) => ({ ...existingFolder, ...child })),
+    },
+  };
+}
+
 describe('download', () => {
   beforeEach(() => {
     const fakeWriteStream = {
@@ -134,33 +149,20 @@ describe('download', () => {
 
   it('should add empty file to zip without remote download when backup file has no fileId', async () => {
     fetchFolderTotalSizeMock.mockResolvedValue({ data: 0 });
-    fetchFolderMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: null,
-              size: '0',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'empty.txt',
-        },
-        size: 0,
-      },
-    });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'empty.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: null,
+            size: '0',
+          },
+        ],
+      }),
+    );
 
     await downloadFolderAsZip({
       deviceName: 'Ubuntu',
@@ -193,33 +195,20 @@ describe('download', () => {
 
   it('should retry backup file download on 502 and then continue', async () => {
     fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
-    fetchFolderMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({ response: { status: 502 }, message: 'bad gateway' })
@@ -245,33 +234,20 @@ describe('download', () => {
 
   it('should retry when 502 status is at root level in sdk error', async () => {
     fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
-    fetchFolderMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({ status: 502, message: 'Request failed with status code 502' })
@@ -297,33 +273,20 @@ describe('download', () => {
 
   it('should retry when content length mismatch happens', async () => {
     fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
-    fetchFolderMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({
@@ -352,33 +315,20 @@ describe('download', () => {
 
   it('should retry when empty response connection reset happens', async () => {
     fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
-    fetchFolderMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({
@@ -405,33 +355,20 @@ describe('download', () => {
 
   it('should retry when request times out', async () => {
     fetchFolderTotalSizeMock.mockResolvedValue({ data: 1 });
-    fetchFolderMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-id',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'remote.txt',
-        },
-        size: 1,
-      },
-    });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'remote.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-id',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({
@@ -458,42 +395,28 @@ describe('download', () => {
 
   it('should retry failed file before adding it to zip', async () => {
     fetchFolderTotalSizeMock.mockResolvedValue({ data: 2 });
-    fetchFolderMock.mockResolvedValue({
-      data: {
-        tree: {
-          id: 11,
-          uuid: 'tree-root-uuid',
-          plainName: 'root',
-          files: [
-            {
-              id: 77,
-              uuid: 'file-77-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-a',
-              size: '1',
-            },
-            {
-              id: 78,
-              uuid: 'file-78-uuid',
-              type: '',
-              bucket: 'bucket-id',
-              fileId: 'file-b',
-              size: '1',
-            },
-          ],
-          children: [],
-        },
-        folderDecryptedNames: {
-          'tree-root-uuid': 'Ubuntu',
-        },
-        fileDecryptedNames: {
-          'file-77-uuid': 'a.txt',
-          78: 'b.txt',
-        },
-        size: 2,
-      },
-    });
+    fetchFolderMock.mockResolvedValue(
+      mockFetchFolderContent({
+        files: [
+          {
+            uuid: 'file-77-uuid',
+            plainName: 'a.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-a',
+            size: '1',
+          },
+          {
+            uuid: 'file-78-uuid',
+            plainName: 'b.txt',
+            type: '',
+            bucket: 'bucket-id',
+            fileId: 'file-b',
+            size: '1',
+          },
+        ],
+      }),
+    );
 
     downloadFileV2Mock
       .mockRejectedValueOnce({ status: 502, message: 'Request failed with status code 502' })

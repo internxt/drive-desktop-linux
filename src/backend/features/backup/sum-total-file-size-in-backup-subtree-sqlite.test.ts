@@ -9,19 +9,19 @@ describe('sum-total-file-size-in-backup-subtree-sqlite', () => {
       getAllWhere: vi.fn(),
     };
 
-    files.getAllWhere.mockImplementation(async ({ folderId }: { folderId: number }) => {
-      if (folderId === 1) {
+    files.getAllWhere.mockImplementation(async ({ folderUuid }: { folderUuid: string }) => {
+      if (folderUuid === 'root-folder-uuid') {
         return { success: true, result: [{ size: 100 }] };
       }
-      if (folderId === 2) {
+      if (folderUuid === 'child-folder-uuid') {
         return { success: true, result: [{ size: 50 }, { size: 25 }] };
       }
       return { success: true, result: [] };
     });
 
-    folders.getAllWhere.mockImplementation(async ({ parentId }: { parentId: number }) => {
-      if (parentId === 1) {
-        return { success: true, result: [{ id: 2, plainName: 'sub' }] };
+    folders.getAllWhere.mockImplementation(async ({ parentUuid }: { parentUuid: string }) => {
+      if (parentUuid === 'root-folder-uuid') {
+        return { success: true, result: [{ uuid: 'child-folder-uuid', plainName: 'sub' }] };
       }
       return { success: true, result: [] };
     });
@@ -29,7 +29,7 @@ describe('sum-total-file-size-in-backup-subtree-sqlite', () => {
     const total = await sumTotalFileSizeInBackupSubtreeSqlite({
       files: files as never,
       folders: folders as never,
-      rootFolderId: 1,
+      rootFolderUuid: 'root-folder-uuid',
     });
 
     expect(total).toBe(175);
