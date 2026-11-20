@@ -124,6 +124,7 @@ describe('download', () => {
       write: (_chunk: Buffer, cb?: (error?: Error | null) => void) => cb?.(null),
       end: (cb?: (error?: Error | null) => void) => cb?.(null),
       destroy: vi.fn(),
+      on: vi.fn(),
     } as unknown as WriteStream;
 
     createWriteStreamMock.mockReturnValue(fakeWriteStream);
@@ -451,6 +452,7 @@ describe('download', () => {
       write: (_chunk: Buffer, cb?: (error?: Error | null) => void) => cb?.(null),
       end: (cb?: (error?: Error | null) => void) => cb?.(null),
       destroy,
+      on: vi.fn(),
     });
 
     await expect(
@@ -481,6 +483,7 @@ describe('download', () => {
       write: (_chunk: Buffer, cb?: (error?: Error | null) => void) => cb?.(null),
       end: (cb?: (error?: Error | null) => void) => cb?.(null),
       destroy,
+      on: vi.fn(),
     });
 
     await expect(
