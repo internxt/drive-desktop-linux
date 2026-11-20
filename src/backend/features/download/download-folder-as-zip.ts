@@ -39,9 +39,11 @@ export async function downloadFolderAsZip({
 
   const { abortController, updateProgress } = opts;
   const { bridgeUser, bridgePass, encryptionKey } = environment;
-  const tempFolderPath = await mkdtemp(join(tmpdir(), 'internxt-backup-download-'));
+  let tempFolderPath: string | undefined;
 
   try {
+    tempFolderPath = await mkdtemp(join(tmpdir(), 'internxt-backup-download-'));
+
     return await buildBackupZipFromRemoteContent({
       deviceName,
       networkApiUrl,
@@ -55,8 +57,16 @@ export async function downloadFolderAsZip({
       updateProgress,
     });
   } catch (error) {
-    throw logger.error({ tag: 'BACKUPS', msg: 'Error building backup zip from remote folder content', error });
+    logger.error({ tag: 'BACKUPS', msg: 'Error building backup zip from remote folder content', error });
+    throw error;
   } finally {
-    await rm(tempFolderPath, { recursive: true, force: true });
+    // Close the file only when the zip never took ownership of the stream.
+    if (writeStream.destroyed === false && writeStream.writableEnded === false) {
+      writeStream.destroy();
+    }
+
+    if (tempFolderPath) {
+      await rm(tempFolderPath, { recursive: true, force: true });
+    }
   }
 }

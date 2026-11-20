@@ -1,8 +1,9 @@
 import * as findBackupPathnameFromUuidModule from './find-backup-pathname-from-uuid';
+import * as fetchFolderTotalSizeModule from '../../../infra/drive-server/services/folder/services/fetch-folder-total-size-bytes';
 import * as remoteSyncServiceModule from '../../../apps/main/remote-sync/service';
-import * as sumTotalModule from './sum-total-file-size-in-backup-subtree-sqlite';
 import * as deleteBackupModule from './delete-backup';
 import configStoreModule from '../../../apps/main/config';
+import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { loggerMock } from '../../../../tests/vitest/mocks.helper';
@@ -10,14 +11,11 @@ import { disableBackup } from './disable-backup';
 
 describe('disable-backup', () => {
   const findBackupPathnameFromUuidMock = partialSpyOn(findBackupPathnameFromUuidModule, 'findBackupPathnameFromUuid');
+  const fetchFolderTotalSizeMock = partialSpyOn(fetchFolderTotalSizeModule, 'fetchFolderTotalSizeBytes');
   const startRemoteSyncMock = partialSpyOn(remoteSyncServiceModule, 'startRemoteSync');
-  const sumTotalFileSizeMock = partialSpyOn(sumTotalModule, 'sumTotalFileSizeInBackupSubtreeSqlite');
   const deleteBackupMock = partialSpyOn(deleteBackupModule, 'deleteBackup');
   const configStoreGetMock = partialSpyOn(configStoreModule, 'get');
   const configStoreSetMock = partialSpyOn(configStoreModule, 'set');
-
-  const filesCollectionStub = { getAllWhere: vi.fn() };
-  const foldersCollectionStub = { getAllWhere: vi.fn() };
 
   const backup = {
     folderUuid: 'folder-uuid',
@@ -31,34 +29,24 @@ describe('disable-backup', () => {
     configStoreGetMock.mockReturnValue({});
     findBackupPathnameFromUuidMock.mockReturnValue(undefined);
 
-    await expect(
-      disableBackup({
-        backup,
-        deps: { files: filesCollectionStub as never, folders: foldersCollectionStub as never },
-      }),
-    ).rejects.toBeUndefined();
+    await expect(disableBackup({ backup })).rejects.toBeUndefined();
 
     expect(configStoreSetMock).not.toBeCalled();
+    expect(fetchFolderTotalSizeMock).not.toBeCalled();
     expect(startRemoteSyncMock).not.toBeCalled();
-    expect(filesCollectionStub.getAllWhere).not.toHaveBeenCalled();
-    expect(foldersCollectionStub.getAllWhere).not.toHaveBeenCalled();
   });
 
-  it('should disable backup and delete it when subtree file size is zero', async () => {
+  it('should disable backup and delete it when remote folder size is zero', async () => {
     const backupList = {
       '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: true },
     };
 
     configStoreGetMock.mockReturnValue(backupList);
     findBackupPathnameFromUuidMock.mockReturnValue('/home/dev/Documents');
-    startRemoteSyncMock.mockResolvedValue(undefined);
-    sumTotalFileSizeMock.mockResolvedValue(0);
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 0 });
     deleteBackupMock.mockResolvedValue({ data: true });
 
-    await disableBackup({
-      backup,
-      deps: { files: filesCollectionStub as never, folders: foldersCollectionStub as never },
-    });
+    await disableBackup({ backup });
 
     call(configStoreSetMock).toStrictEqual([
       'backupList',
@@ -66,27 +54,38 @@ describe('disable-backup', () => {
         '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: false },
       },
     ]);
+    call(fetchFolderTotalSizeMock).toBe('folder-uuid');
     call(deleteBackupMock).toStrictEqual({ backup, isCurrent: true });
+    expect(startRemoteSyncMock).not.toBeCalled();
   });
 
-  it('should log error when reading backup size from local database fails', async () => {
-    const error = new Error('sqlite failed');
+  it('should keep the remote backup when it still has content', async () => {
     configStoreGetMock.mockReturnValue({
       '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: true },
     });
     findBackupPathnameFromUuidMock.mockReturnValue('/home/dev/Documents');
-    startRemoteSyncMock.mockRejectedValue(error);
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 128 });
 
-    await expect(
-      disableBackup({
-        backup,
-        deps: { files: filesCollectionStub as never, folders: foldersCollectionStub as never },
-      }),
-    ).rejects.toBeUndefined();
+    await disableBackup({ backup });
 
+    expect(deleteBackupMock).not.toBeCalled();
+    expect(startRemoteSyncMock).not.toBeCalled();
+  });
+
+  it('should preserve the backup when remote folder size cannot be read', async () => {
+    configStoreGetMock.mockReturnValue({
+      '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: true },
+    });
+    findBackupPathnameFromUuidMock.mockReturnValue('/home/dev/Documents');
+    fetchFolderTotalSizeMock.mockResolvedValue({ error: new DriveServerError('SERVER_ERROR', 500, 'stats failed') });
+
+    await disableBackup({ backup });
+
+    expect(deleteBackupMock).not.toBeCalled();
+    expect(startRemoteSyncMock).not.toBeCalled();
     call(loggerMock.error).toMatchObject({
       tag: 'BACKUPS',
-      msg: 'Error reading backup size from local database after disable',
+      msg: 'Failed to read backup size from remote folder; backup preserved',
     });
   });
 });

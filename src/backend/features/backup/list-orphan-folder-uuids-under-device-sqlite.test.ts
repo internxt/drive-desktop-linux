@@ -6,10 +6,7 @@ describe('list-orphan-folder-uuids-under-device-sqlite', () => {
     const folders = {
       getAllWhere: vi.fn().mockResolvedValue({
         success: true,
-        result: [
-          { uuid: 'keep-uuid' },
-          { uuid: 'orphan-uuid' },
-        ],
+        result: [{ uuid: 'keep-uuid' }, { uuid: 'orphan-uuid' }],
       }),
     };
 

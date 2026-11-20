@@ -60,88 +60,122 @@ export async function buildBackupZipFromRemoteContent({
   const fetchContent = deps?.fetchFolderContent ?? fetchFolder;
   const fetchTotalSize = deps?.fetchTotalSize ?? fetchFolderTotalSizeBytes;
 
-  const sizeResult = await fetchTotalSize(rootFolderUuid);
-  if (sizeResult.error) {
-    throw logger.error({
-      tag: 'BACKUPS',
-      msg: 'Failed to fetch backup folder size for zip progress',
-      error: sizeResult.error,
-    });
-  }
+  let zip: FlatFolderZip | undefined;
+  let sizeUnavailable = false;
 
-  const progress = createBackupZipProgressEmitter({
-    totalSizeBytes: sizeResult.data,
-    updateProgress,
-  });
-
-  const zip = new FlatFolderZip(destination, {
-    abortController,
-    progress: (loadedBytes) => {
-      progress.onZipCompressorProgress(loadedBytes);
-    },
-  });
-
-  const queue: ZipQueueItem[] = [{ folderUuid: rootFolderUuid, folderZipPath: deviceName }];
-
-  while (queue.length > 0 && !abortController?.signal.aborted) {
-    const current = queue.shift();
-    if (!current) break;
-
-    const { folderUuid, folderZipPath } = current;
-
-    zip.addFolder(folderZipPath);
-
-    const folderResponse = await fetchContent(folderUuid);
-    if (folderResponse.error) {
-      throw logger.error({
+  try {
+    const sizeResult = await fetchTotalSize(rootFolderUuid);
+    // v.2.7.1
+    // Esteban Galvis Triana
+    // Folder stats only feed the progress bar. A failed request must not abort the zip.
+    // Unknown total keeps the emitter at 0, so the bar is marked complete after a finished close.
+    if (sizeResult.error) {
+      logger.error({
         tag: 'BACKUPS',
-        msg: 'Failed to fetch folder content for backup zip',
-        error: folderResponse.error,
-        folderUuid,
+        msg: 'Failed to fetch backup folder size for zip progress',
+        error: sizeResult.error,
       });
+      sizeUnavailable = true;
     }
 
-    const { files, children } = folderResponse.data;
+    const progress = createBackupZipProgressEmitter({
+      totalSizeBytes: sizeResult.data ?? 0,
+      updateProgress,
+    });
 
-    for (const file of files.filter(isExistingFileEntry)) {
-      if (abortController?.signal.aborted) {
-        throw new Error('Download cancelled');
+    zip = new FlatFolderZip(destination, {
+      abortController,
+      progress: (loadedBytes) => {
+        progress.onZipCompressorProgress(loadedBytes);
+      },
+    });
+
+    const queue: ZipQueueItem[] = [{ folderUuid: rootFolderUuid, folderZipPath: deviceName }];
+
+    while (queue.length > 0 && !abortController?.signal.aborted) {
+      const current = queue.shift();
+      if (!current) break;
+
+      const { folderUuid, folderZipPath } = current;
+
+      zip.addFolder(folderZipPath);
+
+      const folderResponse = await fetchContent(folderUuid);
+      if (folderResponse.error) {
+        logger.error({
+          tag: 'BACKUPS',
+          msg: 'Failed to fetch folder content for backup zip',
+          error: folderResponse.error,
+          folderUuid,
+        });
+        throw folderResponse.error;
       }
 
-      await addRemoteBackupFileToZip({
-        file,
-        folderZipPath,
-        zip,
-        tempFolderPath,
-        networkApiUrl,
-        bridgeUser,
-        bridgePass,
-        encryptionKey,
-        abortController,
-        onFileDownloadProgress: (fileId, readBytes) => {
-          progress.setFileDownloadProgress(fileId, readBytes);
-        },
-        onAfterFileAttempt: (clearedStorageFileId) => {
-          if (clearedStorageFileId) {
-            progress.clearFileDownloadProgress(clearedStorageFileId);
-          } else {
-            progress.emit();
-          }
-        },
+      const { files, children } = folderResponse.data;
+
+      for (const file of files.filter(isExistingFileEntry)) {
+        if (abortController?.signal.aborted) {
+          throw new Error('Download cancelled');
+        }
+
+        await addRemoteBackupFileToZip({
+          file,
+          folderZipPath,
+          zip,
+          tempFolderPath,
+          networkApiUrl,
+          bridgeUser,
+          bridgePass,
+          encryptionKey,
+          abortController,
+          onFileDownloadProgress: (fileId, readBytes) => {
+            progress.setFileDownloadProgress(fileId, readBytes);
+          },
+          onAfterFileAttempt: (clearedStorageFileId) => {
+            if (clearedStorageFileId) {
+              progress.clearFileDownloadProgress(clearedStorageFileId);
+            } else {
+              progress.emit();
+            }
+          },
+        });
+      }
+
+      for (const child of children.filter(isExistingFolderEntry)) {
+        queue.push({
+          folderUuid: child.uuid,
+          folderZipPath: `${folderZipPath}/${child.plainName}`,
+        });
+      }
+    }
+
+    if (abortController?.signal.aborted) {
+      throw new Error('Download cancelled');
+    }
+
+    await zip.close();
+  } catch (error) {
+    // v.2.7.1
+    // Esteban Galvis Triana
+    // A throw before FlatFolderZip exists has no archive to abort, so close the output stream.
+    // Once the archive exists, destroy it. Cleanup must not replace the original error.
+    try {
+      if (zip) {
+        zip.destroy();
+      } else {
+        await destination.abort(error);
+      }
+    } catch {
+      logger.warn({
+        tag: 'BACKUPS',
+        msg: 'Failed to clean up backup zip after an error',
       });
     }
 
-    for (const child of children.filter(isExistingFolderEntry)) {
-      queue.push({
-        folderUuid: child.uuid,
-        folderZipPath: `${folderZipPath}/${child.plainName}`,
-      });
-    }
+    throw error;
   }
 
-  if (abortController?.signal.aborted) {
-    throw new Error('Download cancelled');
+  if (sizeUnavailable && !abortController?.signal.aborted) {
+    updateProgress?.(1);
   }
-
-  return await zip.close();
 }

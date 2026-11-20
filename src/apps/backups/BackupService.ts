@@ -68,7 +68,10 @@ export class BackupService {
       logger.debug({ tag: 'BACKUPS', msg: 'Local tree generated successfully' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Generating remote tree' });
-      const remote = await this.remoteTreeBuilder.run(info.folderUuid, true);
+      // v.2.7.1
+      // Esteban Galvis Triana
+      // The remote tree comes from SQLite.
+      const remote = await this.remoteTreeBuilder.run(info.folderUuid);
       logger.debug({ tag: 'BACKUPS', msg: 'Remote tree generated successfully' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Calculating folder differences' });

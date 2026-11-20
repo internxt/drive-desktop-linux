@@ -442,6 +442,65 @@ describe('download', () => {
     expect(addFileMock).toHaveBeenCalledTimes(2);
     expect(createReadStreamMock).toHaveBeenCalledTimes(2);
   });
+
+  it('should close the output stream and propagate the original error when size fetching throws', async () => {
+    const sizeError = new Error('stats request failed');
+    const destroy = vi.fn();
+    fetchFolderTotalSizeMock.mockRejectedValue(sizeError);
+    createWriteStreamMock.mockReturnValue({
+      write: (_chunk: Buffer, cb?: (error?: Error | null) => void) => cb?.(null),
+      end: (cb?: (error?: Error | null) => void) => cb?.(null),
+      destroy,
+    });
+
+    await expect(
+      downloadFolderAsZip({
+        deviceName: 'Ubuntu',
+        networkApiUrl: 'https://gateway.internxt.com',
+        rootFolderUuid: 'root-uuid',
+        fullPath: '/tmp/backup.zip',
+        environment: {
+          bridgeUser: 'bridge-user',
+          bridgePass: 'bridge-pass',
+          encryptionKey: 'mnemonic',
+        },
+        opts: {},
+      }),
+    ).rejects.toBe(sizeError);
+
+    expect(destroy).toHaveBeenCalledWith(sizeError);
+    expect(fetchFolderMock).not.toHaveBeenCalled();
+  });
+
+  it('should close the output stream when the temp folder cannot be created', async () => {
+    const destroy = vi.fn();
+    mkdtempMock.mockRejectedValue(new Error('temp failed'));
+    createWriteStreamMock.mockReturnValue({
+      destroyed: false,
+      writableEnded: false,
+      write: (_chunk: Buffer, cb?: (error?: Error | null) => void) => cb?.(null),
+      end: (cb?: (error?: Error | null) => void) => cb?.(null),
+      destroy,
+    });
+
+    await expect(
+      downloadFolderAsZip({
+        deviceName: 'Ubuntu',
+        networkApiUrl: 'https://gateway.internxt.com',
+        rootFolderUuid: 'root-uuid',
+        fullPath: '/tmp/backup.zip',
+        environment: {
+          bridgeUser: 'bridge-user',
+          bridgePass: 'bridge-pass',
+          encryptionKey: 'mnemonic',
+        },
+        opts: {},
+      }),
+    ).rejects.toThrow('temp failed');
+
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(fetchFolderTotalSizeMock).not.toHaveBeenCalled();
+  });
 });
 
 function createEmptyStream() {

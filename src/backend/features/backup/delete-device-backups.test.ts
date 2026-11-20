@@ -1,20 +1,20 @@
 import * as addFolderToTrashModule from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
+import * as fetchFolderModule from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import * as remoteSyncServiceModule from '../../../apps/main/remote-sync/service';
-import * as listOrphanModule from './list-orphan-folder-uuids-under-device-sqlite';
 import * as deleteBackupModule from './delete-backup';
 import * as DeviceModuleModule from '../device/device.module';
+import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
-import { calls, partialSpyOn } from '../../../../tests/vitest/utils.helper';
+import { call, calls, partialSpyOn } from '../../../../tests/vitest/utils.helper';
+import { loggerMock } from '../../../../tests/vitest/mocks.helper';
 import { deleteDeviceBackups } from './delete-device-backups';
 
 describe('delete-device-backups', () => {
   const getBackupsFromDeviceMock = partialSpyOn(DeviceModuleModule.DeviceModule, 'getBackupsFromDevice');
   const deleteBackupMock = partialSpyOn(deleteBackupModule, 'deleteBackup');
+  const fetchFolderMock = partialSpyOn(fetchFolderModule, 'fetchFolder');
   const startRemoteSyncMock = partialSpyOn(remoteSyncServiceModule, 'startRemoteSync');
-  const listOrphanUuidsMock = partialSpyOn(listOrphanModule, 'listOrphanFolderUuidsUnderDeviceSqlite');
   const addFolderToTrashMock = partialSpyOn(addFolderToTrashModule, 'addFolderToTrash');
-
-  const foldersCollectionStub = { getAllWhere: vi.fn() };
 
   const device = {
     uuid: 'device-uuid',
@@ -24,55 +24,80 @@ describe('delete-device-backups', () => {
     hasBackups: true,
   };
 
-  it('should delete each backup and trash only stale folders from device children', async () => {
-    const backups = [
-      {
-        folderUuid: 'folder-uuid-1',
-        tmpPath: '/tmp',
-        backupsBucket: 'bucket',
-        pathname: createAbsolutePath('/home/dev/Documents'),
-        name: 'Documents',
-      },
-    ];
+  const backups = [
+    {
+      folderUuid: 'folder-uuid-1',
+      tmpPath: '/tmp',
+      backupsBucket: 'bucket',
+      pathname: createAbsolutePath('/home/dev/Documents'),
+      name: 'Documents',
+    },
+  ];
 
+  function deviceFolderChildren() {
+    return {
+      data: {
+        children: [
+          { uuid: 'folder-uuid-1', status: 'EXISTS' as const, deleted: false, removed: false },
+          { uuid: 'folder-uuid-2', status: 'EXISTS' as const, deleted: false, removed: false },
+          { uuid: 'trashed-uuid', status: 'TRASHED' as const, deleted: false, removed: false },
+        ],
+      },
+    };
+  }
+
+  it('should delete each backup and trash only stale folders from the device folder', async () => {
     getBackupsFromDeviceMock.mockResolvedValue(backups);
     deleteBackupMock.mockResolvedValue({ data: true });
-    startRemoteSyncMock.mockResolvedValue(undefined);
-    listOrphanUuidsMock.mockResolvedValue(['folder-uuid-2']);
+    fetchFolderMock.mockResolvedValue(deviceFolderChildren());
     addFolderToTrashMock.mockResolvedValue({ data: undefined as never });
 
     await deleteDeviceBackups({
       device,
       isCurrent: true,
-      deps: { folders: foldersCollectionStub as never },
     });
 
     calls(deleteBackupMock).toStrictEqual([{ backup: backups[0], isCurrent: true }]);
+    call(fetchFolderMock).toBe('device-uuid');
     calls(addFolderToTrashMock).toStrictEqual(['folder-uuid-2']);
+    expect(startRemoteSyncMock).not.toBeCalled();
   });
 
-  it('should not trash any folder when there are no orphan children', async () => {
-    const backups = [
-      {
-        folderUuid: 'folder-uuid-1',
-        tmpPath: '/tmp',
-        backupsBucket: 'bucket',
-        pathname: createAbsolutePath('/home/dev/Documents'),
-        name: 'Documents',
-      },
-    ];
-
+  it('should not trash any folder when every child is a backup', async () => {
     getBackupsFromDeviceMock.mockResolvedValue(backups);
     deleteBackupMock.mockResolvedValue({ data: true });
-    startRemoteSyncMock.mockResolvedValue(undefined);
-    listOrphanUuidsMock.mockResolvedValue([]);
+    fetchFolderMock.mockResolvedValue({
+      data: {
+        children: [{ uuid: 'folder-uuid-1', status: 'EXISTS', deleted: false, removed: false }],
+      },
+    });
 
     await deleteDeviceBackups({
       device,
       isCurrent: false,
-      deps: { folders: foldersCollectionStub as never },
     });
 
     expect(addFolderToTrashMock).not.toBeCalled();
+    expect(startRemoteSyncMock).not.toBeCalled();
+  });
+
+  it('should fail and skip orphan deletion when the device folder cannot be fetched', async () => {
+    getBackupsFromDeviceMock.mockResolvedValue(backups);
+    deleteBackupMock.mockResolvedValue({ data: true });
+    fetchFolderMock.mockResolvedValue({ error: new DriveServerError('SERVER_ERROR', 500, 'folder failed') });
+
+    await expect(
+      deleteDeviceBackups({
+        device,
+        isCurrent: true,
+      }),
+    ).rejects.toBeUndefined();
+
+    expect(addFolderToTrashMock).not.toBeCalled();
+    expect(startRemoteSyncMock).not.toBeCalled();
+    call(loggerMock.error).toMatchObject({
+      tag: 'BACKUPS',
+      msg: 'Failed to delete orphan folders under device',
+    });
   });
 });

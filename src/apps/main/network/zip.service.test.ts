@@ -32,4 +32,24 @@ describe('zip.service', () => {
     expect(Object.keys(extracted)).toStrictEqual(['Ubuntu/', 'Ubuntu/empty.txt']);
     expect(Buffer.from(extracted['Ubuntu/empty.txt'])).toHaveLength(0);
   });
+
+  it('should stop the archive and destroy the destination', async () => {
+    let abortReason: unknown;
+    const destination = new WritableStream<Uint8Array>({
+      write() {
+        return undefined;
+      },
+      abort(reason) {
+        abortReason = reason;
+      },
+    });
+
+    const zip = new FlatFolderZip(destination, {});
+    zip.addFolder('Ubuntu');
+    zip.destroy();
+
+    await vi.waitFor(() => {
+      expect(abortReason).toBeInstanceOf(Error);
+    });
+  });
 });

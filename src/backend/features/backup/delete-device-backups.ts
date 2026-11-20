@@ -2,20 +2,15 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import type { Device } from './types/Device';
 import { DeviceModule } from '../device/device.module';
 import { addFolderToTrash } from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
-import { DriveFoldersCollection } from '../../../apps/main/database/collections/DriveFolderCollection';
-import { startRemoteSync } from '../../../apps/main/remote-sync/service';
-import { listOrphanFolderUuidsUnderDeviceSqlite } from './list-orphan-folder-uuids-under-device-sqlite';
+import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import { deleteBackup } from './delete-backup';
 
 type Props = {
   device: Device;
   isCurrent?: boolean;
-  deps?: {
-    folders: DriveFoldersCollection;
-  };
 };
 
-export async function deleteDeviceBackups({ device, isCurrent, deps }: Props) {
+export async function deleteDeviceBackups({ device, isCurrent }: Props) {
   const backups = await DeviceModule.getBackupsFromDevice(device, isCurrent);
   logger.debug({ tag: 'BACKUPS', msg: '[BACKUPS] Deleting backups from device', count: backups.length });
   logger.debug({ tag: 'BACKUPS', msg: '[BACKUPS] Backups details', backups });
@@ -23,24 +18,32 @@ export async function deleteDeviceBackups({ device, isCurrent, deps }: Props) {
   const backupDeletionPromises = backups.map((backup) => deleteBackup({ backup, isCurrent }));
   await Promise.all(backupDeletionPromises);
 
-  const folders = deps?.folders ?? new DriveFoldersCollection();
-
   try {
-    // v.2.6.0
+    // v.2.7.1
     // Esteban Galvis Triana
-    // Guard: orphan folders are resolved from SQLite; ensure folder rows are synced before querying children.
-    await startRemoteSync();
-    const orphanUuids = await listOrphanFolderUuidsUnderDeviceSqlite({
-      folders,
-      deviceFolderUuid: device.uuid,
-      backups,
-    });
+    // Orphan folders are siblings of the device folder. One content request is enough;
+    // a global remote sync walks the whole drive and blocks deletion.
+    const { data: folder, error } = await fetchFolder(device.uuid);
+    if (error) {
+      throw error;
+    }
+
+    const backupFolderUuids = new Set(backups.map((backup) => backup.folderUuid));
+    const orphanUuids = folder.children
+      .filter(
+        (child) => child.status === 'EXISTS' && !child.deleted && !child.removed && !backupFolderUuids.has(child.uuid),
+      )
+      .map((child) => child.uuid);
 
     const folderDeletionPromises = orphanUuids.map(async (uuid) => {
       await addFolderToTrash(uuid);
     });
     await Promise.all(folderDeletionPromises);
   } catch (error) {
-    logger.error({ tag: 'BACKUPS', msg: 'Error listing orphan folders under device from local database', error });
+    throw logger.error({
+      tag: 'BACKUPS',
+      msg: 'Failed to delete orphan folders under device',
+      error,
+    });
   }
 }

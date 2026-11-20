@@ -2,21 +2,14 @@ import { logger } from '@internxt/drive-desktop-core/build/backend';
 import configStore from '../../../apps/main/config';
 import { BackupInfo } from '../../../apps/backups/BackupInfo';
 import { findBackupPathnameFromUuid } from './find-backup-pathname-from-uuid';
-import { DriveFilesCollection } from '../../../apps/main/database/collections/DriveFileCollection';
-import { DriveFoldersCollection } from '../../../apps/main/database/collections/DriveFolderCollection';
-import { startRemoteSync } from '../../../apps/main/remote-sync/service';
-import { sumTotalFileSizeInBackupSubtreeSqlite } from './sum-total-file-size-in-backup-subtree-sqlite';
+import { fetchFolderTotalSizeBytes } from '../../../infra/drive-server/services/folder/services/fetch-folder-total-size-bytes';
 import { deleteBackup } from './delete-backup';
 
 type Props = {
   backup: BackupInfo;
-  deps?: {
-    files: DriveFilesCollection;
-    folders: DriveFoldersCollection;
-  };
 };
 
-export async function disableBackup({ backup, deps }: Props) {
+export async function disableBackup({ backup }: Props) {
   const backupsList = configStore.get('backupList');
   const pathname = findBackupPathnameFromUuid({ folderUuid: backup.folderUuid });
 
@@ -27,27 +20,17 @@ export async function disableBackup({ backup, deps }: Props) {
   backupsList[pathname].enabled = false;
   configStore.set('backupList', backupsList);
 
-  const files = deps?.files ?? new DriveFilesCollection();
-  const folders = deps?.folders ?? new DriveFoldersCollection();
-
-  let totalSize: number;
-
-  try {
-    // v.2.6.0
-    // Esteban Galvis Triana
-    // Guard: subtree size is read from SQLite; with lazy sync the DB may lag until a global sync runs.
-    await startRemoteSync();
-    totalSize = await sumTotalFileSizeInBackupSubtreeSqlite({
-      files,
-      folders,
-      rootFolderUuid: backup.folderUuid,
-    });
-  } catch (error) {
-    throw logger.error({
+  // v.2.7.1
+  // Esteban Galvis Triana
+  // Folder stats are one request for this subtree. A global sync is too large to decide whether the backup is empty.
+  const { data: totalSize, error: sizeError } = await fetchFolderTotalSizeBytes(backup.folderUuid);
+  if (sizeError) {
+    logger.error({
       tag: 'BACKUPS',
-      msg: 'Error reading backup size from local database after disable',
-      error,
+      msg: 'Failed to read backup size from remote folder; backup preserved',
+      error: sizeError,
     });
+    return;
   }
 
   if (totalSize === 0) {
