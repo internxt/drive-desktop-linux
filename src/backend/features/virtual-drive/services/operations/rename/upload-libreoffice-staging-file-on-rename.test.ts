@@ -7,7 +7,7 @@ import {
   TemporalFileAttributes,
 } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { TemporalFileByPathFinder } from '../../../../../../context/storage/TemporalFiles/application/find/TemporalFileByPathFinder';
-import { TemporalFileDeleter } from '../../../../../../context/storage/TemporalFiles/application/deletion/TemporalFileDeleter';
+import { DeleteTemporalFileIfUnchanged } from '../../../../../../context/storage/TemporalFiles/application/deletion/DeleteTemporalFileIfUnchanged';
 import * as moveTemporalFileModule from '../../../../../../context/storage/TemporalFiles/application/move/move-temporal-file';
 import { TemporalFileUploader } from '../../../../../../context/storage/TemporalFiles/application/upload/TemporalFileUploader';
 import { TemporalFileRepository } from '../../../../../../context/storage/TemporalFiles/domain/TemporalFileRepository';
@@ -27,7 +27,7 @@ describe('upload-libreoffice-staging-file-on-rename', () => {
   let repository: ReturnType<typeof mockDeep<TemporalFileRepository>>;
   let finder: ReturnType<typeof mockDeep<TemporalFileByPathFinder>>;
   let uploader: ReturnType<typeof mockDeep<TemporalFileUploader>>;
-  let deleter: ReturnType<typeof mockDeep<TemporalFileDeleter>>;
+  let reaper: ReturnType<typeof mockDeep<DeleteTemporalFileIfUnchanged>>;
 
   const props: Parameters<typeof uploadLibreOfficeStagingFileOnRename>[0] = {
     src: '/lu371445na4g.tmp',
@@ -39,20 +39,20 @@ describe('upload-libreoffice-staging-file-on-rename', () => {
     repository = mockDeep<TemporalFileRepository>();
     finder = mockDeep<TemporalFileByPathFinder>();
     uploader = mockDeep<TemporalFileUploader>();
-    deleter = mockDeep<TemporalFileDeleter>();
+    reaper = mockDeep<DeleteTemporalFileIfUnchanged>();
     container = mockDeep<Container>();
     container.get.calledWith(TemporalFileRepository).mockReturnValue(repository);
     container.get.calledWith(TemporalFileByPathFinder).mockReturnValue(finder);
     container.get.calledWith(TemporalFileUploader).mockReturnValue(uploader);
-    container.get.calledWith(TemporalFileDeleter).mockReturnValue(deleter);
+    container.get.calledWith(DeleteTemporalFileIfUnchanged).mockReturnValue(reaper);
     props.container = container;
     moveTemporalFileMock.mockResolvedValue(undefined);
-    uploader.run.mockResolvedValue('contents-id' as ContentsId);
+    uploader.run.mockResolvedValue({ contentsId: 'contents-id' as ContentsId, uploadedRevision: 7 });
   });
 
-  it('should upload the staged copy under the document name and then delete it', async () => {
+  it('should upload the staged copy and reap it under the revision the upload read', async () => {
     // Given
-    const document = TemporalFile.from(temporalAttrs);
+    const document = TemporalFile.from({ ...temporalAttrs, revision: 1 });
     finder.run.mockResolvedValue(document);
 
     // When
@@ -63,7 +63,21 @@ describe('upload-libreoffice-staging-file-on-rename', () => {
     expect(result.data).toBeUndefined();
     call(moveTemporalFileMock).toStrictEqual({ repository, from: props.src, to: props.dest });
     call(uploader.run).toStrictEqual(document);
-    call(deleter.run).toStrictEqual(props.dest);
+    // 7 is the revision the uploader read, not the 1 this function found earlier.
+    call(reaper.run).toStrictEqual([props.dest, 7]);
+  });
+
+  it('should pass an unknown uploaded revision through so the staged copy is kept', async () => {
+    // Given
+    finder.run.mockResolvedValue(TemporalFile.from(temporalAttrs));
+    uploader.run.mockResolvedValue({ contentsId: 'contents-id' as ContentsId, uploadedRevision: undefined });
+
+    // When
+    const result = await uploadLibreOfficeStagingFileOnRename(props);
+
+    // Then
+    expect(result.error).toBeUndefined();
+    call(reaper.run).toStrictEqual([props.dest, undefined]);
   });
 
   it('should return EIO and skip the upload when the staging file cannot be moved', async () => {
@@ -77,7 +91,7 @@ describe('upload-libreoffice-staging-file-on-rename', () => {
     expect(result.data).toBeUndefined();
     expect(result.error?.code).toBe(FuseCodes.EIO);
     calls(uploader.run).toHaveLength(0);
-    calls(deleter.run).toHaveLength(0);
+    calls(reaper.run).toHaveLength(0);
   });
 
   it('should return EIO when the staging file is gone after the move', async () => {
@@ -91,7 +105,7 @@ describe('upload-libreoffice-staging-file-on-rename', () => {
     expect(result.data).toBeUndefined();
     expect(result.error?.code).toBe(FuseCodes.EIO);
     calls(uploader.run).toHaveLength(0);
-    calls(deleter.run).toHaveLength(0);
+    calls(reaper.run).toHaveLength(0);
   });
 
   it('should restore the staging path and return EIO when the upload fails', async () => {
@@ -109,6 +123,6 @@ describe('upload-libreoffice-staging-file-on-rename', () => {
       { repository, from: props.src, to: props.dest },
       { repository, from: props.dest, to: props.src },
     ]);
-    calls(deleter.run).toHaveLength(0);
+    calls(reaper.run).toHaveLength(0);
   });
 });

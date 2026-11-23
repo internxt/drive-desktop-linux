@@ -117,7 +117,7 @@ describe('release', () => {
       const temporalFile = createTemporalFile('/Documents/report.pdf');
       finder.run.mockResolvedValue(temporalFile);
       fileSearcher.run.mockResolvedValue(undefined);
-      uploader.run.mockResolvedValue('contents-id-123' as ContentsId);
+      uploader.run.mockResolvedValue({ contentsId: 'contents-id-123' as ContentsId, uploadedRevision: 1 });
 
       const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
 
@@ -131,7 +131,7 @@ describe('release', () => {
       const existingFile = File.from(fileAttrs);
       finder.run.mockResolvedValue(temporalFile);
       fileSearcher.run.mockResolvedValue(existingFile);
-      uploader.run.mockResolvedValue('new-contents-id' as ContentsId);
+      uploader.run.mockResolvedValue({ contentsId: 'new-contents-id' as ContentsId, uploadedRevision: 1 });
 
       const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
 
@@ -204,8 +204,8 @@ describe('release', () => {
       // First release never resolves during the test — simulates a long in-progress upload
       let resolveFirstUpload!: () => void;
       uploader.run.mockReturnValue(
-        new Promise<ContentsId>((resolve) => {
-          resolveFirstUpload = () => resolve('contents-id-123' as ContentsId);
+        new Promise((resolve) => {
+          resolveFirstUpload = () => resolve({ contentsId: 'contents-id-123' as ContentsId, uploadedRevision: 1 });
         }),
       );
 

@@ -42,10 +42,12 @@ export class TemporalFileUploader {
    * writing to the file it knows about.
    *
    * @param replaces the existing drive file this upload overrides, if any.
-   * @returns the contents id of the stored object, or an empty one for a file of zero bytes.
+   * @returns the contents id of the stored object, or an empty one for a file of zero bytes,
+   * and the revision of the staged copy those bytes came from. `uploadedRevision` is
+   * undefined when it could not be read; a caller must then keep the staged copy.
    * @throws UploadSizeLimitError, or DriveDesktopError for space, abort and upload failures.
    */
-  async run(temporalFile: TemporalFile, replaces?: Replaces): Promise<ContentsId> {
+  async run(temporalFile: TemporalFile, replaces?: Replaces) {
     if (temporalFile.isEmpty()) {
       logger.debug({
         msg: '[TemporalFileUploader] Skipping upload for empty temporal file',
@@ -64,7 +66,10 @@ export class TemporalFileUploader {
         emptyRevision,
       );
 
-      return TemporalFileUploader.EMPTY_CONTENTS_ID;
+      return {
+        contentsId: TemporalFileUploader.EMPTY_CONTENTS_ID,
+        uploadedRevision: emptyRevision,
+      };
     }
 
     // Cheap pre-check against the recorded size, so a file already known to be
@@ -105,7 +110,7 @@ export class TemporalFileUploader {
 
       await this.publishUploadEvent(contentsId, temporalFile, snapshot.size, replaces, revision);
 
-      return contentsId;
+      return { contentsId, uploadedRevision: revision };
     } finally {
       // Neither of these may replace what the upload itself produced: a failed
       // cleanup after a committed upload would report EIO for work that was

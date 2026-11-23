@@ -88,7 +88,7 @@ describe('TemporalFileUploader', () => {
 
     await expect(
       sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' }),
-    ).resolves.toBe('contents-id');
+    ).resolves.toMatchObject({ contentsId: 'contents-id', uploadedRevision: undefined });
 
     call(eventBus.publish).toMatchObject([{ uploadedRevision: undefined }]);
   });
@@ -205,8 +205,9 @@ describe('TemporalFileUploader', () => {
     // bytes.
     const sut = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
-    await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
+    const uploaded = await sut.run(temporalFile, { contentsId: 'old-contents-id', name: 'file', extension: 'txt' });
 
+    expect(uploaded).toMatchObject({ contentsId: 'contents-id', uploadedRevision: 42 });
     call(eventBus.publish).toMatchObject([
       {
         path: temporalFile.path.value,
@@ -227,7 +228,7 @@ describe('TemporalFileUploader', () => {
     const result = await sut.run(temporalFile);
 
     // Then
-    expect(result).toBe('contents-id');
+    expect(result).toMatchObject({ contentsId: 'contents-id', uploadedRevision: 42 });
     calls(repository.createUploadSnapshot).toHaveLength(1);
     calls(open).toHaveLength(2);
     calls(uploaderFactory.build).toHaveLength(2);
@@ -260,7 +261,7 @@ describe('TemporalFileUploader', () => {
 
     // The upload is already committed and the event already published by the
     // time cleanup runs, so a cleanup failure must not report it as failed.
-    await expect(sut.run(temporalFile)).resolves.toBe('contents-id');
+    await expect(sut.run(temporalFile)).resolves.toMatchObject({ contentsId: 'contents-id' });
     calls(eventBus.publish).toHaveLength(1);
   });
 
@@ -307,7 +308,7 @@ describe('TemporalFileUploader', () => {
 
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
-    await expect(uploader.run(temporalFile)).resolves.toBe('contents-id');
+    await expect(uploader.run(temporalFile)).resolves.toMatchObject({ contentsId: 'contents-id' });
     expect(repository.createUploadSnapshot).toHaveBeenCalledWith(temporalFile.path);
     expect(uploaderFactory.build).toHaveBeenCalled();
   });
@@ -317,7 +318,7 @@ describe('TemporalFileUploader', () => {
 
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
-    await expect(uploader.run(temporalFile)).resolves.toBe('contents-id');
+    await expect(uploader.run(temporalFile)).resolves.toMatchObject({ contentsId: 'contents-id' });
     expect(repository.createUploadSnapshot).toHaveBeenCalledWith(temporalFile.path);
     expect(uploaderFactory.build).toHaveBeenCalled();
     expect(eventBus.publish).toHaveBeenCalled();
@@ -326,7 +327,7 @@ describe('TemporalFileUploader', () => {
   it('should skip upload for zero-byte files and only publish creation event', async () => {
     const uploader = new TemporalFileUploader(repository, uploaderFactory, eventBus);
 
-    await expect(uploader.run(emptyTemporalFile)).resolves.toBe('');
+    await expect(uploader.run(emptyTemporalFile)).resolves.toMatchObject({ contentsId: '' });
     calls(repository.watchFile).toHaveLength(0);
     calls(repository.createUploadSnapshot).toHaveLength(0);
     calls(repository.read).toHaveLength(0);
