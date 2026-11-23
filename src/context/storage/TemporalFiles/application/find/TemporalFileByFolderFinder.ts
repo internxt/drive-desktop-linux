@@ -8,7 +8,6 @@ export class TemporalFileByFolderFinder {
   constructor(private readonly repository: TemporalFileRepository) {}
 
   async run(path: string): Promise<Array<TemporalFile>> {
-
     const paths = await this.repository.matchingDirectory(directoryPath(path));
 
     const result = await Promise.all(paths.map((path) => this.repository.find(path)));
