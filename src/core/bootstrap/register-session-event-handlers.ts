@@ -14,6 +14,7 @@ import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-
 import { showMarketingNotifications } from '../../backend/features/marketing';
 import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/features/mail-bridge';
 import { isClientUnsupported } from '../../backend/features/client-compatibility';
+import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
 
 function onWidgetIsReady() {
   // v2.7.1 Alexis Mora: the widget still opens on an unsupported version to show the update banner,
