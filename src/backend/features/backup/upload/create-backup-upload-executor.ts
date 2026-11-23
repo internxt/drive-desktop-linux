@@ -29,7 +29,6 @@ export function createBackupUploadExecutor(
       path: localFile.path,
       size: localFile.size,
       bucket,
-      folderId: parent.id,
       folderUuid: parent.uuid,
       environment,
       signal,
@@ -44,7 +43,7 @@ export function createBackupUploadExecutor(
         return { error: result.error };
       }
 
-      backupErrorsTracker.add(parent.id, {
+      backupErrorsTracker.add(parent.uuid, {
         name: localFile.nameWithExtension(),
         error: result.error.cause,
       });

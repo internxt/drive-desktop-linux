@@ -1,7 +1,7 @@
 import { File, FileAttributes } from '../domain/File';
 import { FileRepository } from '../domain/FileRepository';
 import { FileNotFoundError } from '../domain/errors/FileNotFoundError';
-import { FileStatuses } from '../domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Service } from 'diod';
 
 @Service()
@@ -78,7 +78,7 @@ export class InMemoryFileRepository implements FileRepository {
     return filesAttributes.map((attributes) => File.from(attributes));
   }
 
-  searchByPathPrefix(pathPrefix: string, status?: FileStatuses): Array<File> {
+  searchByPathPrefix(pathPrefix: string, status?: DriveItemStatus): Array<File> {
     const filesAttributes = this.values.filter((attributes) => {
       const matchesPath = attributes.path.startsWith(pathPrefix);
       const matchesStatus = status === undefined || attributes.status === status;

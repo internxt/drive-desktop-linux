@@ -4,20 +4,20 @@ import { DriveServerError } from '../../../drive-server.error';
 import { driveServerClient } from '../../../client/drive-server.client.instance';
 
 type Props = {
-  parentId: number;
+  parentFolderUuid: string;
   offset: number;
   limit?: number;
 };
 
 export async function searchFolder({
-  parentId,
+  parentFolderUuid,
   offset,
   limit = 50,
 }: Props): Promise<Result<FolderDto[], DriveServerError>> {
-  const { data, error } = await driveServerClient.GET('/folders/{id}/folders', {
-    path: { id: parentId },
+  const { data, error } = await driveServerClient.GET('/folders/content/{uuid}/folders', {
+    path: { uuid: parentFolderUuid },
     query: { offset, limit },
   });
   if (error) return { error };
-  return { data: data.result };
+  return { data: data.folders };
 }

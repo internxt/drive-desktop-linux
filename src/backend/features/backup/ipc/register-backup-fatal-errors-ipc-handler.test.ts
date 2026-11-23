@@ -36,29 +36,29 @@ describe('registerBackupFatalErrorsIpcHandler', () => {
   });
 
   describe('get-backup-error-by-folder', () => {
-    it('should return the error for a specific folderId', async () => {
+    it('should return the error for a specific folderUuid', async () => {
       const mockError = { name: 'folder1', error: 'NO_INTERNET' as const };
       mockBackupErrors.get.mockReturnValue(mockError);
 
       registerBackupFatalErrorsIpcHandler(mockBackupErrors);
       const handler = getIpcHandler('get-backup-error-by-folder')!;
 
-      const result = await handler({} as Electron.IpcMainInvokeEvent, 123);
+      const result = await handler({} as Electron.IpcMainInvokeEvent, 'folder-uuid-123');
 
       expect(result).toBe(mockError);
-      expect(mockBackupErrors.get).toHaveBeenCalledWith(123);
+      expect(mockBackupErrors.get).toHaveBeenCalledWith('folder-uuid-123');
     });
 
-    it('should return undefined if no error exists for folderId', async () => {
+    it('should return undefined if no error exists for folderUuid', async () => {
       mockBackupErrors.get.mockReturnValue(undefined);
 
       registerBackupFatalErrorsIpcHandler(mockBackupErrors);
       const handler = getIpcHandler('get-backup-error-by-folder')!;
 
-      const result = await handler({} as Electron.IpcMainInvokeEvent, 999);
+      const result = await handler({} as Electron.IpcMainInvokeEvent, 'missing-uuid');
 
       expect(result).toBeUndefined();
-      expect(mockBackupErrors.get).toHaveBeenCalledWith(999);
+      expect(mockBackupErrors.get).toHaveBeenCalledWith('missing-uuid');
     });
   });
 

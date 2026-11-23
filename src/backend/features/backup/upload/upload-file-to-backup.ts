@@ -16,7 +16,6 @@ export type UploadFileParams = {
   path: string;
   size: number;
   bucket: string;
-  folderId: number;
   folderUuid: string;
   environment: Environment;
   signal: AbortSignal;
@@ -80,7 +79,6 @@ async function uploadFile(file: UploadFileParams): Promise<Result<File | null, D
         contentsId,
         filePath: file.path,
         size: file.size,
-        folderId: file.folderId,
         folderUuid: file.folderUuid,
         bucket: file.bucket,
       }),

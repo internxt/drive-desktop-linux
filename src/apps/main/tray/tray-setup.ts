@@ -7,6 +7,7 @@ import { getAuthWindow } from '../windows/auth';
 import { TrayMenuState } from './types';
 import { PATHS } from '../../../core/electron/paths';
 import { onMainI18nLanguageChange } from '../localize/i18n.service';
+import { isClientUnsupported } from '../../../backend/features/client-compatibility';
 
 let tray: TrayMenu | null = null;
 let removeMainI18nListener: (() => void) | null = null;
@@ -22,22 +23,31 @@ export function getTray() {
   return tray;
 }
 
+/**
+ * v2.7.1 Alexis Mora
+ * While the version is unsupported the tray must keep showing the alert: the compatibility check runs before the
+ * tray exists, and later sync status or login updates would otherwise replace it with IDLE or SYNCING.
+ */
+function setState(status: TrayMenuState) {
+  tray?.setState(isClientUnsupported() ? 'ALERT' : status);
+}
+
 export function setTrayStatus(status: Exclude<TrayMenuState, 'LOADING'>) {
   if (status === 'SYNCING') {
     activeSyncCount++;
-    tray?.setState('SYNCING');
+    setState('SYNCING');
   } else if (status === 'IDLE') {
     activeSyncCount = Math.max(0, activeSyncCount - 1);
-    if (activeSyncCount === 0) tray?.setState('IDLE');
+    if (activeSyncCount === 0) setState('IDLE');
   } else if (status === 'ALERT') {
     activeSyncCount = Math.max(0, activeSyncCount - 1);
-    tray?.setState('ALERT');
+    setState('ALERT');
   }
 }
 
 export function resetTrayStatus(status: TrayMenuState) {
   activeSyncCount = 0;
-  tray?.setState(status);
+  setState(status);
 }
 
 async function onTrayClick() {
@@ -65,6 +75,7 @@ export function setupTrayIcon() {
   const iconsPath = path.join(PATHS.RESOURCES_PATH, 'tray');
 
   tray = new TrayMenu(iconsPath, onTrayClick, onQuitClick);
+  if (isClientUnsupported()) tray.setState('ALERT');
 
   if (!removeMainI18nListener) {
     removeMainI18nListener = onMainI18nLanguageChange(() => {

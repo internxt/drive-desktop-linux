@@ -39,7 +39,6 @@ describe('BackupService', () => {
 
   const info: BackupInfo = {
     pathname: '/path/to/backup' as AbsolutePath,
-    folderId: 123,
     folderUuid: 'uuid',
     tmpPath: '/tmp/path',
     backupsBucket: 'backups-bucket',
@@ -78,7 +77,7 @@ describe('BackupService', () => {
 
     expect(result).toBeUndefined();
     expect(buildLocalTreeMock).toHaveBeenCalledWith(info.pathname);
-    expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderId, info.folderUuid, true);
+    expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderUuid, true);
     expect(simpleFolderCreator.run).toHaveBeenCalledWith(
       expect.any(String),
       expect.any(Number),
@@ -110,7 +109,7 @@ describe('BackupService', () => {
 
     await backupService.run(info, abortController.signal, tracker);
 
-    expect(backupErrorsTrackerAddMock).toHaveBeenCalledWith(info.folderId, {
+    expect(backupErrorsTrackerAddMock).toHaveBeenCalledWith(info.folderUuid, {
       name: 'thunderbird-link',
       error: 'ACTION_NOT_PERMITTED',
     });
@@ -124,7 +123,7 @@ describe('BackupService', () => {
     const result = await backupService.run(info, abortController.signal, tracker);
 
     expect(result).toStrictEqual(new DriveDesktopError('UNKNOWN', 'An unknown error occurred'));
-    expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderId, info.folderUuid, true);
+    expect(remoteTreeBuilder.run).toHaveBeenCalledWith(info.folderUuid, true);
   });
 
   it('should return an error if there is not enough space', async () => {

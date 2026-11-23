@@ -1,6 +1,6 @@
 import { StorageRemoteChangesSyncher } from './StorageRemoteChangesSyncher';
 import { StorageFile } from '../../domain/StorageFile';
-import { FileStatuses } from '../../../../virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { SingleFileMatchingSearcherTestClass } from '../../../../virtual-drive/files/__test-helpers__/SingleFileMatchingSearcherTestClass';
 import { FileMother } from '../../../../virtual-drive/files/domain/__test-helpers__/FileMother';
 import { StorageFilesRepositoryMock } from '../../__mocks__/StorageFilesRepositoryMock';
@@ -40,7 +40,7 @@ describe('Storage Remote Changes Syncher', () => {
     singleFileMatchingSearcher.assertHasBeenSearchedWith(
       expectFilesDeleted.map((f) => ({
         uuid: f.virtualId.value,
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       })),
     );
     repository.assertDeleteHasBeenCalledWith(expectFilesDeleted.map((f) => [f.id]));
@@ -59,7 +59,7 @@ describe('Storage Remote Changes Syncher', () => {
     singleFileMatchingSearcher.assertHasBeenSearchedWith(
       expectFilesDeleted.map((f) => ({
         uuid: f.virtualId.value,
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       })),
     );
     repository.assertDeleteHasBeenCalledWith(expectFilesDeleted.map((f) => [f.id]));

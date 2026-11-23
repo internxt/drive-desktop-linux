@@ -24,7 +24,6 @@ describe('createAndSetupNewDevice', () => {
   };
 
   const device = {
-    id: 42,
     uuid: 'device-uuid',
     name: 'Laptop',
     bucket: 'new-bucket',

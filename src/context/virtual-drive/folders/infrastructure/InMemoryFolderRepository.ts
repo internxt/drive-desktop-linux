@@ -1,11 +1,11 @@
 import { Folder, FolderAttributes } from '../domain/Folder';
 import { FolderRepository } from '../domain/FolderRepository';
-import { FolderStatuses } from '../domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Service } from 'diod';
 
 @Service()
 export class InMemoryFolderRepository implements FolderRepository {
-  private folders: Map<Folder['id'], FolderAttributes>;
+  private folders: Map<Folder['uuid'], FolderAttributes>;
 
   constructor() {
     this.folders = new Map();
@@ -21,24 +21,12 @@ export class InMemoryFolderRepository implements FolderRepository {
     return Promise.resolve(folders);
   }
 
-  async searchById(id: Folder['id']): Promise<Folder | undefined> {
+  async searchByUuid(id: Folder['uuid']): Promise<Folder | undefined> {
     const attributes = this.folders.get(id);
 
     if (!attributes) return;
 
     return Folder.from(attributes);
-  }
-
-  async searchByUuid(id: Folder['uuid']): Promise<Folder | undefined> {
-    const folders = this.folders.values();
-
-    for (const attributes of folders) {
-      if (id === attributes.uuid) {
-        return Folder.from(attributes);
-      }
-    }
-
-    return undefined;
   }
 
   matchingPartial(partial: Partial<FolderAttributes>): Array<Folder> {
@@ -51,7 +39,7 @@ export class InMemoryFolderRepository implements FolderRepository {
     return foldersAttributes.map((attributes) => Folder.from(attributes));
   }
 
-  searchByPathPrefix(pathPrefix: string, status?: FolderStatuses): Array<Folder> {
+  searchByPathPrefix(pathPrefix: string, status?: DriveItemStatus): Array<Folder> {
     const foldersAttributes = this.values.filter((attributes) => {
       const matchesPath = attributes.path.startsWith(pathPrefix);
       const matchesStatus = status === undefined || attributes.status === status;
@@ -62,11 +50,11 @@ export class InMemoryFolderRepository implements FolderRepository {
   }
 
   async add(folder: Folder): Promise<void> {
-    this.folders.set(folder.id, folder.attributes());
+    this.folders.set(folder.uuid, folder.attributes());
   }
 
-  async delete(id: number): Promise<void> {
-    const deleted = this.folders.delete(id);
+  async delete(uuid: Folder['uuid']): Promise<void> {
+    const deleted = this.folders.delete(uuid);
 
     if (!deleted) {
       throw new Error('Folder not found');
@@ -74,7 +62,7 @@ export class InMemoryFolderRepository implements FolderRepository {
   }
 
   async update(folder: Folder): Promise<void> {
-    if (!this.folders.has(folder.id)) {
+    if (!this.folders.has(folder.uuid)) {
       throw new Error('Folder not found');
     }
 

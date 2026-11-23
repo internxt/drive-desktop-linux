@@ -1,1 +1,1 @@
-export type Backup = { id: number; name: string; uuid: string };
+export type Backup = { name: string; uuid: string };

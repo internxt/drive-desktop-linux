@@ -6,7 +6,7 @@ import { TemporalFileByPathFinder } from '../../../../../context/storage/Tempora
 import { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { FirstsFileSearcher } from '../../../../../context/virtual-drive/files/application/search/FirstsFileSearcher';
 import { FileTrasher } from '../../../../../context/virtual-drive/files/application/trash/FileTrasher';
-import { FileStatuses } from '../../../../../context/virtual-drive/files/domain/FileStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { File } from '../../../../../context/virtual-drive/files/domain/File';
 import { unlink } from './unlink.service';
 
@@ -34,16 +34,15 @@ describe('unlink', () => {
   it('should trash file when file exists', async () => {
     fileSearcher.run.mockResolvedValue(
       File.from({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440001',
         contentsId: 'aabbccddeeff001122334455',
-        folderId: 1,
+        folderUuid: '22222222-2222-4333-8444-555555555555',
         createdAt: new Date().toISOString(),
         modificationTime: new Date().toISOString(),
         path: '/some/file.txt',
         size: 1,
         updatedAt: new Date().toISOString(),
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       }),
     );
 
@@ -89,16 +88,15 @@ describe('unlink', () => {
   it('should return EIO when file trash fails', async () => {
     fileSearcher.run.mockResolvedValue(
       File.from({
-        id: 1,
         uuid: '550e8400-e29b-41d4-a716-446655440002',
         contentsId: 'ffeeddccbbaa001122334455',
-        folderId: 1,
+        folderUuid: '22222222-2222-4333-8444-555555555555',
         createdAt: new Date().toISOString(),
         modificationTime: new Date().toISOString(),
         path: '/some/file.txt',
         size: 1,
         updatedAt: new Date().toISOString(),
-        status: FileStatuses.EXISTS,
+        status: DriveItemStatus.EXISTS,
       }),
     );
     fileTrasher.run.mockRejectedValue(new Error('boom'));

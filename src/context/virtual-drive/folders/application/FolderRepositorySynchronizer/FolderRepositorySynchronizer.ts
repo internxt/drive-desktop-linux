@@ -10,16 +10,16 @@ export class FolderRepositorySynchronizer {
     await this.repository.clear();
   }
 
-  async run(remoteFolders: Array<Folder>, deletedFolderIds: Set<number>): Promise<void> {
+  async run(remoteFolders: Array<Folder>, deletedFolderUuids: Set<string>): Promise<void> {
     const currentFolders = await this.repository.all();
 
     const foldersToDelete = currentFolders.filter((folder: Folder) => {
-      return !folder.isRoot() && deletedFolderIds.has(folder.id);
+      return !folder.isRoot() && deletedFolderUuids.has(folder.uuid);
     });
 
     const addPromises = remoteFolders.map((folder: Folder) => this.repository.add(folder));
 
-    const deletePromises = foldersToDelete.map((folder: Folder) => this.repository.delete(folder.id));
+    const deletePromises = foldersToDelete.map((folder: Folder) => this.repository.delete(folder.uuid));
 
     await Promise.all([...addPromises, ...deletePromises]);
   }

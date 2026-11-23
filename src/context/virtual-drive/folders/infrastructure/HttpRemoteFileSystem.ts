@@ -2,7 +2,6 @@ import { Service } from 'diod';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { Either, left, right } from '../../../shared/domain/Either';
 import { Folder } from '../domain/Folder';
-import { FolderId } from '../domain/FolderId';
 import { FolderPath } from '../domain/FolderPath';
 import { FolderPersistedDto, RemoteFileSystem } from '../domain/file-systems/RemoteFileSystem';
 import { DriveDesktopError } from '../../../shared/domain/errors/DriveDesktopError';
@@ -16,7 +15,7 @@ import { FolderDto } from '../../../../infra/drive-server/out/dto';
 export class HttpRemoteFileSystem implements RemoteFileSystem {
   private static PAGE_SIZE = 50;
 
-  async searchWith(parentId: FolderId, folderPath: FolderPath): Promise<Folder | undefined> {
+  async searchWith(parentFolderUuid: string, folderPath: FolderPath): Promise<Folder | undefined> {
     let page = 0;
     const folders: Array<FolderDto> = [];
     let lastNumberOfFolders = 0;
@@ -26,7 +25,7 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
 
       // eslint-disable-next-line no-await-in-loop
       const { data, error } = await searchFolder({
-        parentId: parentId.value,
+        parentFolderUuid,
         offset,
         limit: HttpRemoteFileSystem.PAGE_SIZE,
       });
@@ -42,15 +41,17 @@ export class HttpRemoteFileSystem implements RemoteFileSystem {
       page++;
     } while (folders.length % HttpRemoteFileSystem.PAGE_SIZE === 0 && lastNumberOfFolders > 0);
 
-    const name = folderPath.name();
+    const match = folders.find((entry) => entry.plainName === folderPath.name());
 
-    const folder = folders.find((folder) => folder.plainName === name);
-
-    if (!folder) return;
+    if (!match) return;
 
     return Folder.from({
-      ...folder,
+      uuid: match.uuid,
+      parentUuid: parentFolderUuid,
       path: folderPath.value,
+      createdAt: match.createdAt,
+      updatedAt: match.updatedAt,
+      status: match.status,
     });
   }
 

@@ -121,10 +121,12 @@ describe('download', () => {
       data: {
         tree: {
           id: 11,
+          uuid: 'tree-root-uuid',
           plainName: 'root',
           files: [
             {
               id: 77,
+              uuid: 'file-77-uuid',
               type: '',
               bucket: 'bucket-id',
               fileId: null,
@@ -134,10 +136,10 @@ describe('download', () => {
           children: [],
         },
         folderDecryptedNames: {
-          11: 'Ubuntu',
+          'tree-root-uuid': 'Ubuntu',
         },
         fileDecryptedNames: {
-          77: 'empty.txt',
+          'file-77-uuid': 'empty.txt',
         },
         size: 0,
       },
@@ -177,10 +179,12 @@ describe('download', () => {
       data: {
         tree: {
           id: 11,
+          uuid: 'tree-root-uuid',
           plainName: 'root',
           files: [
             {
               id: 77,
+              uuid: 'file-77-uuid',
               type: '',
               bucket: 'bucket-id',
               fileId: 'file-id',
@@ -190,10 +194,10 @@ describe('download', () => {
           children: [],
         },
         folderDecryptedNames: {
-          11: 'Ubuntu',
+          'tree-root-uuid': 'Ubuntu',
         },
         fileDecryptedNames: {
-          77: 'remote.txt',
+          'file-77-uuid': 'remote.txt',
         },
         size: 1,
       },
@@ -226,10 +230,12 @@ describe('download', () => {
       data: {
         tree: {
           id: 11,
+          uuid: 'tree-root-uuid',
           plainName: 'root',
           files: [
             {
               id: 77,
+              uuid: 'file-77-uuid',
               type: '',
               bucket: 'bucket-id',
               fileId: 'file-id',
@@ -239,10 +245,10 @@ describe('download', () => {
           children: [],
         },
         folderDecryptedNames: {
-          11: 'Ubuntu',
+          'tree-root-uuid': 'Ubuntu',
         },
         fileDecryptedNames: {
-          77: 'remote.txt',
+          'file-77-uuid': 'remote.txt',
         },
         size: 1,
       },
@@ -275,10 +281,12 @@ describe('download', () => {
       data: {
         tree: {
           id: 11,
+          uuid: 'tree-root-uuid',
           plainName: 'root',
           files: [
             {
               id: 77,
+              uuid: 'file-77-uuid',
               type: '',
               bucket: 'bucket-id',
               fileId: 'file-id',
@@ -288,10 +296,10 @@ describe('download', () => {
           children: [],
         },
         folderDecryptedNames: {
-          11: 'Ubuntu',
+          'tree-root-uuid': 'Ubuntu',
         },
         fileDecryptedNames: {
-          77: 'remote.txt',
+          'file-77-uuid': 'remote.txt',
         },
         size: 1,
       },
@@ -327,10 +335,12 @@ describe('download', () => {
       data: {
         tree: {
           id: 11,
+          uuid: 'tree-root-uuid',
           plainName: 'root',
           files: [
             {
               id: 77,
+              uuid: 'file-77-uuid',
               type: '',
               bucket: 'bucket-id',
               fileId: 'file-id',
@@ -340,10 +350,10 @@ describe('download', () => {
           children: [],
         },
         folderDecryptedNames: {
-          11: 'Ubuntu',
+          'tree-root-uuid': 'Ubuntu',
         },
         fileDecryptedNames: {
-          77: 'remote.txt',
+          'file-77-uuid': 'remote.txt',
         },
         size: 1,
       },
@@ -377,10 +387,12 @@ describe('download', () => {
       data: {
         tree: {
           id: 11,
+          uuid: 'tree-root-uuid',
           plainName: 'root',
           files: [
             {
               id: 77,
+              uuid: 'file-77-uuid',
               type: '',
               bucket: 'bucket-id',
               fileId: 'file-id',
@@ -390,10 +402,10 @@ describe('download', () => {
           children: [],
         },
         folderDecryptedNames: {
-          11: 'Ubuntu',
+          'tree-root-uuid': 'Ubuntu',
         },
         fileDecryptedNames: {
-          77: 'remote.txt',
+          'file-77-uuid': 'remote.txt',
         },
         size: 1,
       },
@@ -427,10 +439,12 @@ describe('download', () => {
       data: {
         tree: {
           id: 11,
+          uuid: 'tree-root-uuid',
           plainName: 'root',
           files: [
             {
               id: 77,
+              uuid: 'file-77-uuid',
               type: '',
               bucket: 'bucket-id',
               fileId: 'file-a',
@@ -438,6 +452,7 @@ describe('download', () => {
             },
             {
               id: 78,
+              uuid: 'file-78-uuid',
               type: '',
               bucket: 'bucket-id',
               fileId: 'file-b',
@@ -447,10 +462,10 @@ describe('download', () => {
           children: [],
         },
         folderDecryptedNames: {
-          11: 'Ubuntu',
+          'tree-root-uuid': 'Ubuntu',
         },
         fileDecryptedNames: {
-          77: 'a.txt',
+          'file-77-uuid': 'a.txt',
           78: 'b.txt',
         },
         size: 2,

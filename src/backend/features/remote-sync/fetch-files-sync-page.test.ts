@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { partialSpyOn, call } from 'tests/vitest/utils.helper';
 
 import * as fetchFilesModule from '../../../infra/drive-server/services/files/services/fetch-files';
@@ -27,7 +28,7 @@ describe('fetch-files-sync-page', () => {
 
     // When
     const result = await fetchFilesSyncPage({
-      request: { limit: 10, updatedAt: '1970-01-01T00:00:00.000Z', status: 'EXISTS' },
+      request: { limit: 10, updatedAt: '1970-01-01T00:00:00.000Z', status: DriveItemStatus.EXISTS },
     });
 
     // Then
@@ -40,7 +41,7 @@ describe('fetch-files-sync-page', () => {
     call(fetchFilesSyncMock).toMatchObject({
       limit: 10,
       updatedAt: '1970-01-01T00:00:00.000Z',
-      status: 'EXISTS',
+      status: DriveItemStatus.EXISTS,
     });
   });
 

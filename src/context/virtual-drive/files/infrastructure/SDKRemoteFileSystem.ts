@@ -37,11 +37,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
     const { data, error } = await createFile(body);
     if (data) {
       const result: PersistedFileData = {
-        // The server's own value when it has one; updatedAt only as a fallback,
-        // so a file created with a requested time reports that time and not the
-        // moment the row was written.
         modificationTime: data.modificationTime ?? data.updatedAt,
-        id: data.id,
         uuid: data.uuid,
         createdAt: data.createdAt,
       };
@@ -55,7 +51,7 @@ export class SDKRemoteFileSystem implements RemoteFileSystem {
         return left(
           new DriveDesktopError(
             'FILE_ALREADY_EXISTS',
-            `File with name ${plainName} on ${dataToPersists.folderId.value} already exists`,
+            `File with name ${plainName} in folder ${dataToPersists.folderUuid} already exists`,
           ),
         );
       }

@@ -10,9 +10,7 @@ describe('persist-folder-with-retry', () => {
 
   const folderPath = new FolderPath('/root/child');
   const folderDto: FolderPersistedDto = {
-    id: 321,
     uuid: '5f8f4d5f-7989-48d1-bf84-18bcaf7e37b9',
-    parentId: 123,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

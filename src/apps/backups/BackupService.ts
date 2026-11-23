@@ -59,7 +59,7 @@ export class BackupService {
          * Extend backup issues window to include
          * skipped items details so the issues window can show each skipped path
          */
-        backupErrorsTracker.add(info.folderId, {
+        backupErrorsTracker.add(info.folderUuid, {
           name: info.name,
           error: 'ACTION_NOT_PERMITTED',
         });
@@ -68,7 +68,7 @@ export class BackupService {
       logger.debug({ tag: 'BACKUPS', msg: 'Local tree generated successfully' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Generating remote tree' });
-      const remote = await this.remoteTreeBuilder.run(info.folderId, info.folderUuid, true);
+      const remote = await this.remoteTreeBuilder.run(info.folderUuid, true);
       logger.debug({ tag: 'BACKUPS', msg: 'Remote tree generated successfully' });
 
       logger.debug({ tag: 'BACKUPS', msg: 'Calculating folder differences' });
@@ -185,7 +185,6 @@ export class BackupService {
       // eslint-disable-next-line no-await-in-loop
       const folder = await this.simpleFolderCreator.run(
         relative(local.root.path, localFolder.path),
-        parent.id,
         parent.uuid,
         signal,
       );

@@ -14,7 +14,6 @@ const mockLogger = vi.mocked(logger);
 
 describe('createBackupFolder', () => {
   const mockDevice = {
-    id: 1,
     uuid: 'device-123',
     bucket: 'test-bucket',
     name: 'Test Device',
@@ -48,7 +47,6 @@ describe('createBackupFolder', () => {
     });
     expect(result).toStrictEqual({
       data: {
-        id: 456,
         name: 'My Folder',
         uuid: 'folder-uuid-789',
       },
@@ -82,7 +80,6 @@ describe('createBackupFolder', () => {
     });
 
     findBackupFolderByNameMock.mockResolvedValue({
-      id: 900,
       name: 'Existing Folder',
       uuid: 'existing-folder-uuid',
     });
@@ -98,7 +95,6 @@ describe('createBackupFolder', () => {
     });
     expect(result).toStrictEqual({
       data: {
-        id: 900,
         name: 'Existing Folder',
         uuid: 'existing-folder-uuid',
       },

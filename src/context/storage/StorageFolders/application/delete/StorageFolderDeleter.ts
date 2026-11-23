@@ -2,7 +2,7 @@ import { Service } from 'diod';
 import { FilesByPartialSearcher } from '../../../../virtual-drive/files/application/search/FilesByPartialSearcher';
 import { SingleFolderMatchingFinder } from '../../../../virtual-drive/folders/application/SingleFolderMatchingFinder';
 import { FoldersSearcherByPartial } from '../../../../virtual-drive/folders/application/search/FoldersSearcherByPartial';
-import { FolderStatuses } from '../../../../virtual-drive/folders/domain/FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Folder } from '../../../../virtual-drive/folders/domain/Folder';
 import { StorageFileDeleter } from '../../../StorageFiles/application/delete/StorageFileDeleter';
 
@@ -17,7 +17,7 @@ export class StorageFolderDeleter {
 
   private async deleteFilesOn(folder: Folder): Promise<void> {
     const files = await this.filesByPartialSearcher.run({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
     });
 
     const filesDeletion = files.map(({ path }) => this.storageFileDeleter.run(path));
@@ -27,7 +27,7 @@ export class StorageFolderDeleter {
 
   private async deleteSubfolders(folder: Folder): Promise<void> {
     const subfolders = await this.foldersSearcherByPartial.run({
-      parentId: folder.id,
+      parentUuid: folder.uuid,
     });
 
     const subfoldersDeleted = subfolders.map((subfolder) => this.deleteFolder(subfolder));
@@ -45,7 +45,7 @@ export class StorageFolderDeleter {
   async run(path: string): Promise<void> {
     const folder = await this.singleFolderFinder.run({
       path,
-      status: FolderStatuses.EXISTS,
+      status: DriveItemStatus.EXISTS,
     });
 
     await this.deleteFolder(folder);

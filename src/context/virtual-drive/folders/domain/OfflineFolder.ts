@@ -1,14 +1,14 @@
 import { AggregateRoot } from '../../../shared/domain/AggregateRoot';
 import { FolderPath } from './FolderPath';
-import { FolderStatus, FolderStatuses } from './FolderStatus';
+import { FolderStatus } from './FolderStatus';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { FolderUuid } from './FolderUuid';
 import { Folder } from './Folder';
 import { FolderRenamedDomainEvent } from './events/FolderRenamedDomainEvent';
-import { FolderId } from './FolderId';
 
 export type OfflineFolderAttributes = {
   uuid: string;
-  parentId: number;
+  parentUuid: string;
   path: string;
   updatedAt: string;
   createdAt: string;
@@ -19,7 +19,7 @@ export class OfflineFolder extends AggregateRoot {
   private constructor(
     private _uuid: FolderUuid,
     private _path: FolderPath,
-    private _parentId: FolderId,
+    private _parentUuid: FolderUuid,
     public createdAt: Date,
     public updatedAt: Date,
     private _status: FolderStatus,
@@ -47,8 +47,8 @@ export class OfflineFolder extends AggregateRoot {
     return this._path.dirname();
   }
 
-  public get parentId(): number {
-    return this._parentId.value;
+  public get parentUuid(): string {
+    return this._parentUuid.value;
   }
 
   public get status() {
@@ -56,7 +56,6 @@ export class OfflineFolder extends AggregateRoot {
   }
 
   public get size() {
-    // Currently we cannot acquire the folder size.
     return 0;
   }
 
@@ -64,19 +63,19 @@ export class OfflineFolder extends AggregateRoot {
     return new OfflineFolder(
       new FolderUuid(attributes.uuid),
       new FolderPath(attributes.path),
-      new FolderId(attributes.parentId),
+      new FolderUuid(attributes.parentUuid),
       new Date(attributes.updatedAt),
       new Date(attributes.createdAt),
       FolderStatus.fromValue(attributes.status),
     );
   }
 
-  static create(path: FolderPath, parentId: FolderId): OfflineFolder {
-    return new OfflineFolder(FolderUuid.random(), path, parentId, new Date(), new Date(), FolderStatus.Exists);
+  static create(path: FolderPath, parentUuid: FolderUuid): OfflineFolder {
+    return new OfflineFolder(FolderUuid.random(), path, parentUuid, new Date(), new Date(), FolderStatus.Exists);
   }
 
   moveTo(destinationFolder: Folder) {
-    this._parentId = new FolderId(destinationFolder.id);
+    this._parentUuid = new FolderUuid(destinationFolder.uuid);
   }
 
   rename(destination: FolderPath) {
@@ -88,13 +87,13 @@ export class OfflineFolder extends AggregateRoot {
     this._path = this._path.updateName(destination.name());
     this.updatedAt = new Date();
 
-    const event = new FolderRenamedDomainEvent({
-      aggregateId: this.uuid,
-      previousPath: oldPath.value,
-      nextPath: this._path.value,
-    });
-
-    this.record(event);
+    this.record(
+      new FolderRenamedDomainEvent({
+        aggregateId: this.uuid,
+        previousPath: oldPath.value,
+        nextPath: this._path.value,
+      }),
+    );
   }
 
   isFolder(): this is OfflineFolder {
@@ -105,20 +104,18 @@ export class OfflineFolder extends AggregateRoot {
     return false;
   }
 
-  hasStatus(status: FolderStatuses): boolean {
+  hasStatus(status: DriveItemStatus): boolean {
     return this._status.value === status;
   }
 
   attributes(): OfflineFolderAttributes {
-    const attributes: OfflineFolderAttributes = {
+    return {
       uuid: this.uuid,
-      parentId: this.parentId,
+      parentUuid: this.parentUuid,
       path: this._path.value,
       updatedAt: this.updatedAt.toISOString(),
       createdAt: this.createdAt.toISOString(),
       status: this.status.value,
     };
-
-    return attributes;
   }
 }

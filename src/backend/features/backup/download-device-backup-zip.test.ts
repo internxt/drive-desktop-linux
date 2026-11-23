@@ -15,7 +15,6 @@ describe('download-device-backup-zip', () => {
   const user = { bridgeUser: 'bridge-user', userId: 'user-id' } as unknown as User;
 
   const device = {
-    id: 1,
     uuid: 'device-uuid',
     name: 'Laptop',
     bucket: 'bucket',

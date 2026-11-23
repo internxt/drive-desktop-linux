@@ -9,7 +9,7 @@ export function parseData({ data }: TProps): SimpleDriveFolder {
   return {
     uuid: data.uuid as FolderUuid,
     name: data.plainName,
-    parentId: data.parentId ?? undefined,
+    parentUuid: data.parentUuid,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
     status: data.status,

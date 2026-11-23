@@ -52,7 +52,6 @@ export class BackupConfiguration {
     return backups.map((backup) => ({
       folderUuid: backup.folderUuid,
       pathname: backup.pathname,
-      folderId: backup.folderId,
       tmpPath: app.getPath('temp'),
       backupsBucket: deviceBucket,
       name: backup.name,

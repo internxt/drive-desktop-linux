@@ -13,7 +13,6 @@ vi.mock(import('./local-tree/'));
 describe('precalculateBackupItemCount', () => {
   const backupInfo = {
     folderUuid: 'folder-uuid',
-    folderId: 42,
     tmpPath: '/tmp/backup',
     backupsBucket: 'bucket',
     pathname: '/home/user/Documents' as AbsolutePath,
@@ -41,7 +40,7 @@ describe('precalculateBackupItemCount', () => {
     const result = await precalculateBackupItemCount(backupInfo, remoteTreeBuilder as unknown as RemoteTreeBuilder);
 
     expect(result.data).toBe(10);
-    expect(remoteTreeBuilder.run).toBeCalledWith(backupInfo.folderId, backupInfo.folderUuid, true);
+    expect(remoteTreeBuilder.run).toBeCalledWith(backupInfo.folderUuid, true);
   });
 
   it('returns an error when local tree build returns left', async () => {

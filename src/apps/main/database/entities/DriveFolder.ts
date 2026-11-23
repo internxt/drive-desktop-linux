@@ -1,14 +1,15 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { Brand } from '../../../../context/shared/domain/Brand';
+import type { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
 export type FolderUuid = Brand<string, 'FolderUuid'>;
 export type SimpleDriveFolder = {
   uuid: FolderUuid;
   name: string;
-  parentId: number | undefined;
+  parentUuid: string | undefined;
   createdAt: string;
   updatedAt: string;
-  status: string;
+  status: DriveItemStatus;
 };
 
 @Entity('drive_folder')
@@ -22,11 +23,8 @@ export class DriveFolder {
   @Column({ type: 'varchar', nullable: false })
   type!: string;
 
-  @Column({ type: 'integer', nullable: false, unique: true })
-  id!: number;
-
-  @Column({ type: 'integer', nullable: true })
-  parentId?: number | null;
+  @Column({ type: 'varchar', nullable: true })
+  parentUuid?: string | null;
 
   @Column({ type: 'varchar', nullable: true })
   bucket?: string | null;
@@ -43,9 +41,6 @@ export class DriveFolder {
   @Column({ type: 'varchar', nullable: false })
   plainName!: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  name?: string;
-
   @Column({ type: 'varchar', nullable: false })
-  status!: string;
+  status!: DriveItemStatus;
 }

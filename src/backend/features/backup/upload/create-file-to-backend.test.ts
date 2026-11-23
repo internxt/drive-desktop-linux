@@ -13,13 +13,11 @@ describe('createFileToBackend', () => {
     contentsId: BucketEntryIdMother.primitive(),
     filePath: '/backup/my-file.txt',
     size: 1024,
-    folderId: 123,
     folderUuid: UuidMother.primitive(),
     bucket: 'bucket',
   };
 
   const fileResponse = {
-    id: 1,
     uuid: UuidMother.primitive(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

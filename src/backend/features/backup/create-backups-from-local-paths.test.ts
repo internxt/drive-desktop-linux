@@ -12,7 +12,6 @@ describe('create-backups-from-local-paths', () => {
 
   it('should enable backups and create one backup per local path', async () => {
     const device = {
-      id: 1,
       uuid: 'device-uuid',
       name: 'Device',
       bucket: 'bucket',
@@ -50,7 +49,6 @@ describe('create-backups-from-local-paths', () => {
   it('should return an error when creating a backup fails', async () => {
     const error = new Error('Backup error');
     const device = {
-      id: 1,
       uuid: 'device-uuid',
       name: 'Device',
       bucket: 'bucket',

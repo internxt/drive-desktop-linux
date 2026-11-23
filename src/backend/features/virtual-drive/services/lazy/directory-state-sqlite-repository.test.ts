@@ -4,7 +4,8 @@ import { DirectoryStateRow } from './types';
 
 describe('directory-state-sqlite-repository', () => {
   const queryMock = vi.fn<(statement: string, parameters?: Array<unknown>) => Promise<Array<DirectoryStateRow>>>();
-  const stateProps = { folderId: 42, statusScope: 'EXISTS' as const };
+  const folderUuid = 'folder-uuid-42';
+  const stateProps = { folderUuid, statusScope: 'EXISTS' as const };
   const dataSource = { isInitialized: true, query: queryMock };
 
   beforeEach(() => {
@@ -16,8 +17,8 @@ describe('directory-state-sqlite-repository', () => {
 
     expect(isFresh).toBe(false);
     call(queryMock).toStrictEqual([
-      'SELECT children_loaded_at FROM drive_directory_state WHERE folder_id = ? AND status_scope = ? LIMIT 1',
-      [42, 'EXISTS'],
+      'SELECT children_loaded_at FROM drive_directory_state WHERE folder_uuid = ? AND status_scope = ? LIMIT 1',
+      [folderUuid, 'EXISTS'],
     ]);
   });
 
@@ -50,7 +51,7 @@ describe('directory-state-sqlite-repository', () => {
 
     expect(queryMock).toHaveBeenCalledWith(
       expect.stringContaining('DO UPDATE SET children_loaded_at = excluded.children_loaded_at'),
-      [42, 'EXISTS', expect.any(String)],
+      [folderUuid, 'EXISTS', expect.any(String)],
     );
   });
 
@@ -58,7 +59,7 @@ describe('directory-state-sqlite-repository', () => {
     await DirectoryStateRepository.markError({ dataSource, ...stateProps });
 
     expect(queryMock).toHaveBeenCalledWith(expect.stringContaining('VALUES (?, ?, NULL, ?,'), [
-      42,
+      folderUuid,
       'EXISTS',
       expect.any(String),
       'error',
@@ -75,8 +76,8 @@ describe('directory-state-sqlite-repository', () => {
 
     expect(await DirectoryStateRepository.getState({ dataSource, ...stateProps })).toStrictEqual(state);
     call(queryMock).toStrictEqual([
-      'SELECT children_loaded_at, children_last_error_at, fetch_state FROM drive_directory_state WHERE folder_id = ? AND status_scope = ? LIMIT 1',
-      [42, 'EXISTS'],
+      'SELECT children_loaded_at, children_last_error_at, fetch_state FROM drive_directory_state WHERE folder_uuid = ? AND status_scope = ? LIMIT 1',
+      [folderUuid, 'EXISTS'],
     ]);
   });
 
@@ -86,7 +87,7 @@ describe('directory-state-sqlite-repository', () => {
       await DirectoryStateRepository.markError({ dataSource, ...stateProps, failureState });
 
       expect(queryMock).toHaveBeenCalledWith(expect.stringContaining('fetch_state = excluded.fetch_state'), [
-        42,
+        folderUuid,
         'EXISTS',
         expect.any(String),
         failureState,
@@ -98,8 +99,8 @@ describe('directory-state-sqlite-repository', () => {
     await DirectoryStateRepository.invalidate({ dataSource, ...stateProps });
 
     call(queryMock).toStrictEqual([
-      'DELETE FROM drive_directory_state WHERE folder_id = ? AND status_scope = ?',
-      [42, 'EXISTS'],
+      'DELETE FROM drive_directory_state WHERE folder_uuid = ? AND status_scope = ?',
+      [folderUuid, 'EXISTS'],
     ]);
   });
 

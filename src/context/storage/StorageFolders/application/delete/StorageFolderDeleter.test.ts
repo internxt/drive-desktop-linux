@@ -80,8 +80,8 @@ describe('Storage Folder Deleter', () => {
     await SUT.run(folderFound.path);
 
     filesByPartialSearcher.assertHasBeenCalledWith([
-      { folderId: folderFound.id },
-      ...subfolders.map((folder) => ({ folderId: folder.id })),
+      { folderUuid: folderFound.uuid },
+      ...subfolders.map((folder) => ({ folderUuid: folder.uuid })),
     ]);
   });
 });

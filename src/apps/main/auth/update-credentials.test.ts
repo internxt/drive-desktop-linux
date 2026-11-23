@@ -29,7 +29,6 @@ describe('updateCredentials', () => {
     bridgeUser: 'bridge-user',
     bucket: 'bucket',
     backupsBucket: 'backups-bucket',
-    root_folder_id: 1,
     rootFolderId: 'root-folder-id',
     mnemonic: 'user-mnemonic',
     createdAt: '2025-01-01',

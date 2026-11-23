@@ -14,11 +14,18 @@ import { setPendingUpdateInfo } from './bootstrap-runtime-state';
 import { installFileManagerExtension } from '../../backend/features/file-manager-extension/install';
 import { setupMainI18n } from '../../apps/main/localize/i18n.service';
 import { getLanguage } from '../../apps/main/config/language';
+import { checkClientCompatibility } from '../../backend/features/client-compatibility';
 
 export function registerAppReadyFlow() {
   app
     .whenReady()
     .then(async () => {
+      /**
+       * v2.7.1 Alexis Mora
+       * Checked before anything else starts so an unsupported version never fires up sync, backups or any request.
+       */
+      await checkClientCompatibility();
+
       /**
        * v.2.5.1
        * Esteban Galvis Triana

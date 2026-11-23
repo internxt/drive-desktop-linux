@@ -3,7 +3,7 @@ import { UserAvailableProducts } from '@internxt/drive-desktop-core/build/backen
 import { Language } from '../../../apps/shared/Locale/Language';
 import { ConfigTheme } from '../../../apps/shared/types/Theme';
 
-type BackupList = Record<string, { enabled: boolean; folderId: number; folderUuid: string }>;
+type BackupList = Record<string, { enabled: boolean; folderUuid: string }>;
 export type SavedConfig = {
   lastOnboardingShown: string;
   backupsEnabled: boolean;

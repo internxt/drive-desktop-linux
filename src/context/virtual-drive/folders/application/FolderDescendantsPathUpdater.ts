@@ -1,10 +1,8 @@
 import { Service } from 'diod';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Folder } from '../domain/Folder';
 import { FolderRepository } from '../domain/FolderRepository';
 import { FileRepository } from '../../files/domain/FileRepository';
-import { FolderStatuses } from '../domain/FolderStatus';
-import { FileStatuses } from '../../files/domain/FileStatus';
 
 @Service()
 export class FolderDescendantsPathUpdater {
@@ -38,7 +36,7 @@ export class FolderDescendantsPathUpdater {
   private async updateDescendantFolders(oldPath: string, newPath: string) {
     const pathPrefix = oldPath + '/';
 
-    const descendants = this.folderRepository.searchByPathPrefix(pathPrefix, FolderStatuses.EXISTS);
+    const descendants = this.folderRepository.searchByPathPrefix(pathPrefix, DriveItemStatus.EXISTS);
 
     if (descendants.length === 0) return 0;
 
@@ -58,7 +56,7 @@ export class FolderDescendantsPathUpdater {
   private async updateDescendantFiles(oldPath: string, newPath: string) {
     const pathPrefix = oldPath + '/';
 
-    const descendants = this.fileRepository.searchByPathPrefix(pathPrefix, FileStatuses.EXISTS);
+    const descendants = this.fileRepository.searchByPathPrefix(pathPrefix, DriveItemStatus.EXISTS);
 
     if (descendants.length === 0) return 0;
 

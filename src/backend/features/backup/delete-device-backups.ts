@@ -25,7 +25,9 @@ export async function deleteDeviceBackups({ device, isCurrent }: Props) {
   }
 
   const { tree } = data;
-  const foldersToDelete = tree.children.filter((folder) => !backups.some((backup) => backup.folderId === folder.id));
+  const foldersToDelete = tree.children.filter(
+    (folder) => !backups.some((backup) => backup.folderUuid === folder.uuid),
+  );
   const folderDeletionPromises = foldersToDelete.map(async (folder) => {
     await addFolderToTrash(folder.uuid);
   });

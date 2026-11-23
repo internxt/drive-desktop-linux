@@ -29,7 +29,7 @@ describe('record-synchronization-failure', () => {
 
     expect(result.error).toMatchObject({ code: FuseCodes.ENOENT, canUseCachedChildren: false });
     expect(markErrorMock).toHaveBeenCalledWith({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
       statusScope: 'EXISTS',
       failureState: 'error_not_found',
     });
@@ -44,7 +44,7 @@ describe('record-synchronization-failure', () => {
 
     expect(result.error).toMatchObject({ code: FuseCodes.EIO, canUseCachedChildren: true });
     expect(markErrorMock).toHaveBeenCalledWith({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
       statusScope: 'EXISTS',
       failureState: 'error_before_mutation',
     });
@@ -59,7 +59,7 @@ describe('record-synchronization-failure', () => {
 
     expect(result.error).toMatchObject({ code: FuseCodes.EIO, canUseCachedChildren: false });
     expect(markErrorMock).toHaveBeenCalledWith({
-      folderId: folder.id,
+      folderUuid: folder.uuid,
       statusScope: 'EXISTS',
       failureState: 'error',
     });

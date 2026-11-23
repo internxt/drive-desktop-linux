@@ -1,7 +1,7 @@
 export type DirectoryStatusScope = 'EXISTS';
 
 export type DirectoryStateRow = {
-  folder_id?: number;
+  folder_uuid?: string;
   children_loaded_at: string | null;
   children_last_error_at: string | null;
   fetch_state: string;
@@ -13,7 +13,7 @@ export type SqliteQueryExecutor = {
 };
 
 export type DirectoryStateProps = {
-  folderId: number;
+  folderUuid: string;
   statusScope: DirectoryStatusScope;
 };
 
