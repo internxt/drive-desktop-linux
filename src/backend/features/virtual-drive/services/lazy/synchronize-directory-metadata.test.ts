@@ -86,6 +86,41 @@ describe('synchronize-directory-metadata', () => {
     expect(markErrorMock).not.toHaveBeenCalled();
   });
 
+  it('keeps the fetched extension when the sqlite batch mutates file.type', async () => {
+    createOrUpdateFileByBatchMock.mockImplementation(async ({ files }: { files: Array<{ type: string }> }) => {
+      for (const file of files) file.type = 'mp4';
+      return { data: [] };
+    });
+    fetchFolderMock.mockResolvedValue({
+      data: {
+        children: [],
+        files: [
+          {
+            uuid: '550e8400-e29b-41d4-a716-446655440001',
+            fileId: '21e5ac204d8744589cb5abcd',
+            type: 'docx',
+            size: '5040',
+            bucket: 'bucket',
+            folderUuid: folder.uuid,
+            userId: 1,
+            modificationTime: '2026-01-01T00:00:00.000Z',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+            plainName: 'libre_office_save_test',
+            status: 'EXISTS',
+          },
+        ],
+      },
+    });
+    const files = new InMemoryFileRepository();
+
+    await synchronizeDirectoryMetadata({ folder, folderRepository, fileRepository: files });
+
+    expect(await files.searchByUuid('550e8400-e29b-41d4-a716-446655440001')).toMatchObject({
+      path: '/libre_office_save_test.docx',
+    });
+  });
+
   it('should mark the directory as errored and return EIO when fetching fails', async () => {
     fetchFolderMock.mockResolvedValue({ error: new Error('network failure') });
 

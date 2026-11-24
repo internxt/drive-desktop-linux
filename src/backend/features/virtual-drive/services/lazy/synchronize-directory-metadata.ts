@@ -45,6 +45,10 @@ async function writeFetchedDirectory({
       return recordSynchronizationFailure({ folder, error: folderPersistence.error, localMutationStarted });
     }
 
+    const localFiles = remoteFiles.map((remoteFile) => {
+      return createFileFromServerFile(remoteFile, path.posix.join(folder.path, fileName(remoteFile)));
+    });
+
     const filePersistence = await createOrUpdateFileByBatch({ files: remoteFiles });
     if (filePersistence.error) {
       return recordSynchronizationFailure({ folder, error: filePersistence.error, localMutationStarted });
@@ -63,9 +67,6 @@ async function writeFetchedDirectory({
 
     const localFolders = remoteFolders.map((remoteFolder) => {
       return createFolderFromServerFolder(remoteFolder, path.posix.join(folder.path, remoteFolder.plainName));
-    });
-    const localFiles = remoteFiles.map((remoteFile) => {
-      return createFileFromServerFile(remoteFile, path.posix.join(folder.path, fileName(remoteFile)));
     });
 
     await Promise.all([
