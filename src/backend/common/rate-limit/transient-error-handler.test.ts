@@ -180,6 +180,24 @@ describe('mapEnvironmentUploadError', () => {
     expect(result.cause).toBe('CONNECTION_TIMEOUT');
     expect(result.message).toBe(error.message);
   });
+
+  it('should map ERR_STREAM_PREMATURE_CLOSE to NETWORK_ERROR so upload retries explicitly', () => {
+    const error = Object.assign(new Error('Premature close'), { code: 'ERR_STREAM_PREMATURE_CLOSE' });
+
+    const result = mapEnvironmentUploadError(error);
+
+    expect(result.cause).toBe('NETWORK_ERROR');
+    expect(result.message).toBe(error.message);
+  });
+
+  it('should map Premature close message to NETWORK_ERROR when code is missing', () => {
+    const error = new Error('Premature close');
+
+    const result = mapEnvironmentUploadError(error);
+
+    expect(result.cause).toBe('NETWORK_ERROR');
+    expect(result.message).toBe(error.message);
+  });
 });
 
 describe('mapEnvironmentUploadError, for the shapes inxt-js actually throws', () => {

@@ -67,7 +67,10 @@ describe('upload-temporal-file-on-rename', () => {
   it('should upload then delete and return success when files differ', async () => {
     // Given
     compareTemporalFileMock.mockResolvedValue(true);
-    uploaderMock.run.mockResolvedValue('uploaded-file-id' as unknown as ContentsId);
+    uploaderMock.run.mockResolvedValue({
+      contentsId: 'uploaded-file-id' as ContentsId,
+      uploadedRevision: 1,
+    });
 
     // When
     const result = await uploadTemporalFileOnRename(props);
@@ -91,7 +94,7 @@ describe('upload-temporal-file-on-rename', () => {
     compareTemporalFileMock.mockResolvedValue(true);
     uploaderMock.run.mockImplementation(async () => {
       order.push('upload');
-      return 'uploaded-file-id' as unknown as ContentsId;
+      return { contentsId: 'uploaded-file-id' as ContentsId, uploadedRevision: 1 };
     });
     deleterMock.run.mockImplementation(async () => {
       order.push('delete');

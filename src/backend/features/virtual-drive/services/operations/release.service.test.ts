@@ -88,6 +88,28 @@ describe('release', () => {
       calls(uploader.run).toHaveLength(0);
       call(deleter.run).toStrictEqual('/Documents/.~lock.file.odt#');
     });
+
+    it('should keep a LibreOffice staging file so the editor can reopen it', async () => {
+      finder.run.mockResolvedValue(createAuxiliaryFile('/lu371445na4g.tmp'));
+
+      const { data, error } = await release({ path: '/lu371445na4g.tmp', processName: 'soffice.bin', container });
+
+      expect(error).toBeUndefined();
+      expect(data).toBeUndefined();
+      calls(uploader.run).toHaveLength(0);
+      calls(deleter.run).toHaveLength(0);
+    });
+
+    it('should delete a regular tmp file without uploading it', async () => {
+      finder.run.mockResolvedValue(createAuxiliaryFile('/Documents/download.tmp'));
+
+      const { data, error } = await release({ path: '/Documents/download.tmp', processName: 'cat', container });
+
+      expect(error).toBeUndefined();
+      expect(data).toBeUndefined();
+      calls(uploader.run).toHaveLength(0);
+      call(deleter.run).toStrictEqual('/Documents/download.tmp');
+    });
   });
 
   describe('when a temporal file is found', () => {
@@ -95,7 +117,7 @@ describe('release', () => {
       const temporalFile = createTemporalFile('/Documents/report.pdf');
       finder.run.mockResolvedValue(temporalFile);
       fileSearcher.run.mockResolvedValue(undefined);
-      uploader.run.mockResolvedValue('contents-id-123' as ContentsId);
+      uploader.run.mockResolvedValue({ contentsId: 'contents-id-123' as ContentsId, uploadedRevision: 1 });
 
       const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
 
@@ -109,7 +131,7 @@ describe('release', () => {
       const existingFile = File.from(fileAttrs);
       finder.run.mockResolvedValue(temporalFile);
       fileSearcher.run.mockResolvedValue(existingFile);
-      uploader.run.mockResolvedValue('new-contents-id' as ContentsId);
+      uploader.run.mockResolvedValue({ contentsId: 'new-contents-id' as ContentsId, uploadedRevision: 1 });
 
       const { data, error } = await release({ path: '/Documents/report.pdf', processName: 'cat', container });
 
@@ -182,8 +204,8 @@ describe('release', () => {
       // First release never resolves during the test — simulates a long in-progress upload
       let resolveFirstUpload!: () => void;
       uploader.run.mockReturnValue(
-        new Promise<ContentsId>((resolve) => {
-          resolveFirstUpload = () => resolve('contents-id-123' as ContentsId);
+        new Promise((resolve) => {
+          resolveFirstUpload = () => resolve({ contentsId: 'contents-id-123' as ContentsId, uploadedRevision: 1 });
         }),
       );
 

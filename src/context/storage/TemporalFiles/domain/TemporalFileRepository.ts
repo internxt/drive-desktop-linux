@@ -9,6 +9,13 @@ export abstract class TemporalFileRepository {
 
   abstract delete(path: TemporalFilePath): Promise<void>;
 
+  /**
+   * Re-files a staged copy under another path without copying its bytes.
+   * The content file and the revision stay the same: only the path key changes,
+   * so an upload afterwards creates the drive file at the new name.
+   */
+  abstract move(from: TemporalFilePath, to: TemporalFilePath): Promise<void>;
+
   abstract matchingDirectory(path: string): Promise<Array<TemporalFilePath>>;
 
   abstract write(path: TemporalFilePath, buffer: Buffer, length: number, position: number): Promise<void>;

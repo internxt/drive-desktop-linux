@@ -180,6 +180,25 @@ describe('NodeTemporalFileRepository', () => {
     });
   });
 
+  it('should refile a staged copy under the renamed path without copying its bytes', async () => {
+    const from = new TemporalFilePath('/lu371445na4g.tmp');
+    const to = new TemporalFilePath('/save_test.odt');
+
+    await repository.create(from);
+    await repository.write(from, Buffer.from('odt'), 3, 0);
+    const before = (await repository.find(from)).get();
+
+    await repository.move(from, to);
+
+    expect((await repository.find(from)).isPresent()).toBe(false);
+
+    const moved = (await repository.find(to)).get();
+    expect(moved.contentFilePath).toBe(before.contentFilePath);
+    expect(moved.revision).toBe(before.revision);
+    expect(moved.size.value).toBe(3);
+    expect(await readdir(folder)).toHaveLength(1);
+  });
+
   it('should ignore ENOENT when deleting a stale mapped file', async () => {
     const documentPath = new TemporalFilePath('/Documents/.test-file.txt.swp');
 

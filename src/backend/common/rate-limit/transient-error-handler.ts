@@ -38,6 +38,10 @@ function isS3RequestTimeoutError(err: Error) {
   );
 }
 
+function isStreamPrematureCloseError(err: Error & { code?: unknown }) {
+  return err.code === 'ERR_STREAM_PREMATURE_CLOSE' || err.message === 'Premature close';
+}
+
 function uploadStatusOf(err: Error & { status?: unknown }): number | undefined {
   if (typeof err.status === 'number') {
     return err.status;
@@ -59,6 +63,10 @@ export function mapEnvironmentUploadError(err: Error & { code?: unknown; status?
 
   if (isConnectionTimeoutError(err)) {
     return new DriveDesktopError('CONNECTION_TIMEOUT', err.message);
+  }
+
+  if (isStreamPrematureCloseError(err)) {
+    return new DriveDesktopError('NETWORK_ERROR', err.message);
   }
 
   if (err.message === 'Max space used') {

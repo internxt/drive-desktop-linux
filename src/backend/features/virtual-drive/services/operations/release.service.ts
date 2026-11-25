@@ -40,6 +40,18 @@ export async function release({ path, processName, container }: Props): Promise<
     }
 
     if (temporalFile.isAuxiliary()) {
+      // LibreOffice closes the staging file it just created and opens it again
+      // to write the document. Deleting it here makes that reopen fail with
+      // ENOENT, and the later rename onto the real name never happens.
+      if (temporalFile.isLibreOfficeStagingFile()) {
+        logger.debug({
+          msg: '[Release] LibreOffice staging file kept for rewrite or rename',
+          path,
+          processName,
+        });
+        return { data: undefined };
+      }
+
       logger.debug({ msg: '[Release] Auxiliary file detected, deleting without upload', path, processName });
       await container.get(TemporalFileDeleter).run(path);
       return { data: undefined };
