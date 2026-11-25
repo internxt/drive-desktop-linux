@@ -1,10 +1,9 @@
 import { safeStorage } from 'electron';
 
 import ConfigStore from '../config';
-import { User } from '../types';
 
 import { updateMailBridgeAccessToken } from '../../../backend/features/mail-bridge';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { logger, UserDto } from '@internxt/drive-desktop-core/build/backend';
 
 const TOKEN_ENCODING = 'latin1';
 
@@ -26,7 +25,7 @@ function getMnemonicString({ isSafeStorageAvailable, mnemonic }: GetMnemonicStri
 type Props = {
   newToken: string;
   mnemonic?: string;
-  userData?: User;
+  userData?: UserDto;
 };
 
 export async function updateCredentials({ newToken, mnemonic, userData }: Props) {
