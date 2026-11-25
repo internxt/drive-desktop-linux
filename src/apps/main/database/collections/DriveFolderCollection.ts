@@ -1,7 +1,7 @@
 import { DatabaseCollectionAdapter } from '../adapters/base';
 import { AppDataSource } from '../data-source';
 import { DriveFolder } from '../entities/DriveFolder';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 
 export class DriveFoldersCollection implements DatabaseCollectionAdapter<DriveFolder> {
@@ -23,6 +23,24 @@ export class DriveFoldersCollection implements DatabaseCollectionAdapter<DriveFo
   async getAll() {
     try {
       const result = await this.repository.find();
+      return {
+        success: true,
+        result,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        result: [],
+      };
+    }
+  }
+
+  async getAllWhere(where: Partial<DriveFolder>) {
+    try {
+      const result = await this.repository.find({
+        where: where as FindOptionsWhere<DriveFolder>,
+      });
+
       return {
         success: true,
         result,

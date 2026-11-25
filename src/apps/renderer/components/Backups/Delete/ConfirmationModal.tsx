@@ -57,7 +57,7 @@ export function ConfirmationModal({
             leaveTo="opacity-0 scale-95">
             <div
               style={{ width: '400px' }}
-              className="my-8 inline-block transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all dark:bg-black">
+              className="relative z-10 my-8 inline-block transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all dark:bg-black">
               <Dialog.Title as="h3" className="text-neutral-900 mb-4 text-2xl leading-6 font-medium">
                 {title || translate('settings.backups.delete.deletion-modal.title')}
               </Dialog.Title>

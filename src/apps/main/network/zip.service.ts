@@ -130,4 +130,18 @@ export class FlatFolderZip {
   abort(): void {
     this.abortController?.abort();
   }
+
+  /**
+   * v.2.7.1
+   * Esteban Galvis Triana
+   * abort() only signals the controller. close() finalizes, and returns immediately once aborted.
+   * A failed or cancelled download has to stop the archive and tear down the output stream.
+   */
+  destroy(): void {
+    this.archive.abort();
+
+    if (!this.destination.destroyed) {
+      this.destination.destroy(new Error('Backup zip download stopped'));
+    }
+  }
 }

@@ -1,7 +1,9 @@
 import * as findBackupPathnameFromUuidModule from './find-backup-pathname-from-uuid';
-import * as getBackupFolderTreeSnapshotModule from './get-backup-folder-tree-snapshot';
+import * as fetchFolderTotalSizeModule from '../../../infra/drive-server/services/folder/services/fetch-folder-total-size-bytes';
+import * as remoteSyncServiceModule from '../../../apps/main/remote-sync/service';
 import * as deleteBackupModule from './delete-backup';
 import configStoreModule from '../../../apps/main/config';
+import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { createAbsolutePath } from '../../../context/local/localFile/infrastructure/AbsolutePath';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
 import { loggerMock } from '../../../../tests/vitest/mocks.helper';
@@ -9,10 +11,8 @@ import { disableBackup } from './disable-backup';
 
 describe('disable-backup', () => {
   const findBackupPathnameFromUuidMock = partialSpyOn(findBackupPathnameFromUuidModule, 'findBackupPathnameFromUuid');
-  const getBackupFolderTreeSnapshotMock = partialSpyOn(
-    getBackupFolderTreeSnapshotModule,
-    'getBackupFolderTreeSnapshot',
-  );
+  const fetchFolderTotalSizeMock = partialSpyOn(fetchFolderTotalSizeModule, 'fetchFolderTotalSizeBytes');
+  const startRemoteSyncMock = partialSpyOn(remoteSyncServiceModule, 'startRemoteSync');
   const deleteBackupMock = partialSpyOn(deleteBackupModule, 'deleteBackup');
   const configStoreGetMock = partialSpyOn(configStoreModule, 'get');
   const configStoreSetMock = partialSpyOn(configStoreModule, 'set');
@@ -32,17 +32,18 @@ describe('disable-backup', () => {
     await expect(disableBackup({ backup })).rejects.toBeUndefined();
 
     expect(configStoreSetMock).not.toBeCalled();
-    expect(getBackupFolderTreeSnapshotMock).not.toBeCalled();
+    expect(fetchFolderTotalSizeMock).not.toBeCalled();
+    expect(startRemoteSyncMock).not.toBeCalled();
   });
 
-  it('should disable backup and delete it when tree size is zero', async () => {
+  it('should disable backup and delete it when remote folder size is zero', async () => {
     const backupList = {
       '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: true },
     };
 
     configStoreGetMock.mockReturnValue(backupList);
     findBackupPathnameFromUuidMock.mockReturnValue('/home/dev/Documents');
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({ data: { size: 0 } } as never);
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 0 });
     deleteBackupMock.mockResolvedValue({ data: true });
 
     await disableBackup({ backup });
@@ -53,22 +54,38 @@ describe('disable-backup', () => {
         '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: false },
       },
     ]);
+    call(fetchFolderTotalSizeMock).toBe('folder-uuid');
     call(deleteBackupMock).toStrictEqual({ backup, isCurrent: true });
+    expect(startRemoteSyncMock).not.toBeCalled();
   });
 
-  it('should log error when fetching the backup folder tree snapshot fails', async () => {
-    const error = new Error('snapshot failed');
+  it('should keep the remote backup when it still has content', async () => {
     configStoreGetMock.mockReturnValue({
       '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: true },
     });
     findBackupPathnameFromUuidMock.mockReturnValue('/home/dev/Documents');
-    getBackupFolderTreeSnapshotMock.mockResolvedValue({ error } as never);
+    fetchFolderTotalSizeMock.mockResolvedValue({ data: 128 });
 
-    await expect(disableBackup({ backup })).rejects.toBeUndefined();
+    await disableBackup({ backup });
 
+    expect(deleteBackupMock).not.toBeCalled();
+    expect(startRemoteSyncMock).not.toBeCalled();
+  });
+
+  it('should preserve the backup when remote folder size cannot be read', async () => {
+    configStoreGetMock.mockReturnValue({
+      '/home/dev/Documents': { folderUuid: 'folder-uuid', enabled: true },
+    });
+    findBackupPathnameFromUuidMock.mockReturnValue('/home/dev/Documents');
+    fetchFolderTotalSizeMock.mockResolvedValue({ error: new DriveServerError('SERVER_ERROR', 500, 'stats failed') });
+
+    await disableBackup({ backup });
+
+    expect(deleteBackupMock).not.toBeCalled();
+    expect(startRemoteSyncMock).not.toBeCalled();
     call(loggerMock.error).toMatchObject({
       tag: 'BACKUPS',
-      msg: 'Error fetching backup folder tree snapshot',
+      msg: 'Failed to read backup size from remote folder; backup preserved',
     });
   });
 });
