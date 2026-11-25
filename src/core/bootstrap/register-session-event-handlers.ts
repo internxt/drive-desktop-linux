@@ -9,12 +9,12 @@ import { openOnboardingWindow } from '../../apps/main/windows/onboarding';
 import { getTheme } from '../theme';
 import { trySetupAntivirusIpcAndInitialize } from '../../apps/main/background-processes/antivirus/try-setup-antivirus-ipc-and-initialize';
 import { getUserAvailableProductsAndStore } from '../../backend/features/payments/services/get-user-available-products-and-store';
-import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
 import { startBackupsIfAvailable } from '../../backend/features/backup/start-backups-if-available';
 import { resolveUserFileSizeLimit } from '../../backend/features/user/file-size-limit/resolve-user-file-size-limit';
 import { showMarketingNotifications } from '../../backend/features/marketing';
 import { setupMailBridgeIpc, startMailBridgeOnLogin } from '../../backend/features/mail-bridge';
 import { isClientUnsupported } from '../../backend/features/client-compatibility';
+import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
 
 function onWidgetIsReady() {
   // v2.7.1 Alexis Mora: the widget still opens on an unsupported version to show the update banner,

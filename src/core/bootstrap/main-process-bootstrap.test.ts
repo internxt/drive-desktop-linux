@@ -5,7 +5,12 @@ import * as registerProcessHandlersModule from './register-process-handlers';
 import * as registerSecondInstanceFlowModule from './register-second-instance-flow';
 import * as registerSessionEventHandlersModule from './register-session-event-handlers';
 import * as setupEnvironmentDebugToolsModule from './setup-environment-debug-tools';
+import * as registerBackupHandlersModule from '../../backend/features/backup/register-backup-handlers';
 import { partialSpyOn } from 'tests/vitest/utils.helper';
+
+vi.mock('../../backend/features/backup/register-backup-handlers', () => ({
+  registerBackupHandlers: vi.fn(),
+}));
 
 describe('main-process-bootstrap', () => {
   const setupEnvironmentDebugToolsMock = partialSpyOn(setupEnvironmentDebugToolsModule, 'setupEnvironmentDebugTools');
@@ -17,10 +22,12 @@ describe('main-process-bootstrap', () => {
     'registerSessionEventHandlers',
   );
   const registerProcessHandlersMock = partialSpyOn(registerProcessHandlersModule, 'registerProcessHandlers');
+  const registerBackupHandlersMock = partialSpyOn(registerBackupHandlersModule, 'registerBackupHandlers');
 
   beforeEach(() => {
     setupEnvironmentDebugToolsMock.mockImplementation(() => undefined);
     registerMainIpcHandlersMock.mockImplementation(() => undefined);
+    registerBackupHandlersMock.mockImplementation(() => undefined);
     registerAppReadyFlowMock.mockImplementation(() => undefined);
     registerSecondInstanceFlowMock.mockImplementation(() => undefined);
     registerSessionEventHandlersMock.mockImplementation(() => undefined);
@@ -32,6 +39,7 @@ describe('main-process-bootstrap', () => {
 
     expect(setupEnvironmentDebugToolsMock).toBeCalled();
     expect(registerMainIpcHandlersMock).toBeCalled();
+    expect(registerBackupHandlersMock).toBeCalled();
     expect(registerAppReadyFlowMock).toBeCalled();
     expect(registerSecondInstanceFlowMock).toBeCalled();
     expect(registerSessionEventHandlersMock).toBeCalled();

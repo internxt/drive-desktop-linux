@@ -4,12 +4,14 @@ import { registerMainIpcHandlers } from './register-main-ipc-handlers';
 import { registerProcessHandlers } from './register-process-handlers';
 import { registerSecondInstanceFlow } from './register-second-instance-flow';
 import { registerSessionEventHandlers } from './register-session-event-handlers';
+import { registerBackupHandlers } from '../../backend/features/backup/register-backup-handlers';
 import { registerClientCompatibilityHandlers } from '../../backend/features/client-compatibility/register-client-compatibility-handlers';
 
 export function bootstrapMainProcess() {
   setupEnvironmentDebugTools();
   registerClientCompatibilityHandlers();
   registerMainIpcHandlers();
+  registerBackupHandlers();
   registerAppReadyFlow();
   registerSecondInstanceFlow();
   registerSessionEventHandlers();
