@@ -11,6 +11,9 @@ import { PREFETCH_BLOCKS_AHEAD } from './download-cache/constants';
 import { readOrHydrate } from './read-or-hydrate';
 import { type HandleReadDeps, type ReadRange } from './types';
 import { isThumbnailProcess } from './thumbnail-processes';
+import { fileExistsOnDisk } from './download-cache/file-exists-on-disk';
+import { interceptThumbnailRead } from '../../thumbnails/placeholders/intercept-thumbnail-read';
+import { requiresThumbnail } from '../../thumbnails/placeholders/thumbnail-mime';
 
 export type HandleReadCallbackProps = HandleReadDeps & {
   findVirtualFile: (path: string) => Promise<File | undefined>;
@@ -45,14 +48,37 @@ export async function handleReadCallback({
     return readFromTemporalFile(findTemporalFile, path, range.length, range.position);
   }
 
+  const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
+
   if (isThumbnailProcess(processName)) {
+    if (!requiresThumbnail({ fileName: virtualFile.nameWithExtension })) {
+      logger.debug({
+        msg: '[ReadCallback] Ignoring thumbnail request for unsupported file type',
+        process: processName,
+        file: virtualFile.nameWithExtension,
+      });
+      return { data: EMPTY };
+    }
+
+    const isCachedLocally = await fileExistsOnDisk(filePath);
+    const placeholder = interceptThumbnailRead({
+      processName,
+      fileName: virtualFile.nameWithExtension,
+      isCachedLocally,
+      offset: range.position,
+      length: range.length,
+    });
+
+    if (placeholder) {
+      return placeholder;
+    }
+
     logger.debug({
       msg: '[ReadCallback] thumbnail process, reading through cache hydration',
       process: processName,
       file: virtualFile.nameWithExtension,
     });
 
-    const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
     return readOrHydrate({
       bucketId,
       mnemonic,
@@ -66,8 +92,6 @@ export async function handleReadCallback({
       range,
     });
   }
-
-  const filePath = nodePath.join(PATHS.DOWNLOADED, virtualFile.contentsId);
 
   return readOrHydrate({
     bucketId,

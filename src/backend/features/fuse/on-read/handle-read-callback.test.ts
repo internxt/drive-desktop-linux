@@ -91,6 +91,25 @@ describe('handleReadCallback', () => {
   });
 
   describe('when process is a thumbnail generator', () => {
+    it('should skip cache hydration for unsupported file types', async () => {
+      const executableFile = {
+        ...virtualFile,
+        name: 'jdk-8u231-windows-x64.exe',
+        nameWithExtension: 'jdk-8u231-windows-x64.exe',
+      } as unknown as File;
+      const deps = createDeps({
+        processName: 'pool-org.gnome.',
+        findVirtualFile: vi.fn().mockResolvedValue(executableFile),
+      });
+
+      const result = await handleReadCallback(deps);
+
+      expect(result.data).toStrictEqual(Buffer.alloc(0));
+      expect(fileExistsOnDiskMock).not.toHaveBeenCalled();
+      expect(allocateFileMock).not.toHaveBeenCalled();
+      expect(downloadAndCacheBlockMock).not.toHaveBeenCalled();
+    });
+
     it('should route thumbnail reads through cache hydration', async () => {
       const deps = createDeps({ processName: 'pool-org.gnome.', range: { position: 0, length: 32768 } });
 
@@ -100,15 +119,16 @@ describe('handleReadCallback', () => {
       expect(downloadAndCacheBlockMock).toHaveBeenCalledOnce();
     });
 
-    it('should allocate and download cache blocks when needed', async () => {
+    it('should return placeholder immediately without downloading blocks when file is not cached locally', async () => {
       fileExistsOnDiskMock.mockResolvedValue(false);
       const deps = createDeps({ processName: 'pool-org.gnome.' });
 
-      await handleReadCallback(deps);
+      const result = await handleReadCallback(deps);
 
-      expect(fileExistsOnDiskMock).toHaveBeenCalled();
-      expect(allocateFileMock).toHaveBeenCalledOnce();
-      expect(downloadAndCacheBlockMock).toHaveBeenCalledOnce();
+      expect(result.data).toBeDefined();
+      expect(result.data?.length).toBeGreaterThan(0);
+      expect(allocateFileMock).not.toHaveBeenCalled();
+      expect(downloadAndCacheBlockMock).not.toHaveBeenCalled();
     });
 
     it('should not emit download progress or register the file', async () => {
