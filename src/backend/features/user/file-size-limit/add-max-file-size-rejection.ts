@@ -1,6 +1,6 @@
 import { MODAL_DEBOUNCE_MS } from './constants';
 import { showMaxFileSizeRejectionModal } from './show-max-file-size-rejection-modal';
-import { type UploadFileSizeValidation } from './validate-upload-file-size';
+import { type UploadFileSizeValidation } from '@internxt/drive-desktop-core/build/backend';
 
 const uploadSizeLimitBlockedPaths = new Set<string>();
 

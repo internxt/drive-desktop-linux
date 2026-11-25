@@ -60,7 +60,7 @@ async function onUserLoggedIn() {
     } else if (widget) {
       widget.show();
     }
-    await resolveUserFileSizeLimit();
+    await resolveUserFileSizeLimit({ signal: AbortSignal.timeout(10_000) });
     await trySetupAntivirusIpcAndInitialize();
     void showMarketingNotifications();
   } catch (error) {

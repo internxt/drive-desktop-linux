@@ -1,13 +1,17 @@
-import { logger } from '@internxt/drive-desktop-core/build/backend';
+import { FileSizeLimitModule, logger } from '@internxt/drive-desktop-core/build/backend';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import { saveConfig } from '../../../apps/main/config/save-config';
 import eventBus from '../../../apps/main/event-bus';
 import { closeUserSessionResources } from '../../../apps/main/auth/close-user-session-resources';
 import { getUser } from './user-session';
 import { resetConfig } from '../config/reset-config';
+import { clearRejectedUploadsForSize } from '../user/file-size-limit/clear-rejected-uploads-for-size';
 
 export async function logout() {
   logger.debug({ msg: 'Logging out' });
+
+  FileSizeLimitModule.stopWatchingFileSizeLimit();
+  clearRejectedUploadsForSize();
 
   const user = getUser();
 

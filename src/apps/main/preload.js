@@ -278,6 +278,7 @@ contextBridge.exposeInMainWorld('electron', {
   openUrl: (url) => {
     return ipcRenderer.invoke('open-url', url);
   },
+  watchFileSizeLimitAfterUpgrade: () => ipcRenderer.invoke('watchFileSizeLimitAfterUpgrade'),
   getPreferredAppLanguage() {
     return ipcRenderer.invoke('APP:PREFERRED_LANGUAGE');
   },

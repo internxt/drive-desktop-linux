@@ -30,9 +30,10 @@ vi.mock('../../../usage/validate-space', () => ({
   validateSpace: vi.fn().mockResolvedValue({ data: { hasSpace: true } }),
 }));
 
-vi.mock('../../../../../apps/main/config', () => ({
-  default: { get: vi.fn().mockReturnValue(undefined) },
-}));
+vi.mock('../../../../../apps/main/config', () => {
+  const store = { get: vi.fn().mockReturnValue(undefined), set: vi.fn() };
+  return { default: store, electronStore: store };
+});
 
 vi.mock('../../../user/file-size-limit/add-max-file-size-rejection', () => ({
   addMaxFileSizeRejection: vi.fn(),
