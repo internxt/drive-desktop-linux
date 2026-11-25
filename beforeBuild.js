@@ -19,5 +19,8 @@ module.exports = async (context) => {
   );
   await electronRebuild.rebuild({ buildPath: appDir, electronVersion, arch, force: true });
 
-  return false;
+  // electron-builder 26 treats `false` as "node_modules are handled outside the builder"
+  // and then omits production dependencies from the package. `better-sqlite3` must be inside
+  // the asar so TypeORM can resolve it at runtime.
+  return true;
 };
