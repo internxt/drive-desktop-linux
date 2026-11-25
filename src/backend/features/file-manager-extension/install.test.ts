@@ -4,7 +4,7 @@ import * as detectModule from './detect-available';
 import * as serviceModule from './service';
 import { LATEST_EXTENSION_VERSION } from './version';
 import { call, calls, partialSpyOn } from 'tests/vitest/utils.helper';
-import { installFileManagerExtension, uninstallFileManagerExtension } from './install';
+import { installFileManagerExtension } from './install';
 
 describe('install', () => {
   const detectAvailableFileManagerMock = partialSpyOn(detectModule, 'detectAvailableFileManager');
@@ -54,7 +54,7 @@ describe('install', () => {
       await installFileManagerExtension();
 
       // Then
-      call(copyExtensionFileMock).toStrictEqual([]);
+      call(copyExtensionFileMock).toStrictEqual({ overwrite: false });
       call(configSetMock).toStrictEqual(['fileManagerExtensionVersion', LATEST_EXTENSION_VERSION]);
       call(reloadFileManagerMock).toStrictEqual([]);
       calls(deleteExtensionFileMock).toHaveLength(0);
@@ -87,7 +87,7 @@ describe('install', () => {
 
       // Then
       call(deleteExtensionFileMock).toStrictEqual([]);
-      call(copyExtensionFileMock).toStrictEqual([]);
+      call(copyExtensionFileMock).toStrictEqual({ overwrite: true });
       call(configSetMock).toStrictEqual(['fileManagerExtensionVersion', LATEST_EXTENSION_VERSION]);
       call(reloadFileManagerMock).toStrictEqual([]);
     });
@@ -138,48 +138,6 @@ describe('install', () => {
       calls(loggerDebugMock).toMatchObject(
         expect.arrayContaining([expect.objectContaining({ msg: expect.stringContaining('dolphin') })]),
       );
-    });
-  });
-
-  describe('uninstallFileManagerExtension', () => {
-    it('should uninstall extension when it is installed', async () => {
-      // Given
-      isInstalledMock.mockResolvedValueOnce(true);
-
-      // When
-      await uninstallFileManagerExtension();
-
-      // Then
-      call(deleteExtensionFileMock).toStrictEqual([]);
-      call(reloadFileManagerMock).toStrictEqual([]);
-    });
-
-    it('should skip uninstall when extension is not installed', async () => {
-      // Given
-      isInstalledMock.mockResolvedValueOnce(false);
-
-      // When
-      await uninstallFileManagerExtension();
-
-      // Then
-      calls(deleteExtensionFileMock).toHaveLength(0);
-      calls(reloadFileManagerMock).toHaveLength(0);
-    });
-
-    it('should log error on uninstall failure', async () => {
-      // Given
-      const error = new Error('uninstall failed');
-      isInstalledMock.mockResolvedValueOnce(true);
-      deleteExtensionFileMock.mockRejectedValueOnce(error);
-
-      // When
-      await uninstallFileManagerExtension();
-
-      // Then
-      call(loggerErrorMock).toMatchObject({
-        msg: '[FILE_MANAGER_EXTENSION] Uninstallation failed',
-        error,
-      });
     });
   });
 });

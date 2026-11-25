@@ -367,6 +367,20 @@ describe('service', () => {
       expect(fsMock.link).not.toHaveBeenCalled();
     });
 
+    it('should overwrite existing assets when overwrite is true', async () => {
+      // Given
+      process.env.NODE_ENV = 'production';
+      detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
+      doesFileExistMock.mockResolvedValue(true);
+
+      // When
+      await copyExtensionFile({ overwrite: true });
+
+      // Then
+      expect(fsMock.cp).toHaveBeenCalled();
+      expect(fsMock.link).not.toHaveBeenCalled();
+    });
+
     it('should template dolphin service menu with the shared home path', async () => {
       // Given
       detectAvailableFileManagerMock.mockResolvedValueOnce('dolphin');
@@ -415,6 +429,20 @@ describe('service', () => {
 
       // Then
       expect(fsMock.rm).not.toHaveBeenCalled();
+    });
+
+    it('should continue when remove fails with EACCES', async () => {
+      // Given
+      detectAvailableFileManagerMock.mockResolvedValueOnce('nautilus');
+      doesFileExistMock.mockResolvedValue(true);
+      const permissionError = Object.assign(new Error('permission denied'), { code: 'EACCES' });
+      fsMock.rm.mockRejectedValueOnce(permissionError);
+
+      // When
+      await deleteExtensionFile();
+
+      // Then
+      expect(fsMock.rm).toHaveBeenCalled();
     });
   });
 });
