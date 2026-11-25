@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import { RemoteSyncedFile, RemoteSyncedFolder } from '../../../../../apps/main/remote-sync/helpers';
 import { FileRepository } from '../../../../../context/virtual-drive/files/domain/FileRepository';
@@ -39,7 +40,7 @@ async function writeFetchedDirectory({
     // better-sqlite3 has one writer connection, so these batches must remain sequential.
     localMutationStarted = true;
     // A partial refresh must not leave a previous successful load eligible for fallback.
-    await DirectoryStateRepository.invalidate({ folderUuid: folder.uuid, statusScope: 'EXISTS' });
+    await DirectoryStateRepository.invalidate({ folderUuid: folder.uuid, statusScope: DriveItemStatus.EXISTS });
     const folderPersistence = await createOrUpdateFolderByBatch({ folders: remoteFolders });
     if (folderPersistence.error) {
       return recordSynchronizationFailure({ folder, error: folderPersistence.error, localMutationStarted });
@@ -72,7 +73,7 @@ async function writeFetchedDirectory({
       ...localFolders.map((child) => folderRepository.add(child)),
       ...localFiles.map((child) => fileRepository.upsert(child)),
     ]);
-    await DirectoryStateRepository.markLoaded({ folderUuid: folder.uuid, statusScope: 'EXISTS' });
+    await DirectoryStateRepository.markLoaded({ folderUuid: folder.uuid, statusScope: DriveItemStatus.EXISTS });
     return Result.ok(undefined);
   } catch (error) {
     // Repository and sqlite operations still reject. Fold those failures into the same Result.
@@ -106,12 +107,12 @@ export async function synchronizeDirectoryMetadata({ folder, folderRepository, f
   }
 }
 
-function isExistingFolder(folder: { status: string; deleted: boolean; removed: boolean }) {
-  return folder.status === 'EXISTS' && !folder.deleted && !folder.removed;
+function isExistingFolder(folder: { status: string }) {
+  return folder.status === DriveItemStatus.EXISTS;
 }
 
 function isExistingFile(file: { status: string }) {
-  return file.status === 'EXISTS';
+  return file.status === DriveItemStatus.EXISTS;
 }
 
 function fileName(file: RemoteSyncedFile) {

@@ -11,14 +11,20 @@ const createFolderSyncDtoFixture = (payload: Partial<FolderSyncMappingDto> = {})
   updatedAt: '2026-01-01T00:00:00.000Z',
   plainName: 'My Folder',
   status: 'EXISTS',
-  removed: false,
-  deleted: false,
   ...payload,
 });
 
 describe('map-folder', () => {
   describe('resolveFolderStatus', () => {
-    it('should return existing status when valid string', () => {
+    it('should return EXISTS when status is EXISTS', () => {
+      // When
+      const result = resolveFolderStatus({ status: 'EXISTS' });
+
+      // Then
+      expect(result).toBe('EXISTS');
+    });
+
+    it('should return TRASHED when status is TRASHED', () => {
       // When
       const result = resolveFolderStatus({ status: 'TRASHED' });
 
@@ -26,28 +32,12 @@ describe('map-folder', () => {
       expect(result).toBe('TRASHED');
     });
 
-    it('should return TRASHED when removed is true and status is empty', () => {
+    it('should return DELETED when status is DELETED', () => {
       // When
-      const result = resolveFolderStatus({ removed: true });
-
-      // Then
-      expect(result).toBe('TRASHED');
-    });
-
-    it('should return DELETED when deleted is true and status is empty', () => {
-      // When
-      const result = resolveFolderStatus({ deleted: true });
+      const result = resolveFolderStatus({ status: 'DELETED' });
 
       // Then
       expect(result).toBe('DELETED');
-    });
-
-    it('should default to EXISTS when no status, removed or deleted flags are present', () => {
-      // When
-      const result = resolveFolderStatus({});
-
-      // Then
-      expect(result).toBe('EXISTS');
     });
   });
 
@@ -58,7 +48,6 @@ describe('map-folder', () => {
         uuid: 'folder-uuid',
         plainName: 'My Folder',
         status: 'EXISTS',
-        removed: true,
       });
 
       // When

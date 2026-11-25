@@ -142,8 +142,6 @@ function staleFolder({ parentUuid }: { parentUuid: string }): FolderSyncMappingD
     updatedAt: '2026-06-01T11:00:00.000Z',
     plainName: 'Stale folder',
     status: 'EXISTS',
-    removed: false,
-    deleted: false,
     parentUuid,
     userId: 1,
   };

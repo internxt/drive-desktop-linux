@@ -1,10 +1,9 @@
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
+import { DriveItemStatus, type FolderSyncDto } from '@internxt/drive-desktop-core/build/backend';
 import { partialSpyOn, call } from 'tests/vitest/utils.helper';
 
 import * as fetchFoldersModule from '../../../infra/drive-server/services/folder/services/fetch-folders';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { fetchFoldersSyncPage } from './fetch-folders-sync-page';
-import type { FolderSyncDto } from './types';
 
 describe('fetch-folders-sync-page', () => {
   const fetchFoldersSyncMock = partialSpyOn(fetchFoldersModule, 'fetchFoldersSync');

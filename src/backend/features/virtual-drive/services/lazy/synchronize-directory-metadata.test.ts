@@ -190,8 +190,6 @@ describe('synchronize-directory-metadata', () => {
         children: [kept, sibling].map((entry) => ({
           ...entry.attributes(),
           plainName: entry.name,
-          deleted: false,
-          removed: false,
           updatedAt: '2026-01-01T00:00:00.000Z',
         })),
         files: [
@@ -250,8 +248,6 @@ describe('synchronize-directory-metadata', () => {
           {
             ...renamed.attributes(),
             plainName: 'new',
-            deleted: false,
-            removed: false,
             updatedAt: '2026-01-01T00:00:00.000Z',
           },
         ],

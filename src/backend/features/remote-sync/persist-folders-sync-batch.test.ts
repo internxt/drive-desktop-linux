@@ -23,8 +23,6 @@ describe('persist-folders-sync-batch', () => {
         updatedAt: '',
         plainName: 'Folder 1',
         status: 'EXISTS',
-        removed: false,
-        deleted: false,
         parentUuid: '',
         userId: 1,
       },

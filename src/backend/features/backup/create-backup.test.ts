@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { createBackup } from './create-backup';
 import { createBackupFolder } from '../../../backend/features/backup/create-backup-folder';
 import configStore from '../../../apps/main/config';
@@ -20,7 +21,7 @@ describe('createBackup', () => {
     uuid: 'device-123',
     bucket: 'test-bucket',
     name: 'Test Device',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: true,
   };
 

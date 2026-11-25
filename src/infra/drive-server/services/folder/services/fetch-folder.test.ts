@@ -9,7 +9,7 @@ describe('fetch-folder', () => {
   const driveServerGetMock = partialSpyOn(driveServerClient, 'GET');
 
   it('should call GET /folders/content/{uuid} with correct params', async () => {
-    const folderData = { uuid: 'folder-uuid', deleted: false, removed: false };
+    const folderData = { uuid: 'folder-uuid', status: 'EXISTS' };
     driveServerGetMock.mockResolvedValue({ data: folderData } as object);
 
     await fetchFolder('folder-uuid');
@@ -23,7 +23,7 @@ describe('fetch-folder', () => {
   });
 
   it('should return data when the request is successful', async () => {
-    const folderData = { uuid: 'folder-uuid', deleted: false, removed: false };
+    const folderData = { uuid: 'folder-uuid', status: 'EXISTS' };
     driveServerGetMock.mockResolvedValue({ data: folderData } as object);
 
     const result = await fetchFolder('folder-uuid');
@@ -41,8 +41,8 @@ describe('fetch-folder', () => {
     expect(result.error).toBe(error);
   });
 
-  it('should return NOT_FOUND error when folder is deleted', async () => {
-    const folderData = { uuid: 'folder-uuid', deleted: true, removed: false };
+  it('should return NOT_FOUND error when folder status is DELETED', async () => {
+    const folderData = { uuid: 'folder-uuid', status: 'DELETED' };
     driveServerGetMock.mockResolvedValue({ data: folderData } as object);
 
     const result = await fetchFolder('folder-uuid');
@@ -50,13 +50,14 @@ describe('fetch-folder', () => {
     expect(result.error).toMatchObject({ cause: 'NOT_FOUND' });
     expect(result.data).toBe(undefined);
     call(loggerMock.error).toMatchObject({
-      msg: 'Folder is marked as deleted or removed',
+      msg: 'Folder status is not EXISTS',
+      status: 'DELETED',
       path: '/folders/content/folder-uuid',
     });
   });
 
-  it('should return NOT_FOUND error when folder is removed', async () => {
-    const folderData = { uuid: 'folder-uuid', deleted: false, removed: true };
+  it('should return NOT_FOUND error when folder status is TRASHED', async () => {
+    const folderData = { uuid: 'folder-uuid', status: 'TRASHED' };
     driveServerGetMock.mockResolvedValue({ data: folderData } as object);
 
     const result = await fetchFolder('folder-uuid');
@@ -64,7 +65,8 @@ describe('fetch-folder', () => {
     expect(result.error).toMatchObject({ cause: 'NOT_FOUND' });
     expect(result.data).toBe(undefined);
     call(loggerMock.error).toMatchObject({
-      msg: 'Folder is marked as deleted or removed',
+      msg: 'Folder status is not EXISTS',
+      status: 'TRASHED',
       path: '/folders/content/folder-uuid',
     });
   });

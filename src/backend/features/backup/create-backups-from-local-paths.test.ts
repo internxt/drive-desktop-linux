@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import * as createBackupModule from './create-backup';
 import * as DeviceModuleModule from '../device/device.module';
 import configStoreModule from '../../../apps/main/config';
@@ -15,7 +16,7 @@ describe('create-backups-from-local-paths', () => {
       uuid: 'device-uuid',
       name: 'Device',
       bucket: 'bucket',
-      removed: false,
+      status: DriveItemStatus.EXISTS,
       hasBackups: true,
     };
 
@@ -52,7 +53,7 @@ describe('create-backups-from-local-paths', () => {
       uuid: 'device-uuid',
       name: 'Device',
       bucket: 'bucket',
-      removed: false,
+      status: DriveItemStatus.EXISTS,
       hasBackups: true,
     };
     const folderPaths = [createAbsolutePath('/home/dev/Documents')];

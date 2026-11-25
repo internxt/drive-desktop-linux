@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend/infra/drive-item-status';
 import { Device } from '../../../../../../backend/features/backup/types/Device';
 import { screen, render, fireEvent } from '@testing-library/react';
 import DevicePill from './DevicePill';
@@ -12,7 +13,7 @@ const mockDevice: Device = {
   uuid: 'uuid1',
   name: 'Device 1',
   bucket: 'bucket1',
-  removed: false,
+  status: DriveItemStatus.EXISTS,
   hasBackups: true,
 };
 

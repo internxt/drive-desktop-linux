@@ -1,6 +1,7 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
+import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 import { driveServerModule } from '../../../infra/drive-server/drive-server.module';
 import type { Device } from '../backup/types/Device';
-import { logger } from '@internxt/drive-desktop-core/build/backend/core/logger/logger';
 
 export async function getActiveBackupDevices(): Promise<Array<Device>> {
   const response = await driveServerModule.backup.getDevices();
@@ -10,5 +11,5 @@ export async function getActiveBackupDevices(): Promise<Array<Device>> {
   }
 
   const devices = response.getRight();
-  return devices.filter(({ removed, hasBackups }) => !removed && hasBackups).map((device) => device);
+  return devices.filter(({ status, hasBackups }) => status === DriveItemStatus.EXISTS && hasBackups);
 }

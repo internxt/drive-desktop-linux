@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { enableExistingBackup } from '../../../backend/features/backup/enable-existing-backup';
 import configStore from '../config';
 import { fetchFolder } from '../../../infra/drive-server/services/folder/services/fetch-folder';
@@ -21,7 +22,7 @@ describe('enable-existing-backup', () => {
     bucket: 'test-bucket',
     uuid: 'device-uuid',
     name: 'Test Device',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: false,
   };
 

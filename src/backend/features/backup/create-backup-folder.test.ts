@@ -1,6 +1,6 @@
+import { DriveItemStatus, logger } from '@internxt/drive-desktop-core/build/backend';
 import { createBackupFolder } from './create-backup-folder';
 import * as createFolderModule from '../../../infra/drive-server/services/folder/services/create-folder';
-import { logger } from '@internxt/drive-desktop-core/build/backend';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { call } from '../../../../tests/vitest/utils.helper';
 import { partialSpyOn } from '../../../../tests/vitest/utils.helper';
@@ -17,7 +17,7 @@ describe('createBackupFolder', () => {
     uuid: 'device-123',
     bucket: 'test-bucket',
     name: 'Test Device',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: true,
   };
 

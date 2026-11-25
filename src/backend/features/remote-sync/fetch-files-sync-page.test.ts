@@ -1,10 +1,9 @@
-import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
+import { DriveItemStatus, type FileSyncDto } from '@internxt/drive-desktop-core/build/backend';
 import { partialSpyOn, call } from 'tests/vitest/utils.helper';
 
 import * as fetchFilesModule from '../../../infra/drive-server/services/files/services/fetch-files';
 import { DriveServerError } from '../../../infra/drive-server/drive-server.error';
 import { fetchFilesSyncPage } from './fetch-files-sync-page';
-import type { FileSyncDto } from './types';
 
 describe('fetch-files-sync-page', () => {
   const fetchFilesSyncMock = partialSpyOn(fetchFilesModule, 'fetchFilesSync');
