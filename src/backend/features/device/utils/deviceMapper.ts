@@ -1,3 +1,4 @@
+import { toDriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { components } from '../../../../infra/schemas';
 import { Device } from '../../backup/types/Device';
 
@@ -11,7 +12,7 @@ export function mapDeviceAsFolderToDevice(deviceAsFolder: components['schemas'][
     uuid: deviceAsFolder.uuid,
     name: deviceAsFolder.plainName,
     bucket: deviceAsFolder.bucket,
-    removed: deviceAsFolder.removed,
+    status: toDriveItemStatus(deviceAsFolder.status),
     hasBackups: deviceAsFolder.hasBackups,
   };
 }

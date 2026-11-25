@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import * as fetchFolderModule from '../../../infra/drive-server/services/folder/services/fetch-folder';
 import * as getCredentialsModule from '../../../apps/main/auth/get-credentials';
 import * as downloadModule from '../download/download-folder-as-zip';
@@ -18,7 +19,7 @@ describe('download-device-backup-zip', () => {
     uuid: 'device-uuid',
     name: 'Laptop',
     bucket: 'bucket',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: true,
   };
 

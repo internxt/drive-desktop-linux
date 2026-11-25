@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend/infra/drive-item-status';
 import { act, renderHook } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { DeviceContext, DeviceProvider } from './DeviceContext';
@@ -18,7 +19,7 @@ describe('DeviceContext', () => {
     uuid: 'device-uuid',
     name: 'Linux Device',
     bucket: 'bucket',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: false,
   };
 

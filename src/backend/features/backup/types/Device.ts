@@ -1,7 +1,9 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
+
 export type Device = {
   uuid: string;
   name: string;
   bucket: string;
-  removed: boolean;
+  status: DriveItemStatus;
   hasBackups: boolean;
 };

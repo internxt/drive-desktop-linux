@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend/infra/drive-item-status';
 import { Device } from '../../../../../../backend/features/backup/types/Device';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { DeviceContext, DeviceState } from '../../../../context/DeviceContext';
@@ -27,14 +28,14 @@ const mockDevices: Array<Device> = [
     uuid: 'uuid1',
     name: 'Device 1',
     bucket: 'bucket1',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: true,
   },
   {
     uuid: 'uuid2',
     name: 'Device 2',
     bucket: 'bucket2',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: true,
   },
 ];

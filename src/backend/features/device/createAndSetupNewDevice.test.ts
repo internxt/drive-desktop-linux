@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { BrowserWindow } from 'electron';
 import { loggerMock } from '../../../../tests/vitest/mocks.helper';
 import { call, partialSpyOn } from '../../../../tests/vitest/utils.helper';
@@ -27,7 +28,7 @@ describe('createAndSetupNewDevice', () => {
     uuid: 'device-uuid',
     name: 'Laptop',
     bucket: 'new-bucket',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: true,
   };
 

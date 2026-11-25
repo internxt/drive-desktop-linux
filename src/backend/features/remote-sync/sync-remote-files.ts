@@ -1,4 +1,4 @@
-import { logger, synchronizeRemoteItems } from '@internxt/drive-desktop-core/build/backend';
+import { logger, synchronizeRemoteItems, type FileSyncDto } from '@internxt/drive-desktop-core/build/backend';
 import { Result } from '@internxt/drive-desktop-core/build/common/result';
 import type { SyncConfig } from '../../../apps/main/remote-sync/helpers';
 import type { RemoteSyncErrorHandler } from '../../../apps/main/remote-sync/RemoteSyncErrorHandler/RemoteSyncErrorHandler';
@@ -6,7 +6,6 @@ import { DriveServerError } from '../../../infra/drive-server/drive-server.error
 import { fetchFilesSyncPage } from './fetch-files-sync-page';
 import { persistFilesSyncBatch } from './persist-files-sync-batch';
 import { handleSyncItemFailure } from './handle-sync-item-failure';
-import type { FileSyncDto } from './types';
 
 type Props = {
   syncConfig: SyncConfig;

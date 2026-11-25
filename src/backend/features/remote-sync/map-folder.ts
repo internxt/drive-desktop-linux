@@ -1,21 +1,9 @@
 import type { RemoteSyncedFolder } from '../../../apps/main/remote-sync/helpers';
-import { DriveItemStatus, toDriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
-import type { FolderSyncDto, FolderSyncMappingDto } from './types';
+import { toDriveItemStatus, type FolderSyncDto } from '@internxt/drive-desktop-core/build/backend';
+import type { FolderSyncMappingDto } from './types';
 
-export function resolveFolderStatus(
-  dto: Partial<Pick<FolderSyncDto, 'status' | 'removed' | 'deleted'>>,
-): RemoteSyncedFolder['status'] {
-  if (dto.status) {
-    return toDriveItemStatus(dto.status);
-  }
-  // TODO: remove this once the API is updated
-  if (dto.removed) {
-    return DriveItemStatus.TRASHED;
-  }
-  if (dto.deleted) {
-    return DriveItemStatus.DELETED;
-  }
-  return DriveItemStatus.EXISTS;
+export function resolveFolderStatus(dto: Pick<FolderSyncDto, 'status'>): RemoteSyncedFolder['status'] {
+  return toDriveItemStatus(dto.status);
 }
 
 export function mapFolder(dto: FolderSyncMappingDto): RemoteSyncedFolder {

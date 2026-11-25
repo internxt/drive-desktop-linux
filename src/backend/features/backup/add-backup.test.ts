@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import * as getPathFromDialogModule from '../../../core/utils/get-path-from-dialog';
 import * as createBackupModule from './create-backup';
 import * as DeviceModuleModule from './../../../backend/features/device/device.module';
@@ -22,7 +23,7 @@ describe('addBackup', () => {
     bucket: 'test-bucket',
     uuid: 'device-uuid',
     name: 'Test Device',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: false,
   };
 

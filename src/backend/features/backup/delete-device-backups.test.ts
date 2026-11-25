@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import * as addFolderToTrashModule from '../../../infra/drive-server/services/folder/services/add-folder-to-trash';
 import * as getBackupFolderTreeSnapshotModule from './get-backup-folder-tree-snapshot';
 import * as deleteBackupModule from './delete-backup';
@@ -19,7 +20,7 @@ describe('delete-device-backups', () => {
     uuid: 'device-uuid',
     name: 'Desktop',
     bucket: 'bucket',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: true,
   };
 

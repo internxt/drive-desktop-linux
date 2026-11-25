@@ -1,3 +1,4 @@
+import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import path from 'node:path';
 import { rm } from 'node:fs/promises';
 import { ipcMain } from 'electron';
@@ -27,7 +28,7 @@ describe('download-backup', () => {
     uuid: 'device-uuid',
     name: 'Desktop',
     bucket: 'bucket',
-    removed: false,
+    status: DriveItemStatus.EXISTS,
     hasBackups: true,
   };
 
