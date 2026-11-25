@@ -31,6 +31,7 @@ export function createBackupUpdateExecutor(
       fileUuid: remoteFile.uuid,
       environment,
       signal,
+      modificationTime: new Date(localFile.modificationTime),
     });
 
     tracker.incrementProcessed(1);

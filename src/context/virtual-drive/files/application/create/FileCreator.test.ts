@@ -13,6 +13,7 @@ import { EventBusMock } from '../../../../../context/virtual-drive/shared/__mock
 import { DriveDesktopError } from '../../../../shared/domain/errors/DriveDesktopError';
 import { calls } from '../../../../../../tests/vitest/utils.helper';
 import { PendingModificationTimes } from '../utimens/PendingModificationTimes';
+import { UuidMother } from '../../../../shared/domain/__test-helpers__/UuidMother';
 
 describe('File Creator', () => {
   let remoteFileSystemMock: RemoteFileSystemMock;
@@ -136,6 +137,48 @@ describe('File Creator', () => {
     await expect(SUT.run(path.value, contentsId.value, size.value)).rejects.toThrow();
 
     expect(pendingModificationTimes.take(path.value)).toEqual(requested);
+  });
+
+  it('does not store content mtime in pending times when create failed without utimens', async () => {
+    const path = new FilePath('/bird.png');
+    const contentsId = BucketEntryIdMother.random();
+    const size = FileSizeMother.random();
+    const contentMtime = new Date('2024-01-02T03:04:05.000Z');
+
+    remoteFileSystemMock.persistMock.mockResolvedValueOnce(left(new DriveDesktopError('UNKNOWN')));
+
+    await expect(
+      SUT.run(path.value, contentsId.value, size.value, { modificationTime: contentMtime }),
+    ).rejects.toThrow();
+
+    expect(pendingModificationTimes.take(path.value)).toBeUndefined();
+    expect(remoteFileSystemMock.persistMock).toHaveBeenCalledWith(
+      expect.objectContaining({ modificationTime: contentMtime }),
+    );
+  });
+
+  it('uses server updatedAt for the row timestamp and modificationTime for content mtime', async () => {
+    const path = new FilePath('/cat.png');
+    const contentsId = BucketEntryIdMother.random();
+    const size = FileSizeMother.random();
+    const contentMtime = '2020-01-02T03:04:05.000Z';
+    const rowUpdatedAt = '2025-06-07T08:09:10.000Z';
+
+    fileRepository.addMock.mockImplementationOnce(() => Promise.resolve());
+    remoteFileSystemMock.persistMock.mockResolvedValueOnce(
+      right({
+        uuid: UuidMother.primitive(),
+        createdAt: new Date().toISOString(),
+        modificationTime: contentMtime,
+        updatedAt: rowUpdatedAt,
+      }),
+    );
+
+    await SUT.run(path.value, contentsId.value, size.value);
+
+    const file = fileRepository.addMock.mock.calls[0][0];
+    expect(file.modificationTime.toISOString()).toBe(contentMtime);
+    expect(file.updatedAt.toISOString()).toBe(rowUpdatedAt);
   });
 
   it('spends a requested modification time exactly once on a create that lands', async () => {

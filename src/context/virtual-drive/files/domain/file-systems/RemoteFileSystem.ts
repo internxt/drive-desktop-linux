@@ -9,11 +9,15 @@ export type FileDataToPersist = {
   path: FilePath;
   size: FileSize;
   folderUuid: string;
+  /** utimensat on a staged file, or mtime from the local source. */
   modificationTime?: Date;
+  /** birthtime (or ctime) from the local source when available. */
+  creationTime?: Date;
 };
 
 export type PersistedFileData = {
-  modificationTime: string;
+  modificationTime?: string;
+  updatedAt: string;
   uuid: string;
   createdAt: string;
 };

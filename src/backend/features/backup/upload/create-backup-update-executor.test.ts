@@ -87,6 +87,7 @@ describe('createBackupUpdateExecutor', () => {
       fileUuid: remoteFile.uuid,
       environment,
       signal: abortController.signal,
+      modificationTime: new Date(localFile.modificationTime),
     });
   });
   it('should return success without updating when signal is already aborted', async () => {

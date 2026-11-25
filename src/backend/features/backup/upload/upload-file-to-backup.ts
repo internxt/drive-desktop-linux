@@ -19,6 +19,8 @@ export type UploadFileParams = {
   folderUuid: string;
   environment: Environment;
   signal: AbortSignal;
+  modificationTime?: Date;
+  creationTime?: Date;
 };
 
 async function uploadFile(file: UploadFileParams): Promise<Result<File | null, DriveDesktopError>> {
@@ -81,6 +83,8 @@ async function uploadFile(file: UploadFileParams): Promise<Result<File | null, D
         size: file.size,
         folderUuid: file.folderUuid,
         bucket: file.bucket,
+        modificationTime: file.modificationTime,
+        creationTime: file.creationTime,
       }),
     createTransientErrorHandler({ tag: 'BACKUPS', context: 'BACKUP UPLOAD RETRY', path: file.path }),
     file.signal,
