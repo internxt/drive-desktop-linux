@@ -8,9 +8,18 @@ import { FolderDeleter } from '../../../../../context/virtual-drive/folders/appl
 import { SingleFolderMatchingFinder } from '../../../../../context/virtual-drive/folders/application/SingleFolderMatchingFinder';
 import { SyncFolderMessenger } from '../../../../../context/virtual-drive/folders/domain/SyncFolderMessenger';
 import { FolderNotFoundError } from '../../../../../context/virtual-drive/folders/domain/errors/FolderNotFoundError';
+import { TemporalFileByFolderFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
 
 export async function rmdir(path: string, container: Container): Promise<Result<void, FuseError>> {
   try {
+    const temporalFiles = await container.get(TemporalFileByFolderFinder).run(path);
+
+    if (temporalFiles.length > 0) {
+      const msg = '[FUSE - Rmdir] Directory not empty';
+      logger.warn({ msg, path, entries: temporalFiles.length });
+      return { error: new FuseError(FuseCodes.ENOTEMPTY, `${msg}: ${path}`) };
+    }
+
     const folder = await container.get(SingleFolderMatchingFinder).run({
       path,
       status: DriveItemStatus.EXISTS,

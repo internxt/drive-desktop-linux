@@ -30,10 +30,13 @@ export async function opendir(path: string, container: Container): Promise<Resul
     ]);
     if (directory.error) return { error: directory.error };
 
+    const persistedNames = new Set(directory.data.files);
     const directoryEntries: DirEntry[] = [
       ...directory.data.files.map((name) => ({ name, mode: FILE_MODE })),
       ...directory.data.folders.map((name) => ({ name, mode: FOLDER_MODE })),
-      ...temporalFiles.filter((f) => f.isAuxiliary()).map((f) => ({ name: f.name, mode: FILE_MODE })),
+      ...temporalFiles
+        .filter((file) => !persistedNames.has(file.nameWithExtension))
+        .map((file) => ({ name: file.nameWithExtension, mode: FILE_MODE })),
     ];
 
     return { data: { entries: directoryEntries } };

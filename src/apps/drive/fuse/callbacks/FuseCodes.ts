@@ -8,6 +8,9 @@ export const FuseCodes = {
   // File or directory already exists
   EEXIST: 17,
 
+  // Directory not empty
+  ENOTEMPTY: 39,
+
   // Input/output error
   EIO: 5,
 

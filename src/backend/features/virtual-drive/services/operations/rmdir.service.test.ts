@@ -7,6 +7,8 @@ import { Folder } from '../../../../../context/virtual-drive/folders/domain/Fold
 import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { SyncFolderMessenger } from '../../../../../context/virtual-drive/folders/domain/SyncFolderMessenger';
 import { FolderNotFoundError } from '../../../../../context/virtual-drive/folders/domain/errors/FolderNotFoundError';
+import { TemporalFileByFolderFinder } from '../../../../../context/storage/TemporalFiles/application/find/TemporalFileByFolderFinder';
+import type { TemporalFile } from '../../../../../context/storage/TemporalFiles/domain/TemporalFile';
 import { rmdir } from './rmdir.service';
 
 vi.mock('@internxt/drive-desktop-core/build/backend');
@@ -16,6 +18,7 @@ describe('rmdir', () => {
   const folderFinder = mockDeep<SingleFolderMatchingFinder>();
   const folderDeleter = mockDeep<FolderDeleter>();
   const syncFolderMessenger = mockDeep<SyncFolderMessenger>();
+  const temporalFinder = mockDeep<TemporalFileByFolderFinder>();
 
   beforeEach(() => {
     container = mockDeep<Container>();
@@ -23,6 +26,8 @@ describe('rmdir', () => {
     container.get.calledWith(SingleFolderMatchingFinder).mockReturnValue(folderFinder);
     container.get.calledWith(FolderDeleter).mockReturnValue(folderDeleter);
     container.get.calledWith(SyncFolderMessenger).mockReturnValue(syncFolderMessenger);
+    container.get.calledWith(TemporalFileByFolderFinder).mockReturnValue(temporalFinder);
+    temporalFinder.run.mockResolvedValue([]);
   });
 
   it('should trash folder when folder exists', async () => {
@@ -41,6 +46,17 @@ describe('rmdir', () => {
     expect(error).toBeUndefined();
     expect(data).toBeUndefined();
     expect(folderDeleter.run).toHaveBeenCalledWith('550e8400-e29b-41d4-a716-446655440010');
+    expect(syncFolderMessenger.issue).not.toHaveBeenCalled();
+  });
+
+  it('should refuse to trash a folder that still has files being uploaded', async () => {
+    temporalFinder.run.mockResolvedValue([mockDeep<TemporalFile>()]);
+
+    const { data, error } = await rmdir('/Pics/.strata-replacement-gKlrIt', container);
+
+    expect(data).toBeUndefined();
+    expect(error?.code).toBe(FuseCodes.ENOTEMPTY);
+    expect(folderDeleter.run).not.toHaveBeenCalled();
     expect(syncFolderMessenger.issue).not.toHaveBeenCalled();
   });
 
