@@ -6,8 +6,8 @@ import { createAuthWindow } from '../windows/auth';
 import { stopVirtualDriveOnce } from '../../../backend/features/virtual-drive/services/drive-folder/virtual-drive.service';
 import { resetAppDataSourceOnLogout } from '../database/data-source';
 import { uninstallFileManagerExtension } from '../../../backend/features/file-manager-extension/install';
-import { setInitialSyncState } from '../remote-sync/InitialSyncReady';
-import { remoteSyncManager, cancelPendingRemoteSync } from '../remote-sync/service';
+import { resetRemoteSyncStore } from '../../../backend/features/remote-sync/store/reset-remote-sync-store';
+import { cancelPendingRemoteSync } from '../remote-sync/service';
 import { AntivirusScanService } from '../antivirus/AntivirusScanService';
 import { getAntivirusManager } from '../antivirus/antivirusManager';
 import { tryCatch } from '../../../shared/try-catch';
@@ -59,8 +59,7 @@ async function executeCloseUserSessionResources() {
     tryCatch(
       () => {
         cancelPendingRemoteSync();
-        setInitialSyncState('NOT_READY');
-        remoteSyncManager.resetRemoteSync();
+        resetRemoteSyncStore();
       },
       (error) =>
         logger.error({ tag: 'AUTH', msg: '[LOGOUT] Failed to run cleanup step', step: 'stop-remote-sync', error }),

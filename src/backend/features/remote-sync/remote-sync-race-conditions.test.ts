@@ -22,6 +22,8 @@ vi.mock('../virtual-drive/services/lazy/directory-state-sqlite-repository', () =
 }));
 
 import { RemoteSyncManager } from '../../../apps/main/remote-sync/RemoteSyncManager';
+import { remoteSyncState } from './store/remote-sync-state';
+import { resetRemoteSyncStore } from './store/reset-remote-sync-store';
 import { RemoteSyncErrorHandler } from '../../../apps/main/remote-sync/RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { driveServerClient } from '../../../infra/drive-server/client/drive-server.client.instance';
 import { createOrUpdateFileByBatch } from '../../../infra/sqlite/services/file/create-or-update-file-by-batch';
@@ -45,6 +47,7 @@ describe('remote-sync-race-conditions', () => {
   let errorHandler: RemoteSyncErrorHandler;
 
   beforeEach(() => {
+    resetRemoteSyncStore();
     vi.clearAllMocks();
     mockedGetFreshDirectoryStates.mockResolvedValue(new Map());
     mockedInvalidate.mockResolvedValue(undefined);
@@ -97,7 +100,7 @@ describe('remote-sync-race-conditions', () => {
 
       await Promise.all([firstSync, secondSync]);
 
-      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(remoteSyncState.status).toBe('SYNCED');
       expect(mockedGet).toHaveBeenCalledTimes(2);
     });
   });
@@ -220,7 +223,7 @@ describe('remote-sync-race-conditions', () => {
       await sut.startRemoteSync();
 
       expect(folderAttempts).toBe(2);
-      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(remoteSyncState.status).toBe('SYNCED');
     });
 
     it('sets status to SYNC_FAILED when all retries are exhausted', async () => {
@@ -228,7 +231,7 @@ describe('remote-sync-race-conditions', () => {
 
       await sut.startRemoteSync();
 
-      expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
+      expect(remoteSyncState.status).toBe('SYNC_FAILED');
     });
   });
 });

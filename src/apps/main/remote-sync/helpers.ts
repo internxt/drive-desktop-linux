@@ -1,5 +1,7 @@
 import type { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 
+export type { RemoteSyncStatus } from '../../../backend/features/remote-sync/types';
+
 export const SIX_HOURS_IN_MILLISECONDS = 6 * 60 * 60 * 1000;
 
 export type RemoteSyncedFile = {
@@ -29,7 +31,6 @@ export type RemoteSyncedFolder = {
   status: DriveItemStatus;
 };
 
-export type RemoteSyncStatus = 'IDLE' | 'SYNCED' | 'SYNCING' | 'SYNC_FAILED';
 export type SyncConfig = {
   retry: number;
   maxRetries: number;
