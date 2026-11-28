@@ -1,27 +1,18 @@
 import * as debounceModule from 'lodash';
 import * as eventBusModule from '../event-bus';
 import * as windowsModule from '../windows';
-import * as initialSyncReadyModule from './InitialSyncReady';
+import * as subscribeRemoteSyncStoreModule from '../../../backend/features/remote-sync/store/subscribe-remote-sync-store';
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import type { DebouncedFunc } from 'lodash';
 
-const {
-  startRemoteSyncMock,
-  onStatusChangeMock,
-  emitMock,
-  broadcastToWindowsMock,
-  setInitialSyncStateMock,
-  isInitialSyncReadyMock,
-  debounceMock,
-} = vi.hoisted(() => ({
-  startRemoteSyncMock: vi.fn(),
-  onStatusChangeMock: vi.fn(),
-  emitMock: vi.fn(),
-  broadcastToWindowsMock: vi.fn(),
-  setInitialSyncStateMock: vi.fn(),
-  isInitialSyncReadyMock: vi.fn(() => true),
-  debounceMock: vi.fn(),
-}));
+const { startRemoteSyncMock, subscribeRemoteSyncStoreMock, emitMock, broadcastToWindowsMock, debounceMock } =
+  vi.hoisted(() => ({
+    startRemoteSyncMock: vi.fn(),
+    subscribeRemoteSyncStoreMock: vi.fn(),
+    emitMock: vi.fn(),
+    broadcastToWindowsMock: vi.fn(),
+    debounceMock: vi.fn(),
+  }));
 
 vi.mock('lodash', () => ({
   debounce: debounceMock,
@@ -37,9 +28,8 @@ vi.mock('../windows', () => ({
   broadcastToWindows: broadcastToWindowsMock,
 }));
 
-vi.mock('./InitialSyncReady', () => ({
-  isInitialSyncReady: isInitialSyncReadyMock,
-  setInitialSyncState: setInitialSyncStateMock,
+vi.mock('../../../backend/features/remote-sync/store/subscribe-remote-sync-store', () => ({
+  subscribeRemoteSyncStore: subscribeRemoteSyncStoreMock,
 }));
 
 vi.mock('./RemoteSyncErrorHandler/RemoteSyncErrorHandler', () => ({
@@ -61,12 +51,8 @@ vi.mock('../database/collections/DriveFolderCollection', () => ({
 }));
 
 vi.mock('./RemoteSyncManager', () => ({
-  RemoteSyncManager: vi.fn(function RemoteSyncManagerMock(this: {
-    startRemoteSync: typeof startRemoteSyncMock;
-    onStatusChange: typeof onStatusChangeMock;
-  }) {
+  RemoteSyncManager: vi.fn(function RemoteSyncManagerMock(this: { startRemoteSync: typeof startRemoteSyncMock }) {
     this.startRemoteSync = startRemoteSyncMock;
-    this.onStatusChange = onStatusChangeMock;
   }),
 }));
 
@@ -76,13 +62,12 @@ describe('remote sync service', () => {
   const debounceSpy = partialSpyOn(debounceModule, 'debounce');
   const eventBusEmitSpy = partialSpyOn(eventBusModule.default, 'emit');
   const broadcastToWindowsSpy = partialSpyOn(windowsModule, 'broadcastToWindows');
-  const initialSyncReadySpy = partialSpyOn(initialSyncReadyModule, 'isInitialSyncReady');
-  const setInitialSyncStateSpy = partialSpyOn(initialSyncReadyModule, 'setInitialSyncState');
+  const subscribeRemoteSyncStoreSpy = partialSpyOn(subscribeRemoteSyncStoreModule, 'subscribeRemoteSyncStore');
 
   beforeEach(async () => {
     vi.resetModules();
     startRemoteSyncMock.mockResolvedValue(undefined);
-    isInitialSyncReadyMock.mockReturnValue(true);
+    subscribeRemoteSyncStoreMock.mockReturnValue(() => undefined);
     debounceMock.mockImplementation((fn: () => Promise<void>) => {
       const debounced = vi.fn(async () => fn()) as unknown as DebouncedFunc<() => Promise<void>>;
       debounced.cancel = vi.fn();
@@ -96,8 +81,8 @@ describe('remote sync service', () => {
     });
     eventBusEmitSpy.mockImplementation(() => true);
     broadcastToWindowsSpy.mockImplementation(() => undefined);
-    initialSyncReadySpy.mockReturnValue(true);
-    setInitialSyncStateSpy.mockImplementation(() => true);
+    subscribeRemoteSyncStoreSpy.mockImplementation(() => () => undefined);
+
     serviceModule = await import('./service');
   });
 
@@ -122,8 +107,8 @@ describe('remote sync service', () => {
     expect(debouncedFunction.cancel).toHaveBeenCalledTimes(1);
   });
 
-  it('should register the status listener on the remote sync manager', () => {
+  it('should register the status listener on the remote sync store', () => {
     expect(serviceModule.remoteSyncManager).toBeDefined();
-    expect(onStatusChangeMock).toHaveBeenCalledTimes(1);
+    expect(subscribeRemoteSyncStoreMock).toHaveBeenCalledTimes(1);
   });
 });

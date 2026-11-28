@@ -1,16 +1,17 @@
 import { ipcMain } from 'electron';
 import { logger } from '@internxt/drive-desktop-core/build/backend';
 import eventBus from '../event-bus';
-import { setInitialSyncState } from './InitialSyncReady';
+import { remoteSyncState } from '../../../backend/features/remote-sync/store/remote-sync-state';
+import { resetRemoteSyncStore } from '../../../backend/features/remote-sync/store/reset-remote-sync-store';
 import { remoteSyncManager, resyncRemoteSync, startRemoteSync } from './service';
 
 export function registerRemoteSyncHandlers() {
+  ipcMain.handle('get-remote-sync-status', () => remoteSyncState.status);
+
   ipcMain.handle('START_REMOTE_SYNC', async () => {
     await startRemoteSync();
     eventBus.emit('REMOTE_CHANGES_SYNCHED');
   });
-
-  ipcMain.handle('get-remote-sync-status', () => remoteSyncManager.getSyncStatus());
 
   eventBus.on('RECEIVED_REMOTE_CHANGES', async () => {
     // Wait before checking for updates, could be possible
@@ -30,8 +31,7 @@ export function registerRemoteSyncHandlers() {
   });
 
   eventBus.on('USER_LOGGED_OUT', () => {
-    setInitialSyncState('NOT_READY');
-    remoteSyncManager.resetRemoteSync();
+    resetRemoteSyncStore();
   });
 }
 

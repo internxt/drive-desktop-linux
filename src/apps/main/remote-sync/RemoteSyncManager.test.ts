@@ -18,6 +18,8 @@ vi.mock('../../../infra/sqlite/services/folder/create-or-update-folder-by-batch'
 }));
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { RemoteSyncManager } from './RemoteSyncManager';
+import { remoteSyncState } from '../../../backend/features/remote-sync/store/remote-sync-state';
+import { resetRemoteSyncStore } from '../../../backend/features/remote-sync/store/reset-remote-sync-store';
 import { DriveItemStatus } from '@internxt/drive-desktop-core/build/backend';
 import { RemoteSyncedFile, RemoteSyncedFolder } from './helpers';
 import * as uuid from 'uuid';
@@ -94,6 +96,7 @@ describe('RemoteSyncManager', () => {
   inMemorySyncedFoldersCollection.getLastUpdated = () => Promise.resolve({ success: false, result: null });
 
   beforeEach(() => {
+    resetRemoteSyncStore();
     errorHandler = new RemoteSyncErrorHandler();
 
     sut = new RemoteSyncManager(
@@ -151,7 +154,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
 
       expect(mockedGet).toBeCalledTimes(2);
-      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(remoteSyncState.status).toBe('SYNCED');
     });
     it('Should sync all the folders', async () => {
       const sut = new RemoteSyncManager(
@@ -197,7 +200,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
 
       expect(mockedGet).toHaveBeenCalledTimes(3);
-      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(remoteSyncState.status).toBe('SYNCED');
     });
 
     it('Should save the files in the database', async () => {
@@ -227,7 +230,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
 
       expect(mockedGet).toHaveBeenCalledTimes(1);
-      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(remoteSyncState.status).toBe('SYNCED');
       expect(mockedCreateOrUpdateFileByBatch).toBeCalledWith({
         files: [file1, file2].map(
           ({
@@ -288,7 +291,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
 
       expect(mockedGet).toHaveBeenCalledTimes(1);
-      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(remoteSyncState.status).toBe('SYNCED');
       expect(mockedCreateOrUpdateFolderByBatch).toBeCalledWith({
         folders: [folder1, folder2].map(
           ({ type, bucket, userId, createdAt, updatedAt, uuid, plainName, parentUuid, status }) => ({
@@ -314,7 +317,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
 
       expect(mockedGet).toHaveBeenCalledTimes(6);
-      expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
+      expect(remoteSyncState.status).toBe('SYNC_FAILED');
     });
 
     it('Should fail the sync if some files or folders cannot be retrieved', async () => {
@@ -323,7 +326,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
 
       expect(mockedGet).toHaveBeenCalledTimes(6);
-      expect(sut.getSyncStatus()).toBe('SYNC_FAILED');
+      expect(remoteSyncState.status).toBe('SYNC_FAILED');
     });
 
     it('should handle the error while syncing files by calling the error handler properly', async () => {
@@ -392,7 +395,7 @@ describe('RemoteSyncManager', () => {
       await sut.startRemoteSync();
 
       expect(callOrder).toStrictEqual(['folders', 'files']);
-      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(remoteSyncState.status).toBe('SYNCED');
     });
 
     it('should query status EXISTS for folders during bootstrap without checkpoint', async () => {
@@ -411,7 +414,7 @@ describe('RemoteSyncManager', () => {
 
       expect(folderQueries).toHaveLength(1);
       expect(folderQueries[0]?.status).toBe('EXISTS');
-      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(remoteSyncState.status).toBe('SYNCED');
     });
 
     it('should omit status for folders during incremental sync with checkpoint', async () => {
@@ -434,7 +437,7 @@ describe('RemoteSyncManager', () => {
 
       expect(folderQueries).toHaveLength(1);
       expect(folderQueries[0]?.status).toBeUndefined();
-      expect(sut.getSyncStatus()).toBe('SYNCED');
+      expect(remoteSyncState.status).toBe('SYNCED');
     });
   });
 });

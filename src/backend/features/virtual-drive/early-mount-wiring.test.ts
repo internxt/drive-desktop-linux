@@ -1,7 +1,7 @@
 import eventBus from '../../../apps/main/event-bus';
 import * as virtualDriveServiceModule from './services/drive-folder/virtual-drive.service';
 import { remoteSyncManager } from '../../../apps/main/remote-sync/service';
-import * as initialSyncReadyModule from '../../../apps/main/remote-sync/InitialSyncReady';
+import * as resetRemoteSyncStoreModule from '../remote-sync/store/reset-remote-sync-store';
 import { registerVirtualDriveHandlers } from './ipc/handlers';
 import { registerRemoteSyncHandlers } from '../../../apps/main/remote-sync/handlers';
 import { partialSpyOn, calls } from '../../../../tests/vitest/utils.helper';
@@ -9,15 +9,13 @@ import { partialSpyOn, calls } from '../../../../tests/vitest/utils.helper';
 describe('early mount wiring', () => {
   const startVirtualDriveSpy = partialSpyOn(virtualDriveServiceModule, 'startVirtualDrive');
   const startRemoteSyncSpy = partialSpyOn(remoteSyncManager, 'startRemoteSync');
-  const resetRemoteSyncSpy = partialSpyOn(remoteSyncManager, 'resetRemoteSync');
-  const setInitialSyncStateSpy = partialSpyOn(initialSyncReadyModule, 'setInitialSyncState');
+  const resetRemoteSyncStoreSpy = partialSpyOn(resetRemoteSyncStoreModule, 'resetRemoteSyncStore');
 
   beforeEach(() => {
     eventBus.removeAllListeners();
     startVirtualDriveSpy.mockResolvedValue(undefined);
     startRemoteSyncSpy.mockResolvedValue(undefined);
-    resetRemoteSyncSpy.mockReturnValue(undefined);
-    setInitialSyncStateSpy.mockReturnValue(true);
+    resetRemoteSyncStoreSpy.mockReturnValue(undefined);
     registerVirtualDriveHandlers();
     registerRemoteSyncHandlers();
   });
@@ -43,8 +41,6 @@ describe('early mount wiring', () => {
   it('resets sync state on USER_LOGGED_OUT', () => {
     eventBus.emit('USER_LOGGED_OUT');
 
-    calls(resetRemoteSyncSpy).toHaveLength(1);
-    calls(setInitialSyncStateSpy).toHaveLength(1);
-    expect(setInitialSyncStateSpy).toHaveBeenCalledWith('NOT_READY');
+    calls(resetRemoteSyncStoreSpy).toHaveLength(1);
   });
 });

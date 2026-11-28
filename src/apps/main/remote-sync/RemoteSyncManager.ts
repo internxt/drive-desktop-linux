@@ -1,5 +1,5 @@
 import { logger } from '@internxt/drive-desktop-core/build/backend';
-import { RemoteSyncStatus, SyncConfig, rewind, SIX_HOURS_IN_MILLISECONDS } from './helpers';
+import { SyncConfig, rewind, SIX_HOURS_IN_MILLISECONDS } from './helpers';
 import { DatabaseCollectionAdapter } from '../database/adapters/base';
 import { DriveFolder } from '../database/entities/DriveFolder';
 import { DriveFile } from '../database/entities/DriveFile';
@@ -7,15 +7,13 @@ import { Nullable } from '../../shared/types/Nullable';
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
 import { syncRemoteFiles as syncFiles } from '../../../backend/features/remote-sync/sync-remote-files';
 import { syncRemoteFolders as syncFolders } from '../../../backend/features/remote-sync/sync-remote-folders';
+import { beginRemoteSync } from '../../../backend/features/remote-sync/store/begin-remote-sync';
+import { remoteSyncState } from '../../../backend/features/remote-sync/store/remote-sync-state';
+import { setAggregateStatus } from '../../../backend/features/remote-sync/store/set-aggregate-status';
+import { setFilesSyncResult } from '../../../backend/features/remote-sync/store/set-files-sync-result';
+import { setFoldersSyncResult } from '../../../backend/features/remote-sync/store/set-folders-sync-result';
 
 export class RemoteSyncManager {
-  private foldersSyncStatus: RemoteSyncStatus = 'IDLE';
-  private filesSyncStatus: RemoteSyncStatus = 'IDLE';
-  private status: RemoteSyncStatus = 'IDLE';
-  private onStatusChangeCallbacks: Array<(newStatus: RemoteSyncStatus) => void> = [];
-  private totalFilesSynced = 0;
-  private totalFoldersSynced = 0;
-
   constructor(
     private db: {
       files: DatabaseCollectionAdapter<DriveFile>;
@@ -31,36 +29,6 @@ export class RemoteSyncManager {
     private errorHandler: RemoteSyncErrorHandler,
   ) {}
 
-  getTotalFilesSynced() {
-    return this.totalFilesSynced;
-  }
-
-  onStatusChange(callback: (newStatus: RemoteSyncStatus) => void) {
-    if (typeof callback !== 'function') return;
-    this.onStatusChangeCallbacks.push(callback);
-  }
-
-  getSyncStatus(): RemoteSyncStatus {
-    return this.status;
-  }
-
-  /**
-   * Check if the RemoteSyncManager is in SYNCED status
-   *
-   * @returns True if local database is synced with remote files and folders
-   */
-  localIsSynced() {
-    return this.status === 'SYNCED';
-  }
-
-  resetRemoteSync() {
-    this.changeStatus('IDLE');
-    this.filesSyncStatus = 'IDLE';
-    this.foldersSyncStatus = 'IDLE';
-    this.totalFilesSynced = 0;
-    this.totalFoldersSynced = 0;
-  }
-
   /**
    * Triggers a remote sync so we can populate the localDB, this sync
    * is global and starts pulling all the files the user has in remote.
@@ -68,7 +36,7 @@ export class RemoteSyncManager {
    * Throws an error if there's a sync in progress for this class instance
    */
   async startRemoteSync() {
-    if (this.status === 'SYNCING') {
+    if (remoteSyncState.status === 'SYNCING') {
       logger.debug({ tag: 'SYNC-ENGINE', msg: 'Sync already in progress, skipping' });
       return;
     }
@@ -79,11 +47,10 @@ export class RemoteSyncManager {
       return;
     }
 
-    this.changeStatus('SYNCING');
-    this.totalFilesSynced = 0;
-    this.totalFoldersSynced = 0;
-    this.filesSyncStatus = 'IDLE';
-    this.foldersSyncStatus = 'IDLE';
+    beginRemoteSync({
+      syncFiles: this.config.syncFiles,
+      syncFolders: this.config.syncFolders,
+    });
 
     logger.debug({ tag: 'SYNC-ENGINE', msg: 'Starting' });
     try {
@@ -103,7 +70,7 @@ export class RemoteSyncManager {
         });
       }
     } catch (error) {
-      this.changeStatus('SYNC_FAILED');
+      setAggregateStatus('SYNC_FAILED');
       logger.error({
         tag: 'SYNC-ENGINE',
         msg: 'Remote sync failed with uncontrolled error: ',
@@ -112,11 +79,11 @@ export class RemoteSyncManager {
     } finally {
       logger.debug({
         tag: 'SYNC-ENGINE',
-        msg: `Total synced files: ${this.totalFilesSynced}`,
+        msg: `Total synced files: ${remoteSyncState.totalFilesSynced}`,
       });
       logger.debug({
         tag: 'SYNC-ENGINE',
-        msg: `Total synced folders: ${this.totalFoldersSynced}`,
+        msg: `Total synced folders: ${remoteSyncState.totalFoldersSynced}`,
       });
     }
   }
@@ -125,7 +92,7 @@ export class RemoteSyncManager {
    * Run smoke tests before starting the RemoteSyncManager, otherwise fail
    */
   private smokeTest() {
-    if (this.status === 'SYNCING') {
+    if (remoteSyncState.status === 'SYNCING') {
       logger.warn({
         tag: 'SYNC-ENGINE',
         msg: 'RemoteSyncManager should not be in SYNCING status to start, not starting again',
@@ -135,44 +102,6 @@ export class RemoteSyncManager {
     }
 
     return true;
-  }
-
-  private changeStatus(newStatus: RemoteSyncStatus) {
-    if (newStatus === this.status) return;
-    logger.debug({
-      tag: 'SYNC-ENGINE',
-      msg: `RemoteSyncManager ${this.status} -> ${newStatus}`,
-    });
-    this.status = newStatus;
-    this.onStatusChangeCallbacks.forEach((callback) => {
-      if (typeof callback !== 'function') return;
-      callback(newStatus);
-    });
-  }
-
-  private checkRemoteSyncStatus() {
-    // We only syncing files
-    if (this.config.syncFiles && !this.config.syncFolders && this.filesSyncStatus === 'SYNCED') {
-      this.changeStatus('SYNCED');
-      return;
-    }
-
-    // We only syncing folders
-    if (!this.config.syncFiles && this.config.syncFolders && this.foldersSyncStatus === 'SYNCED') {
-      this.changeStatus('SYNCED');
-      return;
-    }
-    // Files and folders are synced, RemoteSync is Synced
-    if (this.foldersSyncStatus === 'SYNCED' && this.filesSyncStatus === 'SYNCED') {
-      this.changeStatus('SYNCED');
-      return;
-    }
-
-    // Files OR Folders sync failed, RemoteSync Failed
-    if (this.foldersSyncStatus === 'SYNC_FAILED' || this.filesSyncStatus === 'SYNC_FAILED') {
-      this.changeStatus('SYNC_FAILED');
-      return;
-    }
   }
 
   private async getFileCheckpoint(): Promise<Nullable<Date>> {
@@ -198,12 +127,10 @@ export class RemoteSyncManager {
     });
 
     if (result.error) {
-      this.filesSyncStatus = 'SYNC_FAILED';
+      setFilesSyncResult({ error: true, totalSynced: 0 });
     } else {
-      this.totalFilesSynced += result.data.totalSynced;
-      this.filesSyncStatus = 'SYNCED';
+      setFilesSyncResult({ error: false, totalSynced: result.data.totalSynced });
     }
-    this.checkRemoteSyncStatus();
   }
 
   private async getLastFolderSyncAt(): Promise<Nullable<Date>> {
@@ -233,11 +160,9 @@ export class RemoteSyncManager {
     });
 
     if (result.error) {
-      this.foldersSyncStatus = 'SYNC_FAILED';
+      setFoldersSyncResult({ error: true, totalSynced: 0 });
     } else {
-      this.totalFoldersSynced += result.data.totalSynced;
-      this.foldersSyncStatus = 'SYNCED';
+      setFoldersSyncResult({ error: false, totalSynced: result.data.totalSynced });
     }
-    this.checkRemoteSyncStatus();
   }
 }

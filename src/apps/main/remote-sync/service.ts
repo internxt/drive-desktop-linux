@@ -4,8 +4,9 @@ import { DriveFilesCollection } from '../database/collections/DriveFileCollectio
 import { DriveFoldersCollection } from '../database/collections/DriveFolderCollection';
 import { RemoteSyncManager } from './RemoteSyncManager';
 import { broadcastToWindows } from '../windows';
-import { isInitialSyncReady, setInitialSyncState } from './InitialSyncReady';
 import { RemoteSyncErrorHandler } from './RemoteSyncErrorHandler/RemoteSyncErrorHandler';
+import { remoteSyncState } from '../../../backend/features/remote-sync/store/remote-sync-state';
+import { subscribeRemoteSyncStore } from '../../../backend/features/remote-sync/store/subscribe-remote-sync-store';
 
 const SYNC_DEBOUNCE_DELAY = 3_000;
 const DEFAULT_FETCH_LIMIT = 500;
@@ -28,9 +29,9 @@ export const remoteSyncManager = new RemoteSyncManager(
   errorHandler,
 );
 
-remoteSyncManager.onStatusChange(async (newStatus) => {
-  if (!isInitialSyncReady() && newStatus === 'SYNCED') {
-    setInitialSyncState('READY');
+subscribeRemoteSyncStore(async (newStatus) => {
+  if (!remoteSyncState.initialSyncReady && newStatus === 'SYNCED') {
+    remoteSyncState.initialSyncReady = true;
     eventBus.emit('INITIAL_SYNC_READY');
   }
   broadcastToWindows('remote-sync-status-change', newStatus);
