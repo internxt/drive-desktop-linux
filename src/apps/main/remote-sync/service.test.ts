@@ -5,19 +5,14 @@ import * as subscribeRemoteSyncStoreModule from '../../../backend/features/remot
 import { call, partialSpyOn } from 'tests/vitest/utils.helper';
 import type { DebouncedFunc } from 'lodash';
 
-const {
-  startRemoteSyncMock,
-  subscribeRemoteSyncStoreMock,
-  emitMock,
-  broadcastToWindowsMock,
-  debounceMock,
-} = vi.hoisted(() => ({
-  startRemoteSyncMock: vi.fn(),
-  subscribeRemoteSyncStoreMock: vi.fn(),
-  emitMock: vi.fn(),
-  broadcastToWindowsMock: vi.fn(),
-  debounceMock: vi.fn(),
-}));
+const { startRemoteSyncMock, subscribeRemoteSyncStoreMock, emitMock, broadcastToWindowsMock, debounceMock } =
+  vi.hoisted(() => ({
+    startRemoteSyncMock: vi.fn(),
+    subscribeRemoteSyncStoreMock: vi.fn(),
+    emitMock: vi.fn(),
+    broadcastToWindowsMock: vi.fn(),
+    debounceMock: vi.fn(),
+  }));
 
 vi.mock('lodash', () => ({
   debounce: debounceMock,
@@ -56,9 +51,7 @@ vi.mock('../database/collections/DriveFolderCollection', () => ({
 }));
 
 vi.mock('./RemoteSyncManager', () => ({
-  RemoteSyncManager: vi.fn(function RemoteSyncManagerMock(this: {
-    startRemoteSync: typeof startRemoteSyncMock;
-  }) {
+  RemoteSyncManager: vi.fn(function RemoteSyncManagerMock(this: { startRemoteSync: typeof startRemoteSyncMock }) {
     this.startRemoteSync = startRemoteSyncMock;
   }),
 }));
